@@ -5,10 +5,12 @@ NetFeeliX 논문/프로젝트 문서를 작성하라.
 ## 사전 읽기
 
 1. `/pscratch/sd/s/sjmoon/NetFeeliX/CLAUDE.md`
-2. `/pscratch/sd/s/sjmoon/NetFeeliX/Paper/framework_EN.md`
-3. `/pscratch/sd/s/sjmoon/NetFeeliX/Paper/methodology.md`
-4. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/literature_map.md`
-5. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/papers.md`
+2. `/pscratch/sd/s/sjmoon/NetFeeliX/CONTEXT_NETFEELIX.md`
+3. `/pscratch/sd/s/sjmoon/NetFeeliX/workflows/README.md`
+4. `/pscratch/sd/s/sjmoon/NetFeeliX/Paper/framework_EN.md`
+5. `/pscratch/sd/s/sjmoon/NetFeeliX/Paper/methodology.md`
+6. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/systematic_reference_map.md`
+7. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/papers.md`
 
 ## 글쓰기 원칙
 
@@ -22,4 +24,4 @@ NetFeeliX 논문/프로젝트 문서를 작성하라.
 - framework 수정: `/pscratch/sd/s/sjmoon/NetFeeliX/Paper/`
 - literature update: `/pscratch/sd/s/sjmoon/NetFeeliX/reference/`
 - planning memo: `/pscratch/sd/s/sjmoon/NetFeeliX/notes/`
-
+- structured cards: use `/pscratch/sd/s/sjmoon/NetFeeliX/templates/` and save durable reports under `/pscratch/sd/s/sjmoon/NetFeeliX/reports/`

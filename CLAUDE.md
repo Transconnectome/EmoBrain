@@ -4,11 +4,17 @@
 
 ```text
 NetFeeliX/
+├── ONBOARDING.md    # first-read guide for humans and AI agents
+├── CONTEXT_NETFEELIX.md # compact SSOT for project framing
 ├── CLAUDE.md
 ├── CODEX.md
 ├── Paper/          # canonical framework + methodology only
 ├── reference/      # 문헌, 데이터셋, 코드 리소스, 검색 로그
 ├── notes/          # 결정사항, 회의 메모, 실행 계획
+├── templates/      # paper/dataset/model/experiment/review/decision templates
+├── workflows/      # research operating workflows
+├── scripts/        # project-operation automation
+├── reports/        # generated status, review, and weekly reports
 ├── code/           # 공통 코드 설명 및 shared utilities 계획
 └── study{N}/
     ├── code/       # .py, .sh, .md 설명 파일
@@ -20,7 +26,7 @@ NetFeeliX/
 ## Hard Rules
 
 - 스크립트는 반드시 `study{N}/code/` 또는 명확한 공통 유틸리티일 경우 `code/`에 둔다.
-- 새 스크립트를 만들면 같은 폴더에 같은 stem의 `.md` 설명 파일을 함께 만든다.
+- Project-operation scripts live in `scripts/`. Runnable experiment scripts live in `study{N}/code/`.
 - `data/`는 중간 처리물, `results/`는 분석 결과물, `logs/`는 실행 로그다.
 - 전체 프로젝트 프레임, 내러티브, proposal-level 내용은 반드시 `Paper/framework_EN.md`와 `Paper/framework_KR.md`에 기록한다. 새 brief/proposal/narrative 파일을 만들지 않는다.
 - 방법론 세부사항은 `Paper/methodology.md`에 기록한다.
@@ -28,6 +34,18 @@ NetFeeliX/
 - 실험 결정은 `notes/project_decisions.md`에 날짜와 함께 기록한다.
 - 결과 수치가 없는 주장은 hypothesis 또는 planned analysis로 표시한다.
 - `.md` 파일을 무작정 늘리지 않는다. 기존 canonical 문서에 병합 가능한 내용은 병합한다.
+- Use `templates/` for new structured research objects and `workflows/` for process. Do not create one-off Markdown files outside these conventions.
+- Run `python3 scripts/check_md_completeness.py` after structural documentation edits.
+
+## Operating System
+
+- `ONBOARDING.md` defines the first-read path.
+- `CONTEXT_NETFEELIX.md` is the compact project SSOT.
+- `workflows/literature_sota_workflow.md` governs literature, dataset, and code expansion.
+- `workflows/experiment_planning_workflow.md` turns ideas into experiment cards.
+- `workflows/red_blue_team_review.md` stress-tests claims and model plans.
+- `workflows/weekly_update_workflow.md` produces durable progress summaries.
+- `scripts/build_project_status.py` writes `reports/status/PROJECT_STATUS.md`.
 
 ## Confirmed Framing
 

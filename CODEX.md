@@ -4,16 +4,19 @@ This file gives coding-agent instructions for NetFeeliX.
 
 ## Working Style
 
-- Read `README.md`, `CLAUDE.md`, `Paper/framework_EN.md`, `Paper/framework_KR.md`, and `notes/project_decisions.md` before making structural changes.
+- Read `README.md`, `ONBOARDING.md`, `CONTEXT_NETFEELIX.md`, `CLAUDE.md`, `Paper/framework_EN.md`, `Paper/framework_KR.md`, and `notes/project_decisions.md` before making structural changes.
 - Use `rg` or `rg --files` for search.
 - Keep edits scoped. Do not reorganize folders without updating this file and `CLAUDE.md`.
 - Never overwrite existing user data or experiment outputs.
-- When creating scripts, put them under `study{N}/code/` and create a companion `.md` file explaining inputs, outputs, assumptions, and example usage.
+- Put project-operation automation in `scripts/`. Put runnable experiment scripts under `study{N}/code/`.
 - Do not create new planning/proposal/brief Markdown files unless explicitly asked. Merge framing into `Paper/framework_EN.md` and `Paper/framework_KR.md`; merge method details into `Paper/methodology.md`.
+- Use `templates/` for paper, dataset, model, experiment, review, and decision cards.
+- Use `workflows/` for recurring processes: literature search, experiment planning, red-team review, and weekly updates.
 - Remember that NetFeeliX is primarily a model-development project. Keep emotion theory minimal and subordinate to model/dataset/evaluation decisions.
 
 ## Code Locations
 
+- `scripts/`: project-operation automation used across the repo.
 - `code/`: shared utilities or planning notes used by multiple studies.
 - `study1/code/`: first-pass baselines and data indexing.
 - Future studies should follow the same shape: `study{N}/code`, `study{N}/data`, `study{N}/logs`, `study{N}/results`.
@@ -52,6 +55,8 @@ Logs should go to `study{N}/logs/`. Tables, plots, and metrics should go to `stu
 - Keep NetFeeliX framed as screening-benchmark-driven model development. The benchmark decides between SwiFT adaptation, HCP movie pretraining, TRIBE-SwiFT alignment, and brain-tuned affective LLM/VLM.
 - Treat SwiFT as the default brain backbone. TRIBE v2 is a multimodal stimulus-to-brain component, teacher, and alignment path, not a replacement for SwiFT.
 - Avoid informal exploratory-benchmark wording in project prose. Use "initial benchmark", "screening benchmark", "feasibility benchmark", or "Stage 0/1".
+- After structural documentation edits, run `python3 scripts/check_md_completeness.py`.
+- To refresh a compact status report, run `python3 scripts/build_project_status.py`.
 
 ## Minimal Baseline Order
 

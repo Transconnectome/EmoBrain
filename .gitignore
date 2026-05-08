@@ -5,8 +5,12 @@
 study*/logs/*
 study*/results/*
 study*/data/*
+reports/status/PROJECT_STATUS.md
 
 # Keep folder placeholders
 !study*/logs/.gitkeep
 !study*/results/.gitkeep
 !study*/data/.gitkeep
+!reports/status/.gitkeep
+!reports/weekly/.gitkeep
+!reports/reviews/.gitkeep

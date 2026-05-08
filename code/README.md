@@ -1,10 +1,13 @@
 # NetFeeliX Code Workspace
 
-This directory is for shared code plans and utilities. Study-specific runnable scripts should normally live in `study{N}/code/`.
+This directory is for shared modeling utilities and code plans. Study-specific
+runnable scripts should normally live in `study{N}/code/`.
 
-Shared project-maintenance tools live in `code/tools/`.
+Project-operation automation lives in `scripts/`, not here.
 
-- `tools/check_dataset_inventory.py`: verifies that every dataset entry in `reference/datasets.md` has the required planning fields.
+- `scripts/check_md_completeness.py`: project-level documentation and workflow checks.
+- `scripts/build_project_status.py`: generates `reports/status/PROJECT_STATUS.md`.
+- `scripts/generate_experiment_cards.py`: creates structured experiment cards.
 
 ## Initial Coding Priorities
 

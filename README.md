@@ -80,6 +80,8 @@ Subquestions:
 ```text
 NetFeeliX/
 ├── README.md
+├── ONBOARDING.md
+├── CONTEXT_NETFEELIX.md
 ├── CLAUDE.md
 ├── CODEX.md
 ├── Paper/
@@ -98,6 +100,28 @@ NetFeeliX/
 │   ├── benchmark_design.md
 │   ├── project_decisions.md
 │   └── two_month_plan.md
+├── templates/
+│   ├── paper_note.md
+│   ├── dataset_card.md
+│   ├── experiment_card.md
+│   ├── model_card.md
+│   ├── review_card.md
+│   └── decision_log.md
+├── workflows/
+│   ├── README.md
+│   ├── literature_sota_workflow.md
+│   ├── experiment_planning_workflow.md
+│   ├── red_blue_team_review.md
+│   └── weekly_update_workflow.md
+├── scripts/
+│   ├── README.md
+│   ├── check_md_completeness.py
+│   ├── build_project_status.py
+│   └── generate_experiment_cards.py
+├── reports/
+│   ├── weekly/
+│   ├── reviews/
+│   └── status/
 ├── code/
 │   ├── README.md
 │   └── tools/
@@ -111,6 +135,8 @@ NetFeeliX/
 
 ## Current Planning Documents
 
+- `ONBOARDING.md`: first-read guide for new collaborators and AI agents.
+- `CONTEXT_NETFEELIX.md`: compact single source of truth for project framing.
 - `Paper/framework_EN.md` and `Paper/framework_KR.md`: canonical project framework, narrative, and proposal-level framing.
 - `Paper/methodology.md`: detailed experimental plan.
 - `reference/datasets.md`: function-based dataset inventory.
@@ -118,9 +144,13 @@ NetFeeliX/
 - `reference/training_strategy.md`: SwiFT-first training and model-development strategy.
 - `reference/systematic_reference_map.md`: organized reference map by conceptual role.
 - `notes/benchmark_design.md`: initial benchmark axes, experiments, and decision rules.
+- `templates/`: reusable note/card templates for papers, datasets, models, experiments, reviews, and decisions.
+- `workflows/`: operating protocols for literature search, experiment planning, red-team review, and weekly updates.
+- `scripts/`: project-operation automation.
 
-Dataset inventory completeness can be checked with:
+Project completeness and status can be checked with:
 
 ```bash
-python3 code/tools/check_dataset_inventory.py
+python3 scripts/check_md_completeness.py
+python3 scripts/build_project_status.py
 ```

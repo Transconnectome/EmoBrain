@@ -9,10 +9,12 @@ NetFeeliX 연구 관련 문헌과 코드를 탐색하고 reference에 저장하�
 먼저 아래 파일을 읽는다.
 
 1. `/pscratch/sd/s/sjmoon/NetFeeliX/CLAUDE.md`
-2. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/papers.md`
-3. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/literature_map.md`
-4. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/code_resources.md`
-5. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/datasets.md`
+2. `/pscratch/sd/s/sjmoon/NetFeeliX/CONTEXT_NETFEELIX.md`
+3. `/pscratch/sd/s/sjmoon/NetFeeliX/workflows/literature_sota_workflow.md`
+4. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/papers.md`
+5. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/systematic_reference_map.md`
+6. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/code_resources.md`
+7. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/datasets.md`
 
 이미 충분히 정리된 내용이면 외부 검색을 생략하고 업데이트만 수행한다.
 
@@ -30,9 +32,7 @@ NetFeeliX 연구 관련 문헌과 코드를 탐색하고 reference에 저장하�
 
 ### 3단계: 저장
 
-신규 검색 결과는 다음 파일에 저장한다.
-
-`/pscratch/sd/s/sjmoon/NetFeeliX/reference/search_[topic_slug].md`
+신규 검색 결과는 가능한 한 `reference/papers.md`, `reference/datasets.md`, `reference/code_resources.md`, `reference/systematic_reference_map.md`에 통합한다. 별도 검색 로그가 꼭 필요할 때만 `reference/search_log_YYYY-MM-DD.md`에 추가한다.
 
 각 항목 형식:
 
@@ -50,3 +50,8 @@ NetFeeliX 연구 관련 문헌과 코드를 탐색하고 reference에 저장하�
 
 직접 관련 있는 신규 항목은 `papers.md`, `datasets.md`, 또는 `code_resources.md`에도 반영한다.
 
+### 5단계: 검증
+
+```bash
+python3 scripts/check_md_completeness.py
+```
