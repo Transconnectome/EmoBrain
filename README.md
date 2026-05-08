@@ -5,6 +5,7 @@
 > Emotion representation learning with brain foundation models and naturalistic fMRI.
 
 Korean guide: [`README_KR.md`](README_KR.md)
+Action plan: [`ACTION_PLAN.md`](ACTION_PLAN.md)
 
 NetFeeliX studies how to make SwiFT and related brain models more emotion-specific, with a focus on naturalistic fMRI, emotion representation learning, and stimulus-brain-emotion alignment.
 
@@ -82,6 +83,8 @@ Subquestions:
 ```text
 NetFeeliX/
 ├── README.md
+├── README_KR.md
+├── ACTION_PLAN.md
 ├── ONBOARDING.md
 ├── CONTEXT_NETFEELIX.md
 ├── CLAUDE.md
@@ -129,6 +132,7 @@ NetFeeliX/
 │   └── tools/
 │       └── check_dataset_inventory.py
 └── study1/
+    ├── README.md
     ├── code/
     ├── data/
     ├── logs/
@@ -139,6 +143,7 @@ NetFeeliX/
 
 - `ONBOARDING.md`: first-read guide for new collaborators and AI agents.
 - `CONTEXT_NETFEELIX.md`: compact single source of truth for project framing.
+- `ACTION_PLAN.md`: current execution plan and phase-level next actions.
 - `Paper/framework_EN.md` and `Paper/framework_KR.md`: canonical project framework, narrative, and proposal-level framing.
 - `Paper/methodology.md`: detailed experimental plan.
 - `reference/datasets.md`: function-based dataset inventory.

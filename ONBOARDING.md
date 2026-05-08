@@ -12,15 +12,17 @@ learning.
    - Korean guide for the project structure and workflow.
 3. `CONTEXT_NETFEELIX.md`
    - Single source of truth for project framing and operating rules.
-4. `Paper/framework_EN.md`
+4. `ACTION_PLAN.md`
+   - Current execution plan and near-term research actions.
+5. `Paper/framework_EN.md`
    - Canonical narrative and proposal-level framework.
-5. `Paper/methodology.md`
+6. `Paper/methodology.md`
    - Experimental plan and benchmark matrix.
-6. `reference/training_strategy.md`
+7. `reference/training_strategy.md`
    - SwiFT-first model-development strategy.
-7. `reference/datasets.md`
+8. `reference/datasets.md`
    - Function-based dataset inventory.
-8. `workflows/README.md`
+9. `workflows/README.md`
    - How literature, experiment planning, review, and weekly updates should run.
 
 ## Project Identity

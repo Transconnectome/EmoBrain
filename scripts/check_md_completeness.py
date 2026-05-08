@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 REQUIRED_FILES = [
     "README.md",
+    "README_KR.md",
+    "ACTION_PLAN.md",
     "ONBOARDING.md",
     "CONTEXT_NETFEELIX.md",
     "CLAUDE.md",
@@ -26,6 +28,7 @@ REQUIRED_FILES = [
     "workflows/experiment_planning_workflow.md",
     "workflows/red_blue_team_review.md",
     "workflows/weekly_update_workflow.md",
+    "study1/README.md",
     "templates/paper_note.md",
     "templates/dataset_card.md",
     "templates/experiment_card.md",

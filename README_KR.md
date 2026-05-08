@@ -24,13 +24,15 @@ Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
    - 새 연구자나 AI agent가 어떤 문서를 읽어야 하는지 정리한 파일입니다.
 3. `CONTEXT_NETFEELIX.md`
    - NetFeeliX의 핵심 방향만 압축한 single source of truth입니다.
-4. `Paper/framework_KR.md`
+4. `ACTION_PLAN.md`
+   - 지금 무엇을 해야 하는지 단계별로 정리한 실행 계획입니다.
+5. `Paper/framework_KR.md`
    - 외부 공유와 연구 논의를 위한 전체 연구 프레임워크 한국어 버전입니다.
-5. `reference/datasets.md`
+6. `reference/datasets.md`
    - 사용할 수 있는 dataset을 기능별로 정리한 문서입니다.
-6. `reference/training_strategy.md`
+7. `reference/training_strategy.md`
    - SwiFT를 어떻게 pretrain, finetune, modify, align할지 정리한 문서입니다.
-7. `workflows/README.md`
+8. `workflows/README.md`
    - 앞으로 AI와 함께 문헌 조사, 실험 계획, 리뷰, 주간 보고를 어떻게 운영할지 설명합니다.
 
 ---
@@ -100,6 +102,7 @@ video/audio/text stimulus -> predicted brain response
 NetFeeliX/
 ├── README.md
 ├── README_KR.md
+├── ACTION_PLAN.md
 ├── ONBOARDING.md
 ├── CONTEXT_NETFEELIX.md
 ├── CLAUDE.md
@@ -245,7 +248,9 @@ reports/status/PROJECT_STATUS.md
 
 실제 실험 코드와 결과가 들어가는 첫 번째 study 폴더입니다.
 
-예상 역할:
+여기서 `study1`은 최종 논문의 Study 1이라는 뜻이 아닙니다. 지금 필요한 첫 실행 묶음입니다.
+
+역할:
 
 - dataset inventory
 - target construction
@@ -262,6 +267,8 @@ study1/
 ├── logs/
 └── results/
 ```
+
+자세한 설명은 `study1/README.md`에 있습니다.
 
 ---
 
@@ -368,6 +375,9 @@ AI가 다음을 확인합니다.
 NetFeeliX는 이제 이렇게 운영됩니다.
 
 ```text
+ACTION_PLAN.md
+    = 지금 해야 할 실행 계획
+
 CONTEXT_NETFEELIX.md
     = 프로젝트 방향 압축본
 
@@ -387,7 +397,7 @@ scripts/
     = 문서/상태/실험 카드 자동화
 
 study1/
-    = 실제 첫 실험 코드와 결과
+    = 첫 실행 묶음: 데이터 확인, target construction, baseline
 ```
 
 가장 중요한 문장:
