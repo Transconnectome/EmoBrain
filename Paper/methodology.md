@@ -2,12 +2,12 @@
 
 ## Overview
 
-The methodology is organized around **pilot-first model development**. Before claiming a new Emotion Foundation Model, NetFeeliX should build a harmonized benchmark surface across datasets, targets, and model families. Every model should be evaluated with comparable splits, target definitions, and metrics.
+The methodology is organized around **SwiFT-first, screening-benchmark-driven model development**. Before claiming a mature emotion-aware foundation model, NetFeeliX should build a harmonized benchmark surface across datasets, targets, and model families. Every model should be evaluated with comparable splits, target definitions, and metrics.
 
 The practical goal for the first two months is:
 
 ```text
-dataset/model inventory -> lightweight baselines -> frozen/adapted BFM probes
+dataset/model inventory -> lightweight baselines -> frozen/adapted SwiFT probes
     -> stimulus-only and alignment baselines -> decision on model-development track
 ```
 
@@ -20,7 +20,10 @@ Phase 0 answers what can actually be run. It should produce one table with datas
 | HCP 7T movie | naturalistic pretraining | masked/future fMRI objective | confirm local files, parcellation, run metadata |
 | Horikawa/Cowen | core downstream | high-dimensional emotion vector | confirm OpenNeuro format, labels, video timing |
 | Emo-FilM | modern downstream | emotion/appraisal/component ratings | check access, temporal annotations, physiology |
-| Affective Videos ds000205 | lightweight downstream | valence/arousal | run simple ROI/ridge baseline |
+| Affective Videos ds000205 | lightweight downstream | valence/arousal | run simple ROI/ridge/SwiFT-head baseline |
+| IAPS fMRI NeuroVault | lightweight downstream | positive/neutral/negative beta maps | test beta-map valence category adaptation |
+| NSD | static-image fMRI extension | pseudo-affective image labels | evaluate image-based fMRI affect transfer |
+| OASIS | stimulus label source | valence/arousal norms | calibrate image affect pseudo-labels |
 | REELMO | stimulus-side affect supervision, fMRI subset | time-resolved affect reports | check fMRI subset access and annotation format |
 | NeuroEmo | downstream/cross-cultural | emotion labels | inspect OpenNeuro metadata and task labels |
 | Koide-Majima | high-dimensional benchmark | 80 emotion labels | check data access feasibility |
@@ -41,14 +44,14 @@ Model inventory should similarly record:
 | Whisper/Wav2Vec | audio -> representation | audio-side stimulus baseline |
 | LLM/sentence transformer | text -> representation | subtitle/caption affective baseline |
 
-## Phase 1: Pilot Benchmark Matrix
+## Phase 1: Screening Benchmark Matrix
 
-The pilot benchmark should compare four model interfaces rather than one native architecture against another.
+The screening benchmark should compare four model interfaces rather than one native architecture against another.
 
 | Interface | Input | Example model | Output | Main question |
 |---|---|---|---|---|
 | Brain-only baseline | fMRI | ROI/ridge, dynamic FC, temporal MLP | emotion | How much emotion signal is in simple brain features? |
-| Existing BFM probe | fMRI | SwiFT, BrainLM, Brain-JEPA, NeuroSTORM | emotion | Do generic BFMs transfer to emotion? |
+| SwiFT-first BFM probe | fMRI | SwiFT, then BrainLM/Brain-JEPA/NeuroSTORM if usable | emotion | Can SwiFT be made emotion-specific? |
 | Stimulus-only baseline | video/audio/text | V-JEPA2, CLIP, Whisper, LLM, TRIBE fusion | emotion | How much emotion is explained by stimulus features alone? |
 | Alignment model | fMRI + stimulus during training | fMRI encoder + stimulus encoder | emotion + alignment | Does brain-stimulus alignment improve representation? |
 
@@ -62,9 +65,9 @@ Minimum result table:
 | REELMO | time-resolved affect reports | optional | planned | fMRI subset optional | optional | stimulus-side supervision |
 | HCP 7T movie | pretraining objective | planned | planned features | planned | planned | pretraining source |
 
-## Phase 1B: Reasoning and Context Pilot
+## Phase 1B: Reasoning and Context Benchmark
 
-Horikawa should be used as a high-dimensional affect geometry benchmark, not as the main reasoning/context dataset. The reasoning/context pilot should use naturalistic datasets and stimulus-side MLLM outputs.
+Horikawa should be used as a high-dimensional affect geometry benchmark, not as the main reasoning/context dataset. The reasoning/context benchmark should use naturalistic datasets and stimulus-side MLLM outputs.
 
 Inputs:
 
@@ -73,7 +76,7 @@ Inputs:
 - MLLM-derived affective outputs: emotion caption, cue-emotion QA, rationale, appraisal-like dimensions, hallucination flags,
 - brain features: fMRI windows aligned to the same segment.
 
-Pilot comparisons:
+Benchmark comparisons:
 
 | Comparison | Purpose |
 |---|---|
@@ -86,7 +89,7 @@ Pilot comparisons:
 First feasible implementation:
 
 1. Run Horikawa as the high-dimensional emotion-vector probe.
-2. Run Emo-FilM or REELMO as the context-aware naturalistic pilot.
+2. Run Emo-FilM or REELMO as the context-aware naturalistic benchmark.
 3. Generate or collect stimulus-side emotion captions/rationales with a frozen affective VLM/LLM where feasible.
 4. Embed rationales with a sentence/LLM encoder and train lightweight alignment heads.
 5. Report whether context/rationale embeddings improve emotion prediction or only stimulus-side explanation quality.
@@ -214,7 +217,7 @@ Decision rule:
 
 Purpose: connect affective computing foundation models with brain-grounded emotion representation.
 
-This is not the first expensive experiment. It becomes active when pilot results show either strong stimulus-side affective features or measurable brain-stimulus alignment.
+This is not the first expensive experiment. It becomes active when screening benchmarks show either strong stimulus-side affective features or measurable brain-stimulus alignment.
 
 Feasible variants:
 

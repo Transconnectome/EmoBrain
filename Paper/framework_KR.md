@@ -6,11 +6,11 @@ NetFeeliX는 **emotion-aware brain representation learning을 위한 모델 개�
 
 한 문장 프레임:
 
-**NetFeeliX는 감정 표현을 brain dynamics, naturalistic stimulus dynamics, affective annotation이 만나는 모델 개발 문제로 보고, pilot benchmark 결과를 바탕으로 개발할 architecture와 training objective를 결정한다.**
+**NetFeeliX는 감정 표현을 brain dynamics, naturalistic stimulus dynamics, affective annotation이 만나는 모델 개발 문제로 보고, initial benchmark 결과를 바탕으로 개발할 architecture와 training objective를 결정한다.**
 
 교수님께 말할 버전:
 
-> NetFeeliX는 처음부터 완성형 Emotion Foundation Model을 주장하지 않겠습니다. 먼저 기존 Brain Foundation Model, TRIBE-style stimulus-to-brain encoding model, naturalistic movie fMRI dataset, affective LLM/VLM representation을 하나의 pilot framework에서 비교하겠습니다. Pilot은 어떤 정보원이 어떤 emotion target에 도움이 되는지 확인하는 단계이고, 그 결과에 따라 existing BFM transfer, HCP movie pretraining, TRIBE-SwiFT stimulus-brain alignment, brain-tuned affective LLM/VLM adapter 중 어떤 model-development track을 밀지 결정하겠습니다.
+> NetFeeliX는 처음부터 완성형 emotion foundation model을 주장하지 않겠습니다. 먼저 SwiFT, naturalistic movie fMRI dataset, TRIBE v2-style stimulus-to-brain model, affective LLM/VLM representation을 하나의 initial benchmark에서 비교하겠습니다. Benchmark는 어떤 정보원이 어떤 emotion target에 도움이 되는지 확인하는 단계이고, 그 결과에 따라 SwiFT emotion adaptation, HCP movie continued pretraining, TRIBE-SwiFT stimulus-brain alignment, brain-tuned affective LLM/VLM adapter 중 어떤 model-development track을 밀지 결정하겠습니다.
 
 ## 모델 개발 문제 정의
 
@@ -37,7 +37,7 @@ NetFeeliX는 이 질문을 네 개의 모델링 질문으로 나눈다.
 
 ### fMRI Brain Foundation Models
 
-SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT 계열은 brain-side foundation-model space를 정의한다. 이들은 input representation, objective, compute cost가 다르다.
+SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT 계열은 brain-side foundation-model space를 정의한다. NetFeeliX는 **SwiFT-first**로 간다. SwiFT는 우리 연구실 backbone이므로 구조 수정, continued pretraining, emotion-specific head, multimodal architecture 안의 brain module로 가장 적극적으로 개발할 수 있다. 다른 BFM들은 비교점이다.
 
 - **SwiFT**: 4D fMRI spatiotemporal window attention.
 - **BrainLM**: brain activity recording의 masked prediction.
@@ -46,7 +46,7 @@ SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT 계열은 brain-sid
 - **Omni-fMRI / Brain-DiT**: atlas-free 또는 multi-state pretraining의 future reference.
 - **SwiFUN**: resting-state에서 task activation을 예측하는 bridge model. Emotion-related task contrast가 포함되어 있어 중요하다.
 
-NetFeeliX에서 이 모델들은 최종 해답이 아니라, generic brain representation이 emotion-relevant information을 이미 담고 있는지 확인하는 pilot baseline이다.
+NetFeeliX에서 이 모델들은 최종 해답이 아니라, generic brain representation이 emotion-relevant information을 이미 담고 있는지 확인하는 screening baseline이다.
 
 ### Stimulus-to-Brain Encoding and Alignment
 
@@ -92,17 +92,17 @@ affective LLM/VLM representation + emotional stimulus에 대한 fMRI response
 
 fMRI 데이터는 작기 때문에 full LLM/VLM fine-tuning이 아니라 adapter, contrastive alignment, distillation이 현실적이다.
 
-SED-GPT는 fMRI, long-sequence semantic decoding, emotion distribution, LLM-style prior를 결합한 가까운 precedent다. 다만 이것은 fMRI emotion foundation model이 이미 있다는 증거가 아니라, semantic/emotional fMRI decoding이 pilot 수준에서 가능하다는 근거로 인용하는 것이 맞다.
+SED-GPT는 fMRI, long-sequence semantic decoding, emotion distribution, LLM-style prior를 결합한 가까운 precedent다. 다만 이것은 fMRI emotion foundation model이 이미 있다는 증거가 아니라, semantic/emotional fMRI decoding이 early-stage 수준에서 가능하다는 근거로 인용하는 것이 맞다.
 
 ### Gap Statement
 
-아직 mature한 fMRI emotion foundation model 방향은 없다. 기존 fMRI BFM은 대체로 generic하고, neural-signal FM은 emotion을 downstream benchmark 중 하나로만 포함하는 경우가 많으며, affective computing FM은 brain grounding이 약하고, stimulus-to-brain model은 emotion representation보다는 fMRI encoding을 주로 최적화한다. NetFeeliX는 이 빈틈에서 **emotion-aware brain/stimulus representation을 위한 pilot-driven model development**를 핵심 목표로 둔다.
+아직 mature한 fMRI emotion foundation model 방향은 없다. 기존 fMRI BFM은 대체로 generic하고, neural-signal FM은 emotion을 downstream benchmark 중 하나로만 포함하는 경우가 많으며, affective computing FM은 brain grounding이 약하고, stimulus-to-brain model은 emotion representation보다는 fMRI encoding을 주로 최적화한다. NetFeeliX는 이 빈틈에서 **emotion-aware brain/stimulus representation을 위한 screening-benchmark-driven model development**를 핵심 목표로 둔다.
 
-## Pilot-first 전략
+## Initial Benchmark 전략
 
 첫 단계는 비싼 end-to-end architecture를 주장하는 것이 아니라, dataset, model, target을 공정하게 비교할 수 있는 benchmark surface를 만드는 것이다.
 
-Pilot 질문:
+Benchmark 질문:
 
 1. 접근성, preprocessing, temporal alignment를 고려했을 때 실제로 쓸 수 있는 dataset과 target은 무엇인가?
 2. Non-deep brain baseline은 어느 정도 성능을 내는가?
@@ -111,7 +111,7 @@ Pilot 질문:
 5. Brain-stimulus alignment가 high-dimensional target 또는 cross-dataset transfer를 개선하는가?
 6. 2개월 model development에서 어떤 방향을 밀어야 하는가?
 
-최소 pilot table:
+최소 benchmark table:
 
 | Dataset | Target | Brain-only baseline | Stimulus-only baseline | Existing BFM | Alignment model | Notes |
 |---|---|---|---|---|---|---|
@@ -144,9 +144,9 @@ Reasoning과 context understanding은 더 긴 temporal context, cue grounding, n
 
 ## Model Development Tracks
 
-### Track A: Existing BFM Transfer
+### Track A: SwiFT-first BFM Transfer
 
-목표는 pretrained brain model이 emotion-relevant structure를 이미 갖고 있는지 확인하는 것이다.
+목표는 SwiFT와 관련 pretrained brain model이 emotion-relevant structure를 이미 갖고 있는지 확인하는 것이다.
 
 순서:
 
@@ -154,7 +154,7 @@ Reasoning과 context understanding은 더 긴 temporal context, cue grounding, n
 2. 지원되는 경우 adapter 또는 LoRA-style tuning.
 3. 안정적인 probe 결과가 나온 뒤 partial/full fine-tuning.
 
-주요 모델: SwiFT, BrainLM, Brain-JEPA, SwiFUN, code/weight 접근이 가능하면 NeuroSTORM.
+주요 모델: SwiFT. 비교 모델: BrainLM, Brain-JEPA, SwiFUN, code/weight 접근이 가능하면 NeuroSTORM.
 
 Decision rule: frozen/adapted BFM이 arousal 이상의 target에서도 simple baseline을 넘으면 adapter/fine-tuning을 우선한다.
 
@@ -224,11 +224,12 @@ Decision rule: stimulus-side affective embedding이 강하거나 brain-stimulus 
 |---|---|---|
 | Naturalistic pretraining | HCP 7T movie, 접근 가능하면 CNeuroMod/Algonauts | stimulus-driven fMRI dynamics 학습 |
 | Core emotion downstream | Horikawa, Emo-FilM | high-dimensional/naturalistic emotion transfer 평가 |
-| Lightweight emotion downstream | Affective Videos, NeuroEmo, 접근 가능하면 Koide-Majima | valence/arousal/category pilot |
+| Lightweight emotion downstream | Affective Videos, IAPS fMRI, NeuroEmo, 접근 가능하면 Koide-Majima | valence/arousal/category screening benchmark |
+| Static-image affect extension | NSD, OASIS labels, image affect models | large static-image fMRI representation과 affective pseudo-labeling |
 | Stimulus-side affective supervision | REELMO, MMAFFBen/MMAFFIn, affective LLM/VLM | stimulus emotion trajectory 생성/검증 |
 | Auxiliary encoding | BOLD Moments, CNeuroMod, Algonauts 2025, future expansion으로 Spacetop | video/audio/text-to-fMRI alignment와 physiology-rich transfer 검증 |
 
-HCP movie pretraining과 Horikawa/Emo-FilM downstream evaluation이 중심이다. 다른 dataset은 pilot matrix의 불확실성을 줄일 때만 추가한다.
+HCP movie pretraining과 Horikawa/Emo-FilM downstream evaluation이 중심이다. 다른 dataset은 benchmark matrix의 불확실성을 줄일 때만 추가한다.
 
 ## Evaluation Ladder
 
@@ -250,7 +251,7 @@ Metrics:
 ## 기대 기여
 
 - Generic BFM transfer, movie-fMRI pretraining, stimulus-brain alignment를 emotion prediction 관점에서 체계적으로 비교한다.
-- 2개월 안에 의미 있는 결과를 낼 수 있는 pilot-to-model-development roadmap을 만든다.
+- 2개월 안에 의미 있는 결과를 낼 수 있는 benchmark-to-model-development roadmap을 만든다.
 - fMRI encoder, stimulus-to-brain encoding model, emotion-aware aligned representation model을 구분하는 taxonomy를 제공한다.
 - Affective computing foundation model과 affective neuroscience 사이의 model-development bridge를 제안한다.
 - Adapter, HCP pretraining, TRIBE-style alignment, brain-tuned affective VLM/LLM 중 무엇을 밀지 결정하는 rule을 제공한다.

@@ -4,7 +4,7 @@
 
 > Emotion representation learning with brain foundation models and naturalistic fMRI.
 
-NetFeeliX studies how to learn emotion-aware brain representations from naturalistic fMRI, with a focus on movie-watching data, brain foundation models, and stimulus-brain-emotion alignment.
+NetFeeliX studies how to make SwiFT and related brain models more emotion-specific, with a focus on naturalistic fMRI, emotion representation learning, and stimulus-brain-emotion alignment.
 
 ---
 
@@ -16,11 +16,11 @@ Emotion representation is unlikely to be solved by attaching a small emotion hea
 naturalistic stimulus dynamics + fMRI brain dynamics + emotion annotations
 ```
 
-The project compares three families of approaches:
+The project is **SwiFT-first** and compares three families of approaches:
 
-1. **Existing fMRI foundation models.** Fine-tune or probe pretrained models such as SwiFT, BrainLM, Brain-JEPA, and NeuroSTORM on emotion prediction.
-2. **Naturalistic movie pretraining.** Pretrain from HCP 7T movie-watching fMRI, then fine-tune on Horikawa, Emo-FilM, and related affective movie datasets.
-3. **Stimulus-brain-emotion alignment.** Extend the TRIBE-style encoding idea into an emotion-aware representation model by aligning video/audio/text encoders with fMRI responses and emotion labels.
+1. **SwiFT emotion specialization.** Adapt SwiFT with emotion heads, adapters, subject modules, continued pretraining, and targeted fine-tuning.
+2. **Naturalistic movie pretraining.** Continue pretraining from HCP 7T movie-watching fMRI, then evaluate on Horikawa, Emo-FilM, and related affective datasets.
+3. **Stimulus-brain-emotion alignment.** Use TRIBE v2 and other multimodal stimulus models as teachers or alignment components, while keeping SwiFT as the primary brain backbone.
 
 ## Core Research Question
 
@@ -87,12 +87,15 @@ NetFeeliX/
 │   ├── framework_KR.md
 │   └── methodology.md
 ├── reference/
+│   ├── datasets.md
+│   ├── task.md
+│   ├── training_strategy.md
 │   ├── systematic_reference_map.md
 │   ├── papers.md
-│   ├── datasets.md
 │   ├── code_resources.md
 │   └── search_log_2026-05-08.md
 ├── notes/
+│   ├── benchmark_design.md
 │   ├── project_decisions.md
 │   └── two_month_plan.md
 ├── code/
@@ -108,5 +111,8 @@ NetFeeliX/
 
 - `Paper/framework_EN.md` and `Paper/framework_KR.md`: canonical project framework, narrative, and proposal-level framing.
 - `Paper/methodology.md`: detailed experimental plan.
+- `reference/datasets.md`: dataset decision table.
+- `reference/task.md`: task inventory and target definitions.
+- `reference/training_strategy.md`: SwiFT-first training and model-development strategy.
 - `reference/systematic_reference_map.md`: organized reference map by conceptual role.
-- `notes/pilot_benchmark_design.md`: pilot benchmark axes, experiments, and decision rules.
+- `notes/benchmark_design.md`: initial benchmark axes, experiments, and decision rules.

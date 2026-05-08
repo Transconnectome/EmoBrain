@@ -26,7 +26,7 @@ Recommended study split:
 - `study2`: HCP movie pretraining.
 - `study3`: emotion downstream fine-tuning.
 - `study4`: stimulus-brain-emotion alignment.
-- `study5`: brain-tuned affective LLM/VLM adapters, only if pilot results justify it.
+- `study5`: brain-tuned affective LLM/VLM adapters, only if screening benchmark results justify it.
 
 ## Experiment Hygiene
 
@@ -49,7 +49,9 @@ Logs should go to `study{N}/logs/`. Tables, plots, and metrics should go to `stu
 - Add newly discovered repositories to `reference/code_resources.md`.
 - Add newly discovered datasets to `reference/datasets.md`.
 - Keep the canonical project narrative in `Paper/framework_EN.md` and `Paper/framework_KR.md` so context compaction does not scatter the framing.
-- Keep NetFeeliX framed as pilot-driven model development. The pilot decides between existing BFM transfer, HCP movie pretraining, TRIBE-SwiFT alignment, and brain-tuned affective LLM/VLM.
+- Keep NetFeeliX framed as screening-benchmark-driven model development. The benchmark decides between SwiFT adaptation, HCP movie pretraining, TRIBE-SwiFT alignment, and brain-tuned affective LLM/VLM.
+- Treat SwiFT as the default brain backbone. TRIBE v2 is a multimodal stimulus-to-brain component, teacher, and alignment path, not a replacement for SwiFT.
+- Avoid informal exploratory-benchmark wording in project prose. Use "initial benchmark", "screening benchmark", "feasibility benchmark", or "Stage 0/1".
 
 ## Minimal Baseline Order
 
@@ -59,7 +61,7 @@ Logs should go to `study{N}/logs/`. Tables, plots, and metrics should go to `stu
 4. Small temporal transformer trained from scratch.
 5. HCP movie-pretrained temporal transformer.
 6. Stimulus feature and stimulus-brain alignment models.
-7. Brain-tuned affective LLM/VLM adapter or distillation, only after stimulus-side or alignment pilots are promising.
+7. Brain-tuned affective LLM/VLM adapter or distillation, only after stimulus-side or alignment benchmarks are promising.
 
 ## Avoid
 

@@ -31,11 +31,11 @@ NetFeeliX/
 
 ## Confirmed Framing
 
-NetFeeliX is a **model-development project**, not a theory paper about emotion. Emotion theory should be kept minimal and used only to justify target design and naturalistic data. The core work is pilot-driven model selection and development for emotion-aware brain representation learning.
+NetFeeliX is a **model-development project**, not a theory paper about emotion. Emotion theory should be kept minimal and used only to justify target design and naturalistic data. The core work is screening-benchmark-driven model selection and development for emotion-aware brain representation learning.
 
 Canonical one-line framing:
 
-> NetFeeliX treats emotion representation as a model-development problem over brain dynamics, stimulus dynamics, and affective annotations, using pilot benchmarks to decide which architecture and training objectives are worth developing.
+> NetFeeliX treats emotion representation as a model-development problem over brain dynamics, stimulus dynamics, and affective annotations, using initial benchmarks to decide which architecture and training objectives are worth developing.
 
 The central comparison is:
 
@@ -57,17 +57,20 @@ The central comparison is:
 
 Important priority:
 
-- Start with existing models and datasets for pilot experiments.
-- Use pilot results to choose model-development direction.
+- Use SwiFT as the default brain backbone unless there is a documented reason not to.
+- Start with existing models and datasets for initial benchmark experiments.
+- Use benchmark results to choose model-development direction.
 - Do not over-invest in abstract emotion theory or claim a final foundation model before evidence.
-- When refining NetFeeliX, keep the narrative as pilot-to-model-development: pilot results decide whether to prioritize BFM adapters, HCP movie pretraining, TRIBE-SwiFT alignment, or brain-tuned affective LLM/VLM.
+- When refining NetFeeliX, keep the narrative as benchmark-to-model-development: benchmark results decide whether to prioritize SwiFT adapters, HCP movie pretraining, TRIBE-SwiFT alignment, or brain-tuned affective LLM/VLM.
+- Avoid informal exploratory-benchmark wording in project prose. Use "initial benchmark", "screening benchmark", "feasibility benchmark", or "Stage 0/1".
 
 ## Important Model Facts
 
 - **TRIBE is a brain encoding model**, not an fMRI encoder in the same sense as SwiFT or BrainLM. It predicts fMRI responses from video, audio, and text stimulus features.
 - This does not make TRIBE incomparable to SwiFT. It means comparison requires a shared interface or model surgery: attach emotion heads, add fMRI encoders, add stimulus-brain alignment losses, or train bidirectional encoding/decoding variants.
 - **TRIBE v2** is a newer multimodal brain encoding foundation model direction, using video/audio/language features and a transformer to predict high-resolution brain responses.
-- **SwiFT** is a 4D fMRI Swin Transformer for direct spatiotemporal fMRI modeling.
+- **TRIBE v2 is not a replacement for SwiFT.** It is a multimodal stimulus-to-brain component that can provide stimulus features, predicted brain responses, and teacher/alignment signals.
+- **SwiFT** is a 4D fMRI Swin Transformer for direct spatiotemporal fMRI modeling and the default NetFeeliX brain backbone.
 - **SwiFUN** predicts task activation maps from resting-state fMRI using a Swin fMRI UNet Transformer structure.
 - **Brain-JEPA** uses a joint-embedding predictive architecture for brain dynamics, with spatiotemporal masking and functional positional ideas.
 - **NeuroSTORM** is a large-scale raw 4D fMRI foundation model with efficient spatiotemporal modeling and lightweight adaptation.
@@ -106,7 +109,7 @@ Order:
 3. Full fine-tuning only after small baselines are stable.
 
 Models:
-- SwiFT
+- SwiFT, first by default
 - BrainLM
 - Brain-JEPA
 - NeuroSTORM if code/weights are available
@@ -152,7 +155,7 @@ Use only lightweight methods at first:
 3. Add brain-geometry alignment or contrastive loss.
 4. Distill shared stimulus-brain latents into an affective embedding usable without fMRI at inference.
 
-Do not full fine-tune an LLM/VLM on small fMRI datasets. Activate this track only if pilot results show strong stimulus-side features or measurable brain-stimulus alignment.
+Do not full fine-tune an LLM/VLM on small fMRI datasets. Activate this track only if screening benchmarks show strong stimulus-side features or measurable brain-stimulus alignment.
 
 ## Primary Metrics
 
@@ -166,12 +169,12 @@ Do not full fine-tune an LLM/VLM on small fMRI datasets. Activate this track onl
 
 - Keep project claims separated from experimental results.
 - Always keep the main framework in `Paper/framework_EN.md` and `Paper/framework_KR.md`.
-- Keep emotion theory concise. The project narrative should emphasize model development, pilot benchmarks, architecture comparison, and training objectives.
+- Keep emotion theory concise. The project narrative should emphasize model development, screening benchmarks, architecture comparison, and training objectives.
 - Keep the four model-development tracks explicit: existing BFM transfer, HCP movie pretraining, stimulus-brain-emotion alignment, and brain-tuned affective LLM/VLM.
 - Use "encoding model" carefully for TRIBE-style stimulus-to-brain models.
 - Use "fMRI encoder" or "brain foundation model" for fMRI-to-representation models.
 - Do not claim NetFeeliX is a foundation model until pretraining and transfer are demonstrated.
-- Formal paper title: "NetFeeliX: A Naturalistic fMRI Foundation Model for Emotion Representation Learning".
+- Prefer "emotion-specific brain representation model" or "emotion-aware fMRI foundation-model strategy" until there is pretraining/transfer evidence.
 
 ## TRIBE-SwiFT Comparison Rule
 

@@ -6,11 +6,11 @@ NetFeeliX is a **model-development project for emotion-aware brain representatio
 
 One-line framing:
 
-**NetFeeliX treats emotion representation as a model-development problem over brain dynamics, naturalistic stimulus dynamics, and affective annotations. Pilot benchmarks decide which architecture and training objectives are worth developing.**
+**NetFeeliX treats emotion representation as a model-development problem over brain dynamics, naturalistic stimulus dynamics, and affective annotations. Initial benchmarks decide which architecture and training objectives are worth developing.**
 
 Professor-facing pitch:
 
-> NetFeeliX will not start by claiming a complete Emotion Foundation Model. It will first benchmark existing Brain Foundation Models, TRIBE-style stimulus-to-brain encoding models, naturalistic movie fMRI datasets, and affective LLM/VLM representations in one pilot framework. The pilot asks which information source helps which emotion target. The model-development track is then chosen from four directions: existing BFM transfer, HCP movie pretraining, TRIBE-SwiFT stimulus-brain alignment, and brain-tuned affective LLM/VLM adapters.
+> NetFeeliX will not start by claiming a complete emotion foundation model. It will first build an initial benchmark around SwiFT, naturalistic movie fMRI datasets, TRIBE v2-style stimulus-to-brain models, and affective LLM/VLM representations. The benchmark asks which information source helps which emotion target. The model-development track is then chosen from four directions: SwiFT emotion adaptation, HCP movie continued pretraining, TRIBE-SwiFT stimulus-brain alignment, and brain-tuned affective LLM/VLM adapters.
 
 ## Model-Development Problem
 
@@ -36,7 +36,7 @@ The project should stay comparative. Arousal, valence, discrete emotion, and hig
 
 ### fMRI Brain Foundation Models
 
-SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT, and related models define the brain-side foundation-model space. They differ in input representation, objective, and compute cost:
+SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT, and related models define the brain-side foundation-model space. NetFeeliX is **SwiFT-first** because SwiFT is the local lab backbone that can be modified, pretrained, and inserted into multimodal architectures. The other BFMs define comparison points.
 
 - **SwiFT**: direct 4D fMRI spatiotemporal window attention.
 - **BrainLM**: masked prediction over brain activity recordings.
@@ -45,7 +45,7 @@ SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT, and related models
 - **Omni-fMRI / Brain-DiT**: future references for atlas-free or multi-state pretraining.
 - **SwiFUN**: resting-state to task-activation bridge, useful because emotion-related task contrasts are included in its evaluation.
 
-For NetFeeliX, these are not final solutions. They are pilot baselines that test whether generic brain representations already carry emotion-relevant information.
+For NetFeeliX, these are not final solutions. They are screening baselines that test whether generic brain representations already carry emotion-relevant information.
 
 ### Stimulus-to-Brain Encoding and Alignment
 
@@ -91,17 +91,17 @@ affective LLM/VLM representation + fMRI response during emotional stimuli
 
 Because fMRI data are small, this should use adapters, contrastive alignment, or distillation rather than full LLM/VLM fine-tuning.
 
-SED-GPT is a useful nearby precedent because it combines fMRI, long-sequence semantic decoding, and emotion distributions with LLM-style priors. It should be cited as pilot-level evidence that semantic/emotional fMRI decoding is possible, not as evidence that an fMRI emotion foundation model already exists.
+SED-GPT is a useful nearby precedent because it combines fMRI, long-sequence semantic decoding, and emotion distributions with LLM-style priors. It should be cited as early evidence that semantic/emotional fMRI decoding is possible, not as evidence that an fMRI emotion foundation model already exists.
 
 ### Gap Statement
 
-There is no mature fMRI emotion foundation model direction yet. Existing fMRI BFMs are usually generic; neural-signal FMs may include emotion as one downstream benchmark; affective computing FMs usually lack brain grounding; stimulus-to-brain models usually optimize fMRI encoding rather than emotion representation. NetFeeliX fills this gap by making **pilot-driven model development for emotion-aware brain/stimulus representation** the central objective.
+There is no mature fMRI emotion foundation model direction yet. Existing fMRI BFMs are usually generic; neural-signal FMs may include emotion as one downstream benchmark; affective computing FMs usually lack brain grounding; stimulus-to-brain models usually optimize fMRI encoding rather than emotion representation. NetFeeliX fills this gap by making **screening-benchmark-driven model development for emotion-aware brain/stimulus representation** the central objective.
 
-## Pilot-First Strategy
+## Initial Benchmark Strategy
 
 The first phase should avoid expensive end-to-end architecture claims. It should build a comparable benchmark surface across datasets, models, and targets.
 
-Pilot questions:
+Benchmark questions:
 
 1. Which datasets and targets are usable after access, preprocessing, and temporal alignment checks?
 2. What do non-deep brain baselines achieve?
@@ -110,7 +110,7 @@ Pilot questions:
 5. Does brain-stimulus alignment improve high-dimensional or cross-dataset transfer?
 6. Which direction justifies two-month model development?
 
-Minimum pilot table:
+Minimum benchmark table:
 
 | Dataset | Target | Brain-only baseline | Stimulus-only baseline | Existing BFM | Alignment model | Notes |
 |---|---|---|---|---|---|---|
@@ -143,9 +143,9 @@ This keeps the project coherent: Horikawa answers "does the brain representation
 
 ## Model Development Tracks
 
-### Track A: Existing BFM Transfer
+### Track A: SwiFT-First BFM Transfer
 
-Goal: test whether pretrained brain models already contain emotion-relevant structure.
+Goal: test whether SwiFT and related pretrained brain models already contain emotion-relevant structure.
 
 Order:
 
@@ -153,7 +153,7 @@ Order:
 2. Adapter or LoRA-style tuning where supported.
 3. Partial or full fine-tuning only after stable probes.
 
-Primary models: SwiFT, BrainLM, Brain-JEPA, SwiFUN, NeuroSTORM if code/weights are accessible.
+Primary model: SwiFT. Comparison models: BrainLM, Brain-JEPA, SwiFUN, NeuroSTORM if code/weights are accessible.
 
 Decision rule: if frozen/adapted BFM representations outperform simple baselines on more than arousal, prioritize adapter and fine-tuning experiments.
 
@@ -223,11 +223,12 @@ Decision rule: activate this track if stimulus-side affective embeddings are str
 |---|---|---|
 | Naturalistic pretraining | HCP 7T movie, CNeuroMod/Algonauts if accessible | learn stimulus-driven fMRI dynamics |
 | Core emotion downstream | Horikawa, Emo-FilM | evaluate high-dimensional and naturalistic emotion transfer |
-| Lightweight emotion downstream | Affective Videos, NeuroEmo, Koide-Majima if accessible | pilot valence/arousal/category generalization |
+| Lightweight emotion downstream | Affective Videos, IAPS fMRI, NeuroEmo, Koide-Majima if accessible | valence/arousal/category screening benchmark |
+| Static-image affect extension | NSD, OASIS labels, image affect models | large static-image fMRI representation and affective pseudo-labeling |
 | Stimulus-side affective supervision | REELMO, MMAFFBen/MMAFFIn, affective LLM/VLMs | build or validate stimulus emotion trajectories |
 | Auxiliary encoding | BOLD Moments, CNeuroMod, Algonauts 2025, Spacetop as future expansion | test video/audio/text-to-fMRI alignment and physiology-rich transfer |
 
-HCP movie pretraining and Horikawa/Emo-FilM downstream evaluation remain the central story. Other datasets should be added only when they reduce uncertainty in the pilot matrix.
+HCP movie pretraining and Horikawa/Emo-FilM downstream evaluation remain the central story. Other datasets should be added only when they reduce uncertainty in the benchmark matrix.
 
 ## Evaluation Ladder
 

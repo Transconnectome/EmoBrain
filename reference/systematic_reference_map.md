@@ -26,7 +26,9 @@ Sources:
 | Koide-Majima et al. 2020 | Audiovisual emotional movies + 80 emotion labels | Many emotion dimensions contribute to cortical emotion representation. | Secondary high-dimensional benchmark if accessible. |
 | Emo-FilM 2025 | 14 films, 30 participants, fMRI/physiology/50 annotations | Modern naturalistic affective fMRI dataset. | Main modern downstream benchmark. |
 | Ke et al. 2025 | Movie fMRI dynamic FC | Arousal generalizes better than valence across movie datasets. | Target ladder and dynamic-FC baseline. |
-| Affective Videos ds000205 | 5-second audiovisual clips | Direct valence/arousal fMRI dataset. | Lightweight pilot. |
+| Affective Videos ds000205 | 5-second audiovisual clips | Direct valence/arousal fMRI dataset. | Lightweight screening benchmark. |
+| IAPS fMRI NeuroVault | IAPS positive/neutral/negative beta maps from 56 participants | Fast valence-category fMRI benchmark. | Quick beta-map adaptation test for SwiFT. |
+| NSD + OASIS | NSD large 7T image fMRI; OASIS open valence/arousal image norms | Static-image fMRI can be paired with affective pseudo-labels. | Strategic image-based extension, not core movie-emotion dataset. |
 | NeuroEmo ds005700 | Bollywood emotional clips, 40 participants | Emotion fMRI with culturally grounded stimuli. | Possible cross-cultural downstream. |
 | REELMO 2025 | 60 full movies, 1,060h reports, fMRI subset | Large-scale time-resolved movie emotion reports. | Stimulus-side affective supervision and possible fMRI test. |
 | SED-GPT 2025 | long-sequence fMRI semantic and emotion decoding | Uses an LLM-style decoding framework to reconstruct semantic and emotional distributions from fMRI. | Useful cautionary precedent for brain-to-emotion decoding with language models; exploratory, not a foundation model. |
@@ -120,7 +122,7 @@ This is the main narrative bridge for NetFeeliX. Emotion foundation-model work i
 | Affective computing FMs | Schuller et al. 2026; Affective Computing in the LLM Era; MLLMs and Emotion Reasoning; MMAFFBen | LLM/VLM/MLLM systems are being used for affective recognition, reasoning, and evaluation. | Use affective AI as stimulus-side features, annotation support, and possible brain-tuning targets. |
 | Top-conference affective reasoning | ICML 2025 AffectGPT; NeurIPS 2025 VidEmo; ICLR 2026 AVERE, MME-Emotion, EmotionHallucer, HitEmotion | Top venues are moving from label prediction toward descriptive emotion understanding, cue grounding, hallucination control, ToM/appraisal-style reasoning, and preference optimization. | NetFeeliX should use reasoning/context as stimulus-side supervision and alignment targets, not force Horikawa to become a reasoning dataset. |
 | Emotional-intelligence benchmarks | MME-Emotion; EmoBench-M; Beyond Emotion Recognition; EIBench/Why We Feel | Benchmarks are moving from label prediction toward emotion reasoning, trigger inference, and socially contextual explanation. | Stimulus-side affective models can provide richer targets than category labels, but NetFeeliX should keep brain-grounded evaluation separate from pure VLM scoring. |
-| Multimodal emotion recognition surveys | 2026 MER surveys on missing modality, fusion, and transformer-based MER | Current affective computing emphasizes modality reliability, temporal synchronization, missing data, and cross-modal fusion. | Directly supports NetFeeliX's pilot matrix with brain-only, stimulus-only, and alignment conditions. |
+| Multimodal emotion recognition surveys | 2026 MER surveys on missing modality, fusion, and transformer-based MER | Current affective computing emphasizes modality reliability, temporal synchronization, missing data, and cross-modal fusion. | Directly supports NetFeeliX's benchmark matrix with brain-only, stimulus-only, and alignment conditions. |
 | Neural-signal FMs | REVE; Brain-OF; LaBraM-style EEG FMs | Emotion recognition appears as one downstream task among many. | Borrow heterogeneous neural pretraining ideas, but keep fMRI emotion representation as the NetFeeliX target. |
 | fMRI BFMs | SwiFT; BrainLM; Brain-JEPA; NeuroSTORM; Omni-fMRI | Pretraining is usually generic, resting/task-general, or not emotion-organized. | Test transfer first; then decide whether emotion-specific movie pretraining is justified. |
 | Stimulus-to-brain models | TRIBE; TRIBE v2; VIBE; Algonauts | Models predict fMRI from naturalistic stimuli, usually not emotion representation. | Convert encoding models into emotion and alignment components. |
@@ -176,7 +178,7 @@ NetFeeliX should state the gap as a model-development gap, not a theory gap.
 2. fMRI foundation models exist, but emotion is rarely the organizing target of pretraining or evaluation.
 3. Stimulus-to-brain encoding models provide powerful naturalistic alignment machinery, but their native objective is fMRI response prediction.
 4. Affective fMRI datasets provide emotion targets, but are too small and heterogeneous for naive scratch training.
-5. Therefore, NetFeeliX should first benchmark transfer, pretraining, and alignment routes, then develop the model family indicated by pilot results.
+5. Therefore, NetFeeliX should first benchmark transfer, pretraining, and alignment routes, then develop the model family indicated by screening results.
 
 ## Narrative Use
 
@@ -190,4 +192,4 @@ Use this sequence in proposals and meetings:
 6. Affective LLM/VLM work provides external affective representations that can be brain-tuned with adapters or distillation.
 7. MLLM emotion benchmarks show a shift from simple recognition to reasoning about causes and context; NetFeeliX can borrow this stimulus-side richness while keeping the central claim brain-grounded.
 8. Horikawa remains the high-dimensional brain-side emotion geometry probe; reasoning/context should be tested with Emo-FilM, REELMO, HCP/CNeuroMod/Spacetop movie data, and MLLM-derived cue/rationale targets.
-9. The pilot benchmark decides whether to prioritize BFM adapters, HCP movie pretraining, TRIBE-SwiFT alignment, or brain-tuned affective AI.
+9. The initial benchmark decides whether to prioritize SwiFT adapters, HCP movie pretraining, TRIBE-SwiFT alignment, or brain-tuned affective AI.

@@ -75,7 +75,7 @@ Additional sources:
 - CNeuroMod datasets: https://www.cneuromod.ca/gallery/datasets/
 - VIBE: https://huggingface.co/papers/2507.17958
 
-## Emotion Foundation Model Search Pass
+## Emotion-Aware Foundation-Model Search Pass
 
 Queries:
 
@@ -120,7 +120,7 @@ Findings:
 - Brain-tuning and brain-aligned AI are better established in language, speech, vision, and EEG than in fMRI emotion.
 - Existing work supports the idea that neural responses can act as an alignment or regularization signal for external AI models.
 - For NetFeeliX, this should be framed as an adapter/distillation track rather than full LLM/VLM fine-tuning.
-- This track is conditional: activate it if pilot results show strong stimulus-side affective features or measurable brain-stimulus alignment.
+- This track is conditional: activate it if screening results show strong stimulus-side affective features or measurable brain-stimulus alignment.
 
 Additional sources:
 
@@ -146,7 +146,7 @@ Findings:
 - NeuroSTORM now has a 2026 Nature Biomedical Engineering article and should be treated as a major current fMRI BFM baseline if access permits.
 - Recent affective-computing benchmarks are moving beyond emotion classification toward emotional intelligence, trigger inference, and multimodal reasoning.
 - SED-GPT is a direct but exploratory precedent for long-sequence fMRI semantic and emotion decoding with LLM priors.
-- Spacetop adds a physiology-rich naturalistic fMRI option, but should remain a future expansion path rather than distracting the two-month pilot.
+- Spacetop adds a physiology-rich naturalistic fMRI option, but should remain a future expansion path rather than distracting the two-month initial benchmark.
 - Horikawa now has an easily citable Mendeley data mirror in addition to OpenNeuro.
 
 Additional sources:
