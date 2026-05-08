@@ -1,7 +1,10 @@
 # NetFeeliX
-**Network Foundation Model for Feeling and Emotion in Naturalistic fMRI**
 
-> NetFeeliX studies how to learn emotion-aware brain representations from naturalistic fMRI, with a focus on movie-watching data, brain foundation models, and stimulus-brain-emotion alignment.
+**Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX**
+
+> Emotion representation learning with brain foundation models and naturalistic fMRI.
+
+NetFeeliX studies how to learn emotion-aware brain representations from naturalistic fMRI, with a focus on movie-watching data, brain foundation models, and stimulus-brain-emotion alignment.
 
 ---
 
@@ -107,9 +110,3 @@ NetFeeliX/
 - `Paper/methodology.md`: detailed experimental plan.
 - `reference/systematic_reference_map.md`: organized reference map by conceptual role.
 - `notes/pilot_benchmark_design.md`: pilot benchmark axes, experiments, and decision rules.
-
-## Name
-
-**NetFeeliX** intentionally connects brain networks, feeling, and the NeuroX naming family. The movie-watching association is useful for the project identity, but formal writing should use a precise subtitle:
-
-**NetFeeliX: A Naturalistic fMRI Foundation Model for Emotion Representation Learning**
