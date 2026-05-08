@@ -18,6 +18,40 @@ How can SwiFT be adapted, pretrained, or combined with multimodal stimulus model
 to improve emotion representation learning and inference from fMRI?
 ```
 
+## Why Naturalistic Movie/Story Pretraining Belongs Here
+
+Naturalistic pretraining is not included because movie-watching is automatically
+better than resting-state. The reason is a model-development hypothesis:
+
+```text
+Emotion downstream datasets are small, but many affective targets are driven by
+time-varying visual, auditory, language, social, and narrative cues. SwiFT may
+need stimulus-locked fMRI pretraining before emotion-specific fine-tuning.
+```
+
+This hypothesis must be tested, not assumed. A naturalistic-pretrained SwiFT is
+useful only if it improves transfer to direct emotion targets such as Horikawa,
+Emo-FilM, Affective Videos, IAPS fMRI, or NeuroEmo.
+
+The main failure modes are also explicit:
+
+- the model may learn low-level motion, luminance, scene cuts, audio energy, or
+  speech onset;
+- it may learn generic arousal/attention rather than rich emotion geometry;
+- it may improve stimulus reconstruction without improving brain-to-emotion
+  inference;
+- it may overfit a dataset-specific movie distribution.
+
+Therefore every naturalistic pretraining run should have controls:
+
+| Control | Purpose |
+|---|---|
+| resting/generic SwiFT vs naturalistic-pretrained SwiFT | test whether naturalistic fMRI adds transfer value |
+| low-level stimulus feature controls | detect visual/audio shortcuts |
+| vision-only/audio-only/text-only ablations | identify which modality carries transfer |
+| stimulus-only baseline | test whether labels are explained without brain data |
+| high-dimensional/component targets | avoid claiming success from arousal alone |
+
 ## SwiFT-First Strategy
 
 | Strategy | What changes | Dataset | Target | Why it matters |
@@ -25,7 +59,7 @@ to improve emotion representation learning and inference from fMRI?
 | Frozen SwiFT probe | freeze SwiFT, train linear/ridge/MLP head | Horikawa, Emo-FilM, Affective Videos, IAPS fMRI | emotion target | minimum BFM transfer baseline |
 | Adapter tuning | freeze most SwiFT blocks, train small adapters | Horikawa, Emo-FilM | emotion/appraisal targets | sample-efficient emotion specialization |
 | Partial fine-tuning | unfreeze late SwiFT stages or temporal blocks | Horikawa, Emo-FilM | high-dimensional emotion vector | tests where emotion-specific changes are needed |
-| HCP continued pretraining | continue SSL on HCP movie fMRI | HCP 7T movie | masked/contrastive/JEPA objective | shifts SwiFT from resting/task-general to naturalistic dynamics |
+| Naturalistic continued pretraining | continue SSL on movie/story fMRI | HCP 7T movie, CNeuroMod, StudyForrest, Narratives | masked/contrastive/JEPA objective | tests whether stimulus-locked dynamics improve emotion transfer |
 | Emotion-specific head | replace generic classifier with multi-task affect head | all emotion datasets | arousal, valence, category, vector, appraisal | handles heterogeneous targets |
 | Affective token | add learned affect query/token for pooled representation | Horikawa, Emo-FilM | emotion vector/component | tests explicit affect readout from 4D features |
 | Subject adapter | subject embedding or subject-specific adapter | multi-subject datasets | same target | separates shared affect structure from individual variation |
@@ -54,7 +88,14 @@ Use when frozen features are nontrivial but insufficient.
 
 ### C. Pretraining Objective Changes
 
-Use HCP movie and other naturalistic fMRI data.
+Use HCP movie first, then other naturalistic movie/story fMRI data only when the
+dataset choice follows the hypothesis:
+
+- HCP 7T movie: large-subject stimulus-locked pretraining.
+- CNeuroMod/Algonauts: multimodal stimulus-to-brain alignment.
+- StudyForrest: long-film continuity and audiovisual narrative.
+- Narratives: language/story context without visual cues.
+- 101 Dalmatians: visual/auditory/audiovisual modality control.
 
 - Masked fMRI segment modeling.
 - Temporal contrastive learning across augmented windows.
@@ -150,23 +191,38 @@ Decision:
 - If frozen SwiFT fails but simple baselines work, revisit preprocessing/target construction.
 - If all fMRI models are weak but stimulus models are strong, prioritize alignment.
 
-### Stage 2: HCP Movie Continued Pretraining
+### Stage 2: Naturalistic Movie/Story Continued Pretraining
 
-Goal: shift SwiFT toward naturalistic fMRI dynamics.
+Goal: test whether shifting SwiFT toward stimulus-locked naturalistic fMRI
+dynamics improves transfer to direct emotion targets.
 
 Run:
 
 1. masked fMRI modeling,
 2. temporal contrastive learning,
 3. JEPA/future latent prediction,
-4. subject-invariant learning.
+4. subject-invariant learning,
+5. optional stimulus-conditioned prediction with visual/audio/text features.
 
 Evaluate:
 
 - transfer to Horikawa,
 - transfer to Emo-FilM,
 - arousal/valence sanity checks,
+- high-dimensional/component target transfer,
+- low-level feature controls,
 - feature geometry with emotion ratings.
+
+Decision:
+
+- If HCP-style pretraining helps across Horikawa and Emo-FilM, scale 4D SwiFT
+  continued pretraining.
+- If it helps only visually dominated targets, treat it as visual naturalistic
+  adaptation and add modality ablations.
+- If CNeuroMod/Algonauts alignment helps more than brain-only pretraining,
+  prioritize TRIBE-SwiFT shared latent work.
+- If no naturalistic pretraining helps, prioritize emotion-specific heads,
+  subject adapters, and target construction.
 
 ### Stage 3: TRIBE v2 + SwiFT Alignment
 
@@ -215,7 +271,7 @@ Claim carefully:
 | Simple baseline | parcel/ROI | none | ridge/dynamic FC | emotion |
 | SwiFT frozen | 4D fMRI | none | SwiFT | emotion |
 | SwiFT adapted | 4D fMRI | none | SwiFT + adapter/head | emotion |
-| SwiFT HCP-pretrained | HCP-pretrained fMRI | none | SwiFT | SSL + emotion |
+| SwiFT naturalistic-pretrained | movie/story-pretrained fMRI | none | SwiFT | SSL + emotion |
 | Stimulus-only | none | video/audio/text/image | TRIBE v2 or encoders | emotion |
 | TRIBE teacher | none | video/audio/text | TRIBE v2 | predicted fMRI + emotion |
 | Dual encoder | 4D fMRI | video/audio/text | SwiFT + TRIBE/stimulus encoder | emotion + alignment |
@@ -225,7 +281,8 @@ Claim carefully:
 1. Use **SwiFT** as the default brain backbone.
 2. Use **Horikawa** to test high-dimensional emotion geometry.
 3. Use **Emo-FilM** to test naturalistic appraisal/component targets.
-4. Use **HCP 7T movie** for SwiFT continued pretraining.
+4. Use **HCP 7T movie first**, but treat CNeuroMod, StudyForrest, Narratives,
+   and modality-control movie data as hypothesis-specific naturalistic sources.
 5. Use **TRIBE v2** as stimulus-side teacher/alignment module, not as a replacement for the brain encoder.
 6. Use **IAPS fMRI** or **Affective Videos** for fast valence/arousal/category checks.
 7. Treat **NSD + OASIS/MLLM labels** as a strategic static-image extension, not the core story.

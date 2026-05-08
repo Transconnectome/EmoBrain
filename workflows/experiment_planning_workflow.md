@@ -39,7 +39,7 @@ rules.
 Every experiment must answer one of:
 
 - continue SwiFT frozen/adapted transfer,
-- invest in HCP movie continued pretraining,
+- invest in naturalistic movie/story continued pretraining,
 - prioritize TRIBE-SwiFT alignment,
 - use stimulus-side affective LLM/VLM supervision,
 - stop because dataset/target is not useful.

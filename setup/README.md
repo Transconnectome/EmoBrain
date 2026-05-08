@@ -32,7 +32,7 @@ preprocessing, timing, target annotation이 모두 다르기 때문에, 가장 �
 
 `setup`에서 아직 하지 않는 것:
 
-- 대규모 HCP movie pretraining
+- 대규모 naturalistic movie/story pretraining
 - full 4D SwiFT continued pretraining
 - 복잡한 TRIBE-SwiFT dual encoder
 - affective LLM/VLM brain-tuning
@@ -45,7 +45,8 @@ preprocessing, timing, target annotation이 모두 다르기 때문에, 가장 �
 | Emo-FilM | component/appraisal target readiness |
 | Affective Videos | arousal/valence sanity check |
 | IAPS fMRI NeuroVault | beta-map valence category check |
-| HCP 7T movie | pretraining-readiness check only |
+| HCP 7T movie | first naturalistic pretraining-readiness check |
+| CNeuroMod / StudyForrest / Narratives | later alignment, long-context, or language-context readiness only |
 
 ## Folder Rules
 
@@ -91,5 +92,5 @@ Rules:
 1. Which datasets are actually runnable now?
 2. Which emotion targets are clean enough to use?
 3. Does frozen SwiFT beat or match simple baselines?
-4. Is the next investment SwiFT adaptation, HCP movie pretraining, or
+4. Is the next investment SwiFT adaptation, naturalistic pretraining, or
    TRIBE-SwiFT alignment?

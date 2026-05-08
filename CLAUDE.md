@@ -79,7 +79,7 @@ Important priority:
 - Start with existing models and datasets for initial benchmark experiments.
 - Use benchmark results to choose model-development direction.
 - Do not over-invest in abstract emotion theory or claim a final foundation model before evidence.
-- When refining NetFeeliX, keep the narrative as benchmark-to-model-development: benchmark results decide whether to prioritize SwiFT adapters, HCP movie pretraining, TRIBE-SwiFT alignment, or brain-tuned affective LLM/VLM.
+- When refining NetFeeliX, keep the narrative as benchmark-to-model-development: benchmark results decide whether to prioritize SwiFT adapters, naturalistic movie/story pretraining, TRIBE-SwiFT alignment, or brain-tuned affective LLM/VLM.
 - Avoid informal exploratory-benchmark wording in project prose. Use "initial benchmark", "screening benchmark", "feasibility benchmark", or "Stage 0/1".
 
 ## Important Model Facts
@@ -99,7 +99,11 @@ Important priority:
   - 184 subjects in the release.
   - Four movie-watching runs of roughly 15 minutes each.
   - TR = 1 s, 1.6 mm isotropic 7T fMRI.
-  - Role: naturalistic pretraining source.
+  - Role: first naturalistic pretraining candidate, not the only candidate.
+
+- **CNeuroMod / Algonauts, StudyForrest, Narratives, 101 Dalmatians**
+  - Role: hypothesis-specific naturalistic sources for multimodal alignment,
+    long-film continuity, language/story context, and modality controls.
 
 - **Horikawa / Cowen emotional video fMRI**
   - 2,185 emotion-evoking video clips.
@@ -133,9 +137,12 @@ Models:
 - NeuroSTORM if code/weights are available
 - Omni-fMRI or Brain-DiT only if availability and setup are realistic
 
-### Track B: HCP Movie Pretraining
+### Track B: Naturalistic Movie/Story Pretraining
 
-Goal: learn naturalistic fMRI dynamics before emotion fine-tuning.
+Goal: test whether stimulus-locked fMRI dynamics learned from movie/story data
+improve transfer to emotion targets. HCP is the first candidate because of
+scale and standardization; use CNeuroMod/Algonauts, StudyForrest, Narratives, or
+modality-control movie datasets only when they answer a concrete model question.
 
 Candidate objectives:
 - Masked fMRI modeling.
@@ -143,6 +150,7 @@ Candidate objectives:
 - JEPA-style latent prediction.
 - Subject-invariant contrastive learning.
 - Future brain state prediction.
+- Optional stimulus-conditioned prediction with visual/audio/text features.
 
 Start small with parcel-level time series before expensive 4D volume training.
 
@@ -188,7 +196,7 @@ Do not full fine-tune an LLM/VLM on small fMRI datasets. Activate this track onl
 - Keep project claims separated from experimental results.
 - Always keep the main framework in `Paper/framework_EN.md` and `Paper/framework_KR.md`.
 - Keep emotion theory concise. The project narrative should emphasize model development, screening benchmarks, architecture comparison, and training objectives.
-- Keep the four model-development tracks explicit: existing BFM transfer, HCP movie pretraining, stimulus-brain-emotion alignment, and brain-tuned affective LLM/VLM.
+- Keep the four model-development tracks explicit: existing BFM transfer, naturalistic movie/story pretraining, stimulus-brain-emotion alignment, and brain-tuned affective LLM/VLM.
 - Use "encoding model" carefully for TRIBE-style stimulus-to-brain models.
 - Use "fMRI encoder" or "brain foundation model" for fMRI-to-representation models.
 - Do not claim NetFeeliX is a foundation model until pretraining and transfer are demonstrated.

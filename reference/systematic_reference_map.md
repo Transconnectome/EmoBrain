@@ -49,11 +49,13 @@ Sources:
 
 | Reference | Core Point | Use |
 |---|---|---|
-| HCP 7T Movie | 184 subjects, four movie runs, TR 1 s. | Primary naturalistic pretraining source. |
-| van der Meer et al. 2020 | Movie viewing produces rich and reliable brain-state dynamics aligned with events and engagement. | Justifies movie pretraining over resting-only transfer. |
+| HCP 7T Movie | 184 subjects, four movie runs, TR 1 s. | First large-subject naturalistic pretraining candidate. |
+| van der Meer et al. 2020 | Movie viewing produces rich and reliable brain-state dynamics aligned with events and engagement. | Supports testing stimulus-locked dynamics, not assuming movie automatically solves emotion transfer. |
 | Petrican et al. 2021 | Brain-environment alignment during movie watching relates to cognitive and affective function. | Supports affective relevance of movie-driven dynamics. |
 | Gruskin and Patel 2022 | Resting connectivity predicts individual differences in movie activity. | Bridge between resting BFM and movie dynamics. |
 | CNeuroMod / Algonauts 2025 | Dense movie fMRI with video, audio, and transcript streams. | Stimulus-brain alignment and TRIBE-style resource. |
+| StudyForrest | Naturalistic Forrest Gump fMRI resources and long-film stimulation. | Tests long-film continuity and audiovisual narrative effects. |
+| Narratives | Large story-listening fMRI collection with time-stamped transcripts. | Tests language/story context without visual emotion cues. |
 | BOLD Moments | 1,102 short videos with repeated fMRI and metadata. | Auxiliary short-video encoding/pretraining dataset. |
 | Spacetop 2025 | 101 participants, 6 hours scanning per participant, including naturalistic movie viewing and autonomic physiology. | Possible future naturalistic/physiology-rich expansion dataset; not first-priority unless access is easy. |
 
@@ -65,6 +67,8 @@ Sources:
 - Gruskin/Patel: https://pmc.ncbi.nlm.nih.gov/articles/PMC9491116/
 - Algonauts: https://algonautsproject.com/2025/braindata.html
 - CNeuroMod: https://www.cneuromod.ca/gallery/datasets/
+- StudyForrest: https://openfmri.org/dataset/ds000113
+- Narratives: https://www.nature.com/articles/s41597-021-01033-3
 - BOLD Moments: https://www.nature.com/articles/s41467-024-50310-3
 - Spacetop: https://www.nature.com/articles/s41597-025-05154-x
 
@@ -124,7 +128,7 @@ This is the main narrative bridge for NetFeeliX. Emotion foundation-model work i
 | Emotional-intelligence benchmarks | MME-Emotion; EmoBench-M; Beyond Emotion Recognition; EIBench/Why We Feel | Benchmarks are moving from label prediction toward emotion reasoning, trigger inference, and socially contextual explanation. | Stimulus-side affective models can provide richer targets than category labels, but NetFeeliX should keep brain-grounded evaluation separate from pure VLM scoring. |
 | Multimodal emotion recognition surveys | 2026 MER surveys on missing modality, fusion, and transformer-based MER | Current affective computing emphasizes modality reliability, temporal synchronization, missing data, and cross-modal fusion. | Directly supports NetFeeliX's benchmark matrix with brain-only, stimulus-only, and alignment conditions. |
 | Neural-signal FMs | REVE; Brain-OF; LaBraM-style EEG FMs | Emotion recognition appears as one downstream task among many. | Borrow heterogeneous neural pretraining ideas, but keep fMRI emotion representation as the NetFeeliX target. |
-| fMRI BFMs | SwiFT; BrainLM; Brain-JEPA; NeuroSTORM; Omni-fMRI | Pretraining is usually generic, resting/task-general, or not emotion-organized. | Test transfer first; then decide whether emotion-specific movie pretraining is justified. |
+| fMRI BFMs | SwiFT; BrainLM; Brain-JEPA; NeuroSTORM; Omni-fMRI | Pretraining is usually generic, resting/task-general, or not emotion-organized. | Test transfer first; then decide whether naturalistic movie/story pretraining or emotion-specific adaptation is justified. |
 | Stimulus-to-brain models | TRIBE; TRIBE v2; VIBE; Algonauts | Models predict fMRI from naturalistic stimuli, usually not emotion representation. | Convert encoding models into emotion and alignment components. |
 
 Sources:
@@ -187,9 +191,9 @@ Use this sequence in proposals and meetings:
 1. The project is about model development for emotion-aware brain representation, not emotion theory.
 2. Naturalistic affective fMRI gives the right downstream targets, but the datasets are small.
 3. Existing BFMs test whether generic brain representations transfer to emotion.
-4. HCP movie fMRI tests whether stimulus-driven pretraining is better than resting/task-general transfer.
+4. Naturalistic movie/story fMRI tests whether stimulus-locked pretraining improves emotion transfer beyond resting/task-general transfer; HCP is the first candidate, not the whole strategy.
 5. TRIBE-style models show how to align video/audio/text with fMRI; NetFeeliX modifies them for emotion representation.
 6. Affective LLM/VLM work provides external affective representations that can be brain-tuned with adapters or distillation.
 7. MLLM emotion benchmarks show a shift from simple recognition to reasoning about causes and context; NetFeeliX can borrow this stimulus-side richness while keeping the central claim brain-grounded.
-8. Horikawa remains the high-dimensional brain-side emotion geometry probe; reasoning/context should be tested with Emo-FilM, REELMO, HCP/CNeuroMod/Spacetop movie data, and MLLM-derived cue/rationale targets.
-9. The initial benchmark decides whether to prioritize SwiFT adapters, HCP movie pretraining, TRIBE-SwiFT alignment, or brain-tuned affective AI.
+8. Horikawa remains the high-dimensional brain-side emotion geometry probe; reasoning/context should be tested with Emo-FilM, REELMO, HCP/CNeuroMod/StudyForrest/Narratives movie-story data, and MLLM-derived cue/rationale targets.
+9. The initial benchmark decides whether to prioritize SwiFT adapters, naturalistic pretraining, TRIBE-SwiFT alignment, or brain-tuned affective AI.

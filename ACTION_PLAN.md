@@ -37,7 +37,7 @@ NetFeeliX는 SwiFT-first 프로젝트입니다.
 - subject adapter
 - emotion-specific multi-task head
 - affective token / query pooling
-- HCP movie-watching fMRI continued pretraining
+- naturalistic movie/story fMRI continued pretraining
 - stimulus model 또는 TRIBE v2와 alignment
 
 ### 2. TRIBE v2는 대체제가 아니라 보조 축이다
@@ -77,7 +77,7 @@ brain-only / stimulus-only / brain-stimulus aligned model
 - simple baseline이 어느 정도 되는가?
 - frozen SwiFT가 simple baseline보다 나은가?
 
-이 결과를 보고 SwiFT adapter, HCP movie pretraining, TRIBE-SwiFT alignment 중 어디에
+이 결과를 보고 SwiFT adapter, naturalistic movie/story pretraining, TRIBE-SwiFT alignment 중 어디에
 힘을 줄지 결정합니다.
 
 ## 0단계: 프로젝트 운영 기반
@@ -107,7 +107,7 @@ python3 scripts/check_md_completeness.py
 
 1. Horikawa / Cowen emotional video fMRI
 2. Emo-FilM
-3. HCP Young Adult 7T movie
+3. HCP Young Adult 7T movie와 다른 naturalistic movie/story fMRI 후보
 4. Affective Videos / IAPS fMRI
 
 해야 할 일:
@@ -124,7 +124,8 @@ python3 scripts/check_md_completeness.py
 
 - Horikawa target이 바로 구성되면 첫 baseline으로 이동합니다.
 - Emo-FilM의 timing/annotation 처리가 복잡하면 Horikawa와 Affective Videos를 먼저 진행합니다.
-- HCP movie는 emotion label이 없으므로 downstream target이 아니라 pretraining source로 둡니다.
+- HCP movie와 유사 naturalistic fMRI는 emotion label이 없으므로 downstream target이 아니라
+  model hypothesis를 검증하는 pretraining/alignment source로 둡니다.
 
 ## 2단계: 첫 baseline 만들기
 
@@ -173,9 +174,31 @@ python3 scripts/generate_experiment_cards.py \
 - frozen SwiFT가 simple baseline보다 나쁘면 preprocessing, target timing, feature extraction을 먼저 점검합니다.
 - arousal만 안정적으로 예측되면 dynamic/physiology-aware objective를 우선합니다.
 
-## 4단계: HCP movie로 continued pretraining 하기
+## 4단계: naturalistic movie/story fMRI pretraining 검증하기
 
-목표는 SwiFT를 resting-state/general fMRI에서 naturalistic movie fMRI 쪽으로 이동시키는 것입니다.
+목표는 SwiFT를 resting-state/general fMRI에서 naturalistic stimulus-locked fMRI 쪽으로
+이동시키는 것이 emotion transfer에 실제로 도움이 되는지 확인하는 것입니다. 여기서 HCP는
+첫 후보이지 유일한 답이 아닙니다.
+
+왜 하는가:
+
+- Emotion-labeled fMRI는 작아서 4D SwiFT를 바로 크게 학습하기 어렵습니다.
+- Movie/story fMRI는 얼굴, 장면, 목소리, 음악, 대사, social cue, narrative context가 시간
+  속에서 결합될 때 brain dynamics가 어떻게 변하는지 보여줍니다.
+- EmoViS의 연장선에서, visual/audiovisual feature가 emotion prediction에 중요하다면 그
+  feature가 유도하는 fMRI dynamics를 SwiFT가 표현할 수 있는지 확인해야 합니다.
+- 단, movie pretraining이 단순히 motion/luminance/audio energy/arousal shortcut을 배울 수
+  있으므로 반드시 ablation과 transfer 검증을 같이 둡니다.
+
+후보 데이터셋과 역할:
+
+| 데이터셋 | 역할 | 먼저 확인할 질문 |
+|---|---|---|
+| HCP Young Adult 7T movie | large-subject continued pretraining | movie-pretrained SwiFT가 Horikawa/Emo-FilM으로 전이되는가 |
+| CNeuroMod / Algonauts 2025 | multimodal stimulus-to-brain alignment | video/audio/transcript feature와 SwiFT latent를 정렬할 수 있는가 |
+| StudyForrest | long movie/story continuity | 긴 audiovisual narrative가 temporal representation에 주는 이득이 있는가 |
+| Narratives | language/story-only context | visual cue 없이 narrative context와 affective target을 연결할 수 있는가 |
+| 101 Dalmatians | modality-control naturalistic movie | visual-only, auditory-only, audiovisual 조건 차이가 emotion transfer에 중요한가 |
 
 후보 학습 목표:
 
@@ -189,7 +212,8 @@ python3 scripts/generate_experiment_cards.py \
 
 1. parcel-level 또는 ROI-level temporal model로 작게 시작합니다.
 2. transfer target은 Horikawa와 Emo-FilM으로 둡니다.
-3. transfer improvement가 보이면 4D SwiFT continued pretraining으로 확장합니다.
+3. low-level visual/audio control과 stimulus-only baseline을 같이 둡니다.
+4. transfer improvement가 보이면 4D SwiFT continued pretraining으로 확장합니다.
 
 ## 5단계: TRIBE v2 + SwiFT alignment
 
@@ -232,7 +256,7 @@ representation이 어떻게 바뀌는지 확인하는 것입니다.
 
 1. Horikawa local data path와 target format 확인
 2. Emo-FilM access, timing, annotation format 확인
-3. HCP 7T movie 접근 가능 여부와 preprocessing format 확인
+3. HCP 7T movie 접근 가능 여부와 preprocessing format 확인, 그리고 CNeuroMod/StudyForrest/Narratives 후보 역할 정리
 4. `setup`에 dataset availability report 생성
 5. NFx-001, NFx-002 experiment card 작성
 
@@ -283,7 +307,7 @@ python3 scripts/generate_experiment_cards.py --id NFx-001 --title "Frozen SwiFT 
 | 폴더 | 역할 |
 |---|---|
 | `setup/` | data inventory, target construction, first baselines |
-| `hcp_pretraining/` | HCP movie continued pretraining |
+| `naturalistic_pretraining/` | HCP/CNeuroMod/StudyForrest-style movie/story continued pretraining |
 | `swift_adaptation/` | emotion downstream fine-tuning |
 | `tribe_alignment/` | TRIBE-SwiFT alignment |
 | `affective_llm_vlm/` | affective LLM/VLM brain-tuning extension |

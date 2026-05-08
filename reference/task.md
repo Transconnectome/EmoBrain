@@ -12,9 +12,9 @@ This document defines the task space for NetFeeliX. The main goal is not to maxi
 | Emotion prediction | Discrete emotion prediction | fMRI or stimulus window | emotion category/multi-label vector | Horikawa, Emo-FilM, NeuroEmo | category-like affect structure |
 | Emotion prediction | High-dimensional emotion vector | fMRI or stimulus window | emotion rating vector | Horikawa, Koide-Majima | affect geometry benchmark |
 | Emotion prediction | Appraisal/component prediction | fMRI + stimulus context | component ratings | Emo-FilM | bridge to context understanding |
-| Representation learning | Masked fMRI modeling | HCP movie fMRI | reconstructed masked segments | HCP 7T movie | SwiFT continued pretraining |
-| Representation learning | Contrastive fMRI learning | augmented fMRI windows | matched latent views | HCP, Horikawa, Emo-FilM | robust fMRI representation |
-| Representation learning | JEPA/future latent prediction | fMRI history window | future or held-out latent | HCP 7T movie | predictive brain dynamics |
+| Representation learning | Masked fMRI modeling | movie/story fMRI | reconstructed masked segments | HCP 7T movie, CNeuroMod, StudyForrest | SwiFT continued pretraining |
+| Representation learning | Contrastive fMRI learning | augmented fMRI windows | matched latent views | HCP, CNeuroMod, Horikawa, Emo-FilM | robust fMRI representation |
+| Representation learning | JEPA/future latent prediction | fMRI history window | future or held-out latent | HCP 7T movie, StudyForrest, Narratives | predictive brain dynamics |
 | Representation learning | Subject-invariant learning | multi-subject fMRI | subject-shared latent | HCP, Emo-FilM | transfer across participants |
 | Alignment/encoding | fMRI-to-emotion decoding | fMRI | emotion target | Horikawa, Emo-FilM, Affective Videos | SwiFT emotion head |
 | Alignment/encoding | stimulus-to-emotion prediction | video/audio/text/image | emotion target | Horikawa, Emo-FilM, REELMO | TRIBE v2/stimulus baseline |
@@ -57,7 +57,7 @@ Tasks:
 
 1. SwiFT frozen features + linear/ridge/MLP emotion head,
 2. SwiFT adapter or partial fine-tuning,
-3. SwiFT continued pretraining on HCP movie,
+3. SwiFT continued pretraining on HCP movie first, then other naturalistic sources if they answer a specific alignment/context/modality question,
 4. emotion-specific head comparison: arousal/valence, discrete emotion, high-dimensional vector, appraisal/component.
 
 Primary targets:

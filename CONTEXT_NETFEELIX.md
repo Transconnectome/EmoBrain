@@ -27,7 +27,10 @@ transfer evidence exists. Prefer:
 - SwiFT is the default brain backbone.
 - TRIBE v2 is not a replacement for SwiFT. It is a multimodal
   stimulus-to-brain teacher, stimulus baseline, and alignment module.
-- HCP 7T movie is the main naturalistic fMRI continued-pretraining source.
+- Naturalistic movie/story fMRI pretraining is a hypothesis to test, not an
+  assumption. HCP 7T movie is the first candidate because of scale and
+  standardization, but CNeuroMod/Algonauts, StudyForrest, Narratives, and
+  modality-control movie datasets answer different model questions.
 - Horikawa is a high-dimensional affect geometry task, not a reasoning dataset.
 - Emo-FilM is the strongest naturalistic emotion/component/appraisal dataset.
 - Emotion theory should only justify target design; model development is the
@@ -39,7 +42,7 @@ transfer evidence exists. Prefer:
 |---|---|---|
 | SwiFT transfer | Do generic fMRI features already help emotion targets? | frozen SwiFT + linear/ridge/MLP head |
 | SwiFT adaptation | Which small model changes improve emotion specificity? | adapter, subject adapter, affective token, multi-task head |
-| HCP movie pretraining | Does naturalistic fMRI pretraining improve transfer? | masked fMRI, contrastive, JEPA/future latent objectives |
+| Naturalistic pretraining | Does stimulus-locked movie/story fMRI pretraining improve emotion transfer? | HCP first; CNeuroMod/StudyForrest/Narratives for alignment, continuity, and context controls |
 | TRIBE-SwiFT alignment | Does stimulus context improve or regularize brain emotion representation? | dual encoder or teacher distillation |
 | Affective LLM/VLM extension | Can richer affective semantics supervise brain latents? | rationale/cue/appraisal embeddings as auxiliary targets |
 
@@ -85,6 +88,6 @@ research system:
 
 1. runnable datasets and target definitions,
 2. first baseline and SwiFT-probe results,
-3. clear decision rules for SwiFT adaptation vs HCP pretraining vs TRIBE-SwiFT
+3. clear decision rules for SwiFT adaptation vs naturalistic pretraining vs TRIBE-SwiFT
    alignment,
 4. documented failure modes and next model-development steps.

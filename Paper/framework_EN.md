@@ -10,7 +10,7 @@ One-line framing:
 
 External-facing pitch:
 
-> NetFeeliX will not start by claiming a complete emotion foundation model. It will first build an initial benchmark around SwiFT, naturalistic movie fMRI datasets, TRIBE v2-style stimulus-to-brain models, and affective LLM/VLM representations. The benchmark asks which information source helps which emotion target. The model-development track is then chosen from four directions: SwiFT emotion adaptation, HCP movie continued pretraining, TRIBE-SwiFT stimulus-brain alignment, and brain-tuned affective LLM/VLM adapters.
+> NetFeeliX will not start by claiming a complete emotion foundation model. It will first build an initial benchmark around SwiFT, naturalistic movie/story fMRI datasets, TRIBE v2-style stimulus-to-brain models, and affective LLM/VLM representations. The benchmark asks which information source helps which emotion target. The model-development track is then chosen from four directions: SwiFT emotion adaptation, naturalistic fMRI continued pretraining, TRIBE-SwiFT stimulus-brain alignment, and brain-tuned affective LLM/VLM adapters.
 
 ## Model-Development Problem
 
@@ -26,7 +26,7 @@ NetFeeliX decomposes this into four testable modeling questions.
 | Question | Modeling interpretation | First test |
 |---|---|---|
 | Do generic BFMs transfer to emotion? | Emotion may already be encoded in broad fMRI representations. | Frozen BFM probe and adapter tuning. |
-| Does movie fMRI pretraining help? | Emotion during films is stimulus-locked and temporally structured. | HCP movie-pretrained encoder vs resting-state/generic BFM. |
+| Does naturalistic fMRI pretraining help? | Emotion targets arise as vision, audio, language, social cues, and narrative context unfold over time. | Resting/generic SwiFT vs HCP/CNeuroMod/StudyForrest-style pretraining. |
 | Does stimulus-brain alignment help? | Emotion depends on the shared structure between stimulus dynamics and brain dynamics. | TRIBE-style stimulus features aligned with fMRI latents. |
 | Can affective AI be brain-tuned? | LLM/VLM emotion features may improve when regularized by neural responses. | Small adapter or distillation from brain-aligned latent spaces. |
 
@@ -128,7 +128,7 @@ Reasoning and context understanding require longer temporal context, cue groundi
 
 - **Emo-FilM**: component/appraisal-style annotations and naturalistic film context.
 - **REELMO**: long movie trajectories, 20 emotion labels, stimulus features, subtitles, and fMRI subset.
-- **HCP/CNeuroMod/Spacetop movie data**: naturalistic fMRI pretraining and context-window experiments.
+- **HCP/CNeuroMod/StudyForrest/Narratives movie-story data**: naturalistic fMRI pretraining, modality/context ablations, and stimulus-brain alignment experiments.
 - **Affective MLLM benchmarks/models**: descriptive emotion captions, cue-emotion QA, rationale embeddings, and hallucination diagnostics.
 
 The bridge is therefore staged:
@@ -157,11 +157,21 @@ Primary model: SwiFT. Comparison models: BrainLM, Brain-JEPA, SwiFUN, NeuroSTORM
 
 Decision rule: if frozen/adapted BFM representations outperform simple baselines on more than arousal, prioritize adapter and fine-tuning experiments.
 
-### Track B: HCP Movie Pretraining
+### Track B: Naturalistic Movie/Story Pretraining
 
-Goal: test whether naturalistic stimulus-driven fMRI pretraining improves emotion transfer.
+Goal: test whether naturalistic stimulus-driven fMRI pretraining improves emotion transfer. This is not the vague claim that movie data is automatically better than rest. The precise hypothesis is that, before learning from small emotion-labeled fMRI datasets, SwiFT may need to learn stimulus-locked brain dynamics driven by visual, auditory, language, social, and narrative cues.
 
 Start with parcel-level time series. Add raw 4D volumes only after simple pipelines work.
+
+Dataset choice should follow the hypothesis:
+
+| Source | Role | Testable question |
+|---|---|---|
+| HCP 7T movie | large-subject continued pretraining | does stimulus-locked pretraining improve Horikawa/Emo-FilM transfer? |
+| CNeuroMod / Algonauts | multimodal encoding/alignment | does video/audio/transcript-to-fMRI alignment help emotion targets? |
+| StudyForrest | long-film continuity | does coherent audiovisual narrative improve temporal representation? |
+| Narratives | language/story context | can narrative context help without visual cues? |
+| 101 Dalmatians | modality control | do visual-only, auditory-only, and audiovisual conditions differ for emotion transfer? |
 
 Candidate objectives:
 
@@ -169,9 +179,10 @@ Candidate objectives:
 - temporal contrastive learning,
 - JEPA-style latent prediction,
 - subject-invariant contrastive learning,
-- future brain-state prediction.
+- future brain-state prediction,
+- optional stimulus-conditioned prediction.
 
-Decision rule: if HCP-pretrained encoders beat generic BFM transfer on Horikawa/Emo-FilM, scale movie pretraining.
+Decision rule: if naturalistic-pretrained encoders beat generic BFM transfer on Horikawa/Emo-FilM and improve high-dimensional/component targets beyond arousal or low-level visual/audio shortcuts, scale movie/story pretraining. If gains are absent or shortcut-driven, prioritize emotion-specific heads, subject adapters, TRIBE-style alignment, and target redesign.
 
 ### Track C: Stimulus-Brain-Emotion Alignment
 
@@ -221,14 +232,14 @@ Decision rule: activate this track if stimulus-side affective embeddings are str
 
 | Role | Datasets | Purpose |
 |---|---|---|
-| Naturalistic pretraining | HCP 7T movie, CNeuroMod/Algonauts if accessible | learn stimulus-driven fMRI dynamics |
+| Naturalistic pretraining | HCP 7T movie, CNeuroMod/Algonauts, StudyForrest, Narratives, 101 Dalmatians | test stimulus-locked fMRI dynamics, modality/context ablations, and alignment hypotheses |
 | Core emotion downstream | Horikawa, Emo-FilM | evaluate high-dimensional and naturalistic emotion transfer |
 | Lightweight emotion downstream | Affective Videos, IAPS fMRI, NeuroEmo, Koide-Majima if accessible | valence/arousal/category screening benchmark |
 | Static-image affect extension | NSD, OASIS labels, image affect models | large static-image fMRI representation and affective pseudo-labeling |
 | Stimulus-side affective supervision | REELMO, MMAFFBen/MMAFFIn, affective LLM/VLMs | build or validate stimulus emotion trajectories |
 | Auxiliary encoding | BOLD Moments, CNeuroMod, Algonauts 2025, Spacetop as future expansion | test video/audio/text-to-fMRI alignment and physiology-rich transfer |
 
-HCP movie pretraining and Horikawa/Emo-FilM downstream evaluation remain the central story. Other datasets should be added only when they reduce uncertainty in the benchmark matrix.
+Naturalistic pretraining and Horikawa/Emo-FilM downstream evaluation remain central. HCP is the first candidate, not the only candidate. Other datasets should be added when they reduce uncertainty about modality, narrative context, alignment, or low-level shortcut risks.
 
 ## Evaluation Ladder
 
@@ -249,11 +260,11 @@ Metrics:
 
 ## Expected Contribution
 
-- A structured benchmark comparing generic BFM transfer, movie-fMRI pretraining, and stimulus-brain alignment for emotion prediction.
+- A structured benchmark comparing generic BFM transfer, naturalistic movie/story fMRI pretraining, and stimulus-brain alignment for emotion prediction.
 - A practical two-month roadmap that can produce useful results even if the ambitious model is not yet ready.
 - A taxonomy separating fMRI encoders, stimulus-to-brain encoding models, and emotion-aware aligned representation models.
 - A model-development bridge between affective computing foundation models and affective neuroscience.
-- A clear decision framework for when to pursue adapters, HCP pretraining, TRIBE-style alignment, or brain-tuned affective VLM/LLM.
+- A clear decision framework for when to pursue adapters, naturalistic pretraining, TRIBE-style alignment, or brain-tuned affective VLM/LLM.
 
 ## Key References
 
@@ -261,7 +272,7 @@ Metrics:
 |---|---|---|
 | fMRI BFMs | SwiFT, SwiFUN, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-OF | brain-side baselines and pretraining precedents |
 | Stimulus-to-brain | TRIBE, TRIBE v2, VIBE, Algonauts 2025, Hu and Mohsenzadeh | multimodal alignment and fMRI response prediction |
-| Naturalistic fMRI | HCP 7T movie, CNeuroMod, BOLD Moments, van der Meer, Petrican | movie pretraining and naturalistic dynamics |
+| Naturalistic fMRI | HCP 7T movie, CNeuroMod, StudyForrest, Narratives, 101 Dalmatians, BOLD Moments | movie/story pretraining, modality/context ablations, and naturalistic dynamics |
 | Emotion fMRI | Horikawa, Koide-Majima, Emo-FilM, Ke et al., Affective Videos, NeuroEmo, REELMO | downstream targets and target difficulty |
 | Affective FM | Schuller et al., LLM affect survey, MLLM emotion reasoning survey, MMAFFBen, MME-Emotion, EmoBench-M, EIBench | external affective AI and emotion-reasoning trend |
 | Top-conference affective reasoning | ICML 2025 AffectGPT; NeurIPS 2025 VidEmo; ICLR 2026 AVERE, EmotionHallucer, HitEmotion/MME-Emotion | label prediction is shifting toward cue grounding, rationale, context, and hallucination control |

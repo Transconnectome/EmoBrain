@@ -30,7 +30,7 @@ This file records the currently relevant papers and how each should be used in t
 
 - **Type**: fMRI foundation model using joint-embedding predictive architecture.
 - **Claim**: Uses Brain Gradient Positioning and spatiotemporal masking for brain dynamics representation learning.
-- **NetFeeliX role**: strong methodological precedent for JEPA-style HCP movie pretraining.
+- **NetFeeliX role**: strong methodological precedent for JEPA-style naturalistic fMRI pretraining.
 - **Source**: https://neurips.cc/virtual/2024/poster/94113
 - **HF paper page**: https://huggingface.co/papers/2409.19407
 
@@ -155,7 +155,7 @@ This file records the currently relevant papers and how each should be used in t
 
 - **Type**: naturalistic movie fMRI brain-state dynamics.
 - **Claim**: Movie viewing reshapes resting-state-like dynamics into richer, more reliable brain-state transitions that align with movie events, physiology, and subjective engagement.
-- **NetFeeliX role**: key justification for movie-fMRI pretraining instead of resting-state-only pretraining.
+- **NetFeeliX role**: supports testing stimulus-locked movie fMRI pretraining against resting-state-only transfer, while still requiring emotion downstream validation.
 - **Source**: https://www.nature.com/articles/s41467-020-18717-w
 
 ### Petrican, Graham, Lawrence 2021: Brain-environment alignment during movie watching

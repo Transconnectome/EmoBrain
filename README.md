@@ -23,7 +23,7 @@ naturalistic stimulus dynamics + fMRI brain dynamics + emotion annotations
 The project is **SwiFT-first** and compares three families of approaches:
 
 1. **SwiFT emotion specialization.** Adapt SwiFT with emotion heads, adapters, subject modules, continued pretraining, and targeted fine-tuning.
-2. **Naturalistic movie pretraining.** Continue pretraining from HCP 7T movie-watching fMRI, then evaluate on Horikawa, Emo-FilM, and related affective datasets.
+2. **Naturalistic movie/story pretraining.** Continue pretraining from HCP 7T movie first, then use CNeuroMod/Algonauts, StudyForrest, Narratives, or modality-control movie data only when they test a concrete hypothesis. Evaluate transfer on Horikawa, Emo-FilM, and related affective datasets.
 3. **Stimulus-brain-emotion alignment.** Use TRIBE v2 and other multimodal stimulus models as teachers or alignment components, while keeping SwiFT as the primary brain backbone.
 
 ## Core Research Question
@@ -33,7 +33,7 @@ The project is **SwiFT-first** and compares three families of approaches:
 Subquestions:
 
 - Do resting-state fMRI foundation models transfer to emotion prediction, or do they miss naturalistic affective dynamics?
-- Does HCP movie-watching pretraining improve sample efficiency and generalization on small emotion fMRI datasets?
+- Does stimulus-locked movie/story fMRI pretraining improve sample efficiency and generalization on small emotion fMRI datasets?
 - Are emotion labels better predicted from brain-only representations, stimulus-only representations, or jointly aligned stimulus-brain representations?
 - Which downstream targets are more transferable: arousal, valence, discrete emotion categories, or high-dimensional emotion embeddings?
 
@@ -41,7 +41,7 @@ Subquestions:
 
 **H1. Resting-state BFM transfer is useful but incomplete.** Existing brain foundation models should provide nontrivial baselines, but their pretraining distribution may underrepresent stimulus-locked affective dynamics.
 
-**H2. Naturalistic movie pretraining should improve emotion transfer.** HCP movie-watching fMRI should provide a better pretraining domain for Horikawa and Emo-FilM than resting-state-only pretraining.
+**H2. Naturalistic pretraining may improve emotion transfer.** The hypothesis is not simply that movie beats rest. HCP movie-watching fMRI tests whether stimulus-locked visual/audio/social dynamics help emotion transfer; CNeuroMod, StudyForrest, Narratives, and modality-control movie data test alignment, long-context, language-context, and modality-specific variants of the same question.
 
 **H3. Arousal will generalize more robustly than valence.** This follows recent movie-watching fMRI evidence that dynamic connectivity predicts arousal across datasets more reliably than valence.
 
@@ -64,9 +64,10 @@ Subquestions:
    - Run simple baselines: ridge/MLP on ROI time series, dynamic FC arousal baseline, frozen BFM linear probes.
    - Record exact splits, target definitions, and metrics.
 
-2. **Weeks 3-4: HCP movie pretraining**
+2. **Weeks 3-4: Naturalistic pretraining**
    - Start with a small ROI or parcel-level temporal transformer.
    - Compare masked modeling, temporal contrastive learning, and JEPA-style latent prediction.
+   - Use HCP first; add other naturalistic sources only for alignment, context, or modality-control questions.
    - Track compute, convergence, and transfer quality.
 
 3. **Weeks 5-6: Emotion fine-tuning**

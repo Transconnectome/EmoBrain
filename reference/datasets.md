@@ -26,8 +26,10 @@ The practical distinction is:
 | Emotion-labeled fMRI | IAPS fMRI NeuroVault | beta maps | yes | image-valence category adaptation test |
 | Emotion-labeled fMRI | NeuroEmo | yes | yes | cross-cultural emotion recognition from Bollywood clips |
 | Emotion-labeled fMRI | Koide-Majima/Nishimoto | yes | yes | secondary high-dimensional emotional movie benchmark if accessible |
-| Movie-watching fMRI pretraining | HCP Young Adult 7T movie | yes | no | continued pretraining of SwiFT on naturalistic fMRI |
+| Movie/story fMRI pretraining | HCP Young Adult 7T movie | yes | no | large-subject continued pretraining of SwiFT on stimulus-locked fMRI |
 | Movie-watching fMRI pretraining | CNeuroMod / Algonauts 2025 | yes | no | multimodal movie encoding, TRIBE-style alignment engineering |
+| Movie-watching fMRI pretraining | StudyForrest | yes | no | long film continuity and audiovisual narrative transfer |
+| Story-listening fMRI pretraining | Narratives | yes | no | language/narrative context alignment without visual input |
 | Movie-watching fMRI pretraining | 101 Dalmatians | yes | no | modality-control transfer across audiovisual/auditory/visual movie conditions |
 | Context and affect trajectory | REELMO | fMRI subset | yes, mostly behavioral | long-context affect trajectories and MLLM/rationale targets |
 | Static-image fMRI transfer | NSD | yes | no | large static-image fMRI representation with affective pseudo-labels |
@@ -44,7 +46,7 @@ which model question they answer.
 |---|---|---|
 | Can SwiFT decode rich emotion geometry from fMRI? | Horikawa/Cowen | direct fMRI responses to 2,185 emotion-evoking videos with high-dimensional ratings |
 | Can SwiFT handle naturalistic appraisal/component targets? | Emo-FilM | fMRI, physiology, and 50 dynamic emotion/component annotations during film watching |
-| Does movie fMRI pretraining help emotion transfer? | HCP 7T movie | large naturalistic movie fMRI without emotion labels; ideal for SSL before downstream emotion tasks |
+| Does naturalistic pretraining help emotion transfer? | HCP 7T movie, CNeuroMod, StudyForrest, Narratives | each tests a different hypothesis: large-subject transfer, multimodal alignment, long-film continuity, or language/narrative context |
 | Is simple valence/arousal already recoverable? | Affective Videos, IAPS fMRI | smaller direct affect targets for fast sanity checks |
 | Does stimulus context explain the label without brain data? | TRIBE v2 features, REELMO, Emo-FilM stimuli, Horikawa stimuli | stimulus-only comparison before claiming brain-specific emotion representation |
 | Can we use large image fMRI for affective transfer? | NSD + OASIS / MLLM labels | NSD gives scale; OASIS and VLMs give affective pseudo-targets |
@@ -148,8 +150,8 @@ component, physiological, and context-sensitive targets.
 - Adapter tuning with dataset-specific target heads.
 - Subject adapter to separate shared film-locked responses from individual
   variation.
-- HCP movie-pretrained SwiFT should be tested here because the stimulus domain
-  is naturalistic film.
+- Naturalistic-pretrained SwiFT should be tested here because the stimulus
+  domain is naturalistic film.
 
 **TRIBE v2 / stimulus use**
 
@@ -337,7 +339,7 @@ but it should be treated as access-dependent until the data path is confirmed.
 
 - High-dimensional emotional movie decoding.
 - Compare short-video affect geometry from Horikawa with longer movie dynamics.
-- Cross-dataset transfer from HCP-pretrained or Emo-FilM-tuned SwiFT.
+- Cross-dataset transfer from naturalistic-pretrained or Emo-FilM-tuned SwiFT.
 
 **SwiFT use**
 
@@ -358,18 +360,52 @@ but it should be treated as access-dependent until the data path is confirmed.
 
 - https://pubmed.ncbi.nlm.nih.gov/32798681/
 
-## Movie-Watching fMRI For Pretraining
+## Movie/Story fMRI For Pretraining
 
 These datasets may not have emotion labels, but they are central for moving
 SwiFT from resting-state/general fMRI toward naturalistic brain dynamics.
+
+Naturalistic pretraining is not justified by the vague claim that "movie data is
+more realistic than rest." The precise hypothesis is:
+
+```text
+Before emotion-specific fine-tuning, SwiFT may need to learn stimulus-locked
+brain dynamics driven by visual, auditory, language, social, and narrative cues.
+```
+
+This matters because many emotion fMRI targets are small. Movie/story datasets
+can provide self-supervised or alignment supervision before Horikawa, Emo-FilM,
+or other emotion-labeled datasets are used. The success criterion is downstream
+emotion transfer, not better movie reconstruction by itself.
+
+#### Naturalistic pretraining rationale matrix
+
+| Dataset/source | Best use | Why it is relevant for emotion representation | Main risk | Required control |
+|---|---|---|---|---|
+| HCP Young Adult 7T movie | first large-subject SwiFT continued pretraining | tests whether stimulus-locked movie fMRI improves transfer over resting/generic SwiFT | may learn only generic movie synchrony or low-level sensory response | compare against resting SwiFT and low-level stimulus controls |
+| CNeuroMod / Algonauts 2025 | TRIBE-style stimulus-to-brain alignment | video, audio, and transcript features are organized for encoding models; useful for shared stimulus-brain latent learning | small subject count and parcel/volume mismatch | evaluate OOD movie encoding and then emotion transfer separately |
+| StudyForrest | long-film continuity and audiovisual narrative | tests whether long coherent film structure helps temporal representation beyond short clips | copyright/stimulus access and dataset-specific story shortcuts | compare short-window vs long-window objectives |
+| Narratives | language/story context without vision | isolates narrative/language context when visual emotion cues are absent | not directly visual emotion; no emotion labels | use as auxiliary context alignment, not core emotion benchmark |
+| 101 Dalmatians | modality-control naturalistic movie fMRI | visual-only, auditory-only, and audiovisual conditions can test whether emotion transfer is vision-dominated | may distract from core datasets | run only after HCP/Horikawa/Emo-FilM pipelines are stable |
+| Emo-FilM / REELMO | downstream affect validation | provides emotion/component/trajectory targets that test whether naturalistic pretraining actually transfers | smaller fMRI scale than pretraining datasets | always report transfer to direct emotion targets |
+
+Sources for the additional naturalistic candidates:
+
+- HCP 7T protocol: https://www.humanconnectome.org/hcp-protocols-ya-7t-imaging
+- CNeuroMod dataset gallery: https://www.cneuromod.ca/gallery/datasets/
+- Algonauts 2025 brain data: https://algonautsproject.com/2025/braindata.html
+- StudyForrest: https://openfmri.org/dataset/ds000113
+- Narratives: https://openneuro.org/datasets/ds002345
 
 ### HCP Young Adult 7T Movie Watching
 
 **Role in NetFeeliX**
 
-HCP 7T movie is the main **continued pretraining** source for SwiFT. It is not a
-downstream emotion dataset. Its purpose is to make SwiFT better at modeling
-movie-evoked naturalistic fMRI before emotion-specific fine-tuning.
+HCP 7T movie is the first **continued pretraining** candidate for SwiFT, not
+because it is an emotion dataset, but because it is a standardized large-subject
+movie-watching fMRI resource. It tests whether moving SwiFT from resting/general
+fMRI toward stimulus-locked naturalistic dynamics improves transfer to direct
+emotion targets.
 
 **Dataset content**
 
@@ -387,6 +423,8 @@ movie-evoked naturalistic fMRI before emotion-specific fine-tuning.
 - Subject-invariant learning.
 - Optional stimulus-conditioned fMRI prediction if stimulus timing/features are
   aligned.
+- Transfer-only success criterion: improvement on Horikawa, Emo-FilM,
+  Affective Videos, or another direct emotion target.
 
 **SwiFT use**
 
@@ -395,7 +433,9 @@ movie-evoked naturalistic fMRI before emotion-specific fine-tuning.
   1. original SwiFT,
   2. HCP movie-pretrained SwiFT,
   3. HCP movie + subject-invariant objective,
-  4. HCP movie + stimulus-conditioned objective.
+  4. HCP movie + stimulus-conditioned objective,
+  5. CNeuroMod/StudyForrest/Narratives variants if they answer a concrete
+     alignment, continuity, or context question.
 - Evaluate transfer on Horikawa and Emo-FilM.
 
 **TRIBE v2 / stimulus use**
@@ -409,6 +449,12 @@ movie-evoked naturalistic fMRI before emotion-specific fine-tuning.
 - No direct emotion labels.
 - Pretraining can consume compute without transfer benefit; transfer benchmarks
   must be scheduled early.
+- Movie pretraining may learn low-level visual motion, luminance, auditory
+  energy, speech onset, or generic arousal rather than emotion-relevant
+  representation.
+- If improvement appears only on visually driven targets and not on
+  high-dimensional emotion/component targets, the result should be interpreted
+  as visual naturalistic adaptation, not emotion-specific learning.
 - Stimulus timing and feature extraction may be nontrivial.
 
 **Source**
@@ -464,6 +510,122 @@ the most practical reference for TRIBE-style engineering.
 - https://www.cneuromod.ca/gallery/datasets/
 - https://algonautsproject.com/2025/challenge.html
 - https://algonautsproject.com/2025/braindata.html
+
+### StudyForrest
+
+**Role in NetFeeliX**
+
+StudyForrest is a naturalistic film dataset family centered on Forrest Gump. It
+is useful when NetFeeliX needs to test whether coherent long-film structure
+helps fMRI temporal representation beyond short emotional clips. It should be
+treated as a secondary naturalistic pretraining/alignment source after the core
+HCP/Horikawa/Emo-FilM path is running.
+
+**Dataset content**
+
+- Naturalistic fMRI resources built around prolonged Forrest Gump stimulation.
+- The OpenfMRI `ds000113` entry provides high-resolution 7T fMRI during an
+  auditory feature-film presentation, with auxiliary anatomical and noise
+  measurements.
+- Related studyforrest resources include audio-visual movie-watching data and
+  denoised derivatives.
+- Exact modality, preprocessing level, and stimulus access depend on the
+  specific studyforrest release being used.
+
+**NetFeeliX task design**
+
+- Long-window vs short-window representation learning.
+- JEPA/future-latent objective over coherent story segments.
+- Compare whether long-film pretraining transfers better to Emo-FilM than
+  short-clip-only learning.
+- Use as an auxiliary narrative-continuity dataset, not as direct emotion
+  supervision.
+
+**SwiFT use**
+
+- Parcel/ROI temporal pretraining first, then 4D SwiFT only if format and
+  compute are practical.
+- Test whether long-segment temporal pooling or future-latent prediction helps
+  emotion downstream transfer.
+- Useful for diagnosing whether SwiFT's temporal path is learning beyond local
+  sensory events.
+
+**TRIBE v2 / stimulus use**
+
+- Extract video/audio/text features only after confirming which stimulus variant
+  is available.
+- Use stimulus latents for synchronized retrieval or cross-view prediction with
+  fMRI windows.
+- Do not use TRIBE-style results as emotion evidence unless transfer to
+  Horikawa/Emo-FilM is shown.
+
+**Risks**
+
+- Not directly emotion-labeled.
+- StudyForrest has multiple related releases; the exact usable release must be
+  pinned before experiment design.
+- Long coherent film can introduce story-specific shortcuts.
+- Stimulus access and copyright constraints may affect feature extraction.
+
+**Sources**
+
+- https://openfmri.org/dataset/ds000113
+- https://www.nature.com/articles/s41597-019-0303-3
+- https://www.studyforrest.org/
+
+### Narratives
+
+**Role in NetFeeliX**
+
+Narratives is not a movie-vision dataset and not an emotion dataset. Its value
+is isolating language and story context. It can test whether affective context
+alignment requires visual/audiovisual cues or whether narrative language alone
+can regularize fMRI representations.
+
+**Dataset content**
+
+- Naturalistic story-listening fMRI collection.
+- The Scientific Data descriptor reports 345 subjects, 891 functional scans, 27
+  stories, and about 4.6 hours of unique spoken stimuli.
+- Provides spoken story stimuli with time-stamped phoneme- and word-level
+  transcripts.
+- OpenNeuro entry: `ds002345`.
+
+**NetFeeliX task design**
+
+- Auxiliary context representation learning.
+- Align fMRI windows with transcript/LLM embeddings.
+- Compare language-only context representations with audiovisual movie
+  representations.
+- Later use for affective-rationale or context embedding transfer if language
+  models produce reliable affective annotations.
+
+**SwiFT use**
+
+- Use only if the main emotion-fMRI pipeline needs a language/context
+  pretraining branch.
+- Parcel-level temporal encoder is likely the first practical route.
+- Do not replace Horikawa/Emo-FilM with Narratives for emotion claims.
+
+**TRIBE v2 / stimulus use**
+
+- TRIBE v2 itself is multimodal movie-oriented; for Narratives, language/audio
+  encoders are more natural.
+- Use sentence/LLM embeddings, transcript timing, and audio features for
+  fMRI-context alignment.
+
+**Risks**
+
+- No direct emotion labels.
+- It can help context/language alignment, but it does not validate visual
+  emotion representation.
+- Affective pseudo-labeling from text may reflect language-model bias rather
+  than participants' affective brain states.
+
+**Sources**
+
+- https://www.nature.com/articles/s41597-021-01033-3
+- https://openneuro.org/datasets/ds002345
 
 ### 101 Dalmatians
 

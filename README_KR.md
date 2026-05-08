@@ -60,7 +60,7 @@ SwiFT는 우리 연구실 모델이기 때문에 NetFeeliX의 기본 brain backb
 - subject adapter
 - affective token
 - emotion-specific multi-task head
-- HCP movie-watching fMRI continued pretraining
+- naturalistic movie/story fMRI continued pretraining
 - TRIBE v2 또는 stimulus model과 alignment
 
 ### 2. TRIBE v2는 SwiFT 대체제가 아님
@@ -359,9 +359,11 @@ AI가 다음을 확인합니다.
    - naturalistic emotion/component/appraisal target
    - subject adapter, multi-task head 검토
 
-3. **HCP 7T movie**
-   - SwiFT continued pretraining
-   - masked fMRI, contrastive, JEPA/future latent objective
+3. **Naturalistic movie/story fMRI**
+   - HCP 7T movie를 첫 continued-pretraining 후보로 사용
+   - CNeuroMod/Algonauts, StudyForrest, Narratives, 101 Dalmatians는 alignment,
+     long-context, language-context, modality-control 질문에 맞게 추가
+   - masked fMRI, contrastive, JEPA/future latent, stimulus-conditioned objective
 
 4. **Affective Videos / IAPS fMRI**
    - valence/arousal/category sanity check

@@ -143,16 +143,33 @@ Decision rule:
 
 - If BFM probes beat non-deep baselines on arousal only, keep BFM as a sanity baseline.
 - If BFM probes beat baselines on valence or high-dimensional targets, prioritize adapter/fine-tuning.
-- If BFM probes fail broadly, prioritize HCP movie pretraining or stimulus-brain alignment.
+- If BFM probes fail broadly, prioritize naturalistic movie/story pretraining or stimulus-brain alignment.
 
-## HCP Movie Pretraining
+## Naturalistic Movie/Story Pretraining
 
-Purpose: test whether naturalistic fMRI pretraining helps emotion transfer beyond resting-state or generic BFM transfer.
+Purpose: test whether stimulus-locked naturalistic fMRI pretraining helps
+emotion transfer beyond resting-state or generic BFM transfer.
+
+This is not based on the loose claim that movie-watching is simply better than
+rest. The concrete rationale is that affective responses in Horikawa, Emo-FilM,
+and related tasks are driven by visual, auditory, language, social, and
+narrative cues that unfold over time. Naturalistic pretraining is useful only if
+it improves transfer to direct emotion targets.
 
 Initial representation:
 
 - Start with parcellated or downsampled time series for speed.
 - Move to raw 4D volume only after a stable parcel-level pipeline exists.
+
+Dataset choice:
+
+| Source | Role | Required check |
+|---|---|---|
+| HCP 7T movie | first large-subject continued pretraining source | transfer to Horikawa/Emo-FilM |
+| CNeuroMod / Algonauts | multimodal video/audio/transcript alignment | stimulus-to-fMRI and OOD movie encoding |
+| StudyForrest | long-film continuity | short-window vs long-window transfer |
+| Narratives | language/story context without vision | context alignment without visual shortcuts |
+| 101 Dalmatians | modality-control movie fMRI | vision-only/audio-only/audiovisual ablation |
 
 Candidate objectives:
 
@@ -172,7 +189,9 @@ Pretraining outputs:
 
 Decision rule:
 
-- If HCP movie pretraining improves Horikawa or Emo-FilM transfer over generic BFMs, scale Track B.
+- If naturalistic pretraining improves Horikawa or Emo-FilM transfer over generic BFMs, scale Track B.
+- If gains are limited to low-level visual/audio features or arousal, add
+  modality and shortcut controls before claiming emotion representation.
 - If it only improves fMRI reconstruction but not emotion transfer, treat it as an auxiliary representation source.
 - If it overfits or fails at parcel level, do not move to raw 4D volume yet.
 
@@ -300,7 +319,7 @@ Subject adaptation should be explicit:
 
 ## Ablations
 
-- resting/generic BFM transfer vs HCP movie pretraining,
+- resting/generic BFM transfer vs naturalistic movie/story pretraining,
 - masked modeling vs JEPA vs contrastive pretraining,
 - brain-only vs stimulus-only vs aligned model,
 - no HRF lag vs fixed lag vs learned lag,

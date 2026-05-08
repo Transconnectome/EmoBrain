@@ -10,7 +10,7 @@ NetFeeliX는 **emotion-aware brain representation learning을 위한 모델 개�
 
 외부 공유용 요약:
 
-> NetFeeliX는 처음부터 완성형 emotion foundation model을 주장하지 않겠습니다. 먼저 SwiFT, naturalistic movie fMRI dataset, TRIBE v2-style stimulus-to-brain model, affective LLM/VLM representation을 하나의 initial benchmark에서 비교하겠습니다. Benchmark는 어떤 정보원이 어떤 emotion target에 도움이 되는지 확인하는 단계이고, 그 결과에 따라 SwiFT emotion adaptation, HCP movie continued pretraining, TRIBE-SwiFT stimulus-brain alignment, brain-tuned affective LLM/VLM adapter 중 어떤 model-development track을 밀지 결정하겠습니다.
+> NetFeeliX는 처음부터 완성형 emotion foundation model을 주장하지 않겠습니다. 먼저 SwiFT, naturalistic movie/story fMRI dataset, TRIBE v2-style stimulus-to-brain model, affective LLM/VLM representation을 하나의 initial benchmark에서 비교하겠습니다. Benchmark는 어떤 정보원이 어떤 emotion target에 도움이 되는지 확인하는 단계이고, 그 결과에 따라 SwiFT emotion adaptation, naturalistic fMRI continued pretraining, TRIBE-SwiFT stimulus-brain alignment, brain-tuned affective LLM/VLM adapter 중 어떤 model-development track을 밀지 결정하겠습니다.
 
 ## 모델 개발 문제 정의
 
@@ -27,7 +27,7 @@ NetFeeliX는 이 질문을 네 개의 모델링 질문으로 나눈다.
 | 질문 | 모델링 해석 | 첫 실험 |
 |---|---|---|
 | Generic BFM이 emotion으로 전이되는가? | 넓은 fMRI representation 안에 emotion-relevant structure가 이미 있을 수 있다. | Frozen BFM probe, adapter tuning. |
-| Movie fMRI pretraining이 도움이 되는가? | 영화 속 emotion은 stimulus-locked이고 temporal structure가 강하다. | HCP movie-pretrained encoder vs resting/generic BFM. |
+| Naturalistic fMRI pretraining이 도움이 되는가? | emotion target은 vision, audio, language, social cue, narrative context가 시간 속에서 결합될 때 생긴다. | resting/generic SwiFT vs HCP/CNeuroMod/StudyForrest-style pretraining. |
 | Stimulus-brain alignment가 도움이 되는가? | Emotion은 stimulus dynamics와 brain dynamics 사이의 shared structure일 수 있다. | TRIBE-style stimulus feature와 fMRI latent alignment. |
 | Affective AI를 brain-tune할 수 있는가? | LLM/VLM emotion feature가 neural response로 regularize될 수 있다. | Brain-aligned adapter 또는 distillation. |
 
@@ -129,7 +129,7 @@ Reasoning과 context understanding은 더 긴 temporal context, cue grounding, n
 
 - **Emo-FilM**: component/appraisal-style annotation과 naturalistic film context.
 - **REELMO**: 긴 movie trajectory, 20 emotion label, stimulus feature, subtitle, fMRI subset.
-- **HCP/CNeuroMod/Spacetop movie data**: naturalistic fMRI pretraining과 context-window experiment.
+- **HCP/CNeuroMod/StudyForrest/Narratives movie-story data**: naturalistic fMRI pretraining, modality/context ablation, stimulus-brain alignment experiment.
 - **Affective MLLM benchmark/model**: descriptive emotion caption, cue-emotion QA, rationale embedding, hallucination diagnostic.
 
 연결은 단계적으로 한다.
@@ -158,11 +158,21 @@ Reasoning과 context understanding은 더 긴 temporal context, cue grounding, n
 
 Decision rule: frozen/adapted BFM이 arousal 이상의 target에서도 simple baseline을 넘으면 adapter/fine-tuning을 우선한다.
 
-### Track B: HCP Movie Pretraining
+### Track B: Naturalistic Movie/Story Pretraining
 
-목표는 naturalistic stimulus-driven fMRI pretraining이 emotion transfer를 개선하는지 확인하는 것이다.
+목표는 naturalistic stimulus-driven fMRI pretraining이 emotion transfer를 개선하는지 확인하는 것이다. 이 track은 "movie가 rest보다 당연히 좋다"는 주장이 아니다. 정확한 가설은 작은 emotion-labeled fMRI dataset으로 바로 학습하기 전에, SwiFT가 visual, auditory, language, social, narrative cue에 의해 유도되는 stimulus-locked brain dynamics를 먼저 배워야 하는지 검증하는 것이다.
 
 처음에는 parcel-level time series로 시작한다. Simple pipeline이 안정화되기 전에는 raw 4D volume으로 바로 가지 않는다.
+
+Dataset 선택은 가설별로 한다.
+
+| Source | 역할 | 검증 질문 |
+|---|---|---|
+| HCP 7T movie | large-subject continued pretraining | stimulus-locked pretraining이 Horikawa/Emo-FilM transfer를 개선하는가 |
+| CNeuroMod / Algonauts | multimodal encoding/alignment | video/audio/transcript-to-fMRI alignment가 emotion target에 도움이 되는가 |
+| StudyForrest | long-film continuity | 긴 audiovisual narrative가 temporal representation에 주는 이득이 있는가 |
+| Narratives | language/story context | visual cue 없이 narrative context alignment가 도움이 되는가 |
+| 101 Dalmatians | modality control | visual-only, auditory-only, audiovisual condition 차이가 emotion transfer에 중요한가 |
 
 후보 objective:
 
@@ -170,9 +180,10 @@ Decision rule: frozen/adapted BFM이 arousal 이상의 target에서도 simple ba
 - temporal contrastive learning,
 - JEPA-style latent prediction,
 - subject-invariant contrastive learning,
-- future brain-state prediction.
+- future brain-state prediction,
+- optional stimulus-conditioned prediction.
 
-Decision rule: HCP-pretrained encoder가 Horikawa/Emo-FilM에서 generic BFM transfer를 넘으면 movie pretraining을 확장한다.
+Decision rule: naturalistic-pretrained encoder가 Horikawa/Emo-FilM에서 generic BFM transfer를 넘고, 단순 arousal이나 low-level visual/audio shortcut을 넘어 high-dimensional/component target에도 이득을 보이면 movie/story pretraining을 확장한다. 이득이 없거나 visual shortcut만 보이면 emotion-specific head, subject adapter, TRIBE-style alignment, target 재설계를 우선한다.
 
 ### Track C: Stimulus-Brain-Emotion Alignment
 
@@ -222,14 +233,14 @@ Decision rule: stimulus-side affective embedding이 강하거나 brain-stimulus 
 
 | 역할 | 데이터셋 | 목적 |
 |---|---|---|
-| Naturalistic pretraining | HCP 7T movie, 접근 가능하면 CNeuroMod/Algonauts | stimulus-driven fMRI dynamics 학습 |
+| Naturalistic pretraining | HCP 7T movie, CNeuroMod/Algonauts, StudyForrest, Narratives, 101 Dalmatians | stimulus-locked fMRI dynamics, modality/context ablation, alignment 가설 검증 |
 | Core emotion downstream | Horikawa, Emo-FilM | high-dimensional/naturalistic emotion transfer 평가 |
 | Lightweight emotion downstream | Affective Videos, IAPS fMRI, NeuroEmo, 접근 가능하면 Koide-Majima | valence/arousal/category screening benchmark |
 | Static-image affect extension | NSD, OASIS labels, image affect models | large static-image fMRI representation과 affective pseudo-labeling |
 | Stimulus-side affective supervision | REELMO, MMAFFBen/MMAFFIn, affective LLM/VLM | stimulus emotion trajectory 생성/검증 |
 | Auxiliary encoding | BOLD Moments, CNeuroMod, Algonauts 2025, future expansion으로 Spacetop | video/audio/text-to-fMRI alignment와 physiology-rich transfer 검증 |
 
-HCP movie pretraining과 Horikawa/Emo-FilM downstream evaluation이 중심이다. 다른 dataset은 benchmark matrix의 불확실성을 줄일 때만 추가한다.
+Naturalistic pretraining과 Horikawa/Emo-FilM downstream evaluation이 중심이다. HCP는 첫 후보지만 유일한 후보가 아니다. 다른 dataset은 "더 많이 쓰기 위해서"가 아니라 modality, narrative context, alignment, low-level shortcut 같은 benchmark matrix의 불확실성을 줄일 때 추가한다.
 
 ## Evaluation Ladder
 
@@ -250,11 +261,11 @@ Metrics:
 
 ## 기대 기여
 
-- Generic BFM transfer, movie-fMRI pretraining, stimulus-brain alignment를 emotion prediction 관점에서 체계적으로 비교한다.
+- Generic BFM transfer, naturalistic movie/story fMRI pretraining, stimulus-brain alignment를 emotion prediction 관점에서 체계적으로 비교한다.
 - 2개월 안에 의미 있는 결과를 낼 수 있는 benchmark-to-model-development roadmap을 만든다.
 - fMRI encoder, stimulus-to-brain encoding model, emotion-aware aligned representation model을 구분하는 taxonomy를 제공한다.
 - Affective computing foundation model과 affective neuroscience 사이의 model-development bridge를 제안한다.
-- Adapter, HCP pretraining, TRIBE-style alignment, brain-tuned affective VLM/LLM 중 무엇을 밀지 결정하는 rule을 제공한다.
+- Adapter, naturalistic pretraining, TRIBE-style alignment, brain-tuned affective VLM/LLM 중 무엇을 밀지 결정하는 rule을 제공한다.
 
 ## 핵심 레퍼런스
 
@@ -262,7 +273,7 @@ Metrics:
 |---|---|---|
 | fMRI BFM | SwiFT, SwiFUN, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-OF | brain-side baseline과 pretraining precedent |
 | Stimulus-to-brain | TRIBE, TRIBE v2, VIBE, Algonauts 2025, Hu and Mohsenzadeh | multimodal alignment와 fMRI response prediction |
-| Naturalistic fMRI | HCP 7T movie, CNeuroMod, BOLD Moments, van der Meer, Petrican | movie pretraining과 naturalistic dynamics |
+| Naturalistic fMRI | HCP 7T movie, CNeuroMod, StudyForrest, Narratives, 101 Dalmatians, BOLD Moments | movie/story pretraining, modality/context ablation, naturalistic dynamics |
 | Emotion fMRI | Horikawa, Koide-Majima, Emo-FilM, Ke et al., Affective Videos, NeuroEmo, REELMO | downstream target과 target difficulty |
 | Affective FM | Schuller et al., LLM affect survey, MLLM emotion reasoning survey, MMAFFBen, MME-Emotion, EmoBench-M, EIBench | external affective AI와 emotion-reasoning trend |
 | Top-conference affective reasoning | ICML 2025 AffectGPT; NeurIPS 2025 VidEmo; ICLR 2026 AVERE, EmotionHallucer, HitEmotion/MME-Emotion | label prediction에서 cue grounding, rationale, context, hallucination control로 이동하는 흐름 |

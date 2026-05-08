@@ -19,14 +19,14 @@ This file gives coding-agent instructions for NetFeeliX.
 - `scripts/`: project-operation automation used across the repo.
 - `code/`: shared utilities or planning notes used by multiple studies.
 - `setup/code/`: data readiness, target construction, first-pass baselines, and model availability checks.
-- If later experiments become large, create purpose-named folders instead of numbered study folders, e.g. `hcp_pretraining/`, `swift_adaptation/`, or `tribe_alignment/`.
+- If later experiments become large, create purpose-named folders instead of numbered study folders, e.g. `naturalistic_pretraining/`, `swift_adaptation/`, or `tribe_alignment/`.
 
 ## Execution Folder Naming
 
 Recommended split:
 
 - `setup/`: data inventory, target construction, baseline probes.
-- `hcp_pretraining/`: HCP movie continued pretraining, if justified.
+- `naturalistic_pretraining/`: HCP/CNeuroMod/StudyForrest-style movie/story continued pretraining, if transfer results justify it.
 - `swift_adaptation/`: emotion-specific SwiFT heads/adapters/fine-tuning.
 - `tribe_alignment/`: TRIBE v2 and stimulus-brain alignment.
 - `affective_llm_vlm/`: brain-tuned affective LLM/VLM adapters, only if justified.
@@ -52,8 +52,9 @@ Logs should go to `setup/logs/` for initial work. Tables, plots, and metrics sho
 - Add newly discovered repositories to `reference/code_resources.md`.
 - Add newly discovered datasets to `reference/datasets.md`.
 - Keep the canonical project narrative in `Paper/framework_EN.md` and `Paper/framework_KR.md` so context compaction does not scatter the framing.
-- Keep NetFeeliX framed as screening-benchmark-driven model development. The benchmark decides between SwiFT adaptation, HCP movie pretraining, TRIBE-SwiFT alignment, and brain-tuned affective LLM/VLM.
+- Keep NetFeeliX framed as screening-benchmark-driven model development. The benchmark decides between SwiFT adaptation, naturalistic movie/story pretraining, TRIBE-SwiFT alignment, and brain-tuned affective LLM/VLM.
 - Treat SwiFT as the default brain backbone. TRIBE v2 is a multimodal stimulus-to-brain component, teacher, and alignment path, not a replacement for SwiFT.
+- Treat naturalistic movie/story pretraining as a testable hypothesis. HCP is the first candidate, not the only source; CNeuroMod/Algonauts, StudyForrest, Narratives, and modality-control movie datasets should be used only when they answer a concrete model question.
 - Avoid informal exploratory-benchmark wording in project prose. Use "initial benchmark", "screening benchmark", "feasibility benchmark", or "Stage 0/1".
 - After structural documentation edits, run `python3 scripts/check_md_completeness.py`.
 - To refresh a compact status report, run `python3 scripts/build_project_status.py`.
@@ -64,7 +65,7 @@ Logs should go to `setup/logs/` for initial work. Tables, plots, and metrics sho
 2. Dynamic FC arousal/valence baseline.
 3. Frozen pretrained BFM linear probe.
 4. Small temporal transformer trained from scratch.
-5. HCP movie-pretrained temporal transformer.
+5. Naturalistic movie/story-pretrained temporal transformer.
 6. Stimulus feature and stimulus-brain alignment models.
 7. Brain-tuned affective LLM/VLM adapter or distillation, only after stimulus-side or alignment benchmarks are promising.
 
