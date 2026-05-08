@@ -8,17 +8,19 @@ learning.
 
 1. `README.md`
    - Project thesis, model families, two-month strategy, and repository map.
-2. `CONTEXT_NETFEELIX.md`
+2. `README_KR.md`
+   - Korean guide for the project structure and workflow.
+3. `CONTEXT_NETFEELIX.md`
    - Single source of truth for project framing and operating rules.
-3. `Paper/framework_EN.md`
+4. `Paper/framework_EN.md`
    - Canonical narrative and proposal-level framework.
-4. `Paper/methodology.md`
+5. `Paper/methodology.md`
    - Experimental plan and benchmark matrix.
-5. `reference/training_strategy.md`
+6. `reference/training_strategy.md`
    - SwiFT-first model-development strategy.
-6. `reference/datasets.md`
+7. `reference/datasets.md`
    - Function-based dataset inventory.
-7. `workflows/README.md`
+8. `workflows/README.md`
    - How literature, experiment planning, review, and weekly updates should run.
 
 ## Project Identity
