@@ -1,0 +1,12 @@
+# Local config / IDE files
+.mcp.json
+
+# Generated artifacts
+study*/logs/*
+study*/results/*
+study*/data/*
+
+# Keep folder placeholders
+!study*/logs/.gitkeep
+!study*/results/.gitkeep
+!study*/data/.gitkeep
