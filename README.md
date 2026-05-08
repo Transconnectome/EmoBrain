@@ -131,7 +131,7 @@ NetFeeliX/
 │   ├── README.md
 │   └── tools/
 │       └── check_dataset_inventory.py
-└── study1/
+└── setup/
     ├── README.md
     ├── code/
     ├── data/

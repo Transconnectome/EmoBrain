@@ -30,10 +30,9 @@ rules.
    - TRIBE-teacher or aligned model.
 4. Define the split and metric before running.
 5. Create an experiment card from `templates/experiment_card.md`.
-6. Store planned cards under `reports/status/` until a study-specific folder is
-   created.
-7. When code exists, move runnable scripts into `study{N}/code/` and outputs to
-   `study{N}/results/`.
+6. Store planned cards under `reports/status/` until code is ready.
+7. Initial runnable scripts go into `setup/code/`; outputs go to `setup/data/`,
+   `setup/logs/`, and `setup/results/`.
 
 ## Required Decision Rule
 

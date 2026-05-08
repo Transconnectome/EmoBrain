@@ -115,7 +115,7 @@ NetFeeliX/
 ├── scripts/
 ├── reports/
 ├── code/
-└── study1/
+└── setup/
 ```
 
 각 폴더의 역할은 아래와 같습니다.
@@ -244,11 +244,11 @@ reports/status/PROJECT_STATUS.md
 
 가 생성됩니다. 이 파일은 자동 생성물이므로 Git에는 저장하지 않습니다.
 
-## `study1/`
+## `setup/`
 
-실제 실험 코드와 결과가 들어가는 첫 번째 study 폴더입니다.
+실제 실험을 시작하기 전에 데이터, 타깃, baseline 가능성을 확인하는 준비 작업 공간입니다.
 
-여기서 `study1`은 최종 논문의 Study 1이라는 뜻이 아닙니다. 지금 필요한 첫 실행 묶음입니다.
+`setup`은 최종 논문의 study가 아니라, 아이디어 정리 단계에서 실제 실험 단계로 넘어가기 위한 준비 폴더입니다.
 
 역할:
 
@@ -261,14 +261,14 @@ reports/status/PROJECT_STATUS.md
 구조:
 
 ```text
-study1/
+setup/
 ├── code/
 ├── data/
 ├── logs/
 └── results/
 ```
 
-자세한 설명은 `study1/README.md`에 있습니다.
+자세한 설명은 `setup/README.md`에 있습니다.
 
 ---
 
@@ -396,7 +396,7 @@ workflows/
 scripts/
     = 문서/상태/실험 카드 자동화
 
-study1/
+setup/
     = 첫 실행 묶음: 데이터 확인, target construction, baseline
 ```
 

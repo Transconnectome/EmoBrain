@@ -1,7 +1,7 @@
 # NetFeeliX Code Workspace
 
-This directory is for shared modeling utilities and code plans. Study-specific
-runnable scripts should normally live in `study{N}/code/`.
+This directory is for shared modeling utilities and code plans. Initial runnable
+scripts should normally live in `setup/code/`.
 
 Project-operation automation lives in `scripts/`, not here.
 
@@ -11,21 +11,21 @@ Project-operation automation lives in `scripts/`, not here.
 
 ## Initial Coding Priorities
 
-1. `study1/code/build_dataset_inventory.py`
+1. `setup/code/build_dataset_inventory.py`
    - Scan available local datasets.
-   - Write a CSV/Markdown inventory to `study1/data/`.
+   - Write a CSV/Markdown inventory to `setup/data/`.
 
-2. `study1/code/build_emotion_targets.py`
+2. `setup/code/build_emotion_targets.py`
    - Standardize Horikawa and Emo-FilM target matrices.
-   - Write target metadata to `study1/data/`.
+   - Write target metadata to `setup/data/`.
 
-3. `study1/code/run_linear_baselines.py`
+3. `setup/code/run_linear_baselines.py`
    - Ridge/elastic-net baselines for arousal, valence, and emotion vectors.
-   - Write tables to `study1/results/`.
+   - Write tables to `setup/results/`.
 
-4. `study1/code/check_pretrained_models.py`
+4. `setup/code/check_pretrained_models.py`
    - Verify which pretrained models can be imported and loaded locally.
-   - Write availability report to `study1/results/`.
+   - Write availability report to `setup/results/`.
 
 ## Script Documentation Rule
 
@@ -34,5 +34,5 @@ Do not create extra Markdown files for every small script. Use a clear module do
 ## Data Policy
 
 - Do not store large raw datasets in this repository unless they are already local and intentionally linked.
-- Store derived arrays under `study{N}/data/`.
-- Store final metrics and figures under `study{N}/results/`.
+- Store derived arrays under `setup/data/` for initial work.
+- Store final metrics and figures under `setup/results/` for initial work.

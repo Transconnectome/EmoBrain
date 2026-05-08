@@ -8,7 +8,7 @@ This file gives coding-agent instructions for NetFeeliX.
 - Use `rg` or `rg --files` for search.
 - Keep edits scoped. Do not reorganize folders without updating this file and `CLAUDE.md`.
 - Never overwrite existing user data or experiment outputs.
-- Put project-operation automation in `scripts/`. Put runnable experiment scripts under `study{N}/code/`.
+- Put project-operation automation in `scripts/`. Put initial runnable experiment scripts under `setup/code/`.
 - Do not create new planning/proposal/brief Markdown files unless explicitly asked. Merge framing into `Paper/framework_EN.md` and `Paper/framework_KR.md`; merge method details into `Paper/methodology.md`.
 - Use `templates/` for paper, dataset, model, experiment, review, and decision cards.
 - Use `workflows/` for recurring processes: literature search, experiment planning, red-team review, and weekly updates.
@@ -18,18 +18,18 @@ This file gives coding-agent instructions for NetFeeliX.
 
 - `scripts/`: project-operation automation used across the repo.
 - `code/`: shared utilities or planning notes used by multiple studies.
-- `study1/code/`: first-pass baselines and data indexing.
-- Future studies should follow the same shape: `study{N}/code`, `study{N}/data`, `study{N}/logs`, `study{N}/results`.
+- `setup/code/`: data readiness, target construction, first-pass baselines, and model availability checks.
+- If later experiments become large, create purpose-named folders instead of numbered study folders, e.g. `hcp_pretraining/`, `swift_adaptation/`, or `tribe_alignment/`.
 
-## Study Naming
+## Execution Folder Naming
 
-Recommended study split:
+Recommended split:
 
-- `study1`: data inventory, target construction, baseline probes.
-- `study2`: HCP movie pretraining.
-- `study3`: emotion downstream fine-tuning.
-- `study4`: stimulus-brain-emotion alignment.
-- `study5`: brain-tuned affective LLM/VLM adapters, only if screening benchmark results justify it.
+- `setup/`: data inventory, target construction, baseline probes.
+- `hcp_pretraining/`: HCP movie continued pretraining, if justified.
+- `swift_adaptation/`: emotion-specific SwiFT heads/adapters/fine-tuning.
+- `tribe_alignment/`: TRIBE v2 and stimulus-brain alignment.
+- `affective_llm_vlm/`: brain-tuned affective LLM/VLM adapters, only if justified.
 
 ## Experiment Hygiene
 
@@ -43,7 +43,7 @@ Every runnable script should record:
 - Main hyperparameters.
 - Runtime environment.
 
-Logs should go to `study{N}/logs/`. Tables, plots, and metrics should go to `study{N}/results/`. Intermediate arrays should go to `study{N}/data/`.
+Logs should go to `setup/logs/` for initial work. Tables, plots, and metrics should go to `setup/results/`. Intermediate arrays should go to `setup/data/`.
 
 ## Scientific Hygiene
 

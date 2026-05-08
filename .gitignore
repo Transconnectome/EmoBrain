@@ -2,15 +2,15 @@
 .mcp.json
 
 # Generated artifacts
-study*/logs/*
-study*/results/*
-study*/data/*
+setup/logs/*
+setup/results/*
+setup/data/*
 reports/status/PROJECT_STATUS.md
 
 # Keep folder placeholders
-!study*/logs/.gitkeep
-!study*/results/.gitkeep
-!study*/data/.gitkeep
+!setup/logs/.gitkeep
+!setup/results/.gitkeep
+!setup/data/.gitkeep
 !reports/status/.gitkeep
 !reports/weekly/.gitkeep
 !reports/reviews/.gitkeep

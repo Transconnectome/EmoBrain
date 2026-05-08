@@ -308,16 +308,16 @@ Subject adaptation should be explicit:
 - arousal/valence vs discrete categories vs high-dimensional emotion vectors,
 - frozen stimulus features vs trainable fusion module.
 
-## First Feasible Study
+## Initial Setup Experiments
 
-Study 1 should avoid expensive training and answer four questions:
+The initial setup experiments should avoid expensive training and answer four questions:
 
 1. Which datasets and targets are actually usable?
 2. What do simple brain-only and stimulus-only baselines achieve?
 3. Which pretrained BFMs can be loaded and probed?
 4. Which target is most stable: arousal, valence, discrete categories, or high-dimensional emotion vectors?
 
-Expected Study 1 outputs:
+Expected setup outputs:
 
 - dataset inventory table,
 - target construction notes,

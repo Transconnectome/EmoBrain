@@ -114,11 +114,11 @@ python3 scripts/check_md_completeness.py
 
 | 할 일 | 산출물 | 저장 위치 |
 |---|---|---|
-| 데이터 local path 확인 | 데이터 접근성 표 | `study1/data/` |
-| fMRI shape / TR / timing 확인 | shape/timing report | `study1/results/` |
-| emotion target matrix 생성 | target `.csv` 또는 `.npz` | `study1/data/` |
-| train/validation/test split 정의 | split metadata | `study1/data/` |
-| 막힌 데이터셋 정리 | blocked resource list | `study1/results/` |
+| 데이터 local path 확인 | 데이터 접근성 표 | `setup/data/` |
+| fMRI shape / TR / timing 확인 | shape/timing report | `setup/results/` |
+| emotion target matrix 생성 | target `.csv` 또는 `.npz` | `setup/data/` |
+| train/validation/test split 정의 | split metadata | `setup/data/` |
+| 막힌 데이터셋 정리 | blocked resource list | `setup/results/` |
 
 결정 기준:
 
@@ -233,7 +233,7 @@ representation이 어떻게 바뀌는지 확인하는 것입니다.
 1. Horikawa local data path와 target format 확인
 2. Emo-FilM access, timing, annotation format 확인
 3. HCP 7T movie 접근 가능 여부와 preprocessing format 확인
-4. `study1`에 dataset availability report 생성
+4. `setup`에 dataset availability report 생성
 5. NFx-001, NFx-002 experiment card 작성
 
 ## 자동화 명령
@@ -256,13 +256,13 @@ python3 scripts/build_project_status.py
 python3 scripts/generate_experiment_cards.py --id NFx-001 --title "Frozen SwiFT Horikawa probe"
 ```
 
-## `study1`은 무엇인가?
+## `setup`은 무엇인가?
 
-`study1`은 첫 번째 논문이나 최종 study라는 뜻이 아닙니다.
+`setup`은 첫 번째 논문이나 최종 study라는 뜻이 아닙니다.
 
 지금 단계에서 필요한 **첫 실행 묶음**입니다.
 
-`study1`의 역할:
+`setup`의 역할:
 
 - dataset availability 확인
 - target construction
@@ -270,7 +270,7 @@ python3 scripts/generate_experiment_cards.py --id NFx-001 --title "Frozen SwiFT 
 - frozen SwiFT probe
 - Horikawa / Emo-FilM / Affective Videos / IAPS의 최소 실행 가능성 확인
 
-즉 `study1`은:
+즉 `setup`은:
 
 ```text
 아이디어 정리 단계에서 실제 실험 단계로 넘어가기 위한 첫 작업 공간
@@ -278,12 +278,12 @@ python3 scripts/generate_experiment_cards.py --id NFx-001 --title "Frozen SwiFT 
 
 입니다.
 
-나중에 실험이 커지면 다음처럼 나눌 수 있습니다.
+나중에 실험이 커지면 목적별 폴더로 나눌 수 있습니다.
 
 | 폴더 | 역할 |
 |---|---|
-| `study1/` | data inventory, target construction, first baselines |
-| `study2/` | HCP movie continued pretraining |
-| `study3/` | emotion downstream fine-tuning |
-| `study4/` | TRIBE-SwiFT alignment |
-| `study5/` | affective LLM/VLM brain-tuning extension |
+| `setup/` | data inventory, target construction, first baselines |
+| `hcp_pretraining/` | HCP movie continued pretraining |
+| `swift_adaptation/` | emotion downstream fine-tuning |
+| `tribe_alignment/` | TRIBE-SwiFT alignment |
+| `affective_llm_vlm/` | affective LLM/VLM brain-tuning extension |

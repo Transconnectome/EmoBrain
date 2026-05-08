@@ -127,14 +127,14 @@ Alignment choices:
 
 ## First Decision Matrix
 
-| Candidate study | Dataset | Model | Task | Decision it answers |
+| Candidate experiment | Dataset | Model | Task | Decision it answers |
 |---|---|---|---|---|
-| Study 1A | IAPS fMRI or Affective Videos | ridge/dynamic FC/SwiFT head | valence/arousal/category | what is the fastest emotion baseline? |
-| Study 1B | Horikawa | SwiFT frozen/adapted head | high-dimensional emotion vector | can SwiFT capture affect geometry? |
-| Study 1C | HCP 7T movie -> Horikawa/Emo-FilM | SwiFT continued pretraining | pretrain then probe | does naturalistic fMRI pretraining help? |
-| Study 1D | Emo-FilM | SwiFT vs stimulus-only | component/appraisal/emotion ratings | which source explains naturalistic affect? |
-| Study 1E | REELMO or Emo-FilM | stimulus-only + MLLM rationale embeddings | context/rationale target | is context useful as auxiliary supervision? |
-| Study 1F | Horikawa or Emo-FilM | SwiFT + TRIBE v2 dual encoder | contrastive/regression alignment | does alignment improve emotion representation? |
+| Setup-A | IAPS fMRI or Affective Videos | ridge/dynamic FC/SwiFT head | valence/arousal/category | what is the fastest emotion baseline? |
+| Setup-B | Horikawa | SwiFT frozen/adapted head | high-dimensional emotion vector | can SwiFT capture affect geometry? |
+| Setup-C | HCP 7T movie -> Horikawa/Emo-FilM | SwiFT continued pretraining | pretrain then probe | does naturalistic fMRI pretraining help? |
+| Setup-D | Emo-FilM | SwiFT vs stimulus-only | component/appraisal/emotion ratings | which source explains naturalistic affect? |
+| Setup-E | REELMO or Emo-FilM | stimulus-only + MLLM rationale embeddings | context/rationale target | is context useful as auxiliary supervision? |
+| Setup-F | Horikawa or Emo-FilM | SwiFT + TRIBE v2 dual encoder | contrastive/regression alignment | does alignment improve emotion representation? |
 
 ## Decision Rules
 

@@ -33,9 +33,9 @@ The project has roughly two months. Therefore:
 - Treat expensive end-to-end 4D training as optional, not the first milestone.
 - Keep all results comparable through shared splits and metrics.
 
-### First Study
+### Setup Workspace
 
-`study1` should focus on:
+`setup` should focus on:
 
 - dataset inventory,
 - target construction,

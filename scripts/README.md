@@ -1,7 +1,7 @@
 # NetFeeliX Scripts
 
-Scripts here support project operations across studies. Study-specific runnable
-experiments should live under `study{N}/code/`.
+Scripts here support project operations across the repository. Initial runnable
+experiments should live under `setup/code/`.
 
 ## Current Scripts
 
@@ -21,5 +21,5 @@ python3 scripts/generate_experiment_cards.py --id NFx-001 --title "Frozen SwiFT 
 
 ## Rule
 
-Do not store large data outputs here. Use `study{N}/data`, `study{N}/logs`, and
-`study{N}/results` for experiments.
+Do not store large data outputs here. Use `setup/data`, `setup/logs`, and
+`setup/results` for initial experiments.

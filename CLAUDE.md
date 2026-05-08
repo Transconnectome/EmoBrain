@@ -16,7 +16,7 @@ NetFeeliX/
 ├── scripts/        # project-operation automation
 ├── reports/        # generated status, review, and weekly reports
 ├── code/           # 공통 코드 설명 및 shared utilities 계획
-└── study{N}/
+└── setup/
     ├── code/       # .py, .sh, .md 설명 파일
     ├── data/       # 중간 산출물
     ├── logs/       # SLURM/stdout/stderr/logging
@@ -25,8 +25,8 @@ NetFeeliX/
 
 ## Hard Rules
 
-- 스크립트는 반드시 `study{N}/code/` 또는 명확한 공통 유틸리티일 경우 `code/`에 둔다.
-- Project-operation scripts live in `scripts/`. Runnable experiment scripts live in `study{N}/code/`.
+- 초기 실행 스크립트는 `setup/code/`에 둔다. 명확한 공통 유틸리티는 `code/`에 둔다.
+- Project-operation scripts live in `scripts/`. Initial runnable experiment scripts live in `setup/code/`.
 - `data/`는 중간 처리물, `results/`는 분석 결과물, `logs/`는 실행 로그다.
 - 전체 프로젝트 프레임, 내러티브, proposal-level 내용은 반드시 `Paper/framework_EN.md`와 `Paper/framework_KR.md`에 기록한다. 새 brief/proposal/narrative 파일을 만들지 않는다.
 - 방법론 세부사항은 `Paper/methodology.md`에 기록한다.
