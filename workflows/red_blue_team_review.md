@@ -11,7 +11,7 @@ before they become project narrative.
 | affective neuroscience reviewer | target validity, emotion-label ambiguity, overinterpretation |
 | ML foundation-model reviewer | scale, pretraining evidence, baselines, ablation quality |
 | data/compute feasibility reviewer | access, runtime, memory, file format, annotation timing |
-| skeptical PI | two-month feasibility and strategic focus |
+| skeptical project reviewer | two-month feasibility and strategic focus |
 
 ## Steps
 

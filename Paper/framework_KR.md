@@ -8,7 +8,7 @@ NetFeeliX는 **emotion-aware brain representation learning을 위한 모델 개�
 
 **NetFeeliX는 감정 표현을 brain dynamics, naturalistic stimulus dynamics, affective annotation이 만나는 모델 개발 문제로 보고, initial benchmark 결과를 바탕으로 개발할 architecture와 training objective를 결정한다.**
 
-교수님께 말할 버전:
+외부 공유용 요약:
 
 > NetFeeliX는 처음부터 완성형 emotion foundation model을 주장하지 않겠습니다. 먼저 SwiFT, naturalistic movie fMRI dataset, TRIBE v2-style stimulus-to-brain model, affective LLM/VLM representation을 하나의 initial benchmark에서 비교하겠습니다. Benchmark는 어떤 정보원이 어떤 emotion target에 도움이 되는지 확인하는 단계이고, 그 결과에 따라 SwiFT emotion adaptation, HCP movie continued pretraining, TRIBE-SwiFT stimulus-brain alignment, brain-tuned affective LLM/VLM adapter 중 어떤 model-development track을 밀지 결정하겠습니다.
 

@@ -76,7 +76,7 @@ Use these personas for red-team/blue-team review:
 - affective neuroscience reviewer,
 - ML foundation-model reviewer,
 - data/compute feasibility reviewer,
-- skeptical PI deciding what can be done in two months.
+- skeptical project reviewer deciding what can be done in two months.
 
 ## Current Two-Month Target
 

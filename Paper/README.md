@@ -5,7 +5,7 @@ This folder contains the scientific framing and manuscript/proposal material for
 ## Files
 
 - `framework_EN.md`: canonical English project framework, narrative, and proposal-level framing.
-- `framework_KR.md`: canonical Korean project framework, narrative, and professor-facing framing.
+- `framework_KR.md`: canonical Korean project framework, narrative, and external-facing framing.
 - `methodology.md`: detailed experimental plan.
 
 ## Rule

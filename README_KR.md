@@ -25,7 +25,7 @@ Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
 3. `CONTEXT_NETFEELIX.md`
    - NetFeeliX의 핵심 방향만 압축한 single source of truth입니다.
 4. `Paper/framework_KR.md`
-   - 교수님께 설명할 수 있는 전체 연구 프레임워크 한국어 버전입니다.
+   - 외부 공유와 연구 논의를 위한 전체 연구 프레임워크 한국어 버전입니다.
 5. `reference/datasets.md`
    - 사용할 수 있는 dataset을 기능별로 정리한 문서입니다.
 6. `reference/training_strategy.md`
@@ -130,7 +130,7 @@ NetFeeliX/
 여기에 들어가는 내용:
 
 - 전체 연구 내러티브
-- 교수님께 설명할 연구 방향
+- 외부 공유 가능한 연구 방향
 - methodology
 - model-development track
 - benchmark-to-model-development 전략
@@ -317,7 +317,7 @@ AI가 다음 reviewer 관점으로 공격합니다.
 - affective neuroscience reviewer
 - ML foundation-model reviewer
 - data/compute feasibility reviewer
-- skeptical PI
+- skeptical project reviewer
 
 ### 프로젝트 상태를 보고 싶을 때
 
@@ -372,7 +372,7 @@ CONTEXT_NETFEELIX.md
     = 프로젝트 방향 압축본
 
 Paper/
-    = 교수님께 보여줄 큰 프레임워크
+    = 외부 공유 가능한 큰 프레임워크
 
 reference/
     = 논문, dataset, task, training strategy

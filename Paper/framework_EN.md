@@ -8,7 +8,7 @@ One-line framing:
 
 **NetFeeliX treats emotion representation as a model-development problem over brain dynamics, naturalistic stimulus dynamics, and affective annotations. Initial benchmarks decide which architecture and training objectives are worth developing.**
 
-Professor-facing pitch:
+External-facing pitch:
 
 > NetFeeliX will not start by claiming a complete emotion foundation model. It will first build an initial benchmark around SwiFT, naturalistic movie fMRI datasets, TRIBE v2-style stimulus-to-brain models, and affective LLM/VLM representations. The benchmark asks which information source helps which emotion target. The model-development track is then chosen from four directions: SwiFT emotion adaptation, HCP movie continued pretraining, TRIBE-SwiFT stimulus-brain alignment, and brain-tuned affective LLM/VLM adapters.
 
