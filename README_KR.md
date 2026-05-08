@@ -26,15 +26,17 @@ Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
    - NetFeeliX의 핵심 방향만 압축한 single source of truth입니다.
 4. `NARRATIVE_KR.md`
    - NetFeeliX의 전체 연구 내러티브를 한국어로 풀어쓴 문서입니다.
-5. `ACTION_PLAN.md`
+5. `research_overview.md`
+   - Teams 공유, abstract, presentation 준비용 상세 research overview입니다.
+6. `ACTION_PLAN.md`
    - 지금 무엇을 해야 하는지 단계별로 정리한 실행 계획입니다.
-6. `Paper/framework_KR.md`
+7. `Paper/framework_KR.md`
    - 외부 공유와 연구 논의를 위한 전체 연구 프레임워크 한국어 버전입니다.
-7. `reference/datasets.md`
+8. `reference/datasets.md`
    - 사용할 수 있는 dataset을 기능별로 정리한 문서입니다.
-8. `reference/training_strategy.md`
+9. `reference/training_strategy.md`
    - SwiFT를 어떻게 pretrain, finetune, modify, align할지 정리한 문서입니다.
-9. `workflows/README.md`
+10. `workflows/README.md`
    - 앞으로 AI와 함께 문헌 조사, 실험 계획, 리뷰, 주간 보고를 어떻게 운영할지 설명합니다.
 
 ---

@@ -6,6 +6,7 @@
 
 Korean guide: [`README_KR.md`](README_KR.md)
 Korean narrative: [`NARRATIVE_KR.md`](NARRATIVE_KR.md)
+Research overview: [`research_overview.md`](research_overview.md)
 Action plan: [`ACTION_PLAN.md`](ACTION_PLAN.md)
 
 NetFeeliX studies how to make SwiFT and related brain models more emotion-specific, with a focus on naturalistic fMRI, emotion representation learning, and stimulus-brain-emotion alignment.
