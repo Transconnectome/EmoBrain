@@ -99,7 +99,9 @@ NetFeeliX/
 │   ├── project_decisions.md
 │   └── two_month_plan.md
 ├── code/
-│   └── README.md
+│   ├── README.md
+│   └── tools/
+│       └── check_dataset_inventory.py
 └── study1/
     ├── code/
     ├── data/
@@ -111,8 +113,14 @@ NetFeeliX/
 
 - `Paper/framework_EN.md` and `Paper/framework_KR.md`: canonical project framework, narrative, and proposal-level framing.
 - `Paper/methodology.md`: detailed experimental plan.
-- `reference/datasets.md`: dataset decision table.
+- `reference/datasets.md`: function-based dataset inventory.
 - `reference/task.md`: task inventory and target definitions.
 - `reference/training_strategy.md`: SwiFT-first training and model-development strategy.
 - `reference/systematic_reference_map.md`: organized reference map by conceptual role.
 - `notes/benchmark_design.md`: initial benchmark axes, experiments, and decision rules.
+
+Dataset inventory completeness can be checked with:
+
+```bash
+python3 code/tools/check_dataset_inventory.py
+```

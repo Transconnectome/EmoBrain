@@ -6,7 +6,7 @@ This folder contains the literature, dataset, and code-resource map for NetFeeli
 
 - `papers.md`: paper-by-paper reference index.
 - `systematic_reference_map.md`: canonical role-based reference map for proposal writing.
-- `datasets.md`: canonical dataset decision table.
+- `datasets.md`: canonical function-based dataset inventory.
 - `task.md`: canonical task and target inventory.
 - `training_strategy.md`: SwiFT-first training and model-development strategy.
 - `code_resources.md`: repository and implementation resources.
