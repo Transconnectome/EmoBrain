@@ -79,6 +79,20 @@ Affective computing에서는 foundation model 흐름이 빠르게 커지고 있�
 
 최근 MME-Emotion, EmoBench-M, Beyond Emotion Recognition, EIBench 같은 MLLM benchmark는 affective computing이 단순한 "어떤 emotion label인가?"에서 emotional understanding, trigger inference, contextual reasoning으로 이동하고 있음을 보여준다. NetFeeliX가 이 benchmark를 그대로 따라갈 필요는 없지만, stimulus-side affective embedding과 auxiliary target을 더 풍부하게 설계하는 데 쓸 수 있다.
 
+Task 설정도 단순하지 않다. Affective computing은 대체로 다음 ladder를 쓴다.
+
+| Task type | Output | NetFeeliX에서의 의미 |
+|---|---|---|
+| Sentiment/valence classification | positive/neutral/negative 또는 ordinal class | IAPS/Affective Videos식 낮은 난이도 check |
+| Discrete emotion classification | anger, fear, joy 같은 single label | baseline이지만 mixed emotion을 과하게 단순화할 수 있음 |
+| Multi-label / distribution prediction | 여러 emotion label 또는 emotion probability vector | Horikawa high-dimensional vector와 가장 잘 맞는 방향 |
+| Dimensional regression | arousal, valence, dominance, intensity | fMRI에서 가장 먼저 확인할 sanity ladder |
+| Continuous-time affect tracking | frame/window-level affect trajectory | Emo-FilM, REELMO, movie fMRI window 설계와 연결 |
+| Cue/cause/reasoning | trigger, intent, appraisal, rationale | stimulus-side auxiliary target 또는 alignment target |
+| Affective captioning / QA | 자연어 emotion description, QA answer | fMRI가 직접 문장을 생성한다기보다 embedding/retrieval target으로 사용 |
+
+따라서 NetFeeliX의 task 설계는 classification vs regression 중 하나를 고르는 문제가 아니다. 처음에는 arousal/valence/category로 안정성을 확인하고, 핵심은 multi-label/high-dimensional emotion geometry와 component/trajectory target으로 이동하며, reasoning/caption은 stimulus-side representation을 풍부하게 만드는 auxiliary target으로 둔다.
+
 Top conference 흐름을 보면 이 방향이 더 분명하다. ICML 2025 AffectGPT는 multimodal emotion recognition을 descriptive emotion understanding, fine-grained emotion caption, unified benchmark 문제로 재정의한다. NeurIPS 2025 VidEmo는 affective-tree reasoning guidance로 emotion-centric video foundation model을 학습한다. ICLR 2026 AVERE, MME-Emotion, EmotionHallucer, HitEmotion은 audiovisual cue grounding, emotion hallucination, emotional-intelligence evaluation, Theory-of-Mind-guided multimodal emotion reasoning을 다룬다. NetFeeliX가 배울 점은 emotion model이 label만 맞히는 것이 아니라, temporal context와 affective cue에 grounded된 representation을 만들어야 한다는 것이다.
 
 ### Brain-Tuning and Brain-Aligned AI

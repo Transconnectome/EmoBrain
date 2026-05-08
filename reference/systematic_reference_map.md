@@ -121,6 +121,22 @@ Sources:
 
 This is the main narrative bridge for NetFeeliX. Emotion foundation-model work is growing in affective computing, but fMRI emotion foundation models are not yet established.
 
+### Affective Computing Task Taxonomy
+
+| Task type | References | Target form | NetFeeliX use |
+|---|---|---|---|
+| Sentiment/valence classification and regression | SemEval Affect in Tweets | ordinal class or continuous valence/intensity | low-dimensional sanity tasks |
+| Continuous affect tracking | AVEC | frame/word-level arousal, valence, power/dominance, expectancy | Emo-FilM/movie-window trajectory design |
+| Discrete and multi-label emotion classification | GoEmotions, MAFW, MME-Emotion | single label, multi-label vector, emotion distribution | Horikawa-style high-dimensional targets |
+| Multimodal emotion recognition | MER/MuSe, AffectGPT | audio/video/text emotion prediction and free-form outputs | stimulus-only and multimodal alignment baselines |
+| Emotion reasoning / interpretation | EIBench, MME-Emotion, EmoBench-M | cause, trigger, intent, rationale, QA | stimulus-side auxiliary target or embedding alignment |
+| Descriptive affective captioning | AffectGPT / MER-Caption | natural-language emotion description | convert to embeddings/retrieval targets before brain-generation claims |
+
+Implication: NetFeeliX should not reduce affective computing to "emotion label
+classification." Classification and regression are necessary first checks, but
+the stronger model-development story uses multi-label/high-dimensional targets,
+continuous trajectories, and stimulus-side cue/cause/caption embeddings.
+
 | Area | References | Current pattern | NetFeeliX implication |
 |---|---|---|---|
 | Affective computing FMs | Schuller et al. 2026; Affective Computing in the LLM Era; MLLMs and Emotion Reasoning; MMAFFBen | LLM/VLM/MLLM systems are being used for affective recognition, reasoning, and evaluation. | Use affective AI as stimulus-side features, annotation support, and possible brain-tuning targets. |

@@ -78,6 +78,24 @@ This creates an opening for NetFeeliX. Affective AI has large external models bu
 
 Recent MLLM benchmarks such as MME-Emotion, EmoBench-M, Beyond Emotion Recognition, and EIBench also show that affective computing is shifting from "which emotion label?" to emotional understanding, trigger inference, and contextual reasoning. NetFeeliX should not simply copy these benchmarks, but they are useful for designing richer stimulus-side affective embeddings and auxiliary targets.
 
+Affective-computing task design is therefore broader than classification versus
+regression. A useful ladder is:
+
+| Task type | Output | NetFeeliX use |
+|---|---|---|
+| Sentiment/valence classification | positive/neutral/negative or ordinal class | low-dimensional IAPS/Affective Videos check |
+| Discrete emotion classification | single label such as anger, fear, joy | baseline, but may over-simplify mixed affect |
+| Multi-label / distribution prediction | multiple labels or emotion probability vector | closest to Horikawa-style high-dimensional emotion targets |
+| Dimensional regression | arousal, valence, dominance, intensity | first sanity ladder for fMRI transfer |
+| Continuous-time affect tracking | frame/window-level affect trajectory | relevant for Emo-FilM, REELMO, and movie-window design |
+| Cue/cause/reasoning | trigger, intent, appraisal, rationale | stimulus-side auxiliary target or alignment target |
+| Affective captioning / QA | natural-language emotion description or answer | convert to embedding/retrieval targets before making brain-generation claims |
+
+Thus NetFeeliX should not choose only one of classification or regression. It
+should start with stable arousal/valence/category targets, move toward
+multi-label/high-dimensional emotion geometry and component trajectories, and
+use reasoning/caption targets mainly to enrich stimulus-side representations.
+
 Top-conference work makes this especially clear. ICML 2025 AffectGPT reframes multimodal emotion recognition as descriptive emotion understanding with large-scale fine-grained captions and a unified benchmark. NeurIPS 2025 VidEmo uses affective-tree reasoning guidance for emotion-centric video foundation modeling. ICLR 2026 AVERE, MME-Emotion, EmotionHallucer, and HitEmotion target audiovisual cue grounding, emotion hallucination, emotional-intelligence evaluation, and Theory-of-Mind-guided multimodal emotion reasoning. The practical lesson for NetFeeliX is that emotion models should explain or ground affective judgments in temporal context, not only predict labels.
 
 ### Brain-Tuning and Brain-Aligned AI

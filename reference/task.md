@@ -2,14 +2,50 @@
 
 This document defines the task space for NetFeeliX. The main goal is not to maximize one emotion prediction score, but to identify which tasks reveal useful **emotion-specific brain representation learning**.
 
+## Affective Computing Task Landscape
+
+Affective computing does not define emotion as only one classification problem.
+The field uses a ladder of tasks, from simple label prediction to continuous
+affect tracking and, more recently, multimodal reasoning/generation. NetFeeliX
+should borrow this task ladder, but translate it carefully into fMRI-compatible
+targets.
+
+| Task family | Typical output | Usual metric | Examples | NetFeeliX interpretation |
+|---|---|---|---|---|
+| Sentiment / valence classification | positive, neutral, negative, or ordinal valence class | accuracy, macro F1, ordinal correlation | SemEval Affect in Tweets, IAPS-style categories | fast low-dimensional check; not sufficient for emotion representation |
+| Discrete emotion classification | one emotion label from a fixed taxonomy | accuracy, macro F1, balanced accuracy | IEMOCAP, MELD, DFEW/MAFW-style video emotion sets | useful baseline, but risks forcing one label onto mixed affective states |
+| Multi-label / emotion distribution prediction | multiple emotion labels or probability vector | macro/micro F1, AUROC, KL/correlation | GoEmotions, MAFW, MME-Emotion multi-label tasks | closer to Horikawa high-dimensional emotion vectors |
+| Dimensional affect regression | continuous arousal, valence, dominance/power, expectancy, intensity | Pearson/Spearman r, CCC, MAE/MSE | AVEC, SemEval intensity regression, MuSe-style affect modeling | essential sanity ladder for fMRI because arousal often transfers first |
+| Continuous-time affect tracking | affect trace over frames/utterances/time windows | CCC, time-lagged correlation, dynamic error | AVEC fully continuous challenge, REELMO trajectories | relevant for Emo-FilM and movie fMRI windows |
+| Emotion recognition in conversation | utterance-level emotion with context and speaker state | accuracy, macro F1 | IEMOCAP, MELD, ERC tasks | conceptual precedent for context-window modeling; not directly Horikawa |
+| Multimodal emotion recognition | emotion from video/audio/text/physiology, often with missing/noisy modalities | task-specific F1, correlation, robustness metrics | MER/MuSe challenges, AffectGPT benchmarks | motivates stimulus-only and multimodal alignment baselines |
+| Emotion cause / trigger / interpretation | why the emotion occurs; cue, cause, intent, appraisal, rationale | QA score, human/LLM judge, retrieval, explanation quality | EIBench, MME-Emotion reasoning score, emotion-cause extraction | should be stimulus-side or alignment target, not direct fMRI "reasoning" claim |
+| Descriptive affective captioning | natural-language emotion description, fine-grained caption, rationale | caption metrics, LLM judge, retrieval, human preference | AffectGPT / MER-Caption, EmoBench-M generation | can provide embedding targets for brain-stimulus alignment |
+| Affective interaction/generation | empathetic response, emotional speech, adaptive dialogue/action | human preference, task success, safety metrics | emotional TTS, empathetic dialogue, affective agents | later extension only; not core NetFeeliX fMRI task |
+
+Key lesson:
+
+```text
+Label prediction is the entry point, but modern affective computing increasingly
+evaluates intensity, temporal dynamics, multimodal cue grounding, cause/intent,
+and free-form affective descriptions.
+```
+
+For NetFeeliX, this means the first fMRI tasks should remain measurable
+classification/regression problems, while later model-development tracks can use
+stimulus-side affective captions, cue labels, and rationale embeddings as
+alignment targets.
+
 ## Task Groups
 
 | Group | Task | Input | Target/output | Primary dataset | Main model use |
 |---|---|---|---|---|---|
 | Emotion prediction | Arousal regression | fMRI, stimulus, or aligned latent | continuous arousal | Affective Videos, Emo-FilM, REELMO, Ke datasets | fast sanity check |
 | Emotion prediction | Valence regression | fMRI, stimulus, or aligned latent | continuous valence | Affective Videos, IAPS fMRI, Emo-FilM | harder affect dimension |
+| Emotion prediction | Emotion intensity regression / ordinal classification | fMRI, stimulus, or aligned latent | per-emotion intensity score or ordinal bin | Emo-FilM, Horikawa-derived ratings, SemEval-style stimulus targets | bridge between category and continuous affect |
 | Emotion prediction | Valence category | fMRI beta map or time window | positive/neutral/negative | IAPS fMRI | quick category benchmark |
 | Emotion prediction | Discrete emotion prediction | fMRI or stimulus window | emotion category/multi-label vector | Horikawa, Emo-FilM, NeuroEmo | category-like affect structure |
+| Emotion prediction | Emotion distribution prediction | fMRI or stimulus window | probability/rating vector over emotion categories | Horikawa, Emo-FilM, MLLM-derived stimulus targets | richer than single-label classification |
 | Emotion prediction | High-dimensional emotion vector | fMRI or stimulus window | emotion rating vector | Horikawa, Koide-Majima | affect geometry benchmark |
 | Emotion prediction | Appraisal/component prediction | fMRI + stimulus context | component ratings | Emo-FilM | bridge to context understanding |
 | Representation learning | Masked fMRI modeling | movie/story fMRI | reconstructed masked segments | HCP 7T movie, CNeuroMod, StudyForrest | SwiFT continued pretraining |
@@ -24,6 +60,8 @@ This document defines the task space for NetFeeliX. The main goal is not to maxi
 | Reasoning/context | short vs long context | local and extended stimulus windows | emotion target | Emo-FilM, REELMO | context sensitivity |
 | Reasoning/context | rationale embedding alignment | stimulus + MLLM rationale | rationale/cue embedding | Emo-FilM, REELMO | explanation-aware latent |
 | Reasoning/context | cue grounding | audiovisual/text cues | cue-emotion association | REELMO, MLLM-generated targets | avoid label-only shortcut |
+| Reasoning/context | emotion cause / trigger interpretation | stimulus, annotations, optional aligned fMRI latent | cause, trigger, intent, or appraisal explanation | EIBench-style targets, MME-Emotion, EmoBench-M | stimulus-side reasoning target; fMRI used for alignment, not direct explanation |
+| Reasoning/context | affective caption embedding | stimulus + optional brain latent | descriptive emotion caption or embedding | AffectGPT/MER-Caption-style targets, REELMO | free-form affect target converted to embedding/retrieval objective |
 | Reasoning/context | MLLM-derived affect targets | movie/image stimulus | caption, appraisal, cause, intensity | REELMO, Emo-FilM, NSD/OASIS | stimulus-side supervision |
 | Transfer | cross-subject transfer | train subjects -> held-out subject | same target | all fMRI datasets | population generalization |
 | Transfer | cross-stimulus/movie transfer | train clips/movies -> held-out clips/movies | same target | Horikawa, Emo-FilM, REELMO | content generalization |
@@ -112,3 +150,29 @@ Tasks:
 ## Horikawa Rule
 
 Horikawa should be written as a **high-dimensional affect geometry benchmark**, not as a reasoning/context dataset. It is ideal for testing whether SwiFT or a modified fMRI encoder captures rich emotion-category structure from brain activity. Reasoning/context tasks should be tested with Emo-FilM, REELMO, movie datasets, and MLLM-derived cue/rationale embeddings.
+
+## NetFeeliX Task Design Rule
+
+The affective-computing task ladder should be used in order:
+
+1. **Low-dimensional sanity targets**: arousal, valence, positive/neutral/negative.
+2. **Category and multi-label targets**: discrete emotion, multi-label vectors,
+   emotion distributions.
+3. **High-dimensional geometry**: Horikawa/Cowen-style emotion vector prediction
+   and RSA/CKA with emotion rating spaces.
+4. **Temporal and component targets**: Emo-FilM appraisal/component trajectories,
+   REELMO-like affect trajectories if usable.
+5. **Reasoning/cue/caption targets**: use MLLM-generated or curated stimulus-side
+   targets as embeddings or retrieval labels; do not claim fMRI directly
+   generates explanations until there is explicit evidence.
+
+Sources:
+
+- AVEC continuous affect: https://portal.fis.tum.de/en/publications/avec-2012-the-continuous-audiovisual-emotion-challenge
+- SemEval Affect in Tweets: https://publications-cnrc.canada.ca/eng/view/object/?id=560b602a-37a5-47be-b306-4b80277382ea
+- GoEmotions: https://aclanthology.org/2020.acl-main.372/
+- MME-Emotion: https://mme-emotion.github.io/
+- EmoBench-M: https://github.com/Emo-gml/EmoBench-M
+- AffectGPT: https://icml.cc/virtual/2025/poster/43565
+- EIBench / Why We Feel: https://openaccess.thecvf.com/content/CVPR2025W/NeXD/html/Lin_Why_We_Feel_Breaking_Boundaries_in_Emotional_Reasoning_with_Multimodal_CVPRW_2025_paper.html
+- MuSe 2025: https://www.muse-challenge.org/
