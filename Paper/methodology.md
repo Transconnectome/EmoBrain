@@ -2,7 +2,7 @@
 
 ## Overview
 
-The methodology is organized around **SwiFT-first, screening-benchmark-driven model development**. Before claiming a mature emotion-aware foundation model, NetFeeliX should build a harmonized benchmark surface across datasets, targets, and model families. Every model should be evaluated with comparable splits, target definitions, and metrics.
+The methodology is organized around **SwiFT-first but not SwiFT-locked, screening-benchmark-driven model development**. Before claiming a mature emotion-aware foundation model, NetFeeliX should build a harmonized benchmark surface across datasets, targets, brain representations, and model families. Every model should be evaluated with comparable splits, target definitions, and metrics.
 
 The practical goal for the first two months is:
 
@@ -46,7 +46,8 @@ Model inventory should similarly record:
 
 ## Phase 1: Screening Benchmark Matrix
 
-The screening benchmark should compare four model interfaces rather than one native architecture against another.
+The screening benchmark should compare model interfaces and temporal-window
+conditions rather than one native architecture against another.
 
 | Interface | Input | Example model | Output | Main question |
 |---|---|---|---|---|
@@ -54,6 +55,22 @@ The screening benchmark should compare four model interfaces rather than one nat
 | SwiFT-first BFM probe | fMRI | SwiFT, then BrainLM/Brain-JEPA/NeuroSTORM if usable | emotion | Can SwiFT be made emotion-specific? |
 | Stimulus-only baseline | video/audio/text | V-JEPA2, CLIP, Whisper, LLM, TRIBE fusion | emotion | How much emotion is explained by stimulus features alone? |
 | Alignment model | fMRI + stimulus during training | fMRI encoder + stimulus encoder | emotion + alignment | Does brain-stimulus alignment improve representation? |
+
+Temporal-window conditions are part of the benchmark, not a preprocessing
+footnote:
+
+| Condition | Main use | Required logging |
+|---|---|---|
+| all observed windows | use all valid Horikawa/Emo-FilM windows when supported | observed frame count, HRF alignment, target timing |
+| SL5 | short event-level response | padding/crop method if model expects longer input |
+| SL10 | modest post-stimulus context | same split and target as SL5/20/40 |
+| SL20 | checkpoint-native condition for common SwiFT setups | checkpoint name, temporal patch/window config |
+| SL40 | long-context condition and possible native condition for SL40 SwiFT | checkpoint name or scratch initialization |
+
+For pretrained SwiFT, the checkpoint-native SL is the clean transfer condition.
+For mismatched downstream windows, padding/cropping/masking must be treated as
+an explicit adaptation experiment. For scratch SwiFT, SL5/SL10/SL20/SL40 should
+be compared directly under matched splits and objectives.
 
 Minimum result table:
 
@@ -98,11 +115,15 @@ Do not claim fMRI can produce reliable natural-language emotional reasoning in t
 
 ## Brain-Only Baselines
 
-Purpose: establish the minimum bar before expensive models.
+Purpose: establish the minimum bar before expensive models and identify which
+neural representation carries emotion-relevant signal.
 
 Models:
 
 - ridge/elastic-net from parcel or ROI summary features,
+- voxel-wise ridge/elastic-net with stability selection,
+- network-restricted models for visual, auditory, salience, DMN, limbic, and
+  control networks,
 - PCA/ICA features with linear heads,
 - dynamic functional connectivity CPM-style arousal/valence prediction,
 - small temporal MLP/TCN/Transformer trained from scratch.
@@ -118,6 +139,7 @@ Evaluation:
 - leave-subject-out where possible,
 - leave-stimulus or leave-movie-out when stimulus generalization matters,
 - subject-wise metrics with bootstrap confidence intervals.
+- region/network importance and stability across folds.
 
 ## Existing BFM Transfer
 
@@ -144,6 +166,8 @@ Decision rule:
 - If BFM probes beat non-deep baselines on arousal only, keep BFM as a sanity baseline.
 - If BFM probes beat baselines on valence or high-dimensional targets, prioritize adapter/fine-tuning.
 - If BFM probes fail broadly, prioritize naturalistic movie/story pretraining or stimulus-brain alignment.
+- If voxel/ROI/network baselines beat SwiFT under matched splits, deprioritize
+  SwiFT and focus on neural-representation search or alternative architectures.
 
 ## Naturalistic Movie/Story Pretraining
 

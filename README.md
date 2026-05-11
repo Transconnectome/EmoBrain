@@ -5,7 +5,6 @@
 > Emotion representation learning with brain foundation models and naturalistic fMRI.
 
 Korean guide: [`README_KR.md`](README_KR.md)
-Korean narrative: [`NARRATIVE_KR.md`](NARRATIVE_KR.md)
 Research overview: [`research_overview.md`](research_overview.md)
 Action plan: [`ACTION_PLAN.md`](ACTION_PLAN.md)
 
@@ -21,11 +20,12 @@ Emotion representation is unlikely to be solved by attaching a small emotion hea
 naturalistic stimulus dynamics + fMRI brain dynamics + emotion annotations
 ```
 
-The project is **SwiFT-first** and compares three families of approaches:
+The project is **SwiFT-first but not SwiFT-locked** and compares four families of approaches:
 
 1. **SwiFT emotion specialization.** Adapt SwiFT with emotion heads, adapters, subject modules, continued pretraining, and targeted fine-tuning.
-2. **Naturalistic movie/story pretraining.** Continue pretraining from HCP 7T movie first, then use CNeuroMod/Algonauts, StudyForrest, Narratives, or modality-control movie data only when they test a concrete hypothesis. Evaluate transfer on Horikawa, Emo-FilM, and related affective datasets.
-3. **Stimulus-brain-emotion alignment.** Use TRIBE v2 and other multimodal stimulus models as teachers or alignment components, while keeping SwiFT as the primary brain backbone.
+2. **Neural representation search.** Test ROI/parcel, voxel-weighted, network-restricted, dynamic-FC, and whole-brain representations.
+3. **Naturalistic and emotion-labeled pretraining.** Compare naturalistic SSL, emotion-labeled training, and two-stage curricula.
+4. **Stimulus-brain-emotion alignment.** Use TRIBE v2 and other multimodal stimulus models as teachers or alignment components.
 
 ## Core Research Question
 
@@ -58,28 +58,27 @@ Subquestions:
 | Brain encoding model | TRIBE, TRIBE v2 | video/audio/text stimulus | predicted fMRI response | Stimulus-to-brain comparison and alignment target |
 | NetFeeliX | proposed | fMRI + optional stimulus features | emotion-aware brain representation | Project target |
 
-## Immediate Two-Month Strategy
+## Immediate Decision-Driven Strategy
 
-1. **Weeks 1-2: Baselines and data readiness**
-   - Confirm access and preprocessing for HCP 7T movie, Horikawa, Emo-FilM, and available local fMRI assets.
-   - Run simple baselines: ridge/MLP on ROI time series, dynamic FC arousal baseline, frozen BFM linear probes.
-   - Record exact splits, target definitions, and metrics.
+1. **Data and target readiness**
+   - Build canonical Horikawa 2185-stimulus manifest.
+   - Confirm Emo-FilM, Affective Videos, IAPS fMRI, HCP, and alignment datasets.
+   - Define target matrices, splits, and metrics.
 
-2. **Weeks 3-4: Naturalistic pretraining**
-   - Start with a small ROI or parcel-level temporal transformer.
-   - Compare masked modeling, temporal contrastive learning, and JEPA-style latent prediction.
-   - Use HCP first; add other naturalistic sources only for alignment, context, or modality-control questions.
-   - Track compute, convergence, and transfer quality.
+2. **Neural representation search**
+   - Compare ROI/parcel, voxel-weighted, network-restricted, dynamic-FC, and
+     whole-brain representations.
+   - Identify which regions/networks/time windows carry emotion signal.
 
-3. **Weeks 5-6: Emotion fine-tuning**
-   - Fine-tune or probe on Horikawa and Emo-FilM.
-   - Compare arousal, valence, discrete emotions, and embedding targets.
-   - Add subject adapters and HRF-aware temporal lag modules if baselines justify them.
+3. **SwiFT and BFM evaluation**
+   - Test frozen/adapted/pretrained SwiFT under matched conditions.
+   - Compare Brain-JEPA, NeuroSTORM, BrainLM/SwiFUN if feasible.
+   - Pivot if simple or alternative representations outperform SwiFT.
 
-4. **Weeks 7-8: Alignment and ablation**
-   - Add V-JEPA2, Wav2Vec-BERT or Whisper, and text/caption features where possible.
+4. **Pretraining and alignment**
+   - Compare naturalistic SSL, emotion-labeled pretraining, and two-stage
+     curricula.
    - Compare brain-only, stimulus-only, and stimulus-brain aligned models.
-   - Prepare paper-style tables, failure analysis, and next-step proposal.
 
 ## Repository Structure
 
@@ -87,7 +86,6 @@ Subquestions:
 NetFeeliX/
 ├── README.md
 ├── README_KR.md
-├── NARRATIVE_KR.md
 ├── ACTION_PLAN.md
 ├── ONBOARDING.md
 ├── CONTEXT_NETFEELIX.md
@@ -107,8 +105,7 @@ NetFeeliX/
 │   └── search_log_2026-05-08.md
 ├── notes/
 │   ├── benchmark_design.md
-│   ├── project_decisions.md
-│   └── two_month_plan.md
+│   └── project_decisions.md
 ├── templates/
 │   ├── paper_note.md
 │   ├── dataset_card.md
@@ -138,6 +135,9 @@ NetFeeliX/
 └── setup/
     ├── README.md
     ├── code/
+    │   ├── build_horikawa_window_manifest.py
+    │   ├── run_tribe_horikawa.py
+    │   └── run_tribe_horikawa.sh
     ├── data/
     ├── logs/
     └── results/
@@ -147,7 +147,6 @@ NetFeeliX/
 
 - `ONBOARDING.md`: first-read guide for new collaborators and AI agents.
 - `CONTEXT_NETFEELIX.md`: compact single source of truth for project framing.
-- `NARRATIVE_KR.md`: Korean full narrative explaining why the project is structured this way.
 - `ACTION_PLAN.md`: current execution plan and phase-level next actions.
 - `Paper/framework_EN.md` and `Paper/framework_KR.md`: canonical project framework, narrative, and proposal-level framing.
 - `Paper/methodology.md`: detailed experimental plan.
@@ -158,7 +157,8 @@ NetFeeliX/
 - `notes/benchmark_design.md`: initial benchmark axes, experiments, and decision rules.
 - `templates/`: reusable note/card templates for papers, datasets, models, experiments, reviews, and decisions.
 - `workflows/`: operating protocols for literature search, experiment planning, red-team review, and weekly updates.
-- `scripts/`: project-operation automation.
+- `scripts/`: project-operation automation only.
+- `setup/code/`: runnable setup/experiment scripts.
 
 Project completeness and status can be checked with:
 

@@ -11,7 +11,6 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_FILES = [
     "README.md",
     "README_KR.md",
-    "NARRATIVE_KR.md",
     "ACTION_PLAN.md",
     "ONBOARDING.md",
     "CONTEXT_NETFEELIX.md",
@@ -50,8 +49,18 @@ DATASET_REQUIRED_BLOCKS = [
 OLD_REFERENCES = [
     "reference/literature_map.md",
     "reference/emotion_foundation_model_landscape.md",
-    "notes/pilot_benchmark_design.md",
+    "notes/" + "pi" + "lot_benchmark_design.md",
+    "NARRATIVE_KR.md",
+    "scripts/audit_emode_design.py",
+    "scripts/audit_emode_extraction.py",
+    "scripts/run_emode_clean_linear.py",
+    "scripts/run_tribe_horikawa.py",
+    "scripts/build_horikawa_window_manifest.py",
 ]
+
+GENERATED_MARKDOWN = {
+    "reports/status/PROJECT_STATUS.md",
+}
 
 
 def read(path):
@@ -74,8 +83,10 @@ def check_required_files(failures):
 
 def check_old_references(failures):
     for path in markdown_files():
-        text = path.read_text(encoding="utf-8", errors="replace")
         rel = str(path.relative_to(ROOT))
+        if rel in GENERATED_MARKDOWN:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
         for old in OLD_REFERENCES:
             if old in text:
                 failures.append("%s references old path %s" % (rel, old))
@@ -114,12 +125,36 @@ def check_trigger_visibility(failures):
             failures.append("trigger not visible in context/workflows: %s" % trigger)
 
 
+def check_agent_memory_links(failures):
+    for rel in ["CLAUDE.md", "CODEX.md"]:
+        text = read(rel)
+        if "CONTEXT_NETFEELIX.md" not in text:
+            failures.append("%s must point to CONTEXT_NETFEELIX.md" % rel)
+
+
+def check_no_redundant_root_docs(failures):
+    forbidden = [
+        "project_brief",
+        "proposal_outline",
+        "narrative",
+    ]
+    for path in ROOT.glob("*.md"):
+        name = path.name.lower()
+        if path.name in {"README.md", "README_KR.md"}:
+            continue
+        for token in forbidden:
+            if token in name:
+                failures.append("avoid redundant root markdown file: %s" % path.name)
+
+
 def main():
     failures = []
     check_required_files(failures)
     check_old_references(failures)
     check_dataset_inventory(failures)
     check_trigger_visibility(failures)
+    check_agent_memory_links(failures)
+    check_no_redundant_root_docs(failures)
 
     if failures:
         print("NetFeeliX project checks failed:\n")

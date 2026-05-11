@@ -22,16 +22,20 @@ NetFeeliX는 **emotion-aware brain representation learning을 위한 모델 개�
 brain-based emotion representation을 만드는가?
 ```
 
-NetFeeliX는 이 질문을 네 개의 모델링 질문으로 나눈다.
+NetFeeliX는 이 질문을 여덟 개의 모델링 질문으로 나눈다.
 
 | 질문 | 모델링 해석 | 첫 실험 |
 |---|---|---|
 | Generic BFM이 emotion으로 전이되는가? | 넓은 fMRI representation 안에 emotion-relevant structure가 이미 있을 수 있다. | Frozen BFM probe, adapter tuning. |
+| 어떤 neural representation이 중요한가? | Whole-brain 4D가 최선이 아닐 수 있다. 특정 voxel, parcel, ROI, network, dynamic connectivity가 더 직접적인 emotion signal을 가질 수 있다. | whole-brain SwiFT/NeuroSTORM vs ROI/parcel ridge vs voxel-weighted sparse model vs network-restricted model. |
+| SwiFT는 어떤 temporal window length를 써야 하는가? | Emotion은 짧은 evoked response, delayed hemodynamics, 긴 context 중 어디에서 더 잘 잡힐 수 있다. 또한 pretrained SwiFT는 checkpoint-native sequence length 제약이 있다. | Horikawa all observed windows, standardized SL5/SL10/SL20/SL40, pretrained-native SL20/SL40, scratch SL5/SL10/SL20/SL40. |
 | Naturalistic fMRI pretraining이 도움이 되는가? | emotion target은 vision, audio, language, social cue, narrative context가 시간 속에서 결합될 때 생긴다. | resting/generic SwiFT vs HCP/CNeuroMod/StudyForrest-style pretraining. |
+| Emotion-labeled pretraining이 필요한가? | naturalistic SSL만으로는 emotion target structure를 직접 배우지 못할 수 있다. | Horikawa/Emo-FilM/Affective Videos/IAPS/NeuroEmo multi-task pretraining과 held-out transfer. |
+| 어떤 pretraining curriculum이 좋은가? | stimulus dynamics를 먼저 배울지, emotion label structure를 먼저 배울지, 두 단계를 섞을지 결정해야 한다. | naturalistic-only vs emotion-labeled-only vs naturalistic-to-emotion two-stage comparison. |
 | Stimulus-brain alignment가 도움이 되는가? | Emotion은 stimulus dynamics와 brain dynamics 사이의 shared structure일 수 있다. | TRIBE-style stimulus feature와 fMRI latent alignment. |
 | Affective AI를 brain-tune할 수 있는가? | LLM/VLM emotion feature가 neural response로 regularize될 수 있다. | Brain-aligned adapter 또는 distillation. |
 
-프로젝트는 비교적이어야 한다. Arousal, valence, discrete emotion, high-dimensional category vector가 서로 다른 architecture를 선호할 수 있다. 따라서 단일 winning model뿐 아니라 failure pattern 자체도 중요한 결과다.
+프로젝트는 비교적이어야 한다. Arousal, valence, discrete emotion, high-dimensional category vector가 서로 다른 architecture와 brain representation을 선호할 수 있다. 따라서 단일 winning model뿐 아니라 failure pattern 자체도 중요한 결과다. SwiFT-first는 출발점이지 고정 결론이 아니다. SwiFT가 충분하지 않으면 그 결과를 인정하고 더 좋은 neural representation 또는 architecture로 pivot한다.
 
 ## 모델 개발을 위한 문헌 지형
 
@@ -170,11 +174,60 @@ Reasoning과 context understanding은 더 긴 temporal context, cue grounding, n
 
 주요 모델: SwiFT. 비교 모델: BrainLM, Brain-JEPA, SwiFUN, code/weight 접근이 가능하면 NeuroSTORM.
 
-Decision rule: frozen/adapted BFM이 arousal 이상의 target에서도 simple baseline을 넘으면 adapter/fine-tuning을 우선한다.
+Decision rule: frozen/adapted BFM이 arousal 이상의 target에서도 simple baseline을 넘으면 adapter/fine-tuning을 우선한다. 반대로 ROI/parcel ridge, voxel-weighted linear model, network-restricted model, 다른 BFM, stimulus-aligned model이 같은 split과 target에서 더 안정적으로 좋으면 SwiFT 중심 개발은 축소하거나 폐기한다. NetFeeliX의 목적은 SwiFT를 지키는 것이 아니라 emotion representation을 잘 학습하는 모델과 neural representation을 찾는 것이다.
 
-### Track B: Naturalistic Movie/Story Pretraining
+### Track A0: Neural Representation Search
 
-목표는 naturalistic stimulus-driven fMRI pretraining이 emotion transfer를 개선하는지 확인하는 것이다. 이 track은 "movie가 rest보다 당연히 좋다"는 주장이 아니다. 정확한 가설은 작은 emotion-labeled fMRI dataset으로 바로 학습하기 전에, SwiFT가 visual, auditory, language, social, narrative cue에 의해 유도되는 stimulus-locked brain dynamics를 먼저 배워야 하는지 검증하는 것이다.
+목표는 어떤 brain representation이 emotion prediction과 affective geometry에 실제로 중요한지 확인하는 것이다. Whole-brain 4D input이 가장 정보가 많아 보이지만, small fMRI dataset에서는 noise와 subject variability 때문에 특정 ROI, parcel, network, voxel weighting이 더 나을 수 있다.
+
+비교할 representation은 다음과 같다.
+
+| Representation | 예시 | 검증 이유 |
+|---|---|---|
+| Whole-brain 4D volume | SwiFT, NeuroSTORM | distributed spatiotemporal pattern 보존 |
+| Parcel/ROI time series | Schaefer/Tian, HCP-MMP, emotion/salience/visual ROI | 빠르고 안정적이며 cross-dataset harmonization이 쉬움 |
+| Voxel-weighted model | ridge, elastic-net, sparse linear model, stability selection | 어떤 voxel이 emotion target에 기여하는지 확인 |
+| Network-restricted model | visual, auditory, salience, DMN, limbic/control network | whole-brain 대신 어떤 system이 중요한지 테스트 |
+| Dynamic connectivity | sliding-window FC, temporal graph feature | arousal/context dynamics가 FC에 더 잘 잡히는지 확인 |
+| Subject-adapted representation | subject adapter, hyperalignment, shared response model | 개인차와 shared affect structure를 분리 |
+| Stimulus-aligned latent | TRIBE/V-JEPA/audio/text와 fMRI latent alignment | emotion이 brain-stimulus shared structure에서 더 잘 잡히는지 확인 |
+
+이 track의 산출물은 성능표뿐 아니라 interpretability table이어야 한다. 즉 어떤 target에서 어떤 region/network/time window/stimulus modality가 중요한지 기록한다.
+
+### Track A1: SwiFT Temporal-Length and Padding Comparison
+
+목표는 emotion representation이 짧은 event-level response, 더 긴 temporal context,
+혹은 checkpoint-native SwiFT sequence length 중 어디에서 가장 잘 학습되는지
+결정하는 것이다.
+
+이 track이 필요한 이유는 Horikawa를 exactly-5TR dataset처럼 취급하면 안 되기
+때문이다. Local preprocessing에는 variable-length response window가 존재한다.
+기존 5TR setup은 loader/split 설계에서 생긴 legacy subset이지, 전체 dataset
+정의가 아니다.
+
+비교 조건은 다음과 같다.
+
+| 조건 | Length | 이유 |
+|---|---|---|
+| all observed windows | observed 5-47 frames | 모델이 지원할 수 있으면 가용 데이터를 모두 사용한다 |
+| standardized windows | SL5, SL10, SL20, SL40 | temporal context를 통제해서 비교한다 |
+| pretrained-native SwiFT | matching checkpoint가 있으면 SL20, SL40 | checkpoint-compatible fine-tuning의 기준 조건 |
+| pretrained SwiFT with short observed windows | observed 5/10/20 frames를 native SL로 pad/crop | short-window adaptation과 padding sensitivity 확인 |
+| scratch SwiFT | SL5, SL10, SL20, SL40 | pretrained weight 제약 없이 sequence-length effect 확인 |
+
+Rule: pretrained SwiFT fine-tuning은 원칙적으로 checkpoint-native sequence length를
+유지해야 한다. Downstream window가 더 짧거나 길면 그것은 동일 실험이 아니라
+padding/mask/crop이 명시된 adaptation experiment로 기록해야 한다.
+
+### Track B: Pretraining Source and Curriculum
+
+목표는 어떤 pretraining source와 curriculum이 emotion transfer를 개선하는지 확인하는 것이다. 이 track은 "movie가 rest보다 당연히 좋다"는 주장도 아니고, emotion label만 많이 넣으면 된다는 주장도 아니다. 정확한 가설은 작은 emotion-labeled fMRI dataset으로 바로 학습하기 전에, SwiFT가 visual, auditory, language, social, narrative cue에 의해 유도되는 stimulus-locked brain dynamics를 먼저 배워야 하는지, 아니면 Horikawa/Emo-FilM/Affective Videos/IAPS/NeuroEmo 같은 emotion-labeled dataset으로 target-aware affect structure를 먼저 배워야 하는지 비교하는 것이다.
+
+따라서 pretraining은 세 갈래로 비교한다.
+
+1. naturalistic SSL pretraining: movie/story fMRI에서 stimulus-locked dynamics를 학습한다.
+2. emotion-labeled pretraining: emotion label, high-dimensional vector, component/appraisal target으로 multi-task supervised 또는 weakly supervised learning을 한다.
+3. two-stage pretraining: naturalistic dynamics를 먼저 배우고, emotion-labeled dataset으로 specialization한다.
 
 처음에는 parcel-level time series로 시작한다. Simple pipeline이 안정화되기 전에는 raw 4D volume으로 바로 가지 않는다.
 
@@ -187,6 +240,7 @@ Dataset 선택은 가설별로 한다.
 | StudyForrest | long-film continuity | 긴 audiovisual narrative가 temporal representation에 주는 이득이 있는가 |
 | Narratives | language/story context | visual cue 없이 narrative context alignment가 도움이 되는가 |
 | 101 Dalmatians | modality control | visual-only, auditory-only, audiovisual condition 차이가 emotion transfer에 중요한가 |
+| Horikawa / Emo-FilM / Affective Videos / IAPS / NeuroEmo | emotion-labeled pretraining | supervised affective pretraining이 held-out emotion transfer를 개선하는가 |
 
 후보 objective:
 
@@ -195,9 +249,11 @@ Dataset 선택은 가설별로 한다.
 - JEPA-style latent prediction,
 - subject-invariant contrastive learning,
 - future brain-state prediction,
-- optional stimulus-conditioned prediction.
+- optional stimulus-conditioned prediction,
+- multi-task emotion label/vector/component prediction,
+- emotion geometry alignment across datasets.
 
-Decision rule: naturalistic-pretrained encoder가 Horikawa/Emo-FilM에서 generic BFM transfer를 넘고, 단순 arousal이나 low-level visual/audio shortcut을 넘어 high-dimensional/component target에도 이득을 보이면 movie/story pretraining을 확장한다. 이득이 없거나 visual shortcut만 보이면 emotion-specific head, subject adapter, TRIBE-style alignment, target 재설계를 우선한다.
+Decision rule: naturalistic-pretrained encoder가 Horikawa/Emo-FilM에서 generic BFM transfer를 넘고, 단순 arousal이나 low-level visual/audio shortcut을 넘어 high-dimensional/component target에도 이득을 보이면 movie/story pretraining을 확장한다. Emotion-labeled pretraining이 held-out emotion dataset transfer를 개선하면 multi-dataset affective pretraining과 task-specific head를 확장한다. Two-stage pretraining이 가장 좋으면 naturalistic dynamics first, emotion specialization second curriculum을 우선한다. 이득이 없거나 visual shortcut만 보이면 emotion-specific head, subject adapter, TRIBE-style alignment, target 재설계를 우선한다.
 
 ### Track C: Stimulus-Brain-Emotion Alignment
 

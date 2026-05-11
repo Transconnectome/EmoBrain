@@ -51,6 +51,7 @@ alignment targets.
 | Representation learning | Masked fMRI modeling | movie/story fMRI | reconstructed masked segments | HCP 7T movie, CNeuroMod, StudyForrest | SwiFT continued pretraining |
 | Representation learning | Contrastive fMRI learning | augmented fMRI windows | matched latent views | HCP, CNeuroMod, Horikawa, Emo-FilM | robust fMRI representation |
 | Representation learning | JEPA/future latent prediction | fMRI history window | future or held-out latent | HCP 7T movie, StudyForrest, Narratives | predictive brain dynamics |
+| Representation learning | Temporal-window-length comparison | fMRI windows of 5/10/20/40 TR or all valid observed windows | same emotion target under matched splits | Horikawa, Emo-FilM, HCP-derived windows | decide whether emotion needs short evoked response or longer temporal context |
 | Representation learning | Subject-invariant learning | multi-subject fMRI | subject-shared latent | HCP, Emo-FilM | transfer across participants |
 | Alignment/encoding | fMRI-to-emotion decoding | fMRI | emotion target | Horikawa, Emo-FilM, Affective Videos | SwiFT emotion head |
 | Alignment/encoding | stimulus-to-emotion prediction | video/audio/text/image | emotion target | Horikawa, Emo-FilM, REELMO | TRIBE v2/stimulus baseline |
@@ -94,9 +95,11 @@ Purpose: test whether SwiFT can be made more emotion-specific.
 Tasks:
 
 1. SwiFT frozen features + linear/ridge/MLP emotion head,
-2. SwiFT adapter or partial fine-tuning,
-3. SwiFT continued pretraining on HCP movie first, then other naturalistic sources if they answer a specific alignment/context/modality question,
-4. emotion-specific head comparison: arousal/valence, discrete emotion, high-dimensional vector, appraisal/component.
+2. SwiFT sequence-length comparison for SL5, SL10, SL20, and SL40,
+3. pretrained SwiFT native-SL fine-tuning versus scratch SwiFT at the same SL,
+4. SwiFT adapter or partial fine-tuning,
+5. SwiFT continued pretraining on HCP movie first, then other naturalistic sources if they answer a specific alignment/context/modality question,
+6. emotion-specific head comparison: arousal/valence, discrete emotion, high-dimensional vector, appraisal/component.
 
 Primary targets:
 
@@ -149,7 +152,25 @@ Tasks:
 
 ## Horikawa Rule
 
-Horikawa should be written as a **high-dimensional affect geometry benchmark**, not as a reasoning/context dataset. It is ideal for testing whether SwiFT or a modified fMRI encoder captures rich emotion-category structure from brain activity. Reasoning/context tasks should be tested with Emo-FilM, REELMO, movie datasets, and MLLM-derived cue/rationale embeddings.
+Horikawa should be written as a **high-dimensional affect geometry benchmark**, not as a reasoning/context dataset. It is ideal for testing whether SwiFT or a modified fMRI encoder captures rich emotion-category structure from brain activity. It should not be artificially limited to the legacy 5TR subset unless that condition is explicitly being used as a short-window control. Reasoning/context tasks should be tested with Emo-FilM, REELMO, movie datasets, and MLLM-derived cue/rationale embeddings.
+
+## Temporal Window Rule
+
+For fMRI tasks, the target is not only "which model wins?" The target is also
+"which temporal window definition lets the model learn emotion-relevant
+representation?"
+
+Use these conditions as the default ladder:
+
+1. **All valid observed windows**: use every valid stimulus-response window
+   available in preprocessing.
+2. **Standardized SL5/SL10/SL20/SL40**: force comparable inputs across models.
+3. **Pretrained-native SL**: fine-tune pretrained SwiFT at the sequence length
+   used during pretraining.
+4. **Scratch matched SL**: train SwiFT from scratch at each length to separate
+   architecture length effects from pretrained-transfer effects.
+5. **Padding/masking sensitivity**: when short windows are padded into longer
+   models, report whether padded frames affect attention and pooling.
 
 ## NetFeeliX Task Design Rule
 

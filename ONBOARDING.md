@@ -1,30 +1,28 @@
 # NetFeeliX Onboarding
 
 This file is the first stop for a new collaborator or AI agent. NetFeeliX is a
-SwiFT-first model-development project for emotion-specific fMRI representation
-learning.
+SwiFT-first but not SwiFT-locked model-development project for emotion-specific
+fMRI representation learning.
 
 ## Five-Minute Read Order
 
 1. `README.md`
-   - Project thesis, model families, two-month strategy, and repository map.
+   - Project thesis, model families, active strategy, and repository map.
 2. `README_KR.md`
    - Korean guide for the project structure and workflow.
 3. `CONTEXT_NETFEELIX.md`
    - Single source of truth for project framing and operating rules.
-4. `NARRATIVE_KR.md`
-   - Korean full narrative explaining why the project is structured this way.
-5. `ACTION_PLAN.md`
+4. `ACTION_PLAN.md`
    - Current execution plan and near-term research actions.
-6. `Paper/framework_EN.md`
+5. `Paper/framework_EN.md`
    - Canonical narrative and proposal-level framework.
-7. `Paper/methodology.md`
+6. `Paper/methodology.md`
    - Experimental plan and benchmark matrix.
-8. `reference/training_strategy.md`
+7. `reference/training_strategy.md`
    - SwiFT-first model-development strategy.
-9. `reference/datasets.md`
+8. `reference/datasets.md`
    - Function-based dataset inventory.
-10. `workflows/README.md`
+9. `workflows/README.md`
    - How literature, experiment planning, review, and weekly updates should run.
 
 ## Project Identity

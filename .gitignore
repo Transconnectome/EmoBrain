@@ -1,11 +1,49 @@
 # Local config / IDE files
 .mcp.json
+._dbindex_/
+__pycache__/
+*.py[cod]
 
 # Generated artifacts
 setup/logs/*
 setup/results/*
 setup/data/*
 reports/status/PROJECT_STATUS.md
+
+# Large scientific/model artifacts: never commit embeddings, checkpoints, or raw neuroimaging files.
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.npy
+*.npz
+*.h5
+*.hdf5
+*.nii
+*.nii.gz
+*.mgz
+*.mgh
+*.gii
+*.func.gii
+*.shape.gii
+*.csv.gz
+*.tsv.gz
+*.parquet
+*.arrow
+*.pkl
+*.pickle
+
+# Local embedding/model cache roots if copied or symlinked into the repo.
+Horikawa_embedding/
+extract_embedding/
+netfeelix_clean/
+tribe_cache/
+tribe_horikawa/
+emode_clean_linear/
+emode_clean_linear_smoketest/
+checkpoints/
+pretrained_models/
+models--*/
 
 # Keep folder placeholders
 !setup/logs/.gitkeep

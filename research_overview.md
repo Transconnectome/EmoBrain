@@ -176,9 +176,9 @@ shortcut에서 나올 수 있다.
 7. cross-dataset transfer
 8. low-level visual/audio shortcut control
 
-### 2.2 Four-Axis NetFeeliX Framework
+### 2.2 Five-Axis NetFeeliX Framework
 
-NetFeeliX는 네 개의 축으로 정리할 수 있다.
+NetFeeliX는 다섯 개의 축으로 정리할 수 있다.
 
 ```text
 Axis 1: Brain backbone
@@ -187,14 +187,17 @@ Axis 1: Brain backbone
 Axis 2: Naturalistic fMRI pretraining
     resting/generic BFM -> movie/story stimulus-locked fMRI representation
 
-Axis 3: Stimulus-brain alignment
+Axis 3: Emotion-labeled pretraining
+    Horikawa / Emo-FilM / Affective Videos / IAPS / NeuroEmo -> target-aware affect representation
+
+Axis 4: Stimulus-brain alignment
     video/audio/text stimulus -> brain response -> shared emotion latent
 
-Axis 4: Affective AI target richness
+Axis 5: Affective AI target richness
     label -> intensity -> distribution -> trajectory -> cue/rationale/caption embedding
 ```
 
-이 네 축의 조합이 NetFeeliX의 모델 개발 공간이다.
+이 다섯 축의 조합이 NetFeeliX의 모델 개발 공간이다.
 
 ### 2.3 왜 Naturalistic Movie/Story fMRI인가
 
@@ -450,15 +453,23 @@ emotion representation learning from fMRI?
      Horikawa/Emo-FilM transfer를 개선하는가?
    - 개선이 단순 arousal이나 low-level visual/audio shortcut을 넘는가?
 
-4. **Stimulus-only explanation**
+4. **Emotion-labeled pretraining**
+   - Horikawa, Emo-FilM, Affective Videos, IAPS fMRI, NeuroEmo 같은 emotion-labeled
+     fMRI dataset을 downstream evaluation만이 아니라 supervised/weakly supervised
+     pretraining source로 쓸 수 있는가?
+   - Naturalistic SSL pretraining, emotion-labeled multi-task pretraining,
+     naturalistic-to-emotion two-stage pretraining 중 어떤 curriculum이
+     held-out emotion dataset transfer에 가장 좋은가?
+
+5. **Stimulus-only explanation**
    - Video/audio/text feature만으로 emotion target이 얼마나 설명되는가?
    - Brain model 성능을 brain-specific signal로 해석할 수 있는가?
 
-5. **Stimulus-brain alignment**
+6. **Stimulus-brain alignment**
    - SwiFT latent와 TRIBE/stimulus latent를 align하면 high-dimensional emotion target이 개선되는가?
    - Encoding loss가 emotion representation에도 도움이 되는가?
 
-6. **Brain-tuned affective AI**
+7. **Brain-tuned affective AI**
    - Affective LLM/VLM embedding을 fMRI response로 regularize할 수 있는가?
    - Caption/rationale/cue embedding이 brain-stimulus-emotion latent를 풍부하게 하는가?
 
@@ -468,10 +479,12 @@ emotion representation learning from fMRI?
 |---|---|---|
 | H1. Frozen SwiFT는 일부 emotion signal을 담고 있다. | arousal/category에서 ROI baseline 이상 | ROI/ridge가 계속 더 좋으면 preprocessing과 timing 확인 |
 | H2. Rich target에는 emotion-specific adaptation이 필요하다. | adapter/head가 valence/high-dimensional/component target 개선 | frozen feature만으로 충분하면 architecture 복잡화 보류 |
-| H3. Naturalistic pretraining은 transfer될 때만 의미 있다. | Horikawa/Emo-FilM high-dimensional/component target 개선 | visual/audio/arousal만 개선되면 emotion-specific claim 금지 |
-| H4. Stimulus-only baseline은 일부 target에서 강할 것이다. | V-JEPA/CLIP/audio/text feature가 label을 잘 예측 | brain-specific 해석을 보수적으로 해야 함 |
-| H5. Alignment는 high-dimensional target에서 유용할 수 있다. | RSA/CKA/retrieval/multi-label prediction 개선 | encoding만 좋아지고 emotion은 안 좋아질 수 있음 |
-| H6. Affective LLM/VLM은 target richness를 제공한다. | caption/rationale embedding alignment 개선 | fMRI가 직접 reasoning한다고 주장하지 않음 |
+| H3. Pretraining source가 representation의 성격을 바꾼다. | naturalistic SSL은 stimulus-locked dynamics, emotion-labeled pretraining은 target-aware affect structure 개선 | 같은 dataset pretrain/eval은 leakage 위험 |
+| H4. Emotion-labeled pretraining은 held-out transfer로 검증해야 한다. | Horikawa→Emo-FilM 또는 Emo-FilM→Horikawa transfer 개선 | within-dataset score만 높으면 memorization 가능 |
+| H5. Naturalistic pretraining은 transfer될 때만 의미 있다. | Horikawa/Emo-FilM high-dimensional/component target 개선 | visual/audio/arousal만 개선되면 emotion-specific claim 금지 |
+| H6. Stimulus-only baseline은 일부 target에서 강할 것이다. | V-JEPA/CLIP/audio/text feature가 label을 잘 예측 | brain-specific 해석을 보수적으로 해야 함 |
+| H7. Alignment는 high-dimensional target에서 유용할 수 있다. | RSA/CKA/retrieval/multi-label prediction 개선 | encoding만 좋아지고 emotion은 안 좋아질 수 있음 |
+| H8. Affective LLM/VLM은 target richness를 제공한다. | caption/rationale embedding alignment 개선 | fMRI가 직접 reasoning한다고 주장하지 않음 |
 
 ---
 
@@ -846,90 +859,99 @@ Brain model의 가치가 강해지는 경우:
 
 ## 7. Future
 
-### 7.1 Two-Month Roadmap
+### 7.1 Action Plan
 
-#### Weeks 1-2: Dataset and Target Readiness
+2개월짜리 고정 roadmap보다 중요한 것은 decision gate를 통과하는 것이다. 데이터 접근, preprocessing format, annotation timing, SwiFT input shape, TRIBE output format이 실제 순서를 결정한다.
 
-목표:
+#### Gate A: Dataset Ready
 
-- 실험 가능한 dataset과 target을 확정한다.
+목표: 실험 가능한 dataset과 target을 확보한다.
 
 Action:
 
-- Horikawa local path 확인
-- Horikawa fMRI shape/TR/event timing 확인
-- Horikawa target matrix 생성
-- Emo-FilM access와 annotation format 확인
-- Affective Videos / IAPS fMRI sanity dataset 확인
-- HCP 7T movie access/preprocessing 확인
-- CNeuroMod/StudyForrest/Narratives 후보 역할 정리
+- Horikawa local path, fMRI shape, TR, event timing, high-dimensional target matrix 확인
+- Emo-FilM access, fMRI timing, 50 item/component annotation, physiology signal 확인
+- Affective Videos 또는 IAPS fMRI 중 sanity dataset 하나 선택
+- HCP 7T movie, CNeuroMod/Algonauts, StudyForrest, Narratives, 101 Dalmatians access requirement 정리
 
 Deliverable:
 
 - dataset availability report
-- target construction report
+- target readiness report
 - blocked resource list
-- NFx-001 / NFx-002 experiment card
+- first experiment cards
 
-#### Weeks 3-4: Baselines and Frozen SwiFT
+#### Gate B: First Signal
 
-목표:
-
-- simple baseline과 frozen SwiFT transfer를 확인한다.
+목표: deep model 이전에 fMRI와 emotion target 사이에 예측 가능한 신호가 있는지 확인한다.
 
 Action:
 
 - ROI/parcel ridge baseline
-- dynamic FC baseline
-- frozen SwiFT feature extraction
-- frozen SwiFT + linear/ridge/MLP head
-- stimulus-only feature 후보 정리
+- dynamic FC 또는 temporal baseline
+- shuffled-label baseline
+- target-wise metric 정의
+- subject/stimulus/film split 정의
 
 Deliverable:
 
-- first benchmark table
-- brain-only vs stimulus-only preliminary comparison
+- first signal report
+- baseline metric table
 - target-wise failure report
 
-#### Weeks 5-6: SwiFT Adaptation and Naturalistic Readiness
+#### Gate C: SwiFT Transfer
 
-목표:
-
-- SwiFT를 emotion-specific하게 수정할지, naturalistic pretraining으로 갈지 결정한다.
+목표: frozen SwiFT representation이 emotion target에 유용한지 확인한다.
 
 Action:
 
-- multi-task emotion head 설계
-- subject adapter 설계
-- affective token/query pooling 검토
-- HCP naturalistic pretraining minimum viable objective 설계
-- low-level shortcut control 설계
+- SwiFT code path와 pretrained weight path 확인
+- sample input forward pass 확인
+- Horikawa/Emo-FilM input을 SwiFT input format으로 변환 가능한지 확인
+- frozen feature cache 설계
+- frozen SwiFT + linear/ridge/MLP head 실행
 
 Deliverable:
 
-- adapter/head comparison plan
-- naturalistic pretraining readiness report
-- compute estimate
+- frozen SwiFT probe report
+- ROI/ridge vs frozen SwiFT comparison
+- adapter/head go/no-go decision
 
-#### Weeks 7-8: TRIBE-SwiFT Alignment Prototype and Decision Report
+#### Gate D: Pretraining Source Choice
 
-목표:
-
-- stimulus-brain alignment 방향의 가능성을 확인한다.
+목표: naturalistic movie/story fMRI pretraining, emotion-labeled fMRI pretraining, two-stage curriculum 중 무엇이 유망한지 결정한다.
 
 Action:
 
-- TRIBE v2 usage mode 결정
-- common parcellation vs latent-only alignment 선택
-- stimulus-only vs brain-only vs aligned model 설계
-- first alignment experiment card 작성
+- naturalistic-only minimum objective 선택: masked modeling, contrastive, JEPA/future latent
+- emotion-labeled-only target set 정의: Horikawa, Emo-FilM, Affective Videos, IAPS, NeuroEmo
+- two-stage curriculum 정의: naturalistic dynamics first, emotion specialization second
+- held-out emotion dataset transfer matrix 작성
+- low-level visual/audio/arousal shortcut control 정의
 
 Deliverable:
 
-- model-development decision table
-- go/no-go for naturalistic pretraining
-- go/no-go for TRIBE-SwiFT alignment
-- abstract/presentation draft outline
+- pretraining source decision report
+- held-out transfer split
+- naturalistic-only / emotion-labeled-only / two-stage comparison plan
+
+#### Gate E: TRIBE-SwiFT Alignment Ready
+
+목표: TRIBE v2와 SwiFT를 같은 평가축에 올릴 수 있는지 확인한다.
+
+Action:
+
+- TRIBE v2 code, weight, license, output format 확인
+- Horikawa/Emo-FilM stimulus를 TRIBE v2 또는 stimulus encoder에 넣을 수 있는지 확인
+- stimulus-only baseline feature 후보 정리
+- fsaverage surface output과 SwiFT volume input mismatch 처리 방식 선택
+- common parcellation 또는 latent-only alignment 우선 검토
+
+Deliverable:
+
+- TRIBE-SwiFT alignment plan
+- stimulus-only baseline table
+- alignment loss and representation space definition
 
 ### 7.2 Immediate Action Items
 
@@ -964,6 +986,9 @@ Deliverable:
 - [ ] affective token/query pooling 설계
 - [ ] adapter vs late-block fine-tuning comparison 정의
 - [ ] naturalistic pretraining minimum viable objective 정의
+- [ ] emotion-labeled pretraining target set 정의
+- [ ] naturalistic-only / emotion-labeled-only / two-stage curriculum 비교 조건 정의
+- [ ] held-out emotion dataset transfer matrix 작성
 - [ ] TRIBE v2 integration point 결정: feature extractor / teacher / alignment target
 
 #### Stimulus / Alignment

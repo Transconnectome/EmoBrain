@@ -1,79 +1,41 @@
 # NetFeeliX Codex Instructions
 
-This file gives coding-agent instructions for NetFeeliX.
+Read `CONTEXT_NETFEELIX.md` first. It is the compact project memory.
 
-## Working Style
+## File Policy
 
-- Read `README.md`, `ONBOARDING.md`, `CONTEXT_NETFEELIX.md`, `CLAUDE.md`, `Paper/framework_EN.md`, `Paper/framework_KR.md`, and `notes/project_decisions.md` before making structural changes.
-- Use `rg` or `rg --files` for search.
-- Keep edits scoped. Do not reorganize folders without updating this file and `CLAUDE.md`.
-- Never overwrite existing user data or experiment outputs.
-- Put project-operation automation in `scripts/`. Put initial runnable experiment scripts under `setup/code/`.
-- Do not create new planning/proposal/brief Markdown files unless explicitly asked. Merge framing into `Paper/framework_EN.md` and `Paper/framework_KR.md`; merge method details into `Paper/methodology.md`.
-- Use `templates/` for paper, dataset, model, experiment, review, and decision cards.
-- Use `workflows/` for recurring processes: literature search, experiment planning, red-team review, and weekly updates.
-- Remember that NetFeeliX is primarily a model-development project. Keep emotion theory minimal and subordinate to model/dataset/evaluation decisions.
+- Keep edits scoped.
+- Do not create redundant root markdown files.
+- Put canonical narrative in `Paper/framework_EN.md` and `Paper/framework_KR.md`.
+- Put methods in `Paper/methodology.md`.
+- Put active Korean execution planning in `ACTION_PLAN.md`.
+- Put project-operation automation in `scripts/`.
+- Put runnable setup/experiment scripts in `setup/code/`.
+- Do not touch raw data, checkpoints, embeddings, or generated outputs unless
+  explicitly asked.
 
-## Code Locations
+## Scientific Policy
 
-- `scripts/`: project-operation automation used across the repo.
-- `code/`: shared utilities or planning notes used by multiple studies.
-- `setup/code/`: data readiness, target construction, first-pass baselines, and model availability checks.
-- If later experiments become large, create purpose-named folders instead of numbered study folders, e.g. `naturalistic_pretraining/`, `swift_adaptation/`, or `tribe_alignment/`.
-
-## Execution Folder Naming
-
-Recommended split:
-
-- `setup/`: data inventory, target construction, baseline probes.
-- `naturalistic_pretraining/`: HCP/CNeuroMod/StudyForrest-style movie/story continued pretraining, if transfer results justify it.
-- `swift_adaptation/`: emotion-specific SwiFT heads/adapters/fine-tuning.
-- `tribe_alignment/`: TRIBE v2 and stimulus-brain alignment.
-- `affective_llm_vlm/`: brain-tuned affective LLM/VLM adapters, only if justified.
-
-## Experiment Hygiene
-
-Every runnable script should record:
-
-- Input paths.
-- Output paths.
-- Dataset split.
-- Model checkpoint or commit hash if available.
-- Random seed.
-- Main hyperparameters.
-- Runtime environment.
-
-Logs should go to `setup/logs/` for initial work. Tables, plots, and metrics should go to `setup/results/`. Intermediate arrays should go to `setup/data/`.
-
-## Scientific Hygiene
-
-- Distinguish measured results from planned analyses.
-- Cite paper claims in `reference/papers.md`.
-- Add newly discovered repositories to `reference/code_resources.md`.
-- Add newly discovered datasets to `reference/datasets.md`.
-- Keep the canonical project narrative in `Paper/framework_EN.md` and `Paper/framework_KR.md` so context compaction does not scatter the framing.
-- Keep NetFeeliX framed as screening-benchmark-driven model development. The benchmark decides between SwiFT adaptation, naturalistic movie/story pretraining, TRIBE-SwiFT alignment, and brain-tuned affective LLM/VLM.
-- Treat SwiFT as the default brain backbone. TRIBE v2 is a multimodal stimulus-to-brain component, teacher, and alignment path, not a replacement for SwiFT.
-- Treat naturalistic movie/story pretraining as a testable hypothesis. HCP is the first candidate, not the only source; CNeuroMod/Algonauts, StudyForrest, Narratives, and modality-control movie datasets should be used only when they answer a concrete model question.
-- Avoid informal exploratory-benchmark wording in project prose. Use "initial benchmark", "screening benchmark", "feasibility benchmark", or "Stage 0/1".
-- After structural documentation edits, run `python3 scripts/check_md_completeness.py`.
-- To refresh a compact status report, run `python3 scripts/build_project_status.py`.
+- NetFeeliX is a model-development project.
+- SwiFT is the first backbone, not a protected conclusion.
+- If ROI/voxel/network baselines, another BFM, or stimulus-aligned models beat
+  SwiFT under matched conditions, document and pivot.
+- Old EmoDe caches are reference only.
+- Canonical Horikawa/Cowen stimulus count is `2185`.
 
 ## Minimal Baseline Order
 
-1. Ridge/elastic-net on parcel or ROI summary features.
-2. Dynamic FC arousal/valence baseline.
-3. Frozen pretrained BFM linear probe.
-4. Small temporal transformer trained from scratch.
-5. Naturalistic movie/story-pretrained temporal transformer.
-6. Stimulus feature and stimulus-brain alignment models.
-7. Brain-tuned affective LLM/VLM adapter or distillation, only after stimulus-side or alignment benchmarks are promising.
+1. ROI/parcel ridge or elastic-net.
+2. Voxel-weighted and network-restricted sparse/linear models.
+3. Dynamic FC and temporal baselines.
+4. Frozen BFM probes.
+5. SwiFT adaptation and SL5/10/20/40 comparisons.
+6. Naturalistic vs emotion-labeled vs two-stage pretraining.
+7. Stimulus-only and stimulus-brain alignment.
 
-## Avoid
+## Checks
 
-- Starting with expensive 4D volume pretraining before a parcel-level baseline exists.
-- Mixing train/test subjects across datasets without documenting it.
-- Treating TRIBE as an fMRI encoder. TRIBE is primarily stimulus-to-brain encoding.
-- Comparing models without harmonized targets and splits.
-- Letting emotion theory dominate the project narrative.
-- Creating redundant Markdown files for brief/proposal/narrative content.
+```bash
+python3 scripts/check_md_completeness.py
+python3 scripts/build_project_status.py
+```

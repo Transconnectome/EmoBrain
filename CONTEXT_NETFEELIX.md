@@ -1,93 +1,88 @@
-# NetFeeliX Project Context
+# NetFeeliX Compact Context
 
-This is the compact single source of truth for NetFeeliX. Agent memory files
-should point here so the project framing survives context compaction.
+This is the compact single source of truth for NetFeeliX. Agent-specific files
+should point here rather than duplicating the full project narrative.
 
-## Canonical Framing
+## Identity
 
-NetFeeliX is a **SwiFT-first emotion-specific fMRI representation learning
-project**.
-
-It asks:
+NetFeeliX stands for:
 
 ```text
-How can SwiFT be adapted, pretrained, or aligned with multimodal stimulus models
-to improve emotion representation learning and inference from fMRI?
+Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
 ```
 
-Do not overclaim a completed "emotion foundation model" until pretraining and
-transfer evidence exists. Prefer:
+NetFeeliX is a **model-development project for emotion/affect representation
+learning from fMRI and naturalistic stimuli**. It is not an emotion theory
+project, and it should not claim to be a completed emotion foundation model
+before pretraining and transfer evidence exists.
 
-- emotion-specific brain representation model,
-- emotion-aware fMRI foundation-model strategy,
-- SwiFT-based emotion representation learning framework.
+## Core Direction
 
-## Non-Negotiable Direction
+- The project is **SwiFT-first but not SwiFT-locked**.
+- SwiFT is tested first because it is the local lab backbone and can be modified.
+- If matched benchmarks show that ROI/voxel/network baselines, another BFM, or
+  stimulus-aligned models are better, document the negative result and pivot.
+- The real goal is to find which model, neural representation, target, and
+  training objective best support emotion prediction and transferable affective
+  representation.
 
-- SwiFT is the default brain backbone.
-- TRIBE v2 is not a replacement for SwiFT. It is a multimodal
-  stimulus-to-brain teacher, stimulus baseline, and alignment module.
-- Naturalistic movie/story fMRI pretraining is a hypothesis to test, not an
-  assumption. HCP 7T movie is the first candidate because of scale and
-  standardization, but CNeuroMod/Algonauts, StudyForrest, Narratives, and
-  modality-control movie datasets answer different model questions.
-- Horikawa is a high-dimensional affect geometry task, not a reasoning dataset.
-- Emo-FilM is the strongest naturalistic emotion/component/appraisal dataset.
-- Emotion theory should only justify target design; model development is the
-  center of gravity.
+## Canonical Data Basis
 
-## Core Model Tracks
+- Horikawa/Cowen canonical stimulus count: `2185`.
+- Canonical local fMRI rows: `2185 stimuli x 5 subjects = 10925`.
+- Local extra stimulus ids `2186-2196` are not the project definition.
+- Old 5TR caches are reference only.
+- Current manifest builder: `setup/code/build_horikawa_window_manifest.py`.
+
+## Primary Tracks
 
 | Track | Question | First implementation |
 |---|---|---|
-| SwiFT transfer | Do generic fMRI features already help emotion targets? | frozen SwiFT + linear/ridge/MLP head |
-| SwiFT adaptation | Which small model changes improve emotion specificity? | adapter, subject adapter, affective token, multi-task head |
-| Naturalistic pretraining | Does stimulus-locked movie/story fMRI pretraining improve emotion transfer? | HCP first; CNeuroMod/StudyForrest/Narratives for alignment, continuity, and context controls |
-| TRIBE-SwiFT alignment | Does stimulus context improve or regularize brain emotion representation? | dual encoder or teacher distillation |
-| Affective LLM/VLM extension | Can richer affective semantics supervise brain latents? | rationale/cue/appraisal embeddings as auxiliary targets |
+| A0 Neural representation search | Which brain representation matters? | ROI/parcel, voxel-weighted, network-restricted, dynamic FC |
+| A1 SwiFT transfer/adaptation | Does SwiFT help emotion targets? | frozen/adapted/pretrained SwiFT under matched splits |
+| A2 Temporal length | Which fMRI window length works? | all observed, SL5, SL10, SL20, SL40 |
+| B Pretraining source | What should the model learn first? | naturalistic SSL vs emotion-labeled vs two-stage |
+| C Stimulus-brain alignment | Does stimulus context improve brain emotion representation? | TRIBE/V-JEPA/audio/text + fMRI latent alignment |
+| D Affective AI extension | Can brain responses regularize affective LLM/VLM embeddings? | small adapter/distillation only after evidence |
+
+## Brain Representation Candidates
+
+- Whole-brain 4D volume: SwiFT, NeuroSTORM-style models.
+- Parcel/ROI time series: Schaefer 400/600, Tian subcortex, HCP-MMP.
+- Network-restricted models: visual, auditory, salience, DMN, limbic/subcortical,
+  frontoparietal/control, attention networks.
+- Voxel-weighted models: ridge, elastic-net, sparse linear models, stability
+  selection, searchlight where feasible.
+- Dynamic connectivity: sliding-window FC, temporal graph features.
+- Subject-adapted representations: subject adapters, hyperalignment, SRM.
+- Stimulus-aligned latents: fMRI aligned to video/audio/text/TRIBE features.
 
 ## Core Documents
 
 | File | Role |
 |---|---|
-| `Paper/framework_EN.md` | canonical English framework and narrative |
-| `Paper/framework_KR.md` | canonical Korean framework and narrative |
-| `Paper/methodology.md` | experimental design and method details |
-| `reference/datasets.md` | function-based dataset inventory |
-| `reference/task.md` | task and target inventory |
-| `reference/training_strategy.md` | SwiFT-first training strategy |
-| `reference/systematic_reference_map.md` | literature map by conceptual role |
-| `workflows/README.md` | operating system for AI-assisted research work |
+| `README.md`, `README_KR.md` | human entry points |
+| `Paper/framework_EN.md`, `Paper/framework_KR.md` | canonical project narrative |
+| `Paper/methodology.md` | canonical experimental design |
+| `reference/datasets.md` | dataset inventory |
+| `reference/task.md` | task/target inventory |
+| `reference/training_strategy.md` | model and training strategy |
+| `ACTION_PLAN.md` | current Korean execution plan |
+| `notes/project_decisions.md` | durable decision log |
+| `workflows/README.md` | operating workflows |
 
-## Trigger Phrases
+## Current Rule
 
-Use these project-level triggers in natural language:
+Do not add redundant root markdown files. Merge durable narrative into
+`Paper/framework_KR.md` / `Paper/framework_EN.md`, methods into
+`Paper/methodology.md`, and active execution details into `ACTION_PLAN.md`.
+
+## Workflow Triggers
 
 | Trigger | Meaning |
 |---|---|
-| `[deep search]` | search recent literature, code, and datasets; update reference docs |
+| `[deep search]` | search literature, code, and datasets; update reference docs |
 | `[experiment card]` | turn an idea into a structured experiment card |
-| `[red team]` | critique a model/dataset/claim from multiple reviewer perspectives |
+| `[red team]` | critique a model, dataset, claim, or experiment plan |
 | `[weekly status]` | summarize decisions, changes, blockers, and next actions |
 | `[verification]` | check citations, paths, completeness, and overclaims |
-
-## Reviewer Personas
-
-Use these personas for red-team/blue-team review:
-
-- fMRI methods reviewer,
-- affective neuroscience reviewer,
-- ML foundation-model reviewer,
-- data/compute feasibility reviewer,
-- skeptical project reviewer deciding what can be done in two months.
-
-## Current Two-Month Target
-
-The immediate target is not a finished model paper. It is a decision-ready
-research system:
-
-1. runnable datasets and target definitions,
-2. first baseline and SwiFT-probe results,
-3. clear decision rules for SwiFT adaptation vs naturalistic pretraining vs TRIBE-SwiFT
-   alignment,
-4. documented failure modes and next model-development steps.

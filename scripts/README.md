@@ -11,6 +11,8 @@ experiments should live under `setup/code/`.
 | `build_project_status.py` | writes `reports/status/PROJECT_STATUS.md` from git/docs state |
 | `generate_experiment_cards.py` | creates experiment-card skeletons from templates |
 
+Runnable setup/experiment scripts live in `setup/code/`, not here.
+
 ## Common Commands
 
 ```bash

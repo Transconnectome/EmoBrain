@@ -3,7 +3,8 @@
 This directory is for shared modeling utilities and code plans. Initial runnable
 scripts should normally live in `setup/code/`.
 
-Project-operation automation lives in `scripts/`, not here.
+Project-operation automation lives in `scripts/`. Runnable setup/experiment
+scripts live in `setup/code/`.
 
 - `scripts/check_md_completeness.py`: project-level documentation and workflow checks.
 - `scripts/build_project_status.py`: generates `reports/status/PROJECT_STATUS.md`.

@@ -21,16 +21,20 @@ Which model architecture and learning objective produce the most transferable
 brain-based representation of emotion under small downstream fMRI datasets?
 ```
 
-NetFeeliX decomposes this into four testable modeling questions.
+NetFeeliX decomposes this into eight testable modeling questions.
 
 | Question | Modeling interpretation | First test |
 |---|---|---|
 | Do generic BFMs transfer to emotion? | Emotion may already be encoded in broad fMRI representations. | Frozen BFM probe and adapter tuning. |
+| Which neural representation matters? | Whole-brain 4D modeling may not be optimal; specific voxels, parcels, ROIs, networks, or dynamic connectivity may carry stronger emotion signal. | Whole-brain SwiFT/NeuroSTORM vs ROI/parcel ridge vs voxel-weighted sparse models vs network-restricted models. |
+| What temporal window length should SwiFT use? | Emotion may depend on short evoked responses, delayed hemodynamics, or longer context. Pretrained SwiFT also has checkpoint-native sequence-length constraints. | All observed Horikawa windows, standardized SL5/SL10/SL20/SL40, pretrained-native SL20/SL40, and scratch SL5/SL10/SL20/SL40. |
 | Does naturalistic fMRI pretraining help? | Emotion targets arise as vision, audio, language, social cues, and narrative context unfold over time. | Resting/generic SwiFT vs HCP/CNeuroMod/StudyForrest-style pretraining. |
+| Is emotion-labeled pretraining needed? | Naturalistic SSL may not directly learn emotion target structure. | Horikawa/Emo-FilM/Affective Videos/IAPS/NeuroEmo multi-task pretraining and held-out transfer. |
+| Which pretraining curriculum is best? | We need to decide whether to learn stimulus dynamics first, emotion label structure first, or both in sequence. | Naturalistic-only vs emotion-labeled-only vs naturalistic-to-emotion two-stage comparison. |
 | Does stimulus-brain alignment help? | Emotion depends on the shared structure between stimulus dynamics and brain dynamics. | TRIBE-style stimulus features aligned with fMRI latents. |
 | Can affective AI be brain-tuned? | LLM/VLM emotion features may improve when regularized by neural responses. | Small adapter or distillation from brain-aligned latent spaces. |
 
-The project should stay comparative. Arousal, valence, discrete emotion, and high-dimensional category vectors may prefer different architectures. A useful result can be a pattern of failures, not only one winning model.
+The project should stay comparative. Arousal, valence, discrete emotion, and high-dimensional category vectors may prefer different architectures and brain representations. A useful result can be a pattern of failures, not only one winning model. SwiFT-first is a starting strategy, not a fixed conclusion. If SwiFT is not the right backbone, NetFeeliX should pivot to the neural representation or architecture that works.
 
 ## Literature Landscape for Model Development
 
@@ -173,11 +177,58 @@ Order:
 
 Primary model: SwiFT. Comparison models: BrainLM, Brain-JEPA, SwiFUN, NeuroSTORM if code/weights are accessible.
 
-Decision rule: if frozen/adapted BFM representations outperform simple baselines on more than arousal, prioritize adapter and fine-tuning experiments.
+Decision rule: if frozen/adapted BFM representations outperform simple baselines on more than arousal, prioritize adapter and fine-tuning experiments. If ROI/parcel ridge, voxel-weighted linear models, network-restricted models, another BFM, or stimulus-aligned models are more stable under matched splits and targets, deprioritize or discard SwiFT-centered development. The goal is not to defend SwiFT; the goal is to find the model and neural representation that best support emotion representation.
 
-### Track B: Naturalistic Movie/Story Pretraining
+### Track A0: Neural Representation Search
 
-Goal: test whether naturalistic stimulus-driven fMRI pretraining improves emotion transfer. This is not the vague claim that movie data is automatically better than rest. The precise hypothesis is that, before learning from small emotion-labeled fMRI datasets, SwiFT may need to learn stimulus-locked brain dynamics driven by visual, auditory, language, social, and narrative cues.
+Goal: identify which brain representation is actually useful for emotion prediction and affective geometry. Whole-brain 4D input may preserve the most information, but small fMRI datasets can favor lower-noise, better-harmonized, or more interpretable representations.
+
+| Representation | Example | Why test it |
+|---|---|---|
+| Whole-brain 4D volume | SwiFT, NeuroSTORM | preserves distributed spatiotemporal patterns |
+| Parcel/ROI time series | Schaefer/Tian, HCP-MMP, emotion/salience/visual ROIs | faster, more stable, easier to harmonize across datasets |
+| Voxel-weighted model | ridge, elastic-net, sparse linear model, stability selection | identifies which voxels contribute to each emotion target |
+| Network-restricted model | visual, auditory, salience, DMN, limbic/control networks | tests whether emotion prediction depends on specific systems |
+| Dynamic connectivity | sliding-window FC, temporal graph features | tests whether arousal/context dynamics are better captured by FC |
+| Subject-adapted representation | subject adapter, hyperalignment, shared response model | separates individual response geometry from shared affect structure |
+| Stimulus-aligned latent | fMRI aligned with TRIBE/V-JEPA/audio/text latents | tests whether emotion is better represented as shared brain-stimulus structure |
+
+This track should produce both performance and interpretability tables: which
+target is predicted by which region, network, time window, and stimulus modality.
+
+### Track A1: SwiFT Temporal-Length and Padding Comparison
+
+Goal: decide whether emotion representation needs short event-level response,
+longer temporal context, or checkpoint-native SwiFT sequence length.
+
+This track is necessary because Horikawa should not be treated as exactly-5TR
+only. The local preprocessing contains variable-length response windows. The old
+5TR setup was a legacy subset created by the loader/split design, not the full
+dataset definition.
+
+Compare:
+
+| Condition | Lengths | Why |
+|---|---|---|
+| all observed windows | 5-47 observed frames | use all available data when the model can support it |
+| standardized windows | SL5, SL10, SL20, SL40 | controlled temporal-context comparison |
+| pretrained-native SwiFT | SL20, SL40 if matching checkpoints exist | clean checkpoint-compatible fine-tuning |
+| pretrained SwiFT with short observed windows | 5/10/20 observed frames padded or cropped to native SL | explicit adaptation and padding sensitivity test |
+| scratch SwiFT | SL5, SL10, SL20, SL40 | test sequence-length effect without pretrained-weight constraints |
+
+Rule: pretrained SwiFT fine-tuning should normally keep the checkpoint-native
+sequence length. Mismatched downstream windows are allowed only as explicit
+adaptation experiments with padding/mask/crop behavior logged.
+
+### Track B: Pretraining Source and Curriculum
+
+Goal: test which pretraining source and curriculum improves emotion transfer. This is not the vague claim that movie data is automatically better than rest, and it is also not the claim that adding emotion labels is sufficient. The precise hypothesis is that, before or alongside learning from small emotion-labeled fMRI datasets, SwiFT may need either stimulus-locked brain dynamics driven by visual, auditory, language, social, and narrative cues, or target-aware affect structure from Horikawa/Emo-FilM/Affective Videos/IAPS/NeuroEmo.
+
+Compare three pretraining families:
+
+1. naturalistic SSL pretraining: learn stimulus-locked dynamics from movie/story fMRI;
+2. emotion-labeled pretraining: use emotion labels, high-dimensional vectors, and component/appraisal targets in supervised or weakly supervised multi-task learning;
+3. two-stage pretraining: learn naturalistic dynamics first, then specialize on emotion-labeled datasets.
 
 Start with parcel-level time series. Add raw 4D volumes only after simple pipelines work.
 
@@ -190,6 +241,7 @@ Dataset choice should follow the hypothesis:
 | StudyForrest | long-film continuity | does coherent audiovisual narrative improve temporal representation? |
 | Narratives | language/story context | can narrative context help without visual cues? |
 | 101 Dalmatians | modality control | do visual-only, auditory-only, and audiovisual conditions differ for emotion transfer? |
+| Horikawa / Emo-FilM / Affective Videos / IAPS / NeuroEmo | emotion-labeled pretraining | does supervised affective pretraining improve held-out emotion transfer? |
 
 Candidate objectives:
 
@@ -198,9 +250,11 @@ Candidate objectives:
 - JEPA-style latent prediction,
 - subject-invariant contrastive learning,
 - future brain-state prediction,
-- optional stimulus-conditioned prediction.
+- optional stimulus-conditioned prediction,
+- multi-task emotion label/vector/component prediction,
+- emotion geometry alignment across datasets.
 
-Decision rule: if naturalistic-pretrained encoders beat generic BFM transfer on Horikawa/Emo-FilM and improve high-dimensional/component targets beyond arousal or low-level visual/audio shortcuts, scale movie/story pretraining. If gains are absent or shortcut-driven, prioritize emotion-specific heads, subject adapters, TRIBE-style alignment, and target redesign.
+Decision rule: if naturalistic-pretrained encoders beat generic BFM transfer on Horikawa/Emo-FilM and improve high-dimensional/component targets beyond arousal or low-level visual/audio shortcuts, scale movie/story pretraining. If emotion-labeled pretraining improves held-out emotion dataset transfer, scale multi-dataset affective pretraining and task-specific heads. If two-stage pretraining is best, prioritize a curriculum of naturalistic dynamics first and emotion specialization second. If gains are absent or shortcut-driven, prioritize emotion-specific heads, subject adapters, TRIBE-style alignment, and target redesign.
 
 ### Track C: Stimulus-Brain-Emotion Alignment
 

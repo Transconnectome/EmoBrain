@@ -10,7 +10,7 @@ Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
 
 한 줄로 말하면:
 
-> NetFeeliX는 SwiFT를 기본 brain backbone으로 두고, 자연주의적 fMRI, emotion annotation, stimulus model을 이용해 emotion-specific brain representation을 학습하는 프로젝트입니다.
+> NetFeeliX는 SwiFT를 먼저 검증하되, ROI/voxel/network/alternative BFM/stimulus-aligned model까지 열어두고 emotion-specific brain/stimulus representation을 찾는 프로젝트입니다.
 
 ---
 
@@ -24,19 +24,17 @@ Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
    - 새 연구자나 AI agent가 어떤 문서를 읽어야 하는지 정리한 파일입니다.
 3. `CONTEXT_NETFEELIX.md`
    - NetFeeliX의 핵심 방향만 압축한 single source of truth입니다.
-4. `NARRATIVE_KR.md`
-   - NetFeeliX의 전체 연구 내러티브를 한국어로 풀어쓴 문서입니다.
-5. `research_overview.md`
+4. `research_overview.md`
    - Teams 공유, abstract, presentation 준비용 상세 research overview입니다.
-6. `ACTION_PLAN.md`
+5. `ACTION_PLAN.md`
    - 지금 무엇을 해야 하는지 단계별로 정리한 실행 계획입니다.
-7. `Paper/framework_KR.md`
+6. `Paper/framework_KR.md`
    - 외부 공유와 연구 논의를 위한 전체 연구 프레임워크 한국어 버전입니다.
-8. `reference/datasets.md`
+7. `reference/datasets.md`
    - 사용할 수 있는 dataset을 기능별로 정리한 문서입니다.
-9. `reference/training_strategy.md`
+8. `reference/training_strategy.md`
    - SwiFT를 어떻게 pretrain, finetune, modify, align할지 정리한 문서입니다.
-10. `workflows/README.md`
+9. `workflows/README.md`
    - 앞으로 AI와 함께 문헌 조사, 실험 계획, 리뷰, 주간 보고를 어떻게 운영할지 설명합니다.
 
 ---
@@ -51,9 +49,9 @@ SwiFT를 어떻게 emotion-specific brain encoder로 만들 수 있는가?
 
 여기서 중요한 점은 세 가지입니다.
 
-### 1. SwiFT-first
+### 1. SwiFT-first but not SwiFT-locked
 
-SwiFT는 우리 연구실 모델이기 때문에 NetFeeliX의 기본 brain backbone입니다.
+SwiFT는 먼저 검증할 brain backbone입니다. 하지만 최종 목적은 SwiFT를 지키는 것이 아니라 emotion prediction과 affective representation에 유용한 neural representation을 찾는 것입니다.
 
 단순히 pretrained weight를 가져와서 linear probe만 하는 것이 아니라, 다음을 모두 고려합니다.
 
@@ -106,7 +104,6 @@ video/audio/text stimulus -> predicted brain response
 NetFeeliX/
 ├── README.md
 ├── README_KR.md
-├── NARRATIVE_KR.md
 ├── ACTION_PLAN.md
 ├── ONBOARDING.md
 ├── CONTEXT_NETFEELIX.md
@@ -210,7 +207,7 @@ AI와 함께 연구를 운영하는 절차를 적어둔 곳입니다.
 
 ## `scripts/`
 
-자동화 스크립트가 들어 있습니다.
+project-operation 자동화 스크립트만 둡니다. 실험 실행 스크립트는 `setup/code/`에 둡니다.
 
 현재 스크립트:
 
@@ -227,6 +224,16 @@ python3 scripts/check_md_completeness.py
 python3 scripts/build_project_status.py
 python3 scripts/generate_experiment_cards.py --id NFx-001 --title "Frozen SwiFT Horikawa probe"
 ```
+
+## `setup/code/`
+
+실제 setup 또는 실험성 실행 스크립트를 둡니다.
+
+| Script | 역할 |
+|---|---|
+| `build_horikawa_window_manifest.py` | Horikawa 2185 stimuli 기준 window manifest 생성 |
+| `run_tribe_horikawa.py` | TRIBE v2를 Horikawa stimulus에 적용 |
+| `run_tribe_horikawa.sh` | TRIBE batch wrapper |
 
 ## `reports/`
 
@@ -385,11 +392,8 @@ NetFeeliX는 이제 이렇게 운영됩니다.
 ACTION_PLAN.md
     = 지금 해야 할 실행 계획
 
-NARRATIVE_KR.md
-    = 전체 연구 내러티브
-
 CONTEXT_NETFEELIX.md
-    = 프로젝트 방향 압축본
+    = 프로젝트 방향 압축본 / agent memory
 
 Paper/
     = 외부 공유 가능한 큰 프레임워크
@@ -404,12 +408,12 @@ workflows/
     = AI와 함께 연구를 굴리는 절차
 
 scripts/
-    = 문서/상태/실험 카드 자동화
+    = 문서/상태/실험 카드 자동화만
 
 setup/
-    = 첫 실행 묶음: 데이터 확인, target construction, baseline
+    = 첫 실행 묶음: 데이터 확인, target construction, baseline, runnable setup scripts
 ```
 
 가장 중요한 문장:
 
-> NetFeeliX는 SwiFT를 emotion-specific brain representation model로 발전시키기 위한 SwiFT-first model-development project입니다.
+> NetFeeliX는 SwiFT-first but not SwiFT-locked model-development project이며, 목적은 emotion prediction과 affective representation에 중요한 neural/stimulus representation을 찾는 것입니다.
