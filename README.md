@@ -2,83 +2,180 @@
 
 **Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX**
 
-> Emotion representation learning with brain foundation models and naturalistic fMRI.
+> Building an emotion-specific brain foundation model through benchmark-driven search.
 
 Korean guide: [`README_KR.md`](README_KR.md)
 Research overview: [`research_overview.md`](research_overview.md)
 Action plan: [`ACTION_PLAN.md`](ACTION_PLAN.md)
 
-NetFeeliX studies how to make SwiFT and related brain models more emotion-specific, with a focus on naturalistic fMRI, emotion representation learning, and stimulus-brain-emotion alignment.
+NetFeeliX is an attempt to build a brain model that captures emotion
+representations: not just "predict an emotion label," but learn fMRI
+representations that track affect, appraisal, context, and multimodal
+naturalistic experience.
+
+The first deliverable is a large `Dataset x BFM x Task` benchmark matrix. That
+matrix is not the final goal. It is the search-space narrowing stage that tells
+us which datasets, BFMs, targets, windows, and baselines contain usable signal
+before we commit to larger model-development tracks.
 
 ---
 
 ## Project Thesis
 
-Emotion representation is unlikely to be solved by attaching a small emotion head to a generic resting-state brain foundation model. Emotion during naturalistic experience depends on the interaction between multimodal stimulus dynamics, subject-specific brain dynamics, and affective labels or ratings. NetFeeliX therefore treats emotion representation learning as a three-way alignment problem:
+The final goal is an **emotion-specific brain foundation model**: a brain model
+whose representations preserve emotion-relevant structure across datasets,
+stimuli, subjects, and target types.
+
+Emotion representation is unlikely to be solved by attaching a small emotion
+head to a generic resting-state brain foundation model. Emotion during
+naturalistic experience depends on the interaction between multimodal stimulus
+dynamics, subject-specific brain dynamics, task context, and affective labels
+or ratings. NetFeeliX therefore treats emotion representation learning as a
+brain-model search problem over:
 
 ```text
-naturalistic stimulus dynamics + fMRI brain dynamics + emotion annotations
+brain foundation model + task/movie fMRI learning signal + multimodal stimulus context + emotion targets
 ```
 
-The project is **SwiFT-first but not SwiFT-locked** and compares four families of approaches:
+The project is **SwiFT-first but not SwiFT-locked**. The immediate benchmark
+compares emotion-fMRI datasets, brain foundation models, and emotion tasks:
 
-1. **SwiFT emotion specialization.** Adapt SwiFT with emotion heads, adapters, subject modules, continued pretraining, and targeted fine-tuning.
-2. **Neural representation search.** Test ROI/parcel, voxel-weighted, network-restricted, dynamic-FC, and whole-brain representations.
-3. **Naturalistic and emotion-labeled pretraining.** Compare naturalistic SSL, emotion-labeled training, and two-stage curricula.
-4. **Stimulus-brain-emotion alignment.** Use TRIBE v2 and other multimodal stimulus models as teachers or alignment components.
+```text
+Emotion fMRI Dataset x Brain Foundation Model x Emotion Task
+```
+
+The current BFM axis is:
+
+- SwiFT,
+- Brain-JEPA,
+- NeuroSTORM,
+- BrainLM.
+
+For model details, input formats, first checks, risks, and source links, see
+`reference/code_resources.md` and `reference/papers.md`.
+
+Logistic/ridge/ROI/voxel models are statistical floors, not the main Model
+Axis. Video/audio/text stimulus-only models, TRIBE v2, multimodal fusion, and
+movie/story pretraining are later branches.
+
+After the benchmark, the roadmap splits into two major search tracks:
+
+1. **Pretraining and adaptation strategy**
+   - Use task-related or movie fMRI rather than only resting fMRI.
+   - Test loss terms such as masked fMRI modeling, future/JEPA-style latent
+     prediction, contrastive objectives, target-aware emotion supervision, and
+     subject-invariant learning.
+   - Compare frozen probes, adapters, late-block fine-tuning, affective pooling,
+     and multi-task emotion heads.
+
+2. **Multimodal brain-stimulus framework**
+   - Use video/audio/text models as controls, teachers, or context providers.
+   - Test TRIBE-like stimulus-to-brain alignment, late fusion between video and
+     brain models, and injection of video/text/audio embeddings into brain
+     foundation models.
+   - Ask whether multimodal context improves emotion representation beyond
+     brain-only BFM features and beyond stimulus-only shortcuts.
+
+The benchmark stage exists so these branches are not chosen by taste. We run
+the broad grid first, then narrow the search space with evidence.
 
 ## Core Research Question
 
-**What model architecture and learning objective best support transferable emotion representation learning from naturalistic fMRI?**
+**How can we develop a brain foundation model that best captures
+emotion-relevant representation across naturalistic fMRI datasets and emotion
+tasks?**
 
 Subquestions:
 
-- Do resting-state fMRI foundation models transfer to emotion prediction, or do they miss naturalistic affective dynamics?
-- Does stimulus-locked movie/story fMRI pretraining improve sample efficiency and generalization on small emotion fMRI datasets?
-- Are emotion labels better predicted from brain-only representations, stimulus-only representations, or jointly aligned stimulus-brain representations?
-- Which downstream targets are more transferable: arousal, valence, discrete emotion categories, or high-dimensional emotion embeddings?
+- Benchmark phase: which Dataset x BFM x Task cells are runnable, blocked, or
+  invalid?
+- Baseline phase: which BFMs beat logistic/ridge/ROI/voxel statistical floors
+  under matched splits and metrics?
+- Target phase: which emotion targets are stable enough to drive model
+  development: arousal, valence, category, multi-label, high-dimensional
+  vector, dynamic/binning, or component/appraisal?
+- Pretraining phase: does task/movie fMRI pretraining improve emotion transfer
+  beyond generic resting/general BFM transfer?
+- Multimodal phase: does video/audio/text context or TRIBE-like alignment
+  improve brain emotion representations beyond brain-only and stimulus-only
+  shortcuts?
 
 ## Working Hypotheses
 
 **H1. Resting-state BFM transfer is useful but incomplete.** Existing brain foundation models should provide nontrivial baselines, but their pretraining distribution may underrepresent stimulus-locked affective dynamics.
 
-**H2. Naturalistic pretraining may improve emotion transfer.** The hypothesis is not simply that movie beats rest. HCP movie-watching fMRI tests whether stimulus-locked visual/audio/social dynamics help emotion transfer; CNeuroMod, StudyForrest, Narratives, and modality-control movie data test alignment, long-context, language-context, and modality-specific variants of the same question.
+**H2. The first decision should be empirical, not architectural.** Fill the
+Dataset x BFM x Task matrix before choosing adapters, pretraining, fusion, or
+alignment.
 
-**H3. Arousal will generalize more robustly than valence.** This follows recent movie-watching fMRI evidence that dynamic connectivity predicts arousal across datasets more reliably than valence.
+**H3. Arousal may generalize more robustly than valence.** This must be checked
+across BFM and dataset cells before building a larger model around it.
 
-**H4. Stimulus-brain alignment should be necessary for high-dimensional emotion.** TRIBE-style multimodal encoders can capture semantic, audio, and visual context that brain-only BFM objectives may not learn from small downstream datasets.
+**H4. Task/movie fMRI pretraining is a central candidate.** If frozen BFMs are
+weak or narrow, NetFeeliX should test whether task-related or naturalistic movie
+fMRI objectives create more emotion-sensitive brain representations.
+
+**H5. Multimodal context may be necessary but must be controlled.** Video,
+audio, and text features may help emotion representation, but stimulus-only
+shortcuts must be measured before claiming brain-specific emotion modeling.
 
 ## Key Model Families
 
-| Family | Examples | Input | Output | Role in NetFeeliX |
-|---|---|---|---|---|
-| 4D fMRI backbone | SwiFT | fMRI volumes | task label or representation | Baseline fMRI encoder |
-| Resting-to-task prediction | SwiFUN | resting-state fMRI | task activation map | Bridge from intrinsic dynamics to emotion reactivity |
-| fMRI foundation model | BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI | fMRI time series or 4D fMRI | transferable brain representation | Existing pretrained BFM baseline |
-| Brain encoding model | TRIBE, TRIBE v2 | video/audio/text stimulus | predicted fMRI response | Stimulus-to-brain comparison and alignment target |
-| NetFeeliX | proposed | fMRI + optional stimulus features | emotion-aware brain representation | Project target |
+| Family | Examples | Input | Role in NetFeeliX |
+|---|---|---|---|
+| Current BFM benchmark | SwiFT | fMRI volumes | Primary BFM |
+| Current BFM benchmark | Brain-JEPA | fMRI or ROI time series | Alternative BFM |
+| Current BFM benchmark | NeuroSTORM | raw 4D fMRI | Alternative 4D BFM |
+| Current BFM benchmark | BrainLM | ROI/time-series fMRI | Alternative time-series BFM |
+| Statistical floors | logistic/ridge/ROI/voxel models | pooled BFM or simple brain features | Minimum comparison |
+| Pretraining/adaptation branch | task/movie fMRI objectives, adapters, affective heads | fMRI volumes or time series | Search track after benchmark |
+| Multimodal branch | TRIBE v2, V-JEPA2, CLIP, Whisper, text encoders | video/audio/text + fMRI | Stimulus controls, fusion, alignment, and feature injection |
 
 ## Immediate Decision-Driven Strategy
 
-1. **Data and target readiness**
+1. **Master benchmark matrix**
+   - Build the `Dataset x BFM x Task` table in `notes/benchmark_design.md`.
+   - Mark cells as `RUN`, `CHECK`, or `NA`.
+   - Use emotion-fMRI benchmark datasets only.
+   - For the dataset/model/task cheat sheets inside the matrix, see
+     `notes/benchmark_design.md`.
+
+2. **Dataset and target readiness**
    - Build canonical Horikawa 2185-stimulus manifest.
-   - Confirm Emo-FilM, Affective Videos, IAPS fMRI, HCP, and alignment datasets.
-   - Define target matrices, splits, and metrics.
+   - Confirm Emo-FilM, Affective Videos, IAPS fMRI, NeuroEmo, Koide-Majima, and
+     REELMO / Jojo Rabbit fMRI where usable.
+   - Define target matrices, splits, metrics, and statistical floors.
+   - For dataset content, targets, risks, and source links, see
+     `reference/datasets.md`.
+   - For task definitions and metrics, see `reference/task.md`.
 
-2. **Neural representation search**
-   - Compare ROI/parcel, voxel-weighted, network-restricted, dynamic-FC, and
-     whole-brain representations.
-   - Identify which regions/networks/time windows carry emotion signal.
+3. **BFM evaluation**
+   - Compare SwiFT, Brain-JEPA, NeuroSTORM, and BrainLM under matched conditions.
+   - Fill `Dataset | BFM | Task | Target | Split | Metric | Statistical floor |
+     BFM score | Status | Decision`.
+   - For BFM/model details, see `reference/code_resources.md` and
+     `reference/papers.md`.
 
-3. **SwiFT and BFM evaluation**
-   - Test frozen/adapted/pretrained SwiFT under matched conditions.
-   - Compare Brain-JEPA, NeuroSTORM, BrainLM/SwiFUN if feasible.
-   - Pivot if simple or alternative representations outperform SwiFT.
+4. **Post-benchmark model search**
+   - Choose between two main branches:
+     1. pretraining/adaptation strategy for the brain model,
+     2. multimodal brain-stimulus framework.
+   - Keep both branches evidence-driven: benchmark result first, model
+     modification second.
+   - For post-benchmark adaptation/pretraining strategy, see
+     `reference/training_strategy.md`.
 
-4. **Pretraining and alignment**
-   - Compare naturalistic SSL, emotion-labeled pretraining, and two-stage
-     curricula.
-   - Compare brain-only, stimulus-only, and stimulus-brain aligned models.
+## Where To Find Details
+
+The README is only the entry point. Details live in these files:
+
+| Need | File |
+|---|---|
+| What each benchmark dataset is | `reference/datasets.md` |
+| What each BFM/model is | `reference/code_resources.md`, `reference/papers.md` |
+| What each task/metric means | `reference/task.md` |
+| Current `Dataset x BFM x Task` table | `notes/benchmark_design.md` |
+| What to do after the matrix is filled | `reference/training_strategy.md`, `ACTION_PLAN.md` |
 
 ## Repository Structure
 
@@ -154,7 +251,7 @@ NetFeeliX/
 - `reference/task.md`: task inventory and target definitions.
 - `reference/training_strategy.md`: SwiFT-first training and model-development strategy.
 - `reference/systematic_reference_map.md`: organized reference map by conceptual role.
-- `notes/benchmark_design.md`: initial benchmark axes, experiments, and decision rules.
+- `notes/benchmark_design.md`: `Dataset x BFM x Task` master matrix.
 - `templates/`: reusable note/card templates for papers, datasets, models, experiments, reviews, and decisions.
 - `workflows/`: operating protocols for literature search, experiment planning, red-team review, and weekly updates.
 - `scripts/`: project-operation automation only.

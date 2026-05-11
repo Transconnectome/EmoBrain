@@ -75,6 +75,11 @@ Rules:
 | `run_roi_baselines.py` | ridge/elastic-net on ROI or parcel features |
 | `extract_swift_features.py` | frozen SwiFT feature extraction |
 | `run_swift_probe.py` | linear/MLP head on frozen SwiFT features |
+| `check_bfm_readiness.py` | fresh BFM code/checkpoint/output readiness check |
+| `prepare_horikawa_bfm_fresh_extraction.py` | write fresh extraction commands under `setup/jobs/` |
+| `run_horikawa_bfm_benchmark.py` | Horikawa BFM benchmark wrapper using fresh embeddings only |
+| `summarize_tribe_progress.py` | TRIBE Horikawa output progress report |
+| `summarize_horikawa_bfm_results.py` | fresh Horikawa BFM result table |
 
 ## First Outputs
 

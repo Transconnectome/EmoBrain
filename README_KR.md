@@ -1,6 +1,8 @@
 # NetFeeliX 한국어 가이드
 
-**NetFeeliX**는 감정 이론 프로젝트가 아니라, **SwiFT를 emotion/affect task에 더 잘 맞게 만드는 모델 개발 프로젝트**입니다.
+**NetFeeliX**는 감정 이론 프로젝트가 아니라, **emotion representation을 잘
+포착하는 emotion-specific brain foundation model / brain model을 만들기 위한
+모델 개발 프로젝트**입니다.
 
 정식 이름은 다음과 같습니다.
 
@@ -10,7 +12,9 @@ Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
 
 한 줄로 말하면:
 
-> NetFeeliX는 SwiFT를 먼저 검증하되, ROI/voxel/network/alternative BFM/stimulus-aligned model까지 열어두고 emotion-specific brain/stimulus representation을 찾는 프로젝트입니다.
+> NetFeeliX는 emotion/affect fMRI에서 가능한 기본 실험을 먼저 넓게 펼쳐
+> `Dataset x BFM x Task` master matrix를 채운 뒤, 그 결과로 search space를
+> 좁혀가며 emotion-specific brain foundation model을 개발하는 프로젝트입니다.
 
 ---
 
@@ -44,26 +48,48 @@ Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
 NetFeeliX의 중심 질문은 이것입니다.
 
 ```text
-SwiFT를 어떻게 emotion-specific brain encoder로 만들 수 있는가?
+어떻게 하면 emotion-relevant representation을 가장 잘 담아내는
+brain foundation model / emotion-specific brain model을 만들 수 있는가?
 ```
 
 여기서 중요한 점은 세 가지입니다.
+
+### 0. Benchmark는 최종 목적이 아니라 첫 게이트
+
+현재 `Dataset x BFM x Task` benchmark는 프로젝트의 최종 thesis가 아닙니다.
+목적은 가능한 기본 실험을 모두 펼쳐서 어떤 dataset, BFM, task, target, window,
+baseline에서 신호가 있는지 확인하고 search space를 줄이는 것입니다.
+
+그 이후 큰 길은 두 갈래입니다.
+
+| Branch | 질문 | 예시 strategy |
+|---|---|---|
+| Pretraining / adaptation | generic resting/general BFM을 emotion-specific하게 만들려면 어떤 fMRI learning signal과 loss가 필요한가? | task-fMRI/movie-fMRI pretraining, masked/future latent prediction, JEPA-style objective, contrastive loss, emotion-supervised multi-task loss, adapter/late-block tuning |
+| Multimodal framework | emotion은 stimulus context와 brain dynamics가 함께 있어야 잡히는가? | TRIBE-like stimulus-to-brain alignment, video model + brain model late fusion, video/audio/text embedding injection, stimulus-only control, brain-stimulus joint latent |
+
+즉 benchmark는 “작게 끝내는 프로젝트”가 아니라, 큰 emotion-specific BFM search를
+헛발질 없이 시작하기 위한 첫 단계입니다.
 
 ### 1. SwiFT-first but not SwiFT-locked
 
 SwiFT는 먼저 검증할 brain backbone입니다. 하지만 최종 목적은 SwiFT를 지키는 것이 아니라 emotion prediction과 affective representation에 유용한 neural representation을 찾는 것입니다.
 
-단순히 pretrained weight를 가져와서 linear probe만 하는 것이 아니라, 다음을 모두 고려합니다.
+첫 benchmark의 모델 축은 Brain Foundation Model입니다.
 
-- frozen SwiFT feature + linear/ridge/MLP head
-- SwiFT adapter tuning
-- subject adapter
-- affective token
-- emotion-specific multi-task head
-- naturalistic movie/story fMRI continued pretraining
-- TRIBE v2 또는 stimulus model과 alignment
+| BFM | 역할 |
+|---|---|
+| SwiFT | primary BFM |
+| Brain-JEPA | alternative BFM |
+| NeuroSTORM | alternative 4D BFM |
+| BrainLM | alternative time-series BFM |
 
-### 2. TRIBE v2는 SwiFT 대체제가 아님
+logistic/ridge/ROI/voxel 모델은 비교용 statistical floor입니다. Model Axis의
+중심은 아닙니다.
+
+각 BFM이 어떤 모델인지, 입력 형식이 무엇인지, 먼저 확인할 위험 요소가 무엇인지는
+`reference/code_resources.md`와 `reference/papers.md`를 봅니다.
+
+### 2. TRIBE v2는 현재 benchmark 축이 아님
 
 TRIBE v2는 fMRI를 입력으로 받는 brain encoder가 아닙니다.
 
@@ -75,16 +101,28 @@ video/audio/text stimulus -> predicted brain response
 
 를 수행하는 **stimulus-to-brain encoding model**입니다.
 
-따라서 NetFeeliX에서는 TRIBE v2를 다음처럼 씁니다.
+따라서 TRIBE v2는 현재 `Dataset x BFM x Task` benchmark가 끝난 뒤 다음처럼 씁니다.
 
 - stimulus-only baseline
 - stimulus-to-brain teacher
 - SwiFT latent와 alignment할 대상
 - multimodal context feature extractor
 
-즉, TRIBE v2는 SwiFT를 대체하는 모델이 아니라, **SwiFT를 emotion-specific하게 만드는 데 도움을 주는 stimulus-side component**입니다.
+즉, TRIBE v2는 현재 BFM benchmark의 모델 축이 아니라, 이후 BFM 결과를 해석하거나
+확장하기 위한 stimulus-side component입니다.
 
-### 3. Emotion Foundation Model이라고 바로 주장하지 않음
+### 3. 첫 산출물은 거대한 조합표
+
+초기 작업의 핵심은 순차적인 roadmap이 아니라 모든 조합을 펼친 master matrix입니다.
+
+```text
+Dataset x BFM x Task
+```
+
+각 cell은 `RUN`, `CHECK`, `NA`로 표시하고, 실행된 cell에는 target, split, metric,
+statistical floor, BFM score, status, decision을 채웁니다.
+
+### 4. Emotion Foundation Model이라고 바로 주장하지 않음
 
 아직은 "Emotion Foundation Model을 만들었다"고 말하면 과합니다.
 
@@ -93,6 +131,22 @@ video/audio/text stimulus -> predicted brain response
 - emotion-specific brain representation model
 - emotion-aware fMRI foundation-model strategy
 - SwiFT-based emotion representation learning framework
+
+최종적으로는 emotion representation을 잘 담아내는 brain foundation model에
+가까워지는 것이 목표입니다. 다만 그 주장은 benchmark, pretraining/adaptation,
+multimodal control/alignment 실험을 거쳐 증거가 쌓인 뒤에 해야 합니다.
+
+## 세부 설명은 어디서 보나?
+
+`README_KR.md`는 입구 문서라서 최소 설명만 둡니다. 이름만 보고 헷갈리면 아래를 봅니다.
+
+| 알고 싶은 것 | 볼 파일 |
+|---|---|
+| Horikawa, Emo-FilM, Affective Videos, IAPS가 무슨 dataset인지 | `reference/datasets.md` |
+| SwiFT, Brain-JEPA, NeuroSTORM, BrainLM이 무슨 모델인지 | `reference/code_resources.md`, `reference/papers.md` |
+| binary/regression/multiclass/high-dimensional task가 뭔지 | `reference/task.md` |
+| 현재 거대한 `Dataset x BFM x Task` 표 | `notes/benchmark_design.md` |
+| matrix를 채운 뒤 adapter/pretraining/alignment를 어떻게 할지 | `reference/training_strategy.md`, `ACTION_PLAN.md` |
 
 ---
 
@@ -266,8 +320,9 @@ reports/status/PROJECT_STATUS.md
 
 - dataset inventory
 - target construction
-- baseline probes
-- frozen SwiFT feature extraction
+- `Dataset x BFM x Task` master matrix
+- statistical floor
+- frozen BFM feature extraction/probing
 - Horikawa / Emo-FilM first benchmark
 
 구조:
@@ -360,27 +415,35 @@ AI가 다음을 확인합니다.
 
 현재 가장 현실적인 순서는 다음입니다.
 
-1. **Horikawa**
-   - high-dimensional affect geometry task
-   - frozen SwiFT + linear/ridge/MLP head
+1. **Master matrix**
+   - `notes/benchmark_design.md`의 `Dataset x BFM x Task` 표 확정
+   - 각 cell을 `RUN`, `CHECK`, `NA`로 표시
+   - matrix 안의 dataset/BFM/task quick 설명은 `notes/benchmark_design.md`를 봅니다.
 
-2. **Emo-FilM**
-   - naturalistic emotion/component/appraisal target
-   - subject adapter, multi-task head 검토
+2. **Dataset**
+   - Horikawa, Emo-FilM, Affective Videos, IAPS fMRI 우선
+   - NeuroEmo, Koide-Majima, REELMO / Jojo Rabbit fMRI는 확인 후 확장
+   - 각 dataset의 subject, stimulus, target, risk, source는
+     `reference/datasets.md`를 봅니다.
 
-3. **Naturalistic movie/story fMRI**
-   - HCP 7T movie를 첫 continued-pretraining 후보로 사용
-   - CNeuroMod/Algonauts, StudyForrest, Narratives, 101 Dalmatians는 alignment,
-     long-context, language-context, modality-control 질문에 맞게 추가
-   - masked fMRI, contrastive, JEPA/future latent, stimulus-conditioned objective
+3. **BFM**
+   - SwiFT, Brain-JEPA, NeuroSTORM, BrainLM
+   - 각 BFM의 input format, first checks, risk, source는
+     `reference/code_resources.md`와 `reference/papers.md`를 봅니다.
 
-4. **Affective Videos / IAPS fMRI**
-   - valence/arousal/category sanity check
+4. **Task**
+   - binary, regression, multiclass, multi-label/vector, dynamic/component
+   - task 정의와 metric은 `reference/task.md`를 봅니다.
 
-5. **TRIBE v2**
-   - stimulus-only baseline
-   - predicted brain response teacher
-   - SwiFT latent alignment
+5. **Statistical floor**
+   - logistic regression, ridge regression, ROI/voxel ridge
+
+6. **그 이후**
+   - SwiFT adapter/fine-tuning
+   - HCP/CNeuroMod/StudyForrest/Narratives pretraining
+   - stimulus-only video/audio/text control
+   - TRIBE/stimulus-brain alignment
+   - benchmark 이후 training/adaptation 전략은 `reference/training_strategy.md`를 봅니다.
 
 ---
 
@@ -416,4 +479,5 @@ setup/
 
 가장 중요한 문장:
 
-> NetFeeliX는 SwiFT-first but not SwiFT-locked model-development project이며, 목적은 emotion prediction과 affective representation에 중요한 neural/stimulus representation을 찾는 것입니다.
+> NetFeeliX의 첫 목표는 `Dataset x BFM x Task` master matrix를 채워서, 어떤
+> brain foundation model이 어떤 emotion fMRI target에서 실제로 쓸 만한지 확인하는 것입니다.

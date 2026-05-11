@@ -9,14 +9,14 @@ Background -> Rationale -> Gap -> Research Question -> Methods -> Expected Resul
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 0. One-Sentence Summary
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-NetFeeliX는 SwiFT를 기본 brain backbone으로 두고, emotion-labeled fMRI, naturalistic movie/story fMRI pretraining, TRIBE v2-style stimulus-to-brain alignment, affective LLM/VLM representation을 결합해 emotion-specific brain representation을 더 잘 학습하는 모델 개발 전략을 찾는 프로젝트입니다.
+NetFeeliX는 emotion-labeled fMRI에서 Brain Foundation Model이 emotion-relevant representation을 얼마나 잘 잡는지 확인하기 위해, 먼저 Dataset x BFM x Task master matrix를 구축하고 채우는 모델 개발 프로젝트입니다.
 정식 이름
 Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
 핵심 질문
-SwiFT를 emotion-specific fMRI representation model로 발전시키려면 어떤 dataset, target, training objective, architecture modification, stimulus-brain alignment 전략이 필요한가?
+어떤 Brain Foundation Model이 어떤 emotion fMRI dataset과 task에서 emotion-relevant representation을 가장 안정적으로 잡는가?
 현재 목표
 완성형 "Emotion Foundation Model"을 바로 주장하는 것이 아닙니다.
-현재 목표는 2개월 안에 model-development decision을 내릴 수 있는 benchmark와 실험 기반을 구축하는 것입니다.
+현재 목표는 Dataset x BFM x Task master matrix를 채워 model-development decision을 내릴 수 있는 benchmark 기반을 구축하는 것입니다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 1. Background & Significance
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -32,13 +32,16 @@ SwiFT
 BrainLM / Brain-JEPA / NeuroSTORM / Omni-fMRI
 - 기존 BFM transfer baseline
 - generic brain representation이 emotion으로 전이되는지 확인하는 비교점
-SwiFUN
-- resting-state fMRI에서 task activation을 예측하는 bridge model
-- emotion-related task contrast와 연결될 수 있는 참고 모델
 TRIBE v2
 - fMRI encoder가 아니라 stimulus-to-brain encoding model
 - video/audio/language stimulus에서 predicted brain response를 생성
-- NetFeeliX에서는 stimulus-only baseline, teacher, alignment target으로 사용
+- NetFeeliX에서는 첫 BFM benchmark 이후 stimulus-only control, teacher, alignment target으로 사용
+현재 Dataset x BFM x Task benchmark의 BFM axis
+- SwiFT
+- BrainLM
+- Brain-JEPA
+- NeuroSTORM
+SwiFUN은 direct emotion-fMRI BFM candidate가 아니므로 첫 benchmark matrix에는 넣지 않습니다.
 1.2 왜 Emotion은 단순 Label Prediction 문제가 아닌가
 많은 machine learning task에서는 emotion을 다음처럼 다룹니다.
 image/video/audio/text/fMRI -> anger / fear / joy / sadness / neutral
@@ -173,8 +176,8 @@ Emo-FilM
 - 왜 쓰는가: fMRI + emotion/component annotation
 - 확인할 질문: naturalistic pretraining의 downstream validation
 REELMO
-- 왜 쓰는가: long affect trajectories
-- 확인할 질문: stimulus-side affect trajectory / rationale target
+- 왜 쓰는가: 60 full-movie long affect trajectories + Jojo Rabbit-only fMRI subset
+- 확인할 질문: Jojo Rabbit dynamic fMRI benchmark가 가능한가? 60-movie behavioral part는 stimulus-side affect trajectory / rationale target으로만 쓸 것
 2.5 Naturalistic Pretraining의 위험
 Movie/story pretraining은 강력하지만 위험합니다.
 모델이 emotion representation을 배운 것이 아니라 다음 shortcut을 배울 수 있습니다.
@@ -340,13 +343,13 @@ H6. Affective LLM/VLM은 target richness를 제공한다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Experimental Design Overview
 NetFeeliX는 처음부터 큰 end-to-end model을 주장하지 않습니다.
-먼저 comparable benchmark surface를 만든 뒤, 결과에 따라 model-development track을 선택합니다.
+먼저 모든 Dataset x BFM x Task 조합을 펼친 master matrix를 만들고, 각 cell에 status, metric, failure reason, decision을 채운 뒤 model-development track을 선택합니다.
 Phase 0. Setup and feasibility
-Phase 1. Initial benchmark
-Phase 2. SwiFT emotion adaptation
-Phase 3. Naturalistic movie/story fMRI pretraining
-Phase 4. TRIBE v2 + SwiFT alignment
-Phase 5. Brain-tuned affective LLM/VLM extension
+Phase 1. Dataset x BFM x Task master matrix
+Phase 2. Frozen BFM benchmark and statistical floors
+Phase 3. BFM adaptation or pivot
+Phase 4. Naturalistic/movie fMRI pretraining if benchmark supports it
+Phase 5. Stimulus-only/TRIBE/alignment controls if needed
 Phase 6. Consolidation and paper direction
 ──────────────────────────────
 Phase 0. Setup and Feasibility
@@ -366,8 +369,10 @@ Goal
 - Emo-FilM
 - Affective Videos
 - IAPS fMRI NeuroVault
-- HCP 7T movie
-- CNeuroMod / Algonauts
+- NeuroEmo
+- Koide-Majima/Nishimoto
+- REELMO / Jojo Rabbit fMRI if accessible
+HCP 7T movie, CNeuroMod/Algonauts, StudyForrest, Narratives, 101 Dalmatians는 현재 benchmark dataset axis가 아니라 이후 pretraining/alignment resource입니다.
 - StudyForrest / Narratives는 access와 역할 정리부터
 산출물
 - setup/results/dataset_availability.md
@@ -685,26 +690,25 @@ Action
 - Horikawa target matrix 생성
 - Emo-FilM access와 annotation format 확인
 - Affective Videos / IAPS fMRI sanity dataset 확인
-- HCP 7T movie access/preprocessing 확인
-- CNeuroMod/StudyForrest/Narratives 후보 역할 정리
+- NeuroEmo, Koide-Majima/Nishimoto, REELMO / Jojo Rabbit fMRI 확인
+- HCP/CNeuroMod/StudyForrest/Narratives는 benchmark 이후 pretraining/alignment resource로 분리
 Deliverable
 - dataset availability report
 - target construction report
 - blocked resource list
 - NFx-001 / NFx-002 experiment card
 Weeks 3-4
-Baselines and Frozen SwiFT
+Dataset x BFM x Task Master Matrix
 목표
-simple baseline과 frozen SwiFT transfer를 확인합니다.
+모든 runnable Dataset x BFM x Task cell에 target, split, metric, statistical floor, BFM score, status, decision을 채웁니다.
 Action
-- ROI/parcel ridge baseline
-- dynamic FC baseline
-- frozen SwiFT feature extraction
-- frozen SwiFT + linear/ridge/MLP head
-- stimulus-only feature 후보 정리
+- SwiFT / Brain-JEPA / NeuroSTORM / BrainLM frozen probe
+- binary / regression / multiclass / multi-label / high-dimensional / dynamic / component task cell 실행
+- logistic/ridge/ROI/voxel statistical floor 계산
+- blocked/invalid cell reason 기록
 Deliverable
-- first benchmark table
-- brain-only vs stimulus-only preliminary comparison
+- Dataset x BFM x Task result table
+- statistical floor vs BFM score table
 - target-wise failure report
 Weeks 5-6
 SwiFT Adaptation and Naturalistic Readiness
@@ -782,7 +786,7 @@ Documentation / Operations
 - structural edit 후 python3 scripts/check_md_completeness.py 실행
 Expected Contributions
 Benchmark contribution
-- Emotion fMRI에서 brain-only, stimulus-only, BFM transfer, naturalistic pretraining, stimulus-brain alignment를 같은 target/split 기준으로 비교하는 benchmark surface
+- Emotion fMRI에서 Dataset x BFM x Task master matrix를 만들고, 각 cell을 matched target/split/metric/statistical floor로 비교하는 benchmark surface
 Model-development contribution
 - SwiFT를 emotion-specific fMRI encoder로 발전시키기 위한 adaptation / pretraining / alignment roadmap
 Conceptual contribution
@@ -807,11 +811,12 @@ Possible Paper Directions
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Short Team Post Version
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-NetFeeliX는 SwiFT를 기본 brain backbone으로 두고, emotion-labeled fMRI, naturalistic movie/story fMRI pretraining, TRIBE v2-style stimulus-brain alignment를 결합해 emotion-specific brain representation을 더 잘 학습하는 모델 개발 프로젝트입니다.
+NetFeeliX는 emotion-labeled fMRI에서 Brain Foundation Model이 emotion-relevant representation을 얼마나 잘 잡는지 확인하기 위해 Dataset x BFM x Task master matrix를 먼저 구축하는 모델 개발 프로젝트입니다.
 핵심은 단순 emotion label prediction이 아니라, arousal/valence, discrete emotion, multi-label emotion distribution, high-dimensional emotion vector, appraisal/component, trajectory, cue/rationale embedding까지 이어지는 task ladder에서 어떤 model strategy가 가장 transferable한지를 보는 것입니다.
-초기에는 Horikawa, Emo-FilM, Affective Videos, IAPS fMRI로 runnable benchmark를 만들고, ROI/ridge baseline, frozen SwiFT probe, stimulus-only baseline을 비교합니다. 이후 결과에 따라 SwiFT adapter, subject adapter, affective token, naturalistic pretraining, TRIBE-SwiFT alignment 중 어떤 방향을 밀지 결정합니다.
-HCP movie는 첫 naturalistic pretraining 후보일 뿐이고, CNeuroMod/Algonauts, StudyForrest, Narratives, 101 Dalmatians는 각각 multimodal alignment, long-film continuity, language context, modality control이라는 구체적 질문이 있을 때 사용합니다.
-Immediate action은 dataset availability, target construction, first baseline, frozen SwiFT probe, experiment cards입니다.
+초기에는 Horikawa, Emo-FilM, Affective Videos, IAPS fMRI, NeuroEmo, Koide-Majima/Nishimoto, REELMO / Jojo Rabbit fMRI를 dataset axis로 두고, SwiFT, Brain-JEPA, NeuroSTORM, BrainLM을 BFM axis로 두며, binary/regression/multiclass/multi-label/high-dimensional/dynamic/component task 조합을 모두 펼친 표를 채웁니다.
+logistic/ridge/ROI/voxel 모델은 statistical floor로만 사용합니다.
+HCP movie, CNeuroMod/Algonauts, StudyForrest, Narratives, 101 Dalmatians, stimulus-only video/audio/text model, TRIBE v2는 첫 BFM benchmark 이후 필요할 때 pretraining/control/alignment branch로 사용합니다.
+Immediate action은 master matrix 확정, target construction, split/metric policy, statistical floor, frozen BFM probe입니다.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Key Resources
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

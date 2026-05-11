@@ -136,7 +136,7 @@ Benchmark 질문:
 | Horikawa | high-dimensional emotion vector | planned | planned | planned | planned | core downstream |
 | Emo-FilM | emotion/appraisal/component ratings | planned | planned | planned | planned | modern naturalistic benchmark |
 | Affective Videos | valence/arousal | planned | optional | planned | optional | lightweight sanity check |
-| REELMO | time-resolved affect reports | optional | planned | optional fMRI subset | optional | strong stimulus-side supervision |
+| REELMO | time-resolved affect reports; Jojo Rabbit-only fMRI | optional | planned | limited one-movie fMRI | optional | strong stimulus-side supervision |
 | HCP 7T movie | pretraining objective | planned | planned features | planned | planned | naturalistic pretraining source |
 
 ## Horikawa와 Reasoning/Context Understanding의 관계
@@ -146,7 +146,7 @@ Horikawa에 reasoning/context story를 전부 억지로 얹으면 어색하다. 
 Reasoning과 context understanding은 더 긴 temporal context, cue grounding, narrative structure, natural-language rationale이 필요하다. 이 부분은 다른 source에서 가져오는 것이 맞다.
 
 - **Emo-FilM**: component/appraisal-style annotation과 naturalistic film context.
-- **REELMO**: 긴 movie trajectory, 20 emotion label, stimulus feature, subtitle, fMRI subset.
+- **REELMO**: 긴 movie trajectory, 20 emotion label, stimulus feature, subtitle, 그리고 Jojo Rabbit 1편의 fMRI subset.
 - **HCP/CNeuroMod/StudyForrest/Narratives movie-story data**: naturalistic fMRI pretraining, modality/context ablation, stimulus-brain alignment experiment.
 - **Affective MLLM benchmark/model**: descriptive emotion caption, cue-emotion QA, rationale embedding, hallucination diagnostic.
 

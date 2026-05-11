@@ -139,7 +139,7 @@ Minimum benchmark table:
 | Horikawa | high-dimensional emotion vector | planned | planned | planned | planned | core downstream |
 | Emo-FilM | emotion/appraisal/component ratings | planned | planned | planned | planned | modern naturalistic benchmark |
 | Affective Videos | valence/arousal | planned | optional | planned | optional | lightweight sanity check |
-| REELMO | time-resolved affect reports | optional | planned | optional fMRI subset | optional | strong stimulus-side supervision |
+| REELMO | time-resolved affect reports; Jojo Rabbit-only fMRI | optional | planned | limited one-movie fMRI | optional | strong stimulus-side supervision |
 | HCP 7T movie | pretraining objective | planned | planned features | planned | planned | naturalistic pretraining source |
 
 ## Horikawa vs. Reasoning/Context Understanding
@@ -149,7 +149,7 @@ Horikawa should not be forced to carry the whole reasoning/context story. Its st
 Reasoning and context understanding require longer temporal context, cue grounding, narrative structure, and sometimes natural-language rationales. These should come from other sources:
 
 - **Emo-FilM**: component/appraisal-style annotations and naturalistic film context.
-- **REELMO**: long movie trajectories, 20 emotion labels, stimulus features, subtitles, and fMRI subset.
+- **REELMO**: long movie trajectories, 20 emotion labels, stimulus features, subtitles, and a Jojo Rabbit-only fMRI subset.
 - **HCP/CNeuroMod/StudyForrest/Narratives movie-story data**: naturalistic fMRI pretraining, modality/context ablations, and stimulus-brain alignment experiments.
 - **Affective MLLM benchmarks/models**: descriptive emotion captions, cue-emotion QA, rationale embeddings, and hallucination diagnostics.
 

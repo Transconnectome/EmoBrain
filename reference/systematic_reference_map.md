@@ -26,11 +26,11 @@ Sources:
 | Koide-Majima et al. 2020 | Audiovisual emotional movies + 80 emotion labels | Many emotion dimensions contribute to cortical emotion representation. | Secondary high-dimensional benchmark if accessible. |
 | Emo-FilM 2025 | 14 films, 30 participants, fMRI/physiology/50 annotations | Modern naturalistic affective fMRI dataset. | Main modern downstream benchmark. |
 | Ke et al. 2025 | Movie fMRI dynamic FC | Arousal generalizes better than valence across movie datasets. | Target ladder and dynamic-FC baseline. |
-| Affective Videos ds000205 | 5-second audiovisual clips | Direct valence/arousal fMRI dataset. | Lightweight screening benchmark. |
+| Affective Videos ds000205 / Kim et al. 2016 | 11 participants viewed 32 five-second audiovisual clips in four valence-arousal quadrants | Direct core-affect fMRI dataset for valence/arousal decoding. | Lightweight screening benchmark before richer emotion targets. |
 | IAPS fMRI NeuroVault | IAPS positive/neutral/negative beta maps from 56 participants | Fast valence-category fMRI benchmark. | Quick beta-map adaptation test for SwiFT. |
 | NSD + OASIS | NSD large 7T image fMRI; OASIS open valence/arousal image norms | Static-image fMRI can be paired with affective pseudo-labels. | Strategic image-based extension, not core movie-emotion dataset. |
 | NeuroEmo ds005700 | Bollywood emotional clips, 40 participants | Emotion fMRI with culturally grounded stimuli. | Possible cross-cultural downstream. |
-| REELMO 2025 | 60 full movies, 1,060h reports, fMRI subset | Large-scale time-resolved movie emotion reports. | Stimulus-side affective supervision and possible fMRI test. |
+| REELMO 2025 | 60 full movies, 1,060h reports; Jojo Rabbit fMRI n=20, TR=2s, 3,087 volumes/participant | Large-scale time-resolved movie emotion reports plus a small direct movie-fMRI subset. | Jojo Rabbit dynamic fMRI test; broader 60-movie resource for stimulus-side affective supervision. |
 | SED-GPT 2025 | long-sequence fMRI semantic and emotion decoding | Uses an LLM-style decoding framework to reconstruct semantic and emotional distributions from fMRI. | Useful cautionary precedent for brain-to-emotion decoding with language models; exploratory, not a foundation model. |
 
 Sources:
@@ -39,7 +39,8 @@ Sources:
 - Koide-Majima: https://pubmed.ncbi.nlm.nih.gov/32798681/
 - Emo-FilM: https://www.nature.com/articles/s41597-025-04803-5
 - Ke: https://pubmed.ncbi.nlm.nih.gov/40215238/
-- Affective Videos: https://www.openfmri.org/dataset/ds000205/
+- Affective Videos paper: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0161589
+- Affective Videos data: https://www.openfmri.org/dataset/ds000205/
 - NeuroEmo: https://github.com/OpenNeuroDatasets/ds005700
 - REELMO: https://www.nature.com/articles/s41597-025-05159-6
 - Horikawa Mendeley data mirror: https://data.mendeley.com/datasets/jbk2r73mzh

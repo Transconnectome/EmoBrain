@@ -6,11 +6,25 @@ This folder contains the literature, dataset, and code-resource map for NetFeeli
 
 - `papers.md`: paper-by-paper reference index.
 - `systematic_reference_map.md`: canonical role-based reference map for proposal writing.
-- `datasets.md`: canonical function-based dataset inventory.
+- `datasets.md`: canonical function-based dataset inventory. Use this when a
+  benchmark table names Horikawa, Emo-FilM, Affective Videos, IAPS, NeuroEmo,
+  Koide-Majima/Nishimoto, or REELMO and you need to know what the dataset is.
 - `task.md`: canonical task and target inventory.
-- `training_strategy.md`: SwiFT-first training and model-development strategy.
-- `code_resources.md`: repository and implementation resources.
+- `training_strategy.md`: post-benchmark SwiFT/BFM training and model-development strategy.
+- `code_resources.md`: repository and implementation resources. Use this when a
+  benchmark table names SwiFT, Brain-JEPA, NeuroSTORM, BrainLM, TRIBE, or other
+  models and you need to know what the model is.
 - `search_log_2026-05-08.md`: initial web-search log.
+
+## Detail Map
+
+| Question | Read |
+|---|---|
+| What is Horikawa / Emo-FilM / Affective Videos / IAPS? | `reference/datasets.md` |
+| What is SwiFT / Brain-JEPA / NeuroSTORM / BrainLM? | `reference/code_resources.md` and `reference/papers.md` |
+| What does binary/regression/multiclass/high-dimensional mean? | `reference/task.md` |
+| What happens after the BFM benchmark? | `reference/training_strategy.md` |
+| What is the current benchmark table? | `notes/benchmark_design.md` |
 
 ## Update Rule
 

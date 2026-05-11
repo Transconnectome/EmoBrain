@@ -146,7 +146,7 @@ Tasks:
 | HCP 7T movie | SwiFT continued pretraining | stimulus-conditioned fMRI prediction | direct emotion prediction without labels |
 | Affective Videos | valence/arousal sanity check | simple fMRI/stimulus comparison | broad transfer claims |
 | IAPS fMRI | valence-category beta-map benchmark | static image affect comparison | temporal dynamics |
-| REELMO | context/rationale trajectory targets | fMRI subset transfer if accessible | assuming fMRI scale is large |
+| REELMO | context/rationale trajectory targets; Jojo Rabbit dynamic fMRI if accessible | stimulus-side long-context targets | assuming the 60-movie behavioral scale is also fMRI scale |
 | NSD | static-image fMRI representation | affective pseudo-label transfer | native emotion labels |
 | OASIS | affect label calibration | image affect pseudo-labeling | fMRI analysis |
 

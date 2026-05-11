@@ -1,8 +1,10 @@
 # NetFeeliX Onboarding
 
 This file is the first stop for a new collaborator or AI agent. NetFeeliX is a
-SwiFT-first but not SwiFT-locked model-development project for emotion-specific
-fMRI representation learning.
+SwiFT-first but not SwiFT-locked model-development project aiming for an
+emotion-specific brain foundation model. The immediate artifact is the
+`Dataset x BFM x Task` master benchmark matrix, but that matrix is the first
+search-space narrowing step rather than the final project scope.
 
 ## Five-Minute Read Order
 
@@ -14,15 +16,19 @@ fMRI representation learning.
    - Single source of truth for project framing and operating rules.
 4. `ACTION_PLAN.md`
    - Current execution plan and near-term research actions.
-5. `Paper/framework_EN.md`
+5. `notes/benchmark_design.md`
+   - Current `Dataset x BFM x Task` master matrix.
+6. `Paper/framework_EN.md`
    - Canonical narrative and proposal-level framework.
-6. `Paper/methodology.md`
+7. `Paper/methodology.md`
    - Experimental plan and benchmark matrix.
-7. `reference/training_strategy.md`
+8. `reference/training_strategy.md`
    - SwiFT-first model-development strategy.
-8. `reference/datasets.md`
-   - Function-based dataset inventory.
-9. `workflows/README.md`
+9. `reference/datasets.md`
+   - Function-based dataset inventory and dataset details.
+10. `reference/code_resources.md`
+   - BFM/model details and implementation resources.
+11. `workflows/README.md`
    - How literature, experiment planning, review, and weekly updates should run.
 
 ## Project Identity
@@ -33,10 +39,14 @@ NetFeeliX stands for:
 Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
 ```
 
-The project should not be presented as an emotion theory paper. It is a model
-development project asking how SwiFT can be adapted, pretrained, or aligned with
-stimulus models to improve emotion representation learning from naturalistic
-fMRI.
+The project should not be presented as an emotion theory paper or as a benchmark
+paper only. It is a model-development project that first compares brain
+foundation models across emotion-fMRI datasets and tasks, then uses that
+evidence to choose between two larger tracks:
+
+1. task/movie-fMRI pretraining and brain-model adaptation, and
+2. multimodal brain-stimulus frameworks such as TRIBE-like alignment, late
+   fusion, or stimulus-feature injection.
 
 ## What To Do Before Adding New Files
 
@@ -66,10 +76,12 @@ python3 scripts/build_project_status.py
 
 ## Immediate Scientific Path
 
-1. Horikawa: high-dimensional affect geometry.
-2. Emo-FilM: naturalistic emotion/component/appraisal targets.
-3. HCP 7T movie: continued pretraining for SwiFT.
-4. Affective Videos and IAPS fMRI: fast valence/arousal/category checks.
-5. TRIBE v2: stimulus-side teacher, baseline, and alignment component.
-6. REELMO: long-context affect trajectories and rationale/cue targets.
-7. NSD + OASIS: static-image affect transfer branch only if useful.
+1. Build the `Dataset x BFM x Task` master matrix.
+2. Use emotion-fMRI datasets: Horikawa, Emo-FilM, Affective Videos, IAPS,
+   NeuroEmo, Koide-Majima/Nishimoto, and REELMO / Jojo Rabbit fMRI if usable.
+3. Compare BFMs: SwiFT, Brain-JEPA, NeuroSTORM, and BrainLM.
+4. Cover tasks: binary, regression, multiclass, multi-label, high-dimensional
+   vector, dynamic/binning, and component/appraisal where valid.
+5. Add logistic/ridge/ROI/voxel statistical floors for each runnable cell.
+6. Use the matrix to narrow the search space, then branch into:
+   pretraining/adaptation strategy or multimodal brain-stimulus framework.

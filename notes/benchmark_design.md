@@ -31,6 +31,18 @@ Not current benchmark:
 Those come after the BFM benchmark table tells us which dataset, BFM, and task
 combinations are worth expanding.
 
+## Where Details Live
+
+This file is the benchmark control table. It should be readable by itself, but
+the full descriptions live elsewhere:
+
+| Thing | Quick view here | Full detail |
+|---|---|---|
+| Dataset meaning, subjects, stimuli, targets, risks | Dataset cheat sheet below | `reference/datasets.md` |
+| BFM meaning, input format, output, risks, source links | BFM cheat sheet below | `reference/code_resources.md`, `reference/papers.md` |
+| Task definitions and metrics | Task Axis below | `reference/task.md` |
+| Training/adaptation/pretraining after benchmark | After The Master Matrix below | `reference/training_strategy.md` |
+
 ## Axes
 
 ### Dataset Axis
@@ -43,7 +55,19 @@ combinations are worth expanding.
 | IAPS fMRI | static image valence/category beta-map benchmark | P1 |
 | NeuroEmo | secondary categorical emotion benchmark | P2 |
 | Koide-Majima/Nishimoto | secondary high-dimensional emotion benchmark | P2 |
-| REELMO fMRI subset | dynamic/context benchmark if fMRI subset is usable | P2 |
+| REELMO / Jojo Rabbit fMRI | one-movie dynamic/context benchmark; 60-movie part is behavioral/stimulus-side | P2 |
+
+### Dataset Cheat Sheet
+
+| Dataset | What it is | Why it is in the matrix | First detail to check | Full detail |
+|---|---|---|---|---|
+| Horikawa/Cowen | fMRI responses to 2,185 short emotion-evoking videos; n=5, TR=2s, 61 runs | core high-dimensional affect geometry benchmark | canonical 2,185 stimuli, exact BIDS run volumes, HRF/window policy | `reference/datasets.md` |
+| Emo-FilM | 30 participants watching 14 short films; TR=1.3s; local MRIQC mean about 9,563 film volumes/subject | naturalistic emotion, component, appraisal, dynamic target benchmark | access, annotation timing, dummy volumes, target reliability | `reference/datasets.md` |
+| Affective Videos | Kim et al. 2016 PLOS ONE / OpenfMRI ds000205; 11 participants, 32 five-second audiovisual clips, TR=2.2s, 128 main trials | fast low-dimensional valence/arousal sanity benchmark | paper/task design, OpenfMRI format, exact run volumes, TR/event timing | `reference/datasets.md` |
+| IAPS fMRI | NeuroVault beta maps from 56 participants; original TR=2.5s but current input is condition beta maps | static image valence/category benchmark | beta-map format and how to adapt BFM input | `reference/datasets.md` |
+| NeuroEmo | BIDS fMRI from 40 participants watching emotional Bollywood clips; task TR=3s, about 200 task volumes | secondary multiclass/cross-cultural emotion benchmark | event files, exact NIfTI shape, stimulus access, label mapping | `reference/datasets.md` |
+| Koide-Majima/Nishimoto | emotional audiovisual movie fMRI; n=8, TR=2s, 18 runs, 5,490 volumes/subject | secondary high-dimensional movie-emotion benchmark | data access and timing/label format | `reference/datasets.md` |
+| REELMO / Jojo Rabbit fMRI | 60-movie affect-report dataset plus Jojo Rabbit-only fMRI subset; fMRI n=20, TR=2s, 3,087 volumes/participant | dynamic/context benchmark for the one fMRI movie; later stimulus-side trajectory source | download/access, BIDS layout, 8-run timing, dummy/overlap handling, group-label alignment | `reference/datasets.md` |
 
 Excluded from the benchmark dataset axis:
 
@@ -66,6 +90,15 @@ Excluded from the benchmark dataset axis:
 
 `SwiFUN` is not included in the benchmark matrix because it is not a direct
 emotion-fMRI BFM candidate for this table.
+
+### BFM Cheat Sheet
+
+| BFM | What it is | Why it is in the matrix | First detail to check | Full detail |
+|---|---|---|---|---|
+| SwiFT | Swin-style 4D fMRI transformer from the local Transconnectome ecosystem | primary modifiable fMRI backbone | checkpoint native sequence length, input shape, pooling | `reference/code_resources.md`, `reference/training_strategy.md` |
+| Brain-JEPA | JEPA-style brain representation model using predictive latent learning/spatiotemporal masking | alternative BFM and objective precedent | ROI/time-series format, mask actually used, weights/code availability | `reference/code_resources.md`, `reference/papers.md` |
+| NeuroSTORM | large-scale raw 4D fMRI foundation model | alternative 4D BFM against SwiFT | code/weight availability, padding/pooling, input volume format | `reference/code_resources.md`, `reference/papers.md` |
+| BrainLM | ROI/time-series fMRI foundation model based on masked prediction | alternative time-series BFM | atlas/ROI format, checkpoint availability, downstream feature shape | `reference/code_resources.md`, `reference/papers.md` |
 
 ### Task Axis
 
@@ -117,10 +150,10 @@ Each cell in the master matrix is a benchmark combination.
 | Koide-Majima/Nishimoto | Brain-JEPA | CHECK | CHECK | CHECK | RUN | RUN | CHECK | NA |
 | Koide-Majima/Nishimoto | NeuroSTORM | CHECK | CHECK | CHECK | RUN | RUN | CHECK | NA |
 | Koide-Majima/Nishimoto | BrainLM | CHECK | CHECK | CHECK | RUN | RUN | CHECK | NA |
-| REELMO fMRI subset | SwiFT | CHECK | RUN | CHECK | CHECK | CHECK | RUN | CHECK |
-| REELMO fMRI subset | Brain-JEPA | CHECK | RUN | CHECK | CHECK | CHECK | RUN | CHECK |
-| REELMO fMRI subset | NeuroSTORM | CHECK | RUN | CHECK | CHECK | CHECK | RUN | CHECK |
-| REELMO fMRI subset | BrainLM | CHECK | RUN | CHECK | CHECK | CHECK | RUN | CHECK |
+| REELMO / Jojo Rabbit fMRI | SwiFT | CHECK | CHECK | CHECK | CHECK | CHECK | RUN | CHECK |
+| REELMO / Jojo Rabbit fMRI | Brain-JEPA | CHECK | CHECK | CHECK | CHECK | CHECK | RUN | CHECK |
+| REELMO / Jojo Rabbit fMRI | NeuroSTORM | CHECK | CHECK | CHECK | CHECK | CHECK | RUN | CHECK |
+| REELMO / Jojo Rabbit fMRI | BrainLM | CHECK | CHECK | CHECK | CHECK | CHECK | RUN | CHECK |
 
 This table is the object we conquer. Each non-`NA` cell should eventually get:
 

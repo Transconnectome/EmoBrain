@@ -10,10 +10,11 @@
 
 ## 0. One-Sentence Summary
 
-**NetFeeliX**는 SwiFT를 기본 brain backbone으로 두고, emotion-labeled fMRI,
-naturalistic movie/story fMRI pretraining, TRIBE v2-style stimulus-to-brain
-alignment, affective LLM/VLM representation을 결합해 **emotion-specific brain
-representation을 더 잘 학습하는 모델 개발 전략**을 찾는 프로젝트이다.
+**NetFeeliX**는 emotion/affect fMRI dataset에서 Brain Foundation Model이
+emotion-relevant representation을 얼마나 잘 잡는지 확인하기 위해,
+먼저 **Dataset x BFM x Task master matrix**를 구축하고 채우는 프로젝트이다.
+SwiFT는 첫 backbone이지만, Brain-JEPA, NeuroSTORM, BrainLM과 matched condition에서
+비교한 뒤 adaptation, pretraining, stimulus-only control, TRIBE alignment 여부를 결정한다.
 
 정식 이름:
 
@@ -24,14 +25,13 @@ Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
 핵심 질문:
 
 ```text
-SwiFT를 emotion-specific fMRI representation model로 발전시키려면,
-어떤 dataset, target, training objective, architecture modification,
-stimulus-brain alignment 전략이 필요한가?
+어떤 Brain Foundation Model이 어떤 emotion fMRI dataset과 task에서
+emotion-relevant representation을 가장 안정적으로 잡는가?
 ```
 
 현재 목표는 완성형 "Emotion Foundation Model"을 바로 주장하는 것이 아니다.
-현재 목표는 **2개월 안에 model-development decision을 내릴 수 있는 benchmark와
-실험 기반을 구축하는 것**이다.
+현재 목표는 **Dataset x BFM x Task master matrix를 채워 model-development
+decision을 내릴 수 있는 benchmark 기반을 구축하는 것**이다.
 
 ---
 
@@ -49,13 +49,16 @@ SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-OF, Brain-DiT 계열은
 | fMRI masked modeling | BrainLM | ROI/time-series fMRI | masked brain activity prediction | BFM transfer baseline |
 | JEPA-style BFM | Brain-JEPA | fMRI time series | latent prediction / spatiotemporal masking | objective precedent |
 | Large-scale 4D fMRI FM | NeuroSTORM | raw 4D fMRI | large-scale fMRI representation | 비교 모델 후보 |
-| Rest-to-task bridge | SwiFUN | resting fMRI | task activation prediction | emotion-related task contrast 참고 |
 | Omnifunctional neural FM | Brain-OF / Omni-fMRI | fMRI/EEG/MEG or atlas-free fMRI | multi-task neural representation | future reference |
 
 이 흐름은 NetFeeliX의 중요한 출발점이다. 하지만 대부분의 BFM은 emotion을 중심으로
 설계된 모델이 아니다. Emotion task가 downstream benchmark 중 하나로 포함될 수는
 있지만, emotion-specific representation을 잘 만들기 위한 objective나 architecture가
 명시적으로 설계된 경우는 드물다.
+
+현재 benchmark matrix에 올리는 BFM은 SwiFT, Brain-JEPA, NeuroSTORM, BrainLM이다.
+SwiFUN은 resting-to-task bridge 성격이 강하므로 첫 Dataset x BFM x Task benchmark에는
+넣지 않는다.
 
 ### 1.2 왜 Emotion은 단순 Label Prediction 문제가 아닌가
 
@@ -492,16 +495,17 @@ emotion representation learning from fMRI?
 
 ### 5.1 Experimental Design Overview
 
-NetFeeliX는 처음부터 큰 end-to-end model을 주장하지 않는다. 먼저 comparable benchmark
-surface를 만든 뒤, 결과에 따라 model-development track을 선택한다.
+NetFeeliX는 처음부터 큰 end-to-end model을 주장하지 않는다. 먼저 모든
+`Dataset x BFM x Task` 조합을 펼친 master matrix를 만들고, 각 cell에 status,
+metric, failure reason, decision을 채운 뒤 model-development track을 선택한다.
 
 ```text
 Phase 0: Setup and feasibility
-Phase 1: Initial benchmark
-Phase 2: SwiFT emotion adaptation
-Phase 3: Naturalistic movie/story fMRI pretraining
-Phase 4: TRIBE v2 + SwiFT alignment
-Phase 5: Brain-tuned affective LLM/VLM extension
+Phase 1: Dataset x BFM x Task master matrix
+Phase 2: Frozen BFM benchmark and statistical floors
+Phase 3: BFM adaptation or pivot
+Phase 4: Naturalistic/movie fMRI pretraining if benchmark supports it
+Phase 5: Stimulus-only/TRIBE/alignment controls if needed
 Phase 6: Consolidation and paper direction
 ```
 
@@ -519,15 +523,18 @@ Phase 6: Consolidation and paper direction
 6. blocked resource list 작성
 7. compute requirement 추정
 
-우선 확인할 dataset:
+우선 확인할 benchmark dataset:
 
 - Horikawa / Cowen emotional video fMRI
 - Emo-FilM
 - Affective Videos
 - IAPS fMRI NeuroVault
-- HCP 7T movie
-- CNeuroMod / Algonauts
-- StudyForrest / Narratives는 access와 역할 정리부터
+- NeuroEmo
+- Koide-Majima/Nishimoto
+- REELMO / Jojo Rabbit fMRI if accessible
+
+HCP 7T movie, CNeuroMod/Algonauts, StudyForrest, Narratives, 101 Dalmatians는
+현재 benchmark dataset axis가 아니라 이후 pretraining/alignment resource다.
 
 산출물:
 
@@ -558,17 +565,19 @@ Baseline order:
 
 | ID | Dataset | Model | Target | Purpose |
 |---|---|---|---|---|
-| NFx-001 | Horikawa | frozen SwiFT + head | high-dimensional emotion vector | BFM transfer 확인 |
-| NFx-002 | Horikawa | ROI/parcel ridge | high-dimensional emotion vector | simple baseline |
-| NFx-003 | Affective Videos | ridge / frozen SwiFT | arousal, valence | sanity check |
-| NFx-004 | IAPS fMRI | beta-map adapter | positive/neutral/negative | static affect check |
-| NFx-005 | Emo-FilM | ridge / frozen SwiFT | component/appraisal | naturalistic target readiness |
+| Cell family | Dataset | BFM | Task | Decision |
+|---|---|---|---|---|
+| Hori-BFM | Horikawa | SwiFT, Brain-JEPA, NeuroSTORM, BrainLM | binary/regression/multi-label/34D | core affect geometry |
+| EmoFilm-BFM | Emo-FilM | SwiFT, Brain-JEPA, NeuroSTORM, BrainLM | regression/dynamic/component | naturalistic downstream readiness |
+| AV-BFM | Affective Videos | SwiFT, Brain-JEPA, NeuroSTORM, BrainLM | binary/regression | valence/arousal sanity |
+| IAPS-BFM | IAPS fMRI | compatible BFMs | binary/multiclass | static affect category check |
 
 Decision rule:
 
-- frozen SwiFT가 simple baseline보다 좋으면 adapter/head 확장
-- simple baseline이 더 좋으면 preprocessing, HRF timing, feature extraction 점검
-- stimulus-only가 너무 강하면 brain-specific claim을 조심하고 alignment/residual analysis 우선
+- 각 Dataset x BFM x Task cell에 target, split, metric, statistical floor, BFM score를 채운다.
+- BFM이 statistical floor보다 약하면 preprocessing, HRF timing, pooling, split을 점검한다.
+- SwiFT가 다른 BFM보다 좋으면 adapter/head 확장을 검토한다.
+- 다른 BFM이 SwiFT보다 좋으면 strict SwiFT-first 전략을 축소한다.
 
 ### 5.4 Phase 2: SwiFT Emotion Adaptation
 
@@ -747,8 +756,8 @@ Critical controls:
 | subject split | subject leakage 방지 |
 | stimulus split | stimulus identity shortcut 방지 |
 | temporal lag sweep | HRF alignment 점검 |
-| low-level visual/audio control | sensory shortcut 점검 |
-| stimulus-only baseline | brain-specific signal 해석 |
+| low-level visual/audio control | BFM benchmark 이후 sensory shortcut 점검 |
+| stimulus-only baseline | BFM benchmark 이후 brain-specific signal 해석 |
 | ROI/ridge baseline | deep model value 확인 |
 | frozen vs adapted SwiFT | architecture modification 필요성 |
 | generic vs naturalistic-pretrained SwiFT | movie/story SSL transfer 확인 |
@@ -1017,8 +1026,9 @@ Deliverable:
 
 #### Benchmark contribution
 
-- Emotion fMRI에서 brain-only, stimulus-only, BFM transfer, naturalistic pretraining,
-  stimulus-brain alignment를 같은 target/split 기준으로 비교하는 benchmark surface.
+- Emotion fMRI에서 `Dataset x BFM x Task` master matrix를 만들고, 각 cell을
+  matched target/split/metric/statistical floor로 비교하는 benchmark surface.
+- Current BFM axis: SwiFT, Brain-JEPA, NeuroSTORM, BrainLM.
 
 #### Model-development contribution
 
@@ -1033,8 +1043,8 @@ Deliverable:
 #### Empirical contribution
 
 - 어떤 emotion target이 fMRI에서 안정적으로 예측되는지 확인.
-- naturalistic movie/story pretraining이 emotion transfer에 실제로 도움이 되는지 확인.
-- stimulus-only feature가 emotion label을 얼마나 설명하는지 확인.
+- 어떤 BFM이 어떤 dataset/task에서 statistical floor를 넘는지 확인.
+- 이후 naturalistic pretraining, stimulus-only control, TRIBE alignment가 필요한지 결정.
 
 #### Practical contribution
 
@@ -1048,6 +1058,7 @@ Deliverable:
 | 결과 | 가능한 paper framing |
 |---|---|
 | frozen/adapted SwiFT가 잘 됨 | SwiFT-based emotion fMRI representation learning |
+| 다른 BFM이 SwiFT보다 좋음 | Benchmarking brain foundation models for emotion fMRI |
 | naturalistic pretraining이 도움 | Naturalistic fMRI pretraining for emotion transfer |
 | alignment가 도움 | Brain-stimulus alignment for affective representation |
 | stimulus-only가 강함 | Disentangling stimulus-driven and brain-specific emotion representations |
@@ -1058,26 +1069,27 @@ Deliverable:
 
 ## 8. Short Team Post Version
 
-NetFeeliX는 SwiFT를 기본 brain backbone으로 두고, emotion-labeled fMRI,
-naturalistic movie/story fMRI pretraining, TRIBE v2-style stimulus-brain alignment를
-결합해 emotion-specific brain representation을 더 잘 학습하는 모델 개발 프로젝트입니다.
+NetFeeliX는 emotion-labeled fMRI에서 Brain Foundation Model이 emotion-relevant
+representation을 얼마나 잘 잡는지 확인하기 위해 `Dataset x BFM x Task` master matrix를
+먼저 구축하는 모델 개발 프로젝트입니다.
 
 핵심은 단순 emotion label prediction이 아니라, arousal/valence, discrete emotion,
 multi-label emotion distribution, high-dimensional emotion vector, appraisal/component,
 trajectory, cue/rationale embedding까지 이어지는 task ladder에서 어떤 model strategy가
 가장 transferable한지를 보는 것입니다.
 
-초기에는 Horikawa, Emo-FilM, Affective Videos, IAPS fMRI로 runnable benchmark를 만들고,
-ROI/ridge baseline, frozen SwiFT probe, stimulus-only baseline을 비교합니다. 이후 결과에
-따라 SwiFT adapter, subject adapter, affective token, naturalistic pretraining,
-TRIBE-SwiFT alignment 중 어떤 방향을 밀지 결정합니다.
+초기에는 Horikawa, Emo-FilM, Affective Videos, IAPS fMRI, NeuroEmo,
+Koide-Majima/Nishimoto, REELMO / Jojo Rabbit fMRI를 dataset axis로 두고, SwiFT,
+Brain-JEPA, NeuroSTORM, BrainLM을 BFM axis로 두며, binary/regression/multiclass/
+multi-label/high-dimensional/dynamic/component task 조합을 모두 펼친 표를 채웁니다.
+logistic/ridge/ROI/voxel 모델은 statistical floor로만 사용합니다.
 
-HCP movie는 첫 naturalistic pretraining 후보일 뿐이고, CNeuroMod/Algonauts,
-StudyForrest, Narratives, 101 Dalmatians는 각각 multimodal alignment, long-film continuity,
-language context, modality control이라는 구체적 질문이 있을 때 사용합니다.
+HCP movie, CNeuroMod/Algonauts, StudyForrest, Narratives, 101 Dalmatians,
+stimulus-only video/audio/text model, TRIBE v2는 첫 BFM benchmark 이후 필요할 때
+pretraining/control/alignment branch로 사용합니다.
 
-Immediate action은 dataset availability, target construction, first baseline, frozen SwiFT
-probe, experiment cards입니다.
+Immediate action은 master matrix 확정, target construction, split/metric policy,
+statistical floor, frozen BFM probe입니다.
 
 ---
 

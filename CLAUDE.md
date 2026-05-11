@@ -7,6 +7,12 @@ not be duplicated here.
 
 - Keep root files minimal. Do not create new brief/proposal/narrative markdown
   files unless explicitly requested.
+- Do not duplicate dataset/model/task details in root files. Point to the
+  canonical reference file instead.
+- When updating entry-point docs such as `README.md`, `README_KR.md`,
+  `ONBOARDING.md`, or `ACTION_PLAN.md`, add short inline pointers near the
+  relevant section, e.g. "For dataset details, see `reference/datasets.md`."
+  Do not rely only on a separate lookup table.
 - Canonical narrative lives in `Paper/framework_EN.md` and
   `Paper/framework_KR.md`.
 - Canonical methodology lives in `Paper/methodology.md`.
@@ -21,13 +27,32 @@ not be duplicated here.
 ## Scientific Rules
 
 - NetFeeliX is model-development, not emotion theory.
-- Use SwiFT first, but pivot if matched benchmarks favor another neural
-  representation or model.
-- Treat TRIBE v2 as stimulus-to-brain teacher/baseline/alignment component, not
-  an fMRI encoder replacement.
+- The first benchmark deliverable is a `Dataset x BFM x Task` master matrix.
+- Current benchmark models are brain foundation models: SwiFT, Brain-JEPA,
+  NeuroSTORM, and BrainLM.
+- Use SwiFT first, but pivot if matched `Dataset x BFM x Task` results favor
+  another BFM.
+- Treat logistic/ridge/ROI/voxel models as statistical floors, not as the main
+  Model Axis.
+- Treat video/audio/text stimulus-only models and TRIBE v2 as later
+  control/extension branches, not part of the first BFM benchmark.
 - Treat old EmoDe caches as reference only.
 - Use `2185` as the canonical Horikawa/Cowen stimulus count.
 - Keep claims separated from measured results.
+
+## Where To Look
+
+| Need | Use |
+|---|---|
+| Compact project memory | `CONTEXT_NETFEELIX.md` |
+| Current execution plan | `ACTION_PLAN.md` |
+| Dataset x BFM x Task master matrix | `notes/benchmark_design.md` |
+| Dataset details | `reference/datasets.md` |
+| BFM/model details | `reference/code_resources.md`, `reference/papers.md` |
+| Task and metric definitions | `reference/task.md` |
+| Post-benchmark training/adaptation strategy | `reference/training_strategy.md` |
+| Paper/proposal narrative | `Paper/framework_EN.md`, `Paper/framework_KR.md` |
+| Methodology details | `Paper/methodology.md` |
 
 ## Required Checks
 

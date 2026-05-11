@@ -20,8 +20,15 @@ before pretraining and transfer evidence exists.
 
 - The project is **SwiFT-first but not SwiFT-locked**.
 - SwiFT is tested first because it is the local lab backbone and can be modified.
-- If matched benchmarks show that ROI/voxel/network baselines, another BFM, or
-  stimulus-aligned models are better, document the negative result and pivot.
+- The first concrete artifact is a `Dataset x BFM x Task` master matrix.
+- Current benchmark BFMs are SwiFT, Brain-JEPA, NeuroSTORM, and BrainLM.
+- Logistic/ridge/ROI/voxel models are statistical floors, not the main Model
+  Axis.
+- Stimulus-only video/audio/text models, TRIBE v2, multimodal fusion, and
+  movie/story pretraining are later branches selected after the BFM matrix is
+  populated.
+- If matched benchmark cells show that another BFM beats SwiFT, document the
+  result and pivot.
 - The real goal is to find which model, neural representation, target, and
   training objective best support emotion prediction and transferable affective
   representation.
@@ -38,11 +45,11 @@ before pretraining and transfer evidence exists.
 
 | Track | Question | First implementation |
 |---|---|---|
-| A0 Neural representation search | Which brain representation matters? | ROI/parcel, voxel-weighted, network-restricted, dynamic FC |
-| A1 SwiFT transfer/adaptation | Does SwiFT help emotion targets? | frozen/adapted/pretrained SwiFT under matched splits |
-| A2 Temporal length | Which fMRI window length works? | all observed, SL5, SL10, SL20, SL40 |
-| B Pretraining source | What should the model learn first? | naturalistic SSL vs emotion-labeled vs two-stage |
-| C Stimulus-brain alignment | Does stimulus context improve brain emotion representation? | TRIBE/V-JEPA/audio/text + fMRI latent alignment |
+| A0 Master benchmark | Which Dataset x BFM x Task cells are runnable and informative? | `RUN`/`CHECK`/`NA` master matrix |
+| A1 Frozen BFM comparison | Which BFM carries emotion signal under matched splits? | SwiFT, Brain-JEPA, NeuroSTORM, BrainLM |
+| A2 Statistical floors | Are BFM scores above simple decoding floors? | logistic/ridge/ROI/voxel floors |
+| B BFM development | What should be adapted or pretrained after evidence exists? | adapter/fine-tuning/pretraining only after A0-A2 |
+| C Stimulus controls | How much of the target is stimulus-explained? | video/audio/text/TRIBE after BFM benchmark |
 | D Affective AI extension | Can brain responses regularize affective LLM/VLM embeddings? | small adapter/distillation only after evidence |
 
 ## Brain Representation Candidates
@@ -62,11 +69,13 @@ before pretraining and transfer evidence exists.
 | File | Role |
 |---|---|
 | `README.md`, `README_KR.md` | human entry points |
+| `notes/benchmark_design.md` | canonical `Dataset x BFM x Task` master matrix |
 | `Paper/framework_EN.md`, `Paper/framework_KR.md` | canonical project narrative |
 | `Paper/methodology.md` | canonical experimental design |
-| `reference/datasets.md` | dataset inventory |
+| `reference/datasets.md` | dataset details: what each dataset is, target, risks, sources |
 | `reference/task.md` | task/target inventory |
-| `reference/training_strategy.md` | model and training strategy |
+| `reference/code_resources.md`, `reference/papers.md` | BFM/model details: what each model is, input, risks, sources |
+| `reference/training_strategy.md` | post-benchmark model and training strategy |
 | `ACTION_PLAN.md` | current Korean execution plan |
 | `notes/project_decisions.md` | durable decision log |
 | `workflows/README.md` | operating workflows |

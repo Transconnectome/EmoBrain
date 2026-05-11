@@ -24,7 +24,7 @@ Phase 0 answers what can actually be run. It should produce one table with datas
 | IAPS fMRI NeuroVault | lightweight downstream | positive/neutral/negative beta maps | test beta-map valence category adaptation |
 | NSD | static-image fMRI extension | pseudo-affective image labels | evaluate image-based fMRI affect transfer |
 | OASIS | stimulus label source | valence/arousal norms | calibrate image affect pseudo-labels |
-| REELMO | stimulus-side affect supervision, fMRI subset | time-resolved affect reports | check fMRI subset access and annotation format |
+| REELMO | stimulus-side affect supervision, Jojo Rabbit-only fMRI | time-resolved affect reports | check BIDS access and Jojo Rabbit annotation alignment |
 | NeuroEmo | downstream/cross-cultural | emotion labels | inspect OpenNeuro metadata and task labels |
 | Koide-Majima | high-dimensional benchmark | 80 emotion labels | check data access feasibility |
 | CNeuroMod/Algonauts | auxiliary encoding/alignment | fMRI response prediction | inspect TRIBE/Algonauts pipeline |
@@ -79,7 +79,7 @@ Minimum result table:
 | Horikawa | high-dimensional emotion vector | planned | planned | planned | planned | primary benchmark |
 | Emo-FilM | component/appraisal/emotion ratings | planned | planned | planned | planned | naturalistic downstream |
 | Affective Videos | valence/arousal | planned | optional | planned | optional | fast sanity check |
-| REELMO | time-resolved affect reports | optional | planned | fMRI subset optional | optional | stimulus-side supervision |
+| REELMO | time-resolved affect reports; Jojo Rabbit-only fMRI | optional | planned | limited one-movie fMRI | optional | stimulus-side supervision |
 | HCP 7T movie | pretraining objective | planned | planned features | planned | planned | pretraining source |
 
 ## Phase 1B: Reasoning and Context Benchmark

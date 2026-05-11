@@ -1,24 +1,118 @@
 # NetFeeliX Code Resource Index
 
-## Core Repositories
+This is the canonical place for model/code details. For paper-level claims and
+citations, see `reference/papers.md`. For dataset details, see
+`reference/datasets.md`.
+
+## Current BFM Benchmark Models
+
+These are the only brain foundation models in the first `Dataset x BFM x Task`
+benchmark matrix.
+
+### SwiFT
+
+- **Type**: Swin-style 4D fMRI transformer / fMRI encoder.
+- **Input**: volumetric 4D fMRI windows.
+- **Benchmark role**: primary BFM because it is the local Transconnectome
+  backbone and can be modified after the benchmark.
+- **First use**: frozen feature extraction followed by logistic/ridge/MLP heads
+  for the Dataset x BFM x Task cells.
+- **First checks**:
+  - checkpoint native sequence length, e.g. SL20/SL40 if applicable,
+  - input volume shape and preprocessing assumptions,
+  - pooling choice: mean, late-frame, temporal/attention pooling,
+  - padding/masking sensitivity.
+- **Risks**:
+  - mean pooling can erase temporal information,
+  - short emotion trials may mismatch pretrained sequence length,
+  - strong performance on arousal alone should not be overclaimed as rich
+    emotion representation.
+- **Source**: https://huggingface.co/papers/2307.05916
+
+### Brain-JEPA
+
+- **Type**: fMRI brain representation model using JEPA-style predictive latent
+  learning.
+- **Input**: fMRI/ROI time series, depending on the released implementation and
+  preprocessing.
+- **Benchmark role**: alternative BFM and objective precedent for latent
+  prediction/spatiotemporal masking.
+- **First use**: frozen feature probe under the same dataset/task/split cells as
+  SwiFT where the input format can be matched.
+- **First checks**:
+  - exact expected ROI/time-series input,
+  - whether the mask path is actually used in the implementation,
+  - checkpoint and code availability,
+  - feature shape and pooling.
+- **Risks**:
+  - may require a different preprocessing representation than 4D SwiFT,
+  - matched split/target is mandatory before comparing with SwiFT.
+- **Sources**:
+  - https://neurips.cc/virtual/2024/poster/94113
+  - https://huggingface.co/papers/2409.19407
+
+### NeuroSTORM
+
+- **Type**: large-scale raw 4D fMRI foundation model.
+- **Input**: raw or preprocessed 4D fMRI volumes, depending on released code.
+- **Benchmark role**: alternative 4D BFM for checking whether a larger/general
+  4D model beats SwiFT under matched emotion tasks.
+- **First use**: frozen feature probe if code/weights and preprocessing can be
+  loaded locally.
+- **First checks**:
+  - code and checkpoint availability,
+  - required spatial normalization and voxel grid,
+  - window length and padding/pooling behavior,
+  - GPU/memory feasibility.
+- **Risks**:
+  - may be too heavy or inaccessible for the first pass,
+  - if input preprocessing differs too much, comparison with SwiFT may be
+    confounded.
+- **Source**: https://www.nature.com/articles/s41551-026-01666-y
+
+### BrainLM
+
+- **Type**: fMRI time-series foundation model with masked prediction.
+- **Input**: ROI/time-series fMRI rather than raw 4D volumes.
+- **Benchmark role**: alternative time-series BFM to test whether compact
+  parcellated representations outperform 4D-volume encoders on emotion tasks.
+- **First use**: frozen ROI/time-series feature probe with logistic/ridge/MLP
+  heads.
+- **First checks**:
+  - expected atlas/parcellation,
+  - checkpoint availability,
+  - feature extraction API,
+  - compatibility with Horikawa/Emo-FilM/Affective Videos time windows.
+- **Risks**:
+  - ROI representation may not be directly comparable to 4D volume models,
+  - atlas mismatch can dominate model differences.
+- **Source**: https://sciety.org/articles/activity/10.1101/2023.09.12.557460
+
+## Not In First BFM Benchmark
 
 ### SwiFUN
 
+- **Type**: resting-state fMRI to task activation prediction model.
+- **Use later**: possible rest-to-task reference or architecture/code pattern.
+- **Why excluded now**: it is not a direct Dataset x BFM x Emotion Task model for
+  the first benchmark matrix.
 - **URL**: https://github.com/Transconnectome/SwiFUN
-- **Use**: resting-state fMRI to task activation prediction, with SwiFT/Swin UNETR code patterns.
-- **First action**: inspect data loader assumptions and pretrained checkpoint availability.
+
+### TRIBE v2
+
+- **Type**: stimulus-to-brain model.
+- **Use later**: video/audio/text stimulus control, predicted-brain teacher, or
+  alignment component after the BFM benchmark.
+- **Why excluded now**: it is not an fMRI-input brain foundation model.
+- **URL**: https://github.com/facebookresearch/tribev2
+
+## Additional / Later Repositories
 
 ### TRIBE / Algonauts 2025
 
 - **URL**: https://github.com/facebookresearch/algonauts-2025
 - **Use**: stimulus-to-brain encoding model training and evaluation.
 - **First action**: inspect feature extraction pipeline, temporal transformer, and HRF/time-alignment assumptions.
-
-### TRIBE v2
-
-- **URL**: https://github.com/facebookresearch/tribev2
-- **Use**: latest multimodal stimulus-to-brain alignment reference.
-- **First action**: verify whether weights, inference examples, and academic license constraints are usable.
 
 ### Brain-DiT
 

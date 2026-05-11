@@ -31,11 +31,41 @@ The practical distinction is:
 | Movie-watching fMRI pretraining | StudyForrest | yes | no | long film continuity and audiovisual narrative transfer |
 | Story-listening fMRI pretraining | Narratives | yes | no | language/narrative context alignment without visual input |
 | Movie-watching fMRI pretraining | 101 Dalmatians | yes | no | modality-control transfer across audiovisual/auditory/visual movie conditions |
-| Context and affect trajectory | REELMO | fMRI subset | yes, mostly behavioral | long-context affect trajectories and MLLM/rationale targets |
+| Context and affect trajectory | REELMO | yes, Jojo Rabbit only | yes | long-context affect trajectories; Jojo Rabbit emotion-fMRI sanity check |
 | Static-image fMRI transfer | NSD | yes | no | large static-image fMRI representation with affective pseudo-labels |
 | Stimulus affect labels | OASIS | no | yes | open image valence/arousal labels for NSD/image-model calibration |
 | Visual-event auxiliary | BOLD Moments | yes | not primary | short-video visual event representation and stimulus-to-fMRI encoding |
 | Physiology/context expansion | Spacetop | yes | partial affective ratings | physiology-aware and interoceptive/affective model extension |
+
+## Benchmark Dataset Cheat Sheet
+
+These are the datasets that appear in the first `Dataset x BFM x Task` matrix.
+
+| Dataset | What it is | Subjects / stimuli | Main targets | Best first task | Key risk |
+|---|---|---|---|---|---|
+| Horikawa/Cowen | short emotional video fMRI with high-dimensional affect ratings | canonical 2,185 stimuli; local 5-subject fMRI rows | valence/arousal, multi-label, 34D/high-dimensional emotion vector | high-dimensional vector and valence/arousal sanity | HRF/window policy and group-level stimulus labels |
+| Emo-FilM | naturalistic short-film fMRI with physiology and detailed affect annotations | 30 participants, 14 short films, 50 annotation items | emotion, appraisal, motivation, expression, physiology, feeling | component/appraisal and dynamic bins | annotation timing/smoothing and target reliability |
+| Affective Videos | Kim et al. 2016 PLOS ONE / OpenfMRI ds000205: short naturalistic audiovisual clip fMRI for core affect decoding | 11 participants, 32 five-second clips repeated four times | valence, arousal; four quadrants of affective space | binary/regression sanity check | small sample, short windows, low-level stimulus confounds |
+| IAPS fMRI | static emotional image fMRI beta-map resource | 56 participants, positive/neutral/negative IAPS blocks | valence category and binary contrasts | positive/neutral/negative classification | beta maps are not native 4D time series |
+| NeuroEmo | emotional Bollywood clip fMRI in BIDS format | 40 participants, 5 emotion classes | discrete emotion/category, possible dimensional reductions | multiclass emotion benchmark | event/stimulus availability and cultural label mapping |
+| Koide-Majima/Nishimoto | emotional audiovisual movie fMRI with high-dimensional ratings | access-dependent; reported high-dimensional emotion labels | 80-label or high-dimensional emotion space | secondary high-dimensional benchmark | access and timing/label preprocessing |
+| REELMO / Jojo Rabbit fMRI | 60 full-length movie affect-report dataset plus one-movie fMRI subset | behavioral: 161 participants / 60 movies; fMRI: 20 participants / Jojo Rabbit; TR 2 s; 3,087 volumes/participant | 20-category moment-by-moment affect trajectories, stimulus features, Jojo Rabbit BIDS fMRI | dynamic/binning on Jojo Rabbit fMRI after download | fMRI is only one movie; movie copyright and timing alignment |
+
+## Benchmark Acquisition Quick Reference
+
+This table is for experiment setup. It should answer: how many subjects can be
+used, what temporal resolution the fMRI has, how much data each subject has, and
+what must be checked before a BFM cell is marked runnable.
+
+| Dataset | Usable fMRI subjects | Stimulus / task scale | TR | Volumes or scan length | Direct BFM input status | First acquisition check |
+|---|---:|---|---:|---|---|---|
+| Horikawa/Cowen | 5 | 2,181-2,185 silent emotional videos; 61 runs | 2.0 s | runs are about 7-10 min; raw volume count should be read from BIDS/NIfTI; effective target rows are video-level responses | raw BIDS + preprocessed response matrices | confirm local BIDS path, exact run volumes, stimulus onset/duration, HRF delay/window policy |
+| Emo-FilM | 30 | 14 short films over four fMRI sessions; average film about 11.5 min | 1.3 s | local MRIQC: 420 film runs total, mean about 9,563 film volumes/subject; rest run 457-460 volumes | raw BIDS + derivatives on OpenNeuro | confirm dummy volumes, film-specific timing, annotation smoothing/downsampling |
+| Affective Videos ds000205 | 11 | Kim et al. 2016 PLOS ONE; 32 audiovisual clips, four affective quadrants, four presentations each, 128 main trials | 2.2 s | main task approx 4 runs; 5 s clip + 7 s fixation per trial; localizer has 273 volumes | raw OpenfMRI/BIDS-style fMRI | confirm exact run volumes, event files, PSC/two-volume HRF extraction policy |
+| IAPS fMRI NeuroVault | 56 | 90 IAPS scenes; positive/neutral/negative block design | 2.5 s in original acquisition | NeuroVault entry exposes condition beta maps, not native 4D time series; 3 beta maps/subject | beta-map adaptation, not native 4D BFM input | confirm map count, participant list, beta-map orientation/space, whether raw 4D data are needed |
+| NeuroEmo ds005700 | 40 | 10 min emotion-elicitation run: 30 s emotion clips alternating with 30 s white-noise blocks; resting-state also available | task 3.0 s; rest 2.02697 s | task-fe run is 600 s, about 200 volumes; rest volume count should be checked from NIfTI | raw BIDS fMRI | confirm task-fe volume count, event timing, label mapping, rest-vs-task usage |
+| Koide-Majima/Nishimoto | 8 | 135 emotion-inducing audiovisual movie clips; 18 runs across 3 sessions | 2.0 s | 18 runs x 610 s = 5,490 volumes/subject | access-dependent; not yet local | confirm access, exact files, stimulus timing, 80-label annotation format |
+| REELMO / Jojo Rabbit fMRI | 20 | Jojo Rabbit only for fMRI; 8 runs across two 1-hour sessions | 2.0 s | 3,087 timepoints/participant, about 103 min functional time | BIDS fMRI plus behavioral/stimulus files | confirm download/access, 8-run timing, dummy/8 s overlap handling, 20-category trajectory alignment |
 
 ## Immediate Dataset Logic
 
@@ -74,6 +104,22 @@ naturalistic videos.
 - The original paper argues that emotion categories organize responses better
   than low-dimensional affective dimensions in several transmodal regions.
 - OpenNeuro entry: `ds002425`.
+
+**Benchmark-relevant acquisition details**
+
+- Usable fMRI subjects: 5.
+- Scanner: 3T Siemens MAGNETOM Verio.
+- Task scale: fMRI responses to the Cowen/Keltner emotional-video stimulus set;
+  downstream scripts should treat the canonical target count as 2,185 while
+  checking the exact available response rows in local files.
+- Runs: 61 runs, each roughly 7-10 minutes.
+- TR: 2.0 s.
+- Effective modeling unit in the paper: video-level response, shifted by 4 s
+  for hemodynamic delay and averaged within each video block.
+- Raw volume count: must be read from local BIDS/NIfTI because run lengths are
+  variable; do not assume a fixed 5TR-only window.
+- First checks: BIDS path, exact run volumes, event timing, video duration,
+  HRF-delay policy, and whether all 2,185 stimulus targets are covered.
 
 **NetFeeliX task design**
 
@@ -134,6 +180,27 @@ component, physiological, and context-sensitive targets.
 - Final annotations include 50 items spanning discrete emotions and components:
   appraisal, motivation, motor expression, physiological response, and feeling.
 
+**Benchmark-relevant acquisition details**
+
+- Usable fMRI subjects: 30, after two recruited participants were excluded.
+- Annotation participants: 44 independent film annotators.
+- Scanner: 3T Siemens Magnetom TIM Trio, 32-channel head coil.
+- Functional sequence: multiband gradient-echo EPI.
+- TR / TE: TR 1.3 s, TE 30 ms.
+- Functional geometry: 54 slices, 2.5 mm isotropic voxels, multiband factor 3.
+- Sessions/runs: four fMRI sessions per subject; subjects watched 14 films.
+- Film timing: average film duration about 11 min 26 s; each film run has 90 s
+  fixation/washout before and after the film.
+- Resting-state: one 10 min rest run in session 1; local MRIQC shows 457-460
+  volumes depending on subject.
+- Film-run volume count: local `ds004892` MRIQC summary contains 420 film runs
+  total (30 subjects x 14 films), with about 9,563 film volumes per subject on
+  average. Individual film runs range from about 457 to 954 volumes depending on
+  film duration and subject.
+- First checks: `ds004892` fMRI BIDS layout, `ds004872` annotation files,
+  stimulus onset/offset files, physiological files, annotation smoothing and
+  downsampling to TR/window level.
+
 **NetFeeliX task design**
 
 - Multi-task emotion/component prediction from fMRI.
@@ -179,17 +246,56 @@ component, physiological, and context-sensitive targets.
 
 **Role in NetFeeliX**
 
-Affective Videos is a compact direct affect benchmark. It is not the main
-model-development dataset, but it is useful for quickly checking whether a
-pipeline can recover valence/arousal from naturalistic audiovisual fMRI.
+Affective Videos is shorthand for the OpenfMRI `ds000205` release of:
+
+```text
+Kim, Wang, Wedell, and Shinkareva (2016)
+"Identifying Core Affect in Individuals from fMRI Responses to Dynamic
+Naturalistic Audiovisual Stimuli"
+PLOS ONE
+```
+
+It is a compact direct affect benchmark. It is not the main model-development
+dataset, but it is useful for quickly checking whether a pipeline can recover
+valence/arousal from naturalistic audiovisual fMRI.
+
+The scientific question is narrow and useful: can fMRI patterns identify
+**core affect** (valence and arousal) evoked by short, dynamic, multimodal
+stimuli, beyond static-image emotion paradigms?
 
 **Dataset content**
 
 - 11 participants.
-- 5-second dynamic audiovisual clips.
+- 32 five-second dynamic audiovisual clips.
+- The 32 clips are organized into the four quadrants of the affective space:
+  high-arousal negative, low-arousal negative, low-arousal positive, and
+  high-arousal positive.
+- Each quadrant contains eight clips; semantic content is balanced across human,
+  animal, and inanimate topics.
+- Clips contain no speech or written language; some audio contains prosody.
+- Separate behavioral validation used 49 participants and recovered valence and
+  arousal from six ratings: excited, positive, calm, anxious, negative, and sad.
 - Passive viewing task in scanner.
 - Trial-level valence and arousal were analyzed from distributed fMRI patterns.
 - OpenfMRI accession: `ds000205`.
+
+**Benchmark-relevant acquisition details**
+
+- Usable fMRI subjects: 11.
+- Scanner: Siemens Magnetom Trio 3.0T, 12-channel head coil.
+- Functional sequence: single-shot EPI.
+- TR / TE: TR 2.2 s, TE 35 ms.
+- Functional geometry: 36 oblique-axial slices, 3 mm isotropic voxels,
+  interleaved order, no gap.
+- Main task: 32 clips, each 5 s, repeated four times for 128 trials.
+- Trial timing: 5 s audiovisual clip followed by 7 s fixation.
+- Main task runs: two scanning sessions with two runs per session.
+- Localizer: separate functional localizer with 273 acquired volumes.
+- Original analysis used percent signal change averaged over two volumes offset
+  4.4 s from stimulus onset to account for HRF delay.
+- First checks: exact main-run NIfTI volume counts, event files, whether to
+  reproduce the original two-volume HRF-offset PSC extraction or run a BFM
+  window sweep.
 
 **NetFeeliX task design**
 
@@ -215,10 +321,15 @@ pipeline can recover valence/arousal from naturalistic audiovisual fMRI.
 
 - Small subject count.
 - Short clips constrain temporal modeling.
+- The original task is a low-dimensional core-affect task, not a rich emotion
+  category or appraisal benchmark.
+- Some low-level visual motion differences were present across valence/arousal
+  conditions, so low-level stimulus controls matter.
 - Good for checking machinery, not for broad claims.
 
-**Source**
+**Sources**
 
+- Paper: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0161589
 - https://www.openfmri.org/dataset/ds000205/
 
 ### IAPS fMRI NeuroVault
@@ -239,6 +350,22 @@ negative conditions. It is not useful for temporal dynamics.
 - Each participant has beta images for positive, negative, and neutral
   conditions.
 - 53 participants completed STAI questionnaires.
+
+**Benchmark-relevant acquisition details**
+
+- Usable subjects in NeuroVault beta-map collection: 56.
+- Stimuli: 90 IAPS emotional scenes.
+- Task design: positive, neutral, and negative block design; each block has six
+  scenes from one valence class.
+- Timing: each scene 2.5 s; each emotional block 15 s; blocks alternate with
+  fixation.
+- Original acquisition: Philips Intera Achieva 3T, TR 2.5 s, TE 35 ms.
+- Available NetFeeliX input: condition beta maps, not native 4D time series.
+- Practical volume count: not applicable for the current NeuroVault entry; use
+  beta-map count instead, typically positive/neutral/negative maps per subject.
+- First checks: map list, subject coverage, MNI/native space, orientation,
+  condition naming, and whether beta-map adaptation is worth including in BFM
+  comparison.
 
 **NetFeeliX task design**
 
@@ -290,6 +417,24 @@ that NetFeeliX is not overfitting to Western stimulus sets.
   depressed, and excited.
 - Clips are 30 seconds with white-noise intervals.
 
+**Benchmark-relevant acquisition details**
+
+- Usable fMRI subjects: 40.
+- Scanner: Philips Ingenia 3T.
+- Task data: `task-fe_bold`.
+- Task TR / TE: TR 3.0 s, TE 35 ms.
+- Task geometry: 128 x 128 x 36 matrix, 1.8 x 1.8 x 4 mm voxels, 36 slices.
+- Task duration: 600 s emotion-elicitation run.
+- Task volume estimate: 600 s / 3.0 s = about 200 volumes; confirm exact NIfTI
+  shape before running.
+- Task design: ten 30 s emotion blocks alternating with ten 30 s white-noise
+  blocks.
+- Rest data: `task-rest_bold`, TR 2.02697 s, 96 x 96 x 38 matrix, 38 slices,
+  2.29 x 2.29 x 4 mm voxels.
+- First checks: exact volume count, event timing, whether white-noise periods
+  are baseline/negative examples or excluded, and whether rest is used only as a
+  secondary transfer/control branch.
+
 **NetFeeliX task design**
 
 - Multi-class emotion recognition.
@@ -334,6 +479,26 @@ but it should be treated as access-dependent until the data path is confirmed.
 - Reported target space includes many emotion categories, often cited around 80
   emotion labels.
 - More temporally extended than Horikawa short clips.
+
+**Benchmark-relevant acquisition details**
+
+- Usable fMRI subjects: 8 in the paper.
+- Scanner: 3T Siemens Trio TIM, 32-channel volume coil.
+- Functional sequence: multiband gradient-echo EPI.
+- TR / TE: TR 2.0 s, TE 30 ms.
+- Functional geometry: 96 x 96 matrix, 72 axial slices, 2 mm isotropic voxels,
+  multiband factor 3.
+- Sessions/runs: 3 separate sessions over 3 or 4 days; 6 movie-watching runs
+  per session, 18 runs total.
+- Run duration: 610 s per run.
+- Volume count: 610 s / 2 s = 305 volumes/run; 18 runs = 5,490
+  volumes/subject.
+- Stimuli: 135 audiovisual movie clips in the final paper; clips are 10-20 s
+  long, mean about 15 s.
+- Targets: 80 emotion categories rated at 1-second movie-scene resolution by
+  independent annotators.
+- First checks: data access, exact released file format, whether raw/processed
+  fMRI is obtainable, stimulus timing, and target resampling to TR/window level.
 
 **NetFeeliX task design**
 
@@ -674,46 +839,97 @@ but they should not replace direct fMRI emotion benchmarks.
 
 **Role in NetFeeliX**
 
-REELMO is valuable for long-context affect trajectories. It provides much richer
-movie-level affect reports than typical fMRI emotion datasets. Its fMRI subset
-could be useful, but the immediate value is also as a stimulus-side target
-source for context-aware models.
+REELMO (REal-time EmotionaL responses to MOvies) is a long-movie emotion
+trajectory dataset. It should be read as two related resources:
+
+1. a large behavioral/stimulus-side affect dataset covering 60 full-length
+   movies, and
+2. a much smaller direct fMRI subset for **one movie only**, Jojo Rabbit.
+
+So REELMO is not a 60-movie fMRI benchmark. For the first
+`Dataset x BFM x Task` matrix, its direct BFM benchmark role is the Jojo Rabbit
+fMRI subset. The 60-movie behavioral annotations are still very useful later as
+stimulus-side affect supervision, long-context target construction, and
+TRIBE/video/text control material.
 
 **Dataset content**
 
-- 1,060 hours of moment-by-moment affective reports.
-- 20 affective states.
-- 60 full-length movies.
-- 161 behavioral participants.
-- Additional personality traits, empathy, movie synopses, and overall liking.
-- fMRI subset: 20 volunteers watching Jojo Rabbit.
+- Scientific Data descriptor published in 2025.
+- 60 full-length movies across 18 genres.
+- 637 behavioral sessions.
+- 152 participants contributed real-time behavioral annotations; 161
+  participants are represented in the dataset overall.
+- 1,060 hours of behavioral acquisition.
+- More than 3.8 million moment-by-moment ratings at 1-second resolution.
+- 20 predefined emotion categories with three intensity levels.
+- Group-level affect trajectories for each movie.
+- Extra participant/stimulus information: PANAS mood, personality, empathy,
+  movie liking, participant movie synopses, movie metadata, subtitles, visual
+  features, acoustic features, and semantic features.
+- fMRI subset: 20 participants watched Jojo Rabbit in two 1-hour sessions.
+- fMRI data are 3T, BIDS-organized, with 3,087 brain volumes per participant
+  reported by the Figshare record.
+
+**Benchmark-relevant acquisition details**
+
+| Field | Behavioral REELMO | Jojo Rabbit fMRI subset |
+|---|---|---|
+| Usable subject/session count | 152 real-time behavioral annotators; 637 behavioral sessions; 161 participants in dataset overall | 20 fMRI participants |
+| Stimuli | 60 full-length movies across 18 genres | Jojo Rabbit only |
+| Emotion labels | 20 emotion categories; three intensity levels; multiple labels can co-occur | 20 emotion categories from scene-review reports; group-level behavioral Jojo Rabbit annotations also available from 47 participants |
+| Temporal resolution | real-time collection at 10 Hz, stored/downsampled as 1-second affect trajectories | fMRI TR = 2.0 s |
+| Runs / sessions | movies split into 20-30 minute runs for behavioral sessions | 8 movie runs across two 1-hour scanning sessions |
+| Volumes / timepoints | not fMRI | 3,087 timepoints per participant |
+| Approximate scan length | not fMRI | about 103 minutes of functional time per participant from 3,087 x 2 s; full experiment about 3 hours including anatomy/breaks/reports |
+| Scanner / sequence | not fMRI | Philips 3T Ingenia, 32-channel head coil, GRE-EPI |
+| Functional image geometry | not fMRI | 80 x 80 in-plane, 39 slices, 3 x 3 x 3 mm voxels, full brain including cerebellum |
+| Other acquisition parameters | not fMRI | TE 30 ms, flip angle 75 degrees, FOV 240 mm, alternating +z slice order |
+| Anatomical scans | not fMRI | T1w per scanning session; T2w/FLAIR for all except sub-03 |
+| Data organization | movie-wise behavioral/stimulus feature files | BIDS-organized neuroimaging data |
+
+Use these fields when deciding whether a REELMO cell can run. The first checks
+are download/access, BIDS path structure, per-run timing files, whether dummy
+volumes/8-second overlaps are already handled in derivatives, and alignment
+between Jojo Rabbit fMRI timepoints and the 20-category affect trajectory.
 
 **NetFeeliX task design**
 
-- Long-context affect trajectory prediction from movie features.
-- MLLM/rationale/cue target generation and validation.
-- Test whether short context vs long context improves affect prediction.
-- If fMRI subset is accessible, compare context-aware stimulus latents to fMRI
-  latents.
+- First BFM-compatible use: Jojo Rabbit fMRI -> group-level/retrospective
+  affect trajectory prediction, with careful temporal alignment.
+- Dynamic/binning task: aggregate fMRI windows and predict 20-category affect
+  bins or lower-dimensional valence/arousal reductions derived from the emotion
+  traces.
+- Encoding-style validation: test whether behavioral group affect trajectories
+  explain Jojo Rabbit fMRI activity in emotion/social-cognition regions.
+- Later stimulus-only branch: predict REELMO affect trajectories from video,
+  audio, subtitles, and long-context movie features.
+- Later reasoning branch: use REELMO trajectories and synopses as a target
+  source for cue/rationale/caption generation and validation.
 
 **SwiFT use**
 
-- Only use the fMRI subset if access and format are practical.
-- More likely to be a target/source for context-aware stimulus supervision than
-  a core SwiFT fine-tuning dataset.
+- Use only the Jojo Rabbit fMRI subset for direct SwiFT/BFM evaluation.
+- Treat it as a P2 dynamic benchmark because it is one movie and 20 subjects,
+  not a broad dataset like Horikawa or Emo-FilM.
+- Do not describe the 60-movie behavioral part as fMRI data.
 
 **TRIBE v2 / stimulus use**
 
-- Strong fit for movie-level video/audio/text embeddings.
+- Strong fit for movie-level video/audio/text embeddings after the first BFM
+  benchmark.
 - Can provide stimulus-side affect trajectories that later align with fMRI
-  latents in Emo-FilM or HCP.
+  latents in Jojo Rabbit, Emo-FilM, HCP, or other movie-fMRI data.
 
 **Risks**
 
-- fMRI subset is much smaller than the behavioral dataset.
-- Movie copyright/access issues may complicate feature extraction.
-- Behavioral affect trajectories are not equivalent to subject-specific fMRI
-  emotion experience.
+- fMRI coverage is limited to Jojo Rabbit; the 60-movie behavioral scale does
+  not translate into 60-movie fMRI scale.
+- The fMRI emotion targets may need careful alignment because fMRI participants
+  reported feelings retrospectively during scene review, while the large
+  behavioral cohort provided real-time annotations.
+- Movie copyright/access can complicate fresh visual/audio feature extraction.
+- Behavioral group affect trajectories are not equivalent to subject-specific
+  neural emotion experience.
 
 **Sources**
 

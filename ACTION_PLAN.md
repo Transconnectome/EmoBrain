@@ -6,9 +6,9 @@
 
 ## 0. 핵심 원칙
 
-NetFeeliX의 목표는 SwiFT를 무조건 살리는 것이 아닙니다. 목표는
-**emotion/affect를 잘 예측하고 설명하는 brain/stimulus representation을 찾는
-것**입니다.
+NetFeeliX의 목표는 SwiFT를 무조건 살리는 것도, benchmark table 하나를 만드는
+것도 아닙니다. 목표는 **emotion representation을 잘 담아내는
+emotion-specific brain foundation model / brain model을 개발하는 것**입니다.
 
 따라서 운영 원칙은 다음입니다.
 
@@ -17,12 +17,14 @@ NetFeeliX의 목표는 SwiFT를 무조건 살리는 것이 아닙니다. 목표�
 3. Horikawa/Cowen 기준은 `2185` stimuli다.
 4. 모든 모델은 같은 target, split, metric에서 비교한다.
 5. prediction 성능뿐 아니라 어떤 neural representation이 중요한지도 본다.
-6. 먼저 Brain Foundation Model benchmark를 정리하고, 그 다음에 stimulus-only나
-   multimodal branch로 확장한다.
+6. 먼저 Brain Foundation Model benchmark를 넓게 돌려 search space를 줄이고,
+   그 다음에 pretraining/adaptation branch와 multimodal framework branch를
+   실험한다.
 
 ## 0.5 Benchmark-first 운영 방식
 
-NetFeeliX는 먼저 benchmark에 실제로 올라갈 항목만 깔끔하게 정렬합니다.
+NetFeeliX는 먼저 benchmark에 실제로 올라갈 항목만 깔끔하게 정렬합니다. 이 단계는
+최종 목적이 아니라, 이후 큰 model-development search를 위한 empirical gate입니다.
 전체 benchmark 공간은 다음 3축입니다.
 
 ```text
@@ -42,6 +44,19 @@ Dataset x BFM x Task
 - adapter, fine-tuning, modality fusion, pretraining objective는 Model axis가
   아니라 benchmark 이후 선택할 strategy다.
 
+### 세부 설명 위치
+
+`ACTION_PLAN.md`는 실행 순서만 담습니다. Dataset/model/task의 자세한 설명은
+아래 문서가 canonical source입니다.
+
+| 항목 | 자세한 설명 |
+|---|---|
+| Dataset 특징, target, risk, source | `reference/datasets.md` |
+| BFM/model 특징, input, risk, source | `reference/code_resources.md`, `reference/papers.md` |
+| Task 정의와 metric | `reference/task.md` |
+| 전체 master matrix | `notes/benchmark_design.md` |
+| benchmark 이후 training/adaptation 전략 | `reference/training_strategy.md` |
+
 ### Dataset axis
 
 | Tier | Dataset | 첫 역할 |
@@ -49,7 +64,7 @@ Dataset x BFM x Task
 | P0 | Horikawa/Cowen | high-dimensional affect geometry, valence/arousal sanity |
 | P0/P1 | Emo-FilM | naturalistic component/appraisal downstream |
 | P1 | Affective Videos, IAPS fMRI | fast valence/arousal/category sanity |
-| P2 | NeuroEmo, Koide-Majima, REELMO fMRI subset | expansion/transfer benchmark |
+| P2 | NeuroEmo, Koide-Majima, REELMO / Jojo Rabbit fMRI | expansion/transfer benchmark |
 
 ### Model axis
 
@@ -95,6 +110,11 @@ Dataset x BFM x Task
 2. 각 조합마다 target, split, metric, statistical floor, BFM score를 채운다.
 3. statistical floor보다 약한 BFM은 tuning 전에 window, pooling, split을 먼저 점검한다.
 4. SwiFT가 다른 BFM보다 좋으면 SwiFT adaptation branch를 유지한다.
+5. frozen/generic BFM이 부족하면 task-fMRI/movie-fMRI pretraining, loss term,
+   adapter/fine-tuning strategy를 실험한다.
+6. brain-only 결과만으로 emotion representation이 부족하거나 stimulus shortcut
+   통제가 필요하면 multimodal framework branch로 간다: TRIBE-like alignment,
+   video/audio/text feature injection, late fusion, joint latent를 비교한다.
 5. 다른 BFM이 SwiFT보다 좋으면 SwiFT-first 가정을 축소한다.
 6. high-dimensional/component task에서 이기는 BFM을 main branch 후보로 올린다.
 7. BFM benchmark 이후에야 stimulus-only, modality 추가, TRIBE alignment를 control/extension으로 진행한다.
@@ -159,7 +179,7 @@ python3 setup/code/build_horikawa_window_manifest.py
 | StudyForrest | long-movie continuity | film timing, preprocessing, subject count |
 | Narratives | language/story context | transcript timing, fMRI format |
 | 101 Dalmatians | modality control | visual-only/audio-only/audiovisual condition |
-| NeuroEmo / REELMO / Koide-Majima | emotion-labeled expansion | access, target type, fMRI availability |
+| NeuroEmo / REELMO / Koide-Majima | emotion-labeled expansion | access, target type, REELMO Jojo Rabbit-only fMRI availability |
 
 ## 3. Target 설계
 
