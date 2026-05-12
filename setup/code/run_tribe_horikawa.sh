@@ -1,14 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
-ROOT=/pscratch/sd/s/sjmoon/NetFeeliX
+ROOT=/pscratch/sd/s/sjmoon/FEELIN
 PYTHON=/pscratch/sd/s/sjmoon/tribev2/.venv/bin/python
 
 mkdir -p "${ROOT}/setup/logs"
 mkdir -p "${ROOT}/setup/results/tribe_horikawa"
 mkdir -p "${ROOT}/setup/results/tribe_cache"
 
-export MPLCONFIGDIR=/tmp/matplotlib-netfeelix
+export MPLCONFIGDIR=/tmp/matplotlib-feelin
 
 cd "${ROOT}"
 

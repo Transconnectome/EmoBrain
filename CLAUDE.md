@@ -1,6 +1,6 @@
-# NetFeeliX Claude Instructions
+# FEELIN Claude Instructions
 
-Read `CONTEXT_NETFEELIX.md` first. It is the compact project memory and should
+Read `CONTEXT_FEELIN.md` first. It is the compact project memory and should
 not be duplicated here.
 
 ## Operating Rules
@@ -26,7 +26,7 @@ not be duplicated here.
 
 ## Scientific Rules
 
-- NetFeeliX is model-development, not emotion theory.
+- FEELIN is model-development, not emotion theory.
 - The first benchmark deliverable is a `Dataset x BFM x Task` master matrix.
 - Current benchmark models are brain foundation models: SwiFT, Brain-JEPA,
   NeuroSTORM, and BrainLM.
@@ -44,7 +44,7 @@ not be duplicated here.
 
 | Need | Use |
 |---|---|
-| Compact project memory | `CONTEXT_NETFEELIX.md` |
+| Compact project memory | `CONTEXT_FEELIN.md` |
 | Current execution plan | `ACTION_PLAN.md` |
 | Dataset x BFM x Task master matrix | `notes/benchmark_design.md` |
 | Dataset details | `reference/datasets.md` |

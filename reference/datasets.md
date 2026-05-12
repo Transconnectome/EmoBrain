@@ -1,6 +1,6 @@
-# NetFeeliX Dataset Inventory
+# FEELIN Dataset Inventory
 
-This is the canonical dataset document for NetFeeliX. Datasets are grouped by
+This is the canonical dataset document for FEELIN. Datasets are grouped by
 their **experimental function**, not by an abstract priority ranking. The
 central question is always:
 
@@ -18,7 +18,7 @@ The practical distinction is:
 
 ## Dataset Function Map
 
-| Function | Dataset | Direct fMRI? | Direct emotion/affect target? | Primary NetFeeliX use |
+| Function | Dataset | Direct fMRI? | Direct emotion/affect target? | Primary FEELIN use |
 |---|---|---:|---:|---|
 | Emotion-labeled fMRI | Horikawa/Cowen emotional videos | yes | yes | high-dimensional affect geometry from brain activity |
 | Emotion-labeled fMRI | Emo-FilM | yes | yes | naturalistic emotion/appraisal/component prediction |
@@ -26,12 +26,12 @@ The practical distinction is:
 | Emotion-labeled fMRI | IAPS fMRI NeuroVault | beta maps | yes | image-valence category adaptation test |
 | Emotion-labeled fMRI | NeuroEmo | yes | yes | cross-cultural emotion recognition from Bollywood clips |
 | Emotion-labeled fMRI | Koide-Majima/Nishimoto | yes | yes | secondary high-dimensional emotional movie benchmark if accessible |
+| Emotion-labeled fMRI | REELMO | yes | yes | dynamic affect fMRI; participants watched Jojo Rabbit; later stimulus-side trajectory source |
 | Movie/story fMRI pretraining | HCP Young Adult 7T movie | yes | no | large-subject continued pretraining of SwiFT on stimulus-locked fMRI |
 | Movie-watching fMRI pretraining | CNeuroMod / Algonauts 2025 | yes | no | multimodal movie encoding, TRIBE-style alignment engineering |
 | Movie-watching fMRI pretraining | StudyForrest | yes | no | long film continuity and audiovisual narrative transfer |
 | Story-listening fMRI pretraining | Narratives | yes | no | language/narrative context alignment without visual input |
 | Movie-watching fMRI pretraining | 101 Dalmatians | yes | no | modality-control transfer across audiovisual/auditory/visual movie conditions |
-| Context and affect trajectory | REELMO | yes, Jojo Rabbit only | yes | long-context affect trajectories; Jojo Rabbit emotion-fMRI sanity check |
 | Static-image fMRI transfer | NSD | yes | no | large static-image fMRI representation with affective pseudo-labels |
 | Stimulus affect labels | OASIS | no | yes | open image valence/arousal labels for NSD/image-model calibration |
 | Visual-event auxiliary | BOLD Moments | yes | not primary | short-video visual event representation and stimulus-to-fMRI encoding |
@@ -49,7 +49,7 @@ These are the datasets that appear in the first `Dataset x BFM x Task` matrix.
 | IAPS fMRI | static emotional image fMRI beta-map resource | 56 participants, positive/neutral/negative IAPS blocks | valence category and binary contrasts | positive/neutral/negative classification | beta maps are not native 4D time series |
 | NeuroEmo | emotional Bollywood clip fMRI in BIDS format | 40 participants, 5 emotion classes | discrete emotion/category, possible dimensional reductions | multiclass emotion benchmark | event/stimulus availability and cultural label mapping |
 | Koide-Majima/Nishimoto | emotional audiovisual movie fMRI with high-dimensional ratings | access-dependent; reported high-dimensional emotion labels | 80-label or high-dimensional emotion space | secondary high-dimensional benchmark | access and timing/label preprocessing |
-| REELMO / Jojo Rabbit fMRI | 60 full-length movie affect-report dataset plus one-movie fMRI subset | behavioral: 161 participants / 60 movies; fMRI: 20 participants / Jojo Rabbit; TR 2 s; 3,087 volumes/participant | 20-category moment-by-moment affect trajectories, stimulus features, Jojo Rabbit BIDS fMRI | dynamic/binning on Jojo Rabbit fMRI after download | fMRI is only one movie; movie copyright and timing alignment |
+| REELMO | naturalistic movie fMRI with affect annotations | 20 fMRI participants watched Jojo Rabbit; TR 2 s; 3,087 volumes/participant | 20-category affect trajectory aligned to BIDS fMRI | dynamic/binning after download | timing/affect alignment |
 
 ## Benchmark Acquisition Quick Reference
 
@@ -65,11 +65,11 @@ what must be checked before a BFM cell is marked runnable.
 | IAPS fMRI NeuroVault | 56 | 90 IAPS scenes; positive/neutral/negative block design | 2.5 s in original acquisition | NeuroVault entry exposes condition beta maps, not native 4D time series; 3 beta maps/subject | beta-map adaptation, not native 4D BFM input | confirm map count, participant list, beta-map orientation/space, whether raw 4D data are needed |
 | NeuroEmo ds005700 | 40 | 10 min emotion-elicitation run: 30 s emotion clips alternating with 30 s white-noise blocks; resting-state also available | task 3.0 s; rest 2.02697 s | task-fe run is 600 s, about 200 volumes; rest volume count should be checked from NIfTI | raw BIDS fMRI | confirm task-fe volume count, event timing, label mapping, rest-vs-task usage |
 | Koide-Majima/Nishimoto | 8 | 135 emotion-inducing audiovisual movie clips; 18 runs across 3 sessions | 2.0 s | 18 runs x 610 s = 5,490 volumes/subject | access-dependent; not yet local | confirm access, exact files, stimulus timing, 80-label annotation format |
-| REELMO / Jojo Rabbit fMRI | 20 | Jojo Rabbit only for fMRI; 8 runs across two 1-hour sessions | 2.0 s | 3,087 timepoints/participant, about 103 min functional time | BIDS fMRI plus behavioral/stimulus files | confirm download/access, 8-run timing, dummy/8 s overlap handling, 20-category trajectory alignment |
+| REELMO | 20 | participants watched Jojo Rabbit; 8 runs across two 1-hour sessions | 2.0 s | 3,087 timepoints/participant, about 103 min functional time | BIDS fMRI plus Jojo Rabbit affect trajectory | confirm download/access, 8-run timing, dummy/8 s overlap handling, 20-category trajectory alignment |
 
 ## Immediate Dataset Logic
 
-NetFeeliX should not choose datasets by popularity. It should choose datasets by
+FEELIN should not choose datasets by popularity. It should choose datasets by
 which model question they answer.
 
 | Model question | Best dataset(s) | Reason |
@@ -89,7 +89,7 @@ stimulus or trial has an emotion/affect target.
 
 ### Horikawa / Cowen Emotional Video fMRI
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 Horikawa is the core **high-dimensional affect geometry** dataset. It should not
 be framed as a reasoning dataset. Its value is that emotion labels are richer
@@ -121,7 +121,7 @@ naturalistic videos.
 - First checks: BIDS path, exact run volumes, event timing, video duration,
   HRF-delay policy, and whether all 2,185 stimulus targets are covered.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Primary task: predict high-dimensional emotion vectors from fMRI.
 - Secondary task: compare category/vector prediction against valence/arousal
@@ -162,11 +162,11 @@ naturalistic videos.
 
 ### Emo-FilM
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 Emo-FilM is the strongest current fit for **naturalistic emotion dynamics**. It
 contains fMRI, physiology, and detailed annotations during short film viewing.
-This is where NetFeeliX can move beyond category prediction toward appraisal,
+This is where FEELIN can move beyond category prediction toward appraisal,
 component, physiological, and context-sensitive targets.
 
 **Dataset content**
@@ -201,7 +201,7 @@ component, physiological, and context-sensitive targets.
   stimulus onset/offset files, physiological files, annotation smoothing and
   downsampling to TR/window level.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Multi-task emotion/component prediction from fMRI.
 - Arousal/valence-like reduced targets for sanity checks.
@@ -244,7 +244,7 @@ component, physiological, and context-sensitive targets.
 
 ### Affective Videos / OpenfMRI ds000205
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 Affective Videos is shorthand for the OpenfMRI `ds000205` release of:
 
@@ -297,7 +297,7 @@ stimuli, beyond static-image emotion paradigms?
   reproduce the original two-volume HRF-offset PSC extraction or run a BFM
   window sweep.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Arousal regression/classification.
 - Valence regression/classification.
@@ -334,7 +334,7 @@ stimuli, beyond static-image emotion paradigms?
 
 ### IAPS fMRI NeuroVault
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 IAPS fMRI is a fast **static image valence-category** test. It is useful because
 it gives preprocessed single-subject beta maps for positive, neutral, and
@@ -360,14 +360,14 @@ negative conditions. It is not useful for temporal dynamics.
 - Timing: each scene 2.5 s; each emotional block 15 s; blocks alternate with
   fixation.
 - Original acquisition: Philips Intera Achieva 3T, TR 2.5 s, TE 35 ms.
-- Available NetFeeliX input: condition beta maps, not native 4D time series.
+- Available FEELIN input: condition beta maps, not native 4D time series.
 - Practical volume count: not applicable for the current NeuroVault entry; use
   beta-map count instead, typically positive/neutral/negative maps per subject.
 - First checks: map list, subject coverage, MNI/native space, orientation,
   condition naming, and whether beta-map adaptation is worth including in BFM
   comparison.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Positive vs neutral vs negative classification from beta maps.
 - Pairwise contrasts: negative-neutral, positive-neutral, positive-negative.
@@ -402,11 +402,11 @@ negative conditions. It is not useful for temporal dynamics.
 
 ### NeuroEmo / OpenNeuro ds005700
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 NeuroEmo is a cross-cultural emotion-recognition dataset using Indian Bollywood
 movie clips. It is useful as a downstream generalization test and as a check
-that NetFeeliX is not overfitting to Western stimulus sets.
+that FEELIN is not overfitting to Western stimulus sets.
 
 **Dataset content**
 
@@ -435,7 +435,7 @@ that NetFeeliX is not overfitting to Western stimulus sets.
   are baseline/negative examples or excluded, and whether rest is used only as a
   secondary transfer/control branch.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Multi-class emotion recognition.
 - Rest-to-task transfer: compare resting-state SwiFT features with task fMRI
@@ -468,7 +468,7 @@ that NetFeeliX is not overfitting to Western stimulus sets.
 
 ### Koide-Majima / Nishimoto Emotional Movie fMRI
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 This is a strong secondary candidate for high-dimensional emotional movie fMRI,
 but it should be treated as access-dependent until the data path is confirmed.
@@ -500,7 +500,7 @@ but it should be treated as access-dependent until the data path is confirmed.
 - First checks: data access, exact released file format, whether raw/processed
   fMRI is obtainable, stimulus timing, and target resampling to TR/window level.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - High-dimensional emotional movie decoding.
 - Compare short-video affect geometry from Horikawa with longer movie dynamics.
@@ -564,7 +564,7 @@ Sources for the additional naturalistic candidates:
 
 ### HCP Young Adult 7T Movie Watching
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 HCP 7T movie is the first **continued pretraining** candidate for SwiFT, not
 because it is an emotion dataset, but because it is a standardized large-subject
@@ -580,7 +580,7 @@ emotion targets.
 - Movie-watching runs are part of the 7T protocol.
 - High-resolution 7T fMRI with naturalistic movie excerpts.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Masked fMRI segment modeling.
 - Temporal contrastive learning.
@@ -628,7 +628,7 @@ emotion targets.
 
 ### CNeuroMod / Algonauts 2025
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 CNeuroMod and Algonauts 2025 are not emotion datasets, but they are highly
 relevant for **stimulus-to-brain encoding and multimodal alignment**. They are
@@ -644,7 +644,7 @@ the most practical reference for TRIBE-style engineering.
 - Training distribution includes Friends seasons 1-6 and Movie10-style stimuli;
   evaluation includes held-out Friends and OOD movies.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Stimulus-to-fMRI encoding benchmark.
 - TRIBE v2 reproduction/reference comparison.
@@ -678,10 +678,10 @@ the most practical reference for TRIBE-style engineering.
 
 ### StudyForrest
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 StudyForrest is a naturalistic film dataset family centered on Forrest Gump. It
-is useful when NetFeeliX needs to test whether coherent long-film structure
+is useful when FEELIN needs to test whether coherent long-film structure
 helps fMRI temporal representation beyond short emotional clips. It should be
 treated as a secondary naturalistic pretraining/alignment source after the core
 HCP/Horikawa/Emo-FilM path is running.
@@ -697,7 +697,7 @@ HCP/Horikawa/Emo-FilM path is running.
 - Exact modality, preprocessing level, and stimulus access depend on the
   specific studyforrest release being used.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Long-window vs short-window representation learning.
 - JEPA/future-latent objective over coherent story segments.
@@ -740,7 +740,7 @@ HCP/Horikawa/Emo-FilM path is running.
 
 ### Narratives
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 Narratives is not a movie-vision dataset and not an emotion dataset. Its value
 is isolating language and story context. It can test whether affective context
@@ -756,7 +756,7 @@ can regularize fMRI representations.
   transcripts.
 - OpenNeuro entry: `ds002345`.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Auxiliary context representation learning.
 - Align fMRI windows with transcript/LLM embeddings.
@@ -794,7 +794,7 @@ can regularize fMRI representations.
 
 ### 101 Dalmatians
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 101 Dalmatians is useful for multimodal movie generalization and modality
 control, especially if we want to test how visual-only, auditory-only, and
@@ -806,7 +806,7 @@ audiovisual conditions affect fMRI representations.
 - Includes audiovisual, auditory, and visual conditions.
 - Naturalistic movie structure is useful for multimodal encoding questions.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Modality ablation for movie fMRI.
 - Test whether SwiFT representations differ by sensory access.
@@ -837,20 +837,16 @@ but they should not replace direct fMRI emotion benchmarks.
 
 ### REELMO
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
-REELMO (REal-time EmotionaL responses to MOvies) is a long-movie emotion
-trajectory dataset. It should be read as two related resources:
+REELMO (REal-time EmotionaL responses to MOvies) is used in the first benchmark
+through its fMRI experiment: 20 participants watched **Jojo Rabbit** while fMRI
+was recorded. This gives a one-movie dynamic affect benchmark with BIDS fMRI and
+20-category affect trajectories.
 
-1. a large behavioral/stimulus-side affect dataset covering 60 full-length
-   movies, and
-2. a much smaller direct fMRI subset for **one movie only**, Jojo Rabbit.
-
-So REELMO is not a 60-movie fMRI benchmark. For the first
-`Dataset x BFM x Task` matrix, its direct BFM benchmark role is the Jojo Rabbit
-fMRI subset. The 60-movie behavioral annotations are still very useful later as
-stimulus-side affect supervision, long-context target construction, and
-TRIBE/video/text control material.
+REELMO also provides broader movie affect annotations that are useful later for
+stimulus-side supervision, long-context target construction, and TRIBE/video/text
+control material.
 
 **Dataset content**
 
@@ -887,12 +883,13 @@ TRIBE/video/text control material.
 | Anatomical scans | not fMRI | T1w per scanning session; T2w/FLAIR for all except sub-03 |
 | Data organization | movie-wise behavioral/stimulus feature files | BIDS-organized neuroimaging data |
 
-Use these fields when deciding whether a REELMO cell can run. The first checks
-are download/access, BIDS path structure, per-run timing files, whether dummy
-volumes/8-second overlaps are already handled in derivatives, and alignment
-between Jojo Rabbit fMRI timepoints and the 20-category affect trajectory.
+Use these fields when deciding whether the **REELMO** benchmark cell can run.
+The first checks are download/access, BIDS path structure, per-run timing files,
+whether dummy volumes/8-second overlaps are already handled in derivatives, and
+alignment between Jojo Rabbit fMRI timepoints and the 20-category affect
+trajectory.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - First BFM-compatible use: Jojo Rabbit fMRI -> group-level/retrospective
   affect trajectory prediction, with careful temporal alignment.
@@ -911,7 +908,7 @@ between Jojo Rabbit fMRI timepoints and the 20-category affect trajectory.
 - Use only the Jojo Rabbit fMRI subset for direct SwiFT/BFM evaluation.
 - Treat it as a P2 dynamic benchmark because it is one movie and 20 subjects,
   not a broad dataset like Horikawa or Emo-FilM.
-- Do not describe the 60-movie behavioral part as fMRI data.
+- Use the Jojo Rabbit fMRI experiment as the direct BFM benchmark item.
 
 **TRIBE v2 / stimulus use**
 
@@ -922,8 +919,7 @@ between Jojo Rabbit fMRI timepoints and the 20-category affect trajectory.
 
 **Risks**
 
-- fMRI coverage is limited to Jojo Rabbit; the 60-movie behavioral scale does
-  not translate into 60-movie fMRI scale.
+- fMRI coverage is limited to Jojo Rabbit.
 - The fMRI emotion targets may need careful alignment because fMRI participants
   reported feelings retrospectively during scene review, while the large
   behavioral cohort provided real-time annotations.
@@ -938,9 +934,9 @@ between Jojo Rabbit fMRI timepoints and the 20-category affect trajectory.
 
 ### Spacetop
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
-Spacetop is a broad multimodal fMRI dataset. Its value for NetFeeliX is not
+Spacetop is a broad multimodal fMRI dataset. Its value for FEELIN is not
 first-pass emotion decoding, but physiology-aware and interoceptive/affective
 model expansion.
 
@@ -953,7 +949,7 @@ model expansion.
 - Naturalistic video task includes ratings across affective domains such as
   happy, sad, afraid, disgusted, warm/tender, engaged, and personal relevance.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Physiology-aware representation learning.
 - Cross-task transfer between movie, social affect, pain/interoception, and
@@ -973,7 +969,7 @@ model expansion.
 **Risks**
 
 - Very broad scope.
-- Can easily distract from the main two-month NetFeeliX goal.
+- Can easily distract from the main two-month FEELIN goal.
 - Target harmonization is nontrivial.
 
 **Source**
@@ -987,10 +983,10 @@ image affect transfer becomes strategically important.
 
 ### Natural Scenes Dataset
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 NSD is not an emotion dataset. Its value is scale: it is a large, high-quality
-7T fMRI dataset for natural image perception. NetFeeliX can use it for
+7T fMRI dataset for natural image perception. FEELIN can use it for
 static-image brain representation learning and then attach affective pseudo-
 targets from OASIS, CLIP/VLM affect scoring, or image emotion models.
 
@@ -1005,7 +1001,7 @@ targets from OASIS, CLIP/VLM affect scoring, or image emotion models.
 - Additional resting-state, retinotopy, localizer, anatomical, physiological,
   eye-tracking, and behavioral data.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Static-image fMRI representation learning.
 - Image affect pseudo-label prediction.
@@ -1037,7 +1033,7 @@ targets from OASIS, CLIP/VLM affect scoring, or image emotion models.
 
 ### OASIS
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 OASIS is not an fMRI dataset. It is an open affective image stimulus set that
 can calibrate or validate image affect labels for NSD-like static image work.
@@ -1050,7 +1046,7 @@ can calibrate or validate image affect labels for NSD-like static image work.
 - Images cover humans, animals, objects, and scenes.
 - Useful because it avoids some copyright restrictions associated with IAPS.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Calibrate image affect scoring models.
 - Create affect pseudo-labels for NSD images or other image fMRI datasets.
@@ -1077,7 +1073,7 @@ can calibrate or validate image affect labels for NSD-like static image work.
 
 ### BOLD Moments
 
-**Role in NetFeeliX**
+**Role in FEELIN**
 
 BOLD Moments is useful for dynamic visual-event representation, not primary
 emotion learning. It can help test short-video fMRI encoding and stimulus
@@ -1089,7 +1085,7 @@ feature extraction.
 - 1,102 naturalistic 3-second videos.
 - Videos include object, scene, action, sentence, and memorability annotations.
 
-**NetFeeliX task design**
+**FEELIN task design**
 
 - Short-video stimulus-to-fMRI encoding.
 - Compare event/action semantics with affective labels in Horikawa.

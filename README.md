@@ -1,6 +1,6 @@
-# NetFeeliX
+# FEELIN
 
-**Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX**
+**Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data**
 
 > Building an emotion-specific brain foundation model through benchmark-driven search.
 
@@ -8,7 +8,7 @@ Korean guide: [`README_KR.md`](README_KR.md)
 Research overview: [`research_overview.md`](research_overview.md)
 Action plan: [`ACTION_PLAN.md`](ACTION_PLAN.md)
 
-NetFeeliX is an attempt to build a brain model that captures emotion
+FEELIN is an attempt to build a brain model that captures emotion
 representations: not just "predict an emotion label," but learn fMRI
 representations that track affect, appraisal, context, and multimodal
 naturalistic experience.
@@ -30,33 +30,23 @@ Emotion representation is unlikely to be solved by attaching a small emotion
 head to a generic resting-state brain foundation model. Emotion during
 naturalistic experience depends on the interaction between multimodal stimulus
 dynamics, subject-specific brain dynamics, task context, and affective labels
-or ratings. NetFeeliX therefore treats emotion representation learning as a
+or ratings. FEELIN therefore treats emotion representation learning as a
 brain-model search problem over:
 
 ```text
 brain foundation model + task/movie fMRI learning signal + multimodal stimulus context + emotion targets
 ```
 
-The project is **SwiFT-first but not SwiFT-locked**. The immediate benchmark
-compares emotion-fMRI datasets, brain foundation models, and emotion tasks:
+FEELIN starts with a broad benchmark because the field does not yet tell us
+which combination of dataset, brain model, target, temporal window, or control
+actually exposes emotion-relevant neural structure. The benchmark is therefore
+a map-making step: run the basic experiments, identify stable signal and failure
+modes, then choose the next modeling direction.
 
-```text
-Emotion fMRI Dataset x Brain Foundation Model x Emotion Task
-```
-
-The current BFM axis is:
-
-- SwiFT,
-- Brain-JEPA,
-- NeuroSTORM,
-- BrainLM.
-
-For model details, input formats, first checks, risks, and source links, see
-`reference/code_resources.md` and `reference/papers.md`.
-
-Logistic/ridge/ROI/voxel models are statistical floors, not the main Model
-Axis. Video/audio/text stimulus-only models, TRIBE v2, multimodal fusion, and
-movie/story pretraining are later branches.
+The concrete benchmark axes, current model list, dataset details, task
+definitions, and statistical floors live in `notes/benchmark_design.md`,
+`reference/datasets.md`, `reference/code_resources.md`, and `reference/task.md`.
+The README stays at the project-thesis level.
 
 After the benchmark, the roadmap splits into two major search tracks:
 
@@ -112,7 +102,7 @@ alignment.
 across BFM and dataset cells before building a larger model around it.
 
 **H4. Task/movie fMRI pretraining is a central candidate.** If frozen BFMs are
-weak or narrow, NetFeeliX should test whether task-related or naturalistic movie
+weak or narrow, FEELIN should test whether task-related or naturalistic movie
 fMRI objectives create more emotion-sensitive brain representations.
 
 **H5. Multimodal context may be necessary but must be controlled.** Video,
@@ -121,7 +111,7 @@ shortcuts must be measured before claiming brain-specific emotion modeling.
 
 ## Key Model Families
 
-| Family | Examples | Input | Role in NetFeeliX |
+| Family | Examples | Input | Role in FEELIN |
 |---|---|---|---|
 | Current BFM benchmark | SwiFT | fMRI volumes | Primary BFM |
 | Current BFM benchmark | Brain-JEPA | fMRI or ROI time series | Alternative BFM |
@@ -143,7 +133,7 @@ shortcuts must be measured before claiming brain-specific emotion modeling.
 2. **Dataset and target readiness**
    - Build canonical Horikawa 2185-stimulus manifest.
    - Confirm Emo-FilM, Affective Videos, IAPS fMRI, NeuroEmo, Koide-Majima, and
-     REELMO / Jojo Rabbit fMRI where usable.
+     REELMO where usable.
    - Define target matrices, splits, metrics, and statistical floors.
    - For dataset content, targets, risks, and source links, see
      `reference/datasets.md`.
@@ -180,12 +170,12 @@ The README is only the entry point. Details live in these files:
 ## Repository Structure
 
 ```text
-NetFeeliX/
+FEELIN/
 ├── README.md
 ├── README_KR.md
 ├── ACTION_PLAN.md
 ├── ONBOARDING.md
-├── CONTEXT_NETFEELIX.md
+├── CONTEXT_FEELIN.md
 ├── CLAUDE.md
 ├── CODEX.md
 ├── Paper/
@@ -243,7 +233,7 @@ NetFeeliX/
 ## Current Planning Documents
 
 - `ONBOARDING.md`: first-read guide for new collaborators and AI agents.
-- `CONTEXT_NETFEELIX.md`: compact single source of truth for project framing.
+- `CONTEXT_FEELIN.md`: compact single source of truth for project framing.
 - `ACTION_PLAN.md`: current execution plan and phase-level next actions.
 - `Paper/framework_EN.md` and `Paper/framework_KR.md`: canonical project framework, narrative, and proposal-level framing.
 - `Paper/methodology.md`: detailed experimental plan.

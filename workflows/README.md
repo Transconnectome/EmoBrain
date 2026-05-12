@@ -1,6 +1,6 @@
-# NetFeeliX Research Operating Workflows
+# FEELIN Research Operating Workflows
 
-This folder defines how NetFeeliX should run as an AI-assisted research
+This folder defines how FEELIN should run as an AI-assisted research
 project. These workflows are not extra narrative documents; they are operating
 protocols.
 

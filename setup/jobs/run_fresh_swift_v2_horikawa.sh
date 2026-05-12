@@ -19,12 +19,12 @@ python project/main_embedding_extraction.py \
   --loggername neptune --classifier_module v6 --dataset_name Horikawa --image_path ${IMAGE_PATH} --num_workers 8 \
   --project_name seokjin14/SwiFT-EMBEDDING \
   --c_multiplier 2 --last_layer_full_MSA True --clf_head_version v1 --downstream_task arousal --train_split 0.7 --val_split 0.15 --grad_clip --use_scheduler --gamma 0.5 --cycle 0.5 --use_MuTransfer \
-  --extract_embeddings --test_only --test_ckpt_path ${CKPT_PATH} --load_ds_ckpt_manually --eval_batch_size 1 --embedding_save_dir /pscratch/sd/s/sjmoon/NetFeeliX/setup/results/fresh_embeddings/horikawa/swift_v2/raw --split_file_path ${SPLIT_FILE} \
+  --extract_embeddings --test_only --test_ckpt_path ${CKPT_PATH} --load_ds_ckpt_manually --eval_batch_size 1 --embedding_save_dir /pscratch/sd/s/sjmoon/FEELIN/setup/results/fresh_embeddings/horikawa/swift_v2/raw --split_file_path ${SPLIT_FILE} \
   --batch_size 16 --dataset_split_num 0 --seed 1 --learning_rate 7e-5 --model simmim_swin4d_ver9 --depth 2 2 18 2 --num_heads 6 12 24 48 \
   --embed_dim 96 --first_window_size 4 4 4 4 --window_size 4 4 4 20 --sequence_length 20 --img_size 96 96 96 20 --use_mim --patch_size 6 6 6 2 --mask_patch_size 6 6 6 2 --mask_ratio 0.8 --input_scaling_method znorm_minback
 
 /pscratch/sd/s/sjmoon/brain-jepa-env/bin/python /pscratch/sd/s/sjmoon/SwiFT_v2/downstream_optuna/pooling_extracted_embeddings.py \
-  --input_dir /pscratch/sd/s/sjmoon/NetFeeliX/setup/results/fresh_embeddings/horikawa/swift_v2/raw \
-  --output_dir /pscratch/sd/s/sjmoon/NetFeeliX/setup/results/fresh_embeddings/horikawa/swift_v2/pooled \
+  --input_dir /pscratch/sd/s/sjmoon/FEELIN/setup/results/fresh_embeddings/horikawa/swift_v2/raw \
+  --output_dir /pscratch/sd/s/sjmoon/FEELIN/setup/results/fresh_embeddings/horikawa/swift_v2/pooled \
   --flat_structure \
   --max_jobs 8

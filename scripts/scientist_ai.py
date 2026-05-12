@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-scientist_ai.py — NetFeeliX Scientist-AI
+scientist_ai.py — FEELIN Scientist-AI
 
 주어진 모델 디렉토리를 분석하여:
 1. 모든 scientific decision point 추출
@@ -79,7 +79,7 @@ def build_prompt(model_dir: Path, code_files: list[Path], context_text: str) -> 
 
     return f"""당신은 computational neuroscience 전문 scientist-AI다.
 
-아래는 NetFeeliX 프로젝트의 연구 계획과 분석 대상 모델 코드다.
+아래는 FEELIN 프로젝트의 연구 계획과 분석 대상 모델 코드다.
 이를 읽고 researcher가 놓쳤을 수 있는 모든 scientific decision point를 발굴하라.
 
 ---
@@ -201,7 +201,7 @@ def save_report(model_name: str, content: str) -> Path:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="NetFeeliX Scientist-AI")
+    parser = argparse.ArgumentParser(description="FEELIN Scientist-AI")
     parser.add_argument("--model-dir", required=True, help="분석할 모델 디렉토리 경로")
     parser.add_argument("--context", default=None, help="연구 계획 파일 경로 (기본: research_overview.md)")
     args = parser.parse_args()

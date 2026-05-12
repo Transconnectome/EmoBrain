@@ -19,7 +19,7 @@
 - Native space:
 - Temporal handling:
 
-## NetFeeliX Use
+## FEELIN Use
 
 - Role:
 - First test:

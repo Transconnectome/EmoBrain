@@ -1,6 +1,6 @@
 # Reference Folder
 
-This folder contains the literature, dataset, and code-resource map for NetFeeliX.
+This folder contains the literature, dataset, and code-resource map for FEELIN.
 
 ## Files
 
@@ -32,7 +32,7 @@ When adding a new paper or codebase, record:
 
 - what it is,
 - what it claims,
-- how it matters for NetFeeliX,
+- how it matters for FEELIN,
 - source URL or DOI,
 - next action.
 

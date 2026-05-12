@@ -21,7 +21,7 @@
 
 -
 
-## Relevance To NetFeeliX
+## Relevance To FEELIN
 
 - SwiFT:
 - TRIBE v2 / stimulus:

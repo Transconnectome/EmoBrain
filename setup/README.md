@@ -1,6 +1,6 @@
 # Setup: Data Readiness And First Baselines
 
-`setup`은 최종 논문 번호가 아니라, NetFeeliX의 첫 번째 실행 준비 공간입니다.
+`setup`은 최종 논문 번호가 아니라, FEELIN의 첫 번째 실행 준비 공간입니다.
 
 목적은 간단합니다.
 
@@ -11,7 +11,7 @@ SwiFT를 포함한 첫 baseline을 돌릴 수 있는 상태를 만든다.
 
 ## 왜 `setup`이 필요한가?
 
-NetFeeliX는 문헌/전략만으로 진행할 수 없습니다. fMRI dataset은 접근 방식,
+FEELIN는 문헌/전략만으로 진행할 수 없습니다. fMRI dataset은 접근 방식,
 preprocessing, timing, target annotation이 모두 다르기 때문에, 가장 먼저
 "실제로 돌아가는 최소 실험 단위"가 필요합니다.
 

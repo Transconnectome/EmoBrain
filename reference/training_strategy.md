@@ -1,10 +1,10 @@
-# NetFeeliX Training Strategy
+# FEELIN Training Strategy
 
-This document defines the model-development strategy. The default direction is **SwiFT-first but not SwiFT-locked**: SwiFT is the first brain backbone because it is the local lab model and can be modified, pretrained, fine-tuned, and inserted into multimodal systems. If evidence shows that SwiFT is not the right backbone for emotion representation, NetFeeliX should pivot rather than protect the initial choice.
+This document defines the model-development strategy. The default direction is **SwiFT-first but not SwiFT-locked**: SwiFT is the first brain backbone because it is the local lab model and can be modified, pretrained, fine-tuned, and inserted into multimodal systems. If evidence shows that SwiFT is not the right backbone for emotion representation, FEELIN should pivot rather than protect the initial choice.
 
 ## Core Position
 
-NetFeeliX should not overclaim a complete emotion foundation model at the current stage. Use one of these phrases instead:
+FEELIN should not overclaim a complete emotion foundation model at the current stage. Use one of these phrases instead:
 
 - emotion-specific brain representation model,
 - emotion-aware fMRI foundation-model strategy,
@@ -36,7 +36,7 @@ scratch-trained sequence lengths?
 
 This matters because Horikawa is not a fixed 5TR-only problem. The current
 local preprocessing contains variable-length stimulus-response windows, and the
-old 5TR subset came from a legacy loader/split constraint. NetFeeliX should use
+old 5TR subset came from a legacy loader/split constraint. FEELIN should use
 all valid windows when possible, and treat sequence length as a model variable
 rather than a preprocessing accident.
 
@@ -123,7 +123,7 @@ models.
 
 ## Brain Representation Search Space
 
-NetFeeliX should test which neural representation is useful for emotion rather
+FEELIN should test which neural representation is useful for emotion rather
 than assuming whole-brain 4D modeling is always optimal.
 
 | Representation choice | Example method | Why test it |
@@ -224,7 +224,7 @@ Before large extraction, run the same small smoke set for every model:
 | NeuroSTORM | actual 4D window length, crop/pad length, whether pooled embedding includes padded frames |
 | TRIBE v2 | stimulus duration/segment coverage, HRF lag, predicted cortical response length, alignment with fMRI windows |
 
-The first NetFeeliX decoding result should therefore be a length-aware screening
+The first FEELIN decoding result should therefore be a length-aware screening
 benchmark, not a single frozen-embedding rerun.
 
 ## SwiFT Architecture Modification Options
@@ -300,7 +300,7 @@ Use after a stable benchmark exists.
 
 TRIBE v2 is not a replacement for SwiFT. It is a multimodal stimulus-to-brain component that can provide stimulus features, predicted brain responses, and teacher signals.
 
-| Use mode | Input | Output | NetFeeliX role |
+| Use mode | Input | Output | FEELIN role |
 |---|---|---|---|
 | Frozen teacher | video/audio/text | predicted fsaverage5 cortical response | compare predicted brain response with observed fMRI/emotion |
 | Stimulus-only baseline | video/audio/text features | emotion target | test how much emotion is stimulus-explained |

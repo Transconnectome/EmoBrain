@@ -8,7 +8,7 @@ Markdown file.
 - `git log --oneline --since="7 days ago"`
 - `git status --short`
 - canonical docs:
-  - `CONTEXT_NETFEELIX.md`
+  - `CONTEXT_FEELIN.md`
   - `notes/project_decisions.md`
   - `reference/datasets.md`
   - `reference/training_strategy.md`

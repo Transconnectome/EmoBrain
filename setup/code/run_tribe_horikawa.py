@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run TRIBE v2 on Horikawa/Cowen emotional video stimuli.
 
-The first NetFeeliX use case is deliberately simple:
+The first FEELIN use case is deliberately simple:
 
 1. choose a few Horikawa/Cowen stimulus ids,
 2. run TRIBE v2 in video-only mode,
@@ -181,7 +181,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--cache-folder",
-        default="/pscratch/sd/s/sjmoon/NetFeeliX/setup/results/tribe_cache",
+        default="/pscratch/sd/s/sjmoon/FEELIN/setup/results/tribe_cache",
     )
     parser.add_argument("--video-dir", default=str(DEFAULT_VIDEO_DIR))
     parser.add_argument("--meta-path", default=str(DEFAULT_META))
@@ -221,7 +221,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib-netfeelix")
+    os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib-feelin")
 
     from tribev2 import TribeModel
 

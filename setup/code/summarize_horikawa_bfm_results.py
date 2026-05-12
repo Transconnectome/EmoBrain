@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path("/pscratch/sd/s/sjmoon")
-NETFEELIX = ROOT / "NetFeeliX"
+NETFEELIX = ROOT / "FEELIN"
 DEFAULT_RESULT_ROOT = NETFEELIX / "setup/results/horikawa_bfm_fresh"
 
 MODEL_KEYS = [

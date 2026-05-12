@@ -1,13 +1,13 @@
 # Literature And SOTA Workflow
 
-Purpose: keep NetFeeliX literature, dataset, and code references current without
+Purpose: keep FEELIN literature, dataset, and code references current without
 spreading notes across random files.
 
 ## Inputs
 
 - Search topic or question.
 - Current canonical docs:
-  - `CONTEXT_NETFEELIX.md`
+  - `CONTEXT_FEELIN.md`
   - `reference/papers.md`
   - `reference/datasets.md`
   - `reference/code_resources.md`
@@ -44,7 +44,7 @@ spreading notes across random files.
 
 ## New Code / Models
 
-## NetFeeliX Decisions
+## FEELIN Decisions
 
 ## Open Questions
 ```

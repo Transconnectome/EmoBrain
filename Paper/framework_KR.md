@@ -1,16 +1,16 @@
-# NetFeeliX 연구 프레임워크
+# FEELIN 연구 프레임워크
 
 ## Canonical 방향
 
-NetFeeliX는 **emotion-aware brain representation learning을 위한 모델 개발 프로젝트**다. Emotion theory 논문이 아니다. Emotion theory는 target design을 위한 짧은 제약으로만 사용한다. 즉, emotion label은 noisy하고 dynamic하며 stimulus-dependent이고 multi-component이므로, 모델은 단일 고정 라벨이 아니라 arousal, valence, discrete category, high-dimensional emotion vector에서 평가되어야 한다.
+FEELIN는 **emotion-aware brain representation learning을 위한 모델 개발 프로젝트**다. Emotion theory 논문이 아니다. Emotion theory는 target design을 위한 짧은 제약으로만 사용한다. 즉, emotion label은 noisy하고 dynamic하며 stimulus-dependent이고 multi-component이므로, 모델은 단일 고정 라벨이 아니라 arousal, valence, discrete category, high-dimensional emotion vector에서 평가되어야 한다.
 
 한 문장 프레임:
 
-**NetFeeliX는 감정 표현을 brain dynamics, naturalistic stimulus dynamics, affective annotation이 만나는 모델 개발 문제로 보고, initial benchmark 결과를 바탕으로 개발할 architecture와 training objective를 결정한다.**
+**FEELIN는 감정 표현을 brain dynamics, naturalistic stimulus dynamics, affective annotation이 만나는 모델 개발 문제로 보고, initial benchmark 결과를 바탕으로 개발할 architecture와 training objective를 결정한다.**
 
 외부 공유용 요약:
 
-> NetFeeliX는 처음부터 완성형 emotion foundation model을 주장하지 않겠습니다. 먼저 SwiFT, naturalistic movie/story fMRI dataset, TRIBE v2-style stimulus-to-brain model, affective LLM/VLM representation을 하나의 initial benchmark에서 비교하겠습니다. Benchmark는 어떤 정보원이 어떤 emotion target에 도움이 되는지 확인하는 단계이고, 그 결과에 따라 SwiFT emotion adaptation, naturalistic fMRI continued pretraining, TRIBE-SwiFT stimulus-brain alignment, brain-tuned affective LLM/VLM adapter 중 어떤 model-development track을 밀지 결정하겠습니다.
+> FEELIN는 처음부터 완성형 emotion foundation model을 주장하지 않겠습니다. 먼저 SwiFT, naturalistic movie/story fMRI dataset, TRIBE v2-style stimulus-to-brain model, affective LLM/VLM representation을 하나의 initial benchmark에서 비교하겠습니다. Benchmark는 어떤 정보원이 어떤 emotion target에 도움이 되는지 확인하는 단계이고, 그 결과에 따라 SwiFT emotion adaptation, naturalistic fMRI continued pretraining, TRIBE-SwiFT stimulus-brain alignment, brain-tuned affective LLM/VLM adapter 중 어떤 model-development track을 밀지 결정하겠습니다.
 
 ## 모델 개발 문제 정의
 
@@ -22,7 +22,7 @@ NetFeeliX는 **emotion-aware brain representation learning을 위한 모델 개�
 brain-based emotion representation을 만드는가?
 ```
 
-NetFeeliX는 이 질문을 여덟 개의 모델링 질문으로 나눈다.
+FEELIN는 이 질문을 여덟 개의 모델링 질문으로 나눈다.
 
 | 질문 | 모델링 해석 | 첫 실험 |
 |---|---|---|
@@ -41,7 +41,7 @@ NetFeeliX는 이 질문을 여덟 개의 모델링 질문으로 나눈다.
 
 ### fMRI Brain Foundation Models
 
-SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT 계열은 brain-side foundation-model space를 정의한다. NetFeeliX는 **SwiFT-first**로 간다. SwiFT는 우리 연구실 backbone이므로 구조 수정, continued pretraining, emotion-specific head, multimodal architecture 안의 brain module로 가장 적극적으로 개발할 수 있다. 다른 BFM들은 비교점이다.
+SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT 계열은 brain-side foundation-model space를 정의한다. FEELIN는 **SwiFT-first**로 간다. SwiFT는 우리 연구실 backbone이므로 구조 수정, continued pretraining, emotion-specific head, multimodal architecture 안의 brain module로 가장 적극적으로 개발할 수 있다. 다른 BFM들은 비교점이다.
 
 - **SwiFT**: 4D fMRI spatiotemporal window attention.
 - **BrainLM**: brain activity recording의 masked prediction.
@@ -50,13 +50,13 @@ SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT 계열은 brain-sid
 - **Omni-fMRI / Brain-DiT**: atlas-free 또는 multi-state pretraining의 future reference.
 - **SwiFUN**: resting-state에서 task activation을 예측하는 bridge model. Emotion-related task contrast가 포함되어 있어 중요하다.
 
-NetFeeliX에서 이 모델들은 최종 해답이 아니라, generic brain representation이 emotion-relevant information을 이미 담고 있는지 확인하는 screening baseline이다.
+FEELIN에서 이 모델들은 최종 해답이 아니라, generic brain representation이 emotion-relevant information을 이미 담고 있는지 확인하는 screening baseline이다.
 
 ### Stimulus-to-Brain Encoding and Alignment
 
 TRIBE와 TRIBE v2는 SwiFT나 BrainLM 같은 의미의 fMRI encoder가 아니다. 이들은 **stimulus-to-brain encoding model**이다. 즉 video, audio, language feature로부터 fMRI response를 예측한다. 이 차이는 중요하지만, 비교가 불가능하다는 뜻은 아니다.
 
-NetFeeliX는 TRIBE-style model과 SwiFT-style model을 공통 interface로 변환해서 비교한다.
+FEELIN는 TRIBE-style model과 SwiFT-style model을 공통 interface로 변환해서 비교한다.
 
 | Interface | 입력 | 모델 형태 | Objective |
 |---|---|---|---|
@@ -73,19 +73,19 @@ NetFeeliX는 TRIBE-style model과 SwiFT-style model을 공통 interface로 변�
 2. **TRIBE-emotion baseline**: video/audio/text에서 emotion을 예측한다.
 3. **TRIBE-to-SwiFT distillation**: fMRI encoder가 stimulus-derived latent structure를 학습한다.
 4. **SwiFT-to-TRIBE alignment**: fMRI latent와 TRIBE-style stimulus latent를 정렬한다.
-5. **Bidirectional NetFeeliX**: stimulus-to-brain encoding과 brain-to-emotion decoding을 shared latent에서 함께 학습한다.
+5. **Bidirectional FEELIN**: stimulus-to-brain encoding과 brain-to-emotion decoding을 shared latent에서 함께 학습한다.
 
 ### Affective Computing Foundation Models
 
 Affective computing에서는 foundation model 흐름이 빠르게 커지고 있다. LLM/VLM/MLLM 기반 emotion recognition, emotion reasoning, multimodal affective benchmark, affective generation이 등장했고, Schuller et al.은 이를 affective computing의 foundation-model disruption으로 설명한다. MMAFFBen 같은 benchmark는 text, image, video, language 전반에서 affective reasoning을 평가한다.
 
-여기서 NetFeeliX의 빈틈이 생긴다. Affective AI에는 큰 외부 모델이 있지만 brain grounding이 부족하다. fMRI BFM에는 brain representation이 있지만 emotion을 중심으로 pretraining objective를 설계한 경우가 드물다. NetFeeliX는 emotional/naturalistic stimulus에 대한 brain response가 affective AI representation을 regularize할 수 있는지 묻는다.
+여기서 FEELIN의 빈틈이 생긴다. Affective AI에는 큰 외부 모델이 있지만 brain grounding이 부족하다. fMRI BFM에는 brain representation이 있지만 emotion을 중심으로 pretraining objective를 설계한 경우가 드물다. FEELIN는 emotional/naturalistic stimulus에 대한 brain response가 affective AI representation을 regularize할 수 있는지 묻는다.
 
-최근 MME-Emotion, EmoBench-M, Beyond Emotion Recognition, EIBench 같은 MLLM benchmark는 affective computing이 단순한 "어떤 emotion label인가?"에서 emotional understanding, trigger inference, contextual reasoning으로 이동하고 있음을 보여준다. NetFeeliX가 이 benchmark를 그대로 따라갈 필요는 없지만, stimulus-side affective embedding과 auxiliary target을 더 풍부하게 설계하는 데 쓸 수 있다.
+최근 MME-Emotion, EmoBench-M, Beyond Emotion Recognition, EIBench 같은 MLLM benchmark는 affective computing이 단순한 "어떤 emotion label인가?"에서 emotional understanding, trigger inference, contextual reasoning으로 이동하고 있음을 보여준다. FEELIN가 이 benchmark를 그대로 따라갈 필요는 없지만, stimulus-side affective embedding과 auxiliary target을 더 풍부하게 설계하는 데 쓸 수 있다.
 
 Task 설정도 단순하지 않다. Affective computing은 대체로 다음 ladder를 쓴다.
 
-| Task type | Output | NetFeeliX에서의 의미 |
+| Task type | Output | FEELIN에서의 의미 |
 |---|---|---|
 | Sentiment/valence classification | positive/neutral/negative 또는 ordinal class | IAPS/Affective Videos식 낮은 난이도 check |
 | Discrete emotion classification | anger, fear, joy 같은 single label | baseline이지만 mixed emotion을 과하게 단순화할 수 있음 |
@@ -95,13 +95,13 @@ Task 설정도 단순하지 않다. Affective computing은 대체로 다음 ladd
 | Cue/cause/reasoning | trigger, intent, appraisal, rationale | stimulus-side auxiliary target 또는 alignment target |
 | Affective captioning / QA | 자연어 emotion description, QA answer | fMRI가 직접 문장을 생성한다기보다 embedding/retrieval target으로 사용 |
 
-따라서 NetFeeliX의 task 설계는 classification vs regression 중 하나를 고르는 문제가 아니다. 처음에는 arousal/valence/category로 안정성을 확인하고, 핵심은 multi-label/high-dimensional emotion geometry와 component/trajectory target으로 이동하며, reasoning/caption은 stimulus-side representation을 풍부하게 만드는 auxiliary target으로 둔다.
+따라서 FEELIN의 task 설계는 classification vs regression 중 하나를 고르는 문제가 아니다. 처음에는 arousal/valence/category로 안정성을 확인하고, 핵심은 multi-label/high-dimensional emotion geometry와 component/trajectory target으로 이동하며, reasoning/caption은 stimulus-side representation을 풍부하게 만드는 auxiliary target으로 둔다.
 
-Top conference 흐름을 보면 이 방향이 더 분명하다. ICML 2025 AffectGPT는 multimodal emotion recognition을 descriptive emotion understanding, fine-grained emotion caption, unified benchmark 문제로 재정의한다. NeurIPS 2025 VidEmo는 affective-tree reasoning guidance로 emotion-centric video foundation model을 학습한다. ICLR 2026 AVERE, MME-Emotion, EmotionHallucer, HitEmotion은 audiovisual cue grounding, emotion hallucination, emotional-intelligence evaluation, Theory-of-Mind-guided multimodal emotion reasoning을 다룬다. NetFeeliX가 배울 점은 emotion model이 label만 맞히는 것이 아니라, temporal context와 affective cue에 grounded된 representation을 만들어야 한다는 것이다.
+Top conference 흐름을 보면 이 방향이 더 분명하다. ICML 2025 AffectGPT는 multimodal emotion recognition을 descriptive emotion understanding, fine-grained emotion caption, unified benchmark 문제로 재정의한다. NeurIPS 2025 VidEmo는 affective-tree reasoning guidance로 emotion-centric video foundation model을 학습한다. ICLR 2026 AVERE, MME-Emotion, EmotionHallucer, HitEmotion은 audiovisual cue grounding, emotion hallucination, emotional-intelligence evaluation, Theory-of-Mind-guided multimodal emotion reasoning을 다룬다. FEELIN가 배울 점은 emotion model이 label만 맞히는 것이 아니라, temporal context와 affective cue에 grounded된 representation을 만들어야 한다는 것이다.
 
 ### Brain-Tuning and Brain-Aligned AI
 
-Brain-Score Vision, Brain-Score Language, EEG representational alignment, brain-tuning speech/language model, multi-participant brain-tuning, fMRI language-encoding scaling law는 neural data가 AI model을 평가하는 데 그치지 않고 tuning 또는 regularization signal로도 쓰일 수 있음을 보여준다. NetFeeliX에서는 이를 다음처럼 조심스럽게 확장한다.
+Brain-Score Vision, Brain-Score Language, EEG representational alignment, brain-tuning speech/language model, multi-participant brain-tuning, fMRI language-encoding scaling law는 neural data가 AI model을 평가하는 데 그치지 않고 tuning 또는 regularization signal로도 쓰일 수 있음을 보여준다. FEELIN에서는 이를 다음처럼 조심스럽게 확장한다.
 
 ```text
 affective LLM/VLM representation + emotional stimulus에 대한 fMRI response
@@ -114,7 +114,7 @@ SED-GPT는 fMRI, long-sequence semantic decoding, emotion distribution, LLM-styl
 
 ### Gap Statement
 
-아직 mature한 fMRI emotion foundation model 방향은 없다. 기존 fMRI BFM은 대체로 generic하고, neural-signal FM은 emotion을 downstream benchmark 중 하나로만 포함하는 경우가 많으며, affective computing FM은 brain grounding이 약하고, stimulus-to-brain model은 emotion representation보다는 fMRI encoding을 주로 최적화한다. NetFeeliX는 이 빈틈에서 **emotion-aware brain/stimulus representation을 위한 screening-benchmark-driven model development**를 핵심 목표로 둔다.
+아직 mature한 fMRI emotion foundation model 방향은 없다. 기존 fMRI BFM은 대체로 generic하고, neural-signal FM은 emotion을 downstream benchmark 중 하나로만 포함하는 경우가 많으며, affective computing FM은 brain grounding이 약하고, stimulus-to-brain model은 emotion representation보다는 fMRI encoding을 주로 최적화한다. FEELIN는 이 빈틈에서 **emotion-aware brain/stimulus representation을 위한 screening-benchmark-driven model development**를 핵심 목표로 둔다.
 
 ## Initial Benchmark 전략
 
@@ -136,12 +136,12 @@ Benchmark 질문:
 | Horikawa | high-dimensional emotion vector | planned | planned | planned | planned | core downstream |
 | Emo-FilM | emotion/appraisal/component ratings | planned | planned | planned | planned | modern naturalistic benchmark |
 | Affective Videos | valence/arousal | planned | optional | planned | optional | lightweight sanity check |
-| REELMO | time-resolved affect reports; Jojo Rabbit-only fMRI | optional | planned | limited one-movie fMRI | optional | strong stimulus-side supervision |
+| REELMO | time-resolved affect reports; fMRI participants watched Jojo Rabbit | optional | planned | limited one-movie fMRI | optional | strong stimulus-side supervision |
 | HCP 7T movie | pretraining objective | planned | planned features | planned | planned | naturalistic pretraining source |
 
 ## Horikawa와 Reasoning/Context Understanding의 관계
 
-Horikawa에 reasoning/context story를 전부 억지로 얹으면 어색하다. Horikawa의 강점은 많은 short video에 대한 high-dimensional visually evoked emotion space와 fMRI response다. 따라서 NetFeeliX에서 Horikawa는 **brain-side affect geometry probe**로 두는 것이 가장 자연스럽다.
+Horikawa에 reasoning/context story를 전부 억지로 얹으면 어색하다. Horikawa의 강점은 많은 short video에 대한 high-dimensional visually evoked emotion space와 fMRI response다. 따라서 FEELIN에서 Horikawa는 **brain-side affect geometry probe**로 두는 것이 가장 자연스럽다.
 
 Reasoning과 context understanding은 더 긴 temporal context, cue grounding, narrative structure, natural-language rationale이 필요하다. 이 부분은 다른 source에서 가져오는 것이 맞다.
 
@@ -174,7 +174,7 @@ Reasoning과 context understanding은 더 긴 temporal context, cue grounding, n
 
 주요 모델: SwiFT. 비교 모델: BrainLM, Brain-JEPA, SwiFUN, code/weight 접근이 가능하면 NeuroSTORM.
 
-Decision rule: frozen/adapted BFM이 arousal 이상의 target에서도 simple baseline을 넘으면 adapter/fine-tuning을 우선한다. 반대로 ROI/parcel ridge, voxel-weighted linear model, network-restricted model, 다른 BFM, stimulus-aligned model이 같은 split과 target에서 더 안정적으로 좋으면 SwiFT 중심 개발은 축소하거나 폐기한다. NetFeeliX의 목적은 SwiFT를 지키는 것이 아니라 emotion representation을 잘 학습하는 모델과 neural representation을 찾는 것이다.
+Decision rule: frozen/adapted BFM이 arousal 이상의 target에서도 simple baseline을 넘으면 adapter/fine-tuning을 우선한다. 반대로 ROI/parcel ridge, voxel-weighted linear model, network-restricted model, 다른 BFM, stimulus-aligned model이 같은 split과 target에서 더 안정적으로 좋으면 SwiFT 중심 개발은 축소하거나 폐기한다. FEELIN의 목적은 SwiFT를 지키는 것이 아니라 emotion representation을 잘 학습하는 모델과 neural representation을 찾는 것이다.
 
 ### Track A0: Neural Representation Search
 

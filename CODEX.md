@@ -1,6 +1,6 @@
-# NetFeeliX Codex Instructions
+# FEELIN Codex Instructions
 
-Read `CONTEXT_NETFEELIX.md` first. It is the compact project memory.
+Read `CONTEXT_FEELIN.md` first. It is the compact project memory.
 
 ## File Policy
 
@@ -22,7 +22,7 @@ Read `CONTEXT_NETFEELIX.md` first. It is the compact project memory.
 
 ## Scientific Policy
 
-- NetFeeliX is a model-development project.
+- FEELIN is a model-development project.
 - SwiFT is the first backbone, not a protected conclusion.
 - The first benchmark artifact is the `Dataset x BFM x Task` master matrix in
   `notes/benchmark_design.md`.
@@ -52,7 +52,7 @@ Read `CONTEXT_NETFEELIX.md` first. It is the compact project memory.
 
 | Need | Use |
 |---|---|
-| Compact project memory | `CONTEXT_NETFEELIX.md` |
+| Compact project memory | `CONTEXT_FEELIN.md` |
 | Current execution plan | `ACTION_PLAN.md` |
 | Dataset x BFM x Task master matrix | `notes/benchmark_design.md` |
 | Dataset details | `reference/datasets.md` |

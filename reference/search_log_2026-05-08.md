@@ -1,6 +1,6 @@
 # Search Log, 2026-05-08
 
-This file records the initial web search used to scaffold NetFeeliX.
+This file records the initial web search used to scaffold FEELIN.
 
 ## Search Topics
 
@@ -119,7 +119,7 @@ Findings:
 
 - Brain-tuning and brain-aligned AI are better established in language, speech, vision, and EEG than in fMRI emotion.
 - Existing work supports the idea that neural responses can act as an alignment or regularization signal for external AI models.
-- For NetFeeliX, this should be framed as an adapter/distillation track rather than full LLM/VLM fine-tuning.
+- For FEELIN, this should be framed as an adapter/distillation track rather than full LLM/VLM fine-tuning.
 - This track is conditional: activate it if screening results show strong stimulus-side affective features or measurable brain-stimulus alignment.
 
 Additional sources:
@@ -178,7 +178,7 @@ Findings:
 - Top-conference affective computing is shifting from category prediction to descriptive emotion understanding, cue grounding, hallucination control, Theory-of-Mind/appraisal-style reasoning, and preference optimization.
 - Horikawa should not be framed as a reasoning/context dataset. It is better used as a high-dimensional brain-side affect geometry probe.
 - The reasoning/context track should use naturalistic film/movie datasets and stimulus-side MLLM outputs: captions, cue-emotion QA, rationales, appraisal-like variables, and hallucination diagnostics.
-- For NetFeeliX, the key model idea is not "decode natural-language reasoning directly from fMRI" in the first study. A safer claim is to align brain latents with richer stimulus-side context/rationale embeddings and test whether this improves emotion transfer.
+- For FEELIN, the key model idea is not "decode natural-language reasoning directly from fMRI" in the first study. A safer claim is to align brain latents with richer stimulus-side context/rationale embeddings and test whether this improves emotion transfer.
 
 Additional sources:
 

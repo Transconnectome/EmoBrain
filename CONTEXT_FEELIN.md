@@ -1,17 +1,17 @@
-# NetFeeliX Compact Context
+# FEELIN Compact Context
 
-This is the compact single source of truth for NetFeeliX. Agent-specific files
+This is the compact single source of truth for FEELIN. Agent-specific files
 should point here rather than duplicating the full project narrative.
 
 ## Identity
 
-NetFeeliX stands for:
+FEELIN stands for:
 
 ```text
-Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
+Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data
 ```
 
-NetFeeliX is a **model-development project for emotion/affect representation
+FEELIN is a **model-development project for emotion/affect representation
 learning from fMRI and naturalistic stimuli**. It is not an emotion theory
 project, and it should not claim to be a completed emotion foundation model
 before pretraining and transfer evidence exists.

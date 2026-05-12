@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Prepare fresh Horikawa BFM extraction commands.
 
-This writes command files under `setup/jobs/` that point outputs to NetFeeliX
+This writes command files under `setup/jobs/` that point outputs to FEELIN
 fresh directories. It does not use old embedding caches.
 """
 
@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 ROOT = Path("/pscratch/sd/s/sjmoon")
-NETFEELIX = ROOT / "NetFeeliX"
+NETFEELIX = ROOT / "FEELIN"
 JOB_DIR = NETFEELIX / "setup/jobs"
 FRESH_ROOT = NETFEELIX / "setup/results/fresh_embeddings/horikawa"
 

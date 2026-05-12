@@ -3,7 +3,7 @@
 
 This script intentionally does not inspect old embedding caches under
 `Horikawa_embedding/extract_embedding` and does not summarize old EmoDe result
-JSONs. It checks source code/checkpoint availability and fresh NetFeeliX output
+JSONs. It checks source code/checkpoint availability and fresh FEELIN output
 directories only.
 """
 
@@ -13,7 +13,7 @@ from pathlib import Path
 
 
 ROOT = Path("/pscratch/sd/s/sjmoon")
-NETFEELIX = ROOT / "NetFeeliX"
+NETFEELIX = ROOT / "FEELIN"
 FRESH_ROOT = NETFEELIX / "setup/results/fresh_embeddings/horikawa"
 
 

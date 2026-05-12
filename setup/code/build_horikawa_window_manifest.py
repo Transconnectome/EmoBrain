@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a canonical Horikawa fMRI window manifest for NetFeeliX.
+"""Build a canonical Horikawa fMRI window manifest for FEELIN.
 
 The manifest is the starting point for new extraction. It ignores legacy cache
 contents and records the actual local fMRI windows for canonical Horikawa/Cowen
@@ -16,8 +16,8 @@ from pathlib import Path
 
 ROOT = Path("/pscratch/sd/s/sjmoon")
 DEFAULT_IMG_ROOT = ROOT / "Horikawa_embedding/horikawa_filtered_MNI_to_TRs/img"
-DEFAULT_OUTPUT = ROOT / "NetFeeliX/setup/data/horikawa_window_manifest.csv"
-DEFAULT_SUMMARY = ROOT / "NetFeeliX/reports/status/horikawa_window_manifest_summary.json"
+DEFAULT_OUTPUT = ROOT / "FEELIN/setup/data/horikawa_window_manifest.csv"
+DEFAULT_SUMMARY = ROOT / "FEELIN/reports/status/horikawa_window_manifest_summary.json"
 SUBJECT_RE = re.compile(r"^(sub-\d+)_stimulus_(\d+)$")
 
 

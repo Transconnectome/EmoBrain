@@ -1,6 +1,6 @@
 # Red-Team / Blue-Team Review Workflow
 
-Purpose: stress-test NetFeeliX claims, model plans, and experiment designs
+Purpose: stress-test FEELIN claims, model plans, and experiment designs
 before they become project narrative.
 
 ## Reviewer Personas

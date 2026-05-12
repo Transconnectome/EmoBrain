@@ -9,7 +9,7 @@ import pandas as pd
 
 
 ROOT = Path("/pscratch/sd/s/sjmoon")
-NETFEELIX = ROOT / "NetFeeliX"
+NETFEELIX = ROOT / "FEELIN"
 DEFAULT_META = ROOT / "Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/horikawa_meta_data_with_dimension_binary.csv"
 DEFAULT_RESULTS = NETFEELIX / "setup/results/tribe_horikawa"
 

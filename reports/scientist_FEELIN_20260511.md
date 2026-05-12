@@ -1,4 +1,4 @@
-# Scientist Analysis: NetFeeliX
+# Scientist Analysis: FEELIN
 분석일: 2026-05-11
 
 ## 0. 한줄 요약

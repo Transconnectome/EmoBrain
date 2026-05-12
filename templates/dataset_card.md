@@ -21,7 +21,7 @@
 - Target resolution:
 - Timing information:
 
-## NetFeeliX Use
+## FEELIN Use
 
 - First experiment:
 - SwiFT entry:

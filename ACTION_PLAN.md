@@ -1,4 +1,6 @@
-# NetFeeliX 실행 계획
+# FEELIN 실행 계획 (v2)
+
+Last updated: 2026-05-11
 
 이 문서는 현재 해야 할 일을 한글로 정리한 active action plan입니다. 완성된 논문
 개요는 `Paper/framework_KR.md`, 방법론은 `Paper/methodology.md`, 데이터/모델
@@ -6,7 +8,7 @@
 
 ## 0. 핵심 원칙
 
-NetFeeliX의 목표는 SwiFT를 무조건 살리는 것도, benchmark table 하나를 만드는
+FEELIN의 목표는 SwiFT를 무조건 살리는 것도, benchmark table 하나를 만드는
 것도 아닙니다. 목표는 **emotion representation을 잘 담아내는
 emotion-specific brain foundation model / brain model을 개발하는 것**입니다.
 
@@ -21,494 +23,375 @@ emotion-specific brain foundation model / brain model을 개발하는 것**입�
    그 다음에 pretraining/adaptation branch와 multimodal framework branch를
    실험한다.
 
-## 0.5 Benchmark-first 운영 방식
+## 0.5 Benchmark Scope (v2 확정)
 
-NetFeeliX는 먼저 benchmark에 실제로 올라갈 항목만 깔끔하게 정렬합니다. 이 단계는
-최종 목적이 아니라, 이후 큰 model-development search를 위한 empirical gate입니다.
-전체 benchmark 공간은 다음 3축입니다.
+`Dataset × (BFM × Init) × Task` 3축 매트릭스. 자세한 명세는
+`notes/benchmark_design.md`.
 
-```text
-Dataset x BFM x Task
-```
+### Dataset axis (5개)
 
-중요한 구분:
-
-- `Dataset axis`에는 emotion/affect downstream benchmark dataset만 넣는다.
-- `Model axis`에는 현재 benchmark에서 평가할 Brain Foundation Model만 넣는다.
-- `Task axis`에는 예측할 target/task type만 넣는다.
-- HCP, CNeuroMod, StudyForrest, Narratives 같은 movie/story fMRI는 지금
-  emotion benchmark dataset이 아니라, benchmark 이후의 pretraining/alignment
-  resource로 따로 관리한다.
-- video/audio/text model, TRIBE, stimulus-only baseline은 현재 BFM benchmark가
-  끝난 뒤의 control/extension으로 둔다.
-- adapter, fine-tuning, modality fusion, pretraining objective는 Model axis가
-  아니라 benchmark 이후 선택할 strategy다.
-
-### 세부 설명 위치
-
-`ACTION_PLAN.md`는 실행 순서만 담습니다. Dataset/model/task의 자세한 설명은
-아래 문서가 canonical source입니다.
-
-| 항목 | 자세한 설명 |
-|---|---|
-| Dataset 특징, target, risk, source | `reference/datasets.md` |
-| BFM/model 특징, input, risk, source | `reference/code_resources.md`, `reference/papers.md` |
-| Task 정의와 metric | `reference/task.md` |
-| 전체 master matrix | `notes/benchmark_design.md` |
-| benchmark 이후 training/adaptation 전략 | `reference/training_strategy.md` |
-
-### Dataset axis
-
-| Tier | Dataset | 첫 역할 |
+| Dataset | Status | 첫 역할 |
 |---|---|---|
-| P0 | Horikawa/Cowen | high-dimensional affect geometry, valence/arousal sanity |
-| P0/P1 | Emo-FilM | naturalistic component/appraisal downstream |
-| P1 | Affective Videos, IAPS fMRI | fast valence/arousal/category sanity |
-| P2 | NeuroEmo, Koide-Majima, REELMO / Jojo Rabbit fMRI | expansion/transfer benchmark |
+| Horikawa/Cowen | HAVE | high-dim affect geometry, V/A sanity |
+| Emo-FilM | DOWNLOAD | naturalistic component/appraisal/dynamic |
+| Affective Videos (ds000205) | DOWNLOAD | fast V/A sanity |
+| IAPS fMRI (NeuroVault) | DOWNLOAD | static valence category |
+| NeuroEmo (ds005700) | DOWNLOAD | cross-cultural multi-class |
 
-### Model axis
+Koide-Majima, REELMO, HCP movie 등은 Phase 2.
 
-현재 benchmark의 model axis는 Brain Foundation Model입니다.
+### Model × Init axis (6 conditions)
 
-| Model | 역할 |
+3 BFM × 2 init.
+
+| BFM | Resting-pretrained init | Scratch init |
 |---|---|---|
-| SwiFT | primary brain foundation model |
-| Brain-JEPA | alternative brain foundation model |
-| NeuroSTORM | alternative 4D brain foundation model |
-| BrainLM | alternative time-series brain foundation model |
+| SwiFT | Transconnectome lab checkpoint | random init |
+| Brain-JEPA | `jepa-ep300.pth` (ABCD) | random init |
+| NeuroSTORM | `pt_neurostorm_mae_ratio0.5.ckpt` | random init |
 
-최소 통계 baseline은 floor로만 둡니다.
+BrainLM은 Horikawa 비호환 (490 timepoint 고정)으로 제외 (EmoDe에서 검증됨).
 
-| Baseline | 역할 |
-|---|---|
-| logistic regression | binary/multiclass floor |
-| ridge regression | regression/vector floor |
-| ROI/voxel ridge | simple brain-feature floor |
+### Task axis (5 레벨)
 
-현재 benchmark 밖에 두는 model/resource:
-
-| Later model/resource | 나중 역할 |
-|---|---|
-| V-JEPA2, VideoMAE, CLIP | stimulus-only visual control |
-| Whisper/Wav2Vec | stimulus-only audio control |
-| text encoder / LLM embedding | stimulus-only language control |
-| TRIBE v2 | stimulus-to-brain teacher/alignment branch |
-
-### Task axis
-
-| Family | 예시 | 첫 metric |
-|---|---|---|
-| binary classification | high/low valence, high/low arousal | AUROC, balanced accuracy |
-| regression | arousal, valence, dominance | Pearson/Spearman, MAE/MSE |
-| multiclass classification | positive/neutral/negative, discrete emotion | macro F1, balanced accuracy |
-| multi-label/vector | emotion distribution, 34D emotion score | mean correlation, macro AUROC |
-| dynamic/component | binned affect trajectory, appraisal/component | CCC/correlation |
-
-### 소거 원칙
-
-1. 먼저 `Dataset x BFM x Task` master matrix를 만든다.
-2. 각 조합마다 target, split, metric, statistical floor, BFM score를 채운다.
-3. statistical floor보다 약한 BFM은 tuning 전에 window, pooling, split을 먼저 점검한다.
-4. SwiFT가 다른 BFM보다 좋으면 SwiFT adaptation branch를 유지한다.
-5. frozen/generic BFM이 부족하면 task-fMRI/movie-fMRI pretraining, loss term,
-   adapter/fine-tuning strategy를 실험한다.
-6. brain-only 결과만으로 emotion representation이 부족하거나 stimulus shortcut
-   통제가 필요하면 multimodal framework branch로 간다: TRIBE-like alignment,
-   video/audio/text feature injection, late fusion, joint latent를 비교한다.
-5. 다른 BFM이 SwiFT보다 좋으면 SwiFT-first 가정을 축소한다.
-6. high-dimensional/component task에서 이기는 BFM을 main branch 후보로 올린다.
-7. BFM benchmark 이후에야 stimulus-only, modality 추가, TRIBE alignment를 control/extension으로 진행한다.
-
-## 1. 현재 정리된 파일 구조
-
-### scripts
-
-`scripts/`는 project-operation automation만 둡니다.
-
-| 파일 | 역할 |
-|---|---|
-| `scripts/check_md_completeness.py` | 문서 구조와 stale reference 검사 |
-| `scripts/build_project_status.py` | generated status 작성 |
-| `scripts/generate_experiment_cards.py` | experiment card 생성 |
-
-### setup/code
-
-실행성 setup script는 `setup/code/`에 둡니다.
-
-| 파일 | 역할 |
-|---|---|
-| `setup/code/build_horikawa_window_manifest.py` | Horikawa canonical 2185 stimulus window manifest 생성 |
-| `setup/code/run_tribe_horikawa.py` | TRIBE v2를 Horikawa stimulus에 적용 |
-| `setup/code/run_tribe_horikawa.sh` | TRIBE v2 batch 실행 wrapper |
-
-## 2. Canonical Data 기준
-
-### Horikawa / Cowen
-
-현재 첫 기준 dataset입니다.
-
-| 항목 | 결정 |
-|---|---|
-| canonical stimulus count | `2185` |
-| subjects | `sub-01` to `sub-05` |
-| canonical subject-stimulus rows | `10925` |
-| local extra rows | stimulus `2186-2196`, project 기준에서는 제외 |
-| window length | observed 5-47 frames |
-| 역할 | high-dimensional affect geometry benchmark |
-
-실행:
-
-```bash
-python3 setup/code/build_horikawa_window_manifest.py
-```
-
-산출물:
-
-- `setup/data/horikawa_window_manifest.csv`
-- `reports/status/horikawa_window_manifest_summary.json`
-
-### 다음으로 확인할 dataset
-
-| Dataset | 우선 역할 | 먼저 확인할 것 |
-|---|---|---|
-| Emo-FilM | component/appraisal/naturalistic emotion downstream | access, annotation timing, fMRI format, windowing |
-| Affective Videos | arousal/valence sanity benchmark | OpenNeuro format, TR/event timing, target |
-| IAPS fMRI | positive/neutral/negative beta-map check | NeuroVault map format, subject-level split |
-| HCP 7T movie | naturalistic pretraining | local path, TR, run metadata, parcel/volume format |
-| CNeuroMod / Algonauts | multimodal alignment | stimulus feature/timing/fMRI alignment |
-| StudyForrest | long-movie continuity | film timing, preprocessing, subject count |
-| Narratives | language/story context | transcript timing, fMRI format |
-| 101 Dalmatians | modality control | visual-only/audio-only/audiovisual condition |
-| NeuroEmo / REELMO / Koide-Majima | emotion-labeled expansion | access, target type, REELMO Jojo Rabbit-only fMRI availability |
-
-## 3. Target 설계
-
-처음부터 하나의 emotion label만 맞히면 안 됩니다. Target ladder를 둡니다.
-
-| Level | Target | Dataset |
-|---|---|---|
-| sanity | arousal, valence, dominance regression | Horikawa, Emo-FilM, Affective Videos |
-| category | positive/neutral/negative, discrete emotion | IAPS, Affective Videos, NeuroEmo |
-| rich geometry | 34D or high-dimensional emotion vector | Horikawa, Koide-Majima |
-| multi-label | multi-emotion presence/probability | Horikawa labels, Emo-FilM |
-| temporal | time-resolved affect trajectory | Emo-FilM, REELMO |
-| component/appraisal | appraisal/component ratings | Emo-FilM |
-| stimulus reasoning | cue, cause, rationale embedding | REELMO, MLLM-derived targets |
-
-필수 metric:
-
-- regression: Pearson r, Spearman r, MAE, MSE.
-- binary/category: balanced accuracy, macro F1, AUROC.
-- multi-label: macro/micro F1, macro AUROC.
-- high-dimensional: mean correlation, RSA/CKA with emotion-rating geometry,
-  retrieval accuracy.
-- transfer: held-out subject, held-out stimulus, held-out dataset.
-
-## 4. Neural Representation Search
-
-이게 가장 중요합니다. Whole-brain 4D가 항상 최선이라는 가정은 버립니다.
-
-### 4.1 기본 ROI / Parcel 후보
-
-첫 ROI 기준은 기존 Brain-JEPA preprocessing과 맞추기 위해 다음을 우선합니다.
-
-| 후보 | 이유 | 사용 |
-|---|---|---|
-| Schaefer 400 | 안정적 cortical parcel, Yeo network label 가능 | default cortical ROI |
-| Tian subcortex 50/54 | amygdala, hippocampus, thalamus, striatum 등 포함 | default subcortical ROI |
-| Schaefer 600 | 더 세밀한 cortical parcel | 400이 너무 coarse할 때 |
-| HCP-MMP 360 | functional/anatomical cortical map | secondary validation |
-| Harvard-Oxford / AAL | 접근성 좋은 anatomical ROI | 빠른 sanity check |
-
-첫 default는:
-
-```text
-Schaefer 400 cortical parcels + Tian subcortical parcels
-```
-
-이유:
-
-- 이미 Brain-JEPA 쪽에서 유사한 ROI 구조를 사용했습니다.
-- subject 간 harmonization이 쉽습니다.
-- whole-brain voxel보다 빠르게 baseline을 만들 수 있습니다.
-- cortical/subcortical 분리를 볼 수 있습니다.
-
-### 4.2 Network-restricted 분석
-
-ROI 전체를 한 번에 쓰는 것만으로는 어떤 system이 중요한지 알 수 없습니다.
-따라서 network group별 모델을 따로 돌립니다.
-
-| Network group | 포함 후보 | 가설 |
-|---|---|---|
-| visual | early visual, higher visual, ventral temporal | Horikawa short video emotion은 visual feature가 강할 수 있음 |
-| auditory | auditory cortex, superior temporal | movie/audio cue, speech/prosody 관련 |
-| salience | insula, ACC, midcingulate | arousal, bodily salience, affective relevance |
-| limbic/subcortical | amygdala, hippocampus, striatum, thalamus, hypothalamus 가능 시 | valence, memory/context, reward/threat |
-| DMN | mPFC, PCC/precuneus, angular gyrus | narrative, social/context appraisal |
-| frontoparietal/control | dlPFC, IPL, control network | appraisal, regulation, task/control signal |
-| attention | dorsal/ventral attention | stimulus salience and orienting |
-| somatomotor | motor/somatosensory | action, bodily expression, arousal confound |
-
-각 network마다 같은 모델을 돌립니다.
-
-```text
-network ROI time series -> ridge/elastic-net/MLP -> emotion target
-```
-
-산출물:
-
-- target별 best network.
-- arousal만 잘 맞히는 network vs high-dimensional emotion geometry를 맞히는 network.
-- stimulus-only feature와 겹치는 sensory shortcut 여부.
-
-### 4.3 Voxel-weighted 분석
-
-ROI 평균이 signal을 잃을 수 있으므로 voxel weighting도 봅니다.
-
-우선순위:
-
-1. gray-matter mask 안의 voxel만 사용.
-2. subject별 variance/coverage가 너무 낮은 voxel 제거.
-3. ridge regression으로 전체 voxel baseline.
-4. elastic-net 또는 sparse linear model로 sparse voxel contribution 확인.
-5. fold별 coefficient stability를 계산.
-6. 가능하면 searchlight나 cluster-level summary로 확장.
-
-주의:
-
-- voxel weight는 해석을 과하게 하지 않습니다.
-- fold와 subject에 걸쳐 안정적인 voxel/network만 중요하다고 봅니다.
-- prediction이 좋아도 motion/visual shortcut일 수 있으므로 stimulus feature control이 필요합니다.
-
-### 4.4 Dynamic Connectivity
-
-Emotion, 특히 arousal은 local activation보다 connectivity에 더 잘 잡힐 수 있습니다.
-
-후보:
-
-- sliding-window FC.
-- ROI graph feature.
-- CPM-style feature selection.
-- temporal graph summary.
-- arousal/valence regression first.
-
-사용 기준:
-
-- arousal은 FC가 강하고 valence/high-dimensional target은 약한지 확인.
-- movie/naturalistic dataset에서 더 중요할 가능성이 큽니다.
-
-## 5. Model 비교
-
-### 5.1 Simple Brain Baselines
-
-먼저 이것들이 돌아가야 합니다.
-
-| Model | Input | 목적 |
-|---|---|---|
-| ridge | ROI/parcel, voxel | minimum linear baseline |
-| elastic-net | voxel/ROI | sparse importance |
-| MLP | ROI/parcel | nonlinear sanity |
-| temporal MLP/TCN | ROI time window | temporal baseline |
-| dynamic FC | ROI time series | arousal/context dynamics |
-
-### 5.2 SwiFT
-
-SwiFT는 먼저 제대로 확인합니다.
-
-조건:
-
-- pretrained-native SL20/SL40.
-- standardized SL5/SL10/SL20/SL40.
-- all observed windows.
-- frozen feature + linear/ridge/MLP.
-- adapter/subject adapter/affective token/multi-task head.
-- scratch SL5/10/20/40.
-
-Exit rule:
-
-- ROI/voxel/network baseline보다 약하면 SwiFT 중심 개발 축소.
-- arousal만 맞히고 high-dimensional target을 못 맞히면 target-specific head 또는 다른 representation으로 pivot.
-- padding/SL sensitivity가 너무 크면 SwiFT temporal path를 재설계하거나 폐기.
-
-### 5.3 Alternative BFMs
-
-| Model | 역할 | 주의 |
-|---|---|---|
-| Brain-JEPA | ROI/time-series predictive representation | mask가 실제로 쓰이는지 확인 |
-| NeuroSTORM | raw 4D fMRI BFM comparison | padding/pooling sensitivity 확인 |
-| BrainLM | time-series BFM reference | weight/code availability 확인 |
-
-### 5.4 Benchmark 이후: Stimulus-only / Alignment
-
-이 branch는 현재 BFM benchmark가 끝난 뒤 진행합니다. 지금 단계에서는
-Dataset x Brain Foundation Model x Task를 먼저 고정합니다.
-
-이후 BFM 결과를 해석하려면 stimulus-only가 필요할 수 있습니다.
-
-| Component | Feature |
-|---|---|
-| video | V-JEPA2, VideoMAE, CLIP frame |
-| audio | Wav2Vec-BERT, Whisper, spectrogram |
-| text | subtitle/caption/LLM embedding |
-| TRIBE v2 | predicted cortical response, multimodal latent |
-
-비교:
-
-1. stimulus-only -> emotion.
-2. fMRI-only -> emotion.
-3. stimulus + fMRI late fusion.
-4. contrastive alignment.
-5. TRIBE-predicted brain response -> emotion.
-6. fMRI latent aligned to stimulus latent -> emotion.
-
-## 6. Pretraining 전략
-
-Pretraining은 세 갈래로 비교합니다.
-
-| Strategy | Data | Question |
-|---|---|---|
-| naturalistic SSL | HCP, CNeuroMod, StudyForrest, Narratives | stimulus-locked brain dynamics가 emotion transfer를 돕는가 |
-| emotion-labeled supervised/weak supervised | Horikawa, Emo-FilM, Affective Videos, IAPS, NeuroEmo | target-aware affect structure가 transfer를 돕는가 |
-| two-stage | naturalistic -> emotion-labeled | dynamics 먼저, emotion specialization 나중이 좋은가 |
-
-Objective 후보:
-
-- masked fMRI segment modeling.
-- temporal contrastive learning.
-- JEPA/future latent prediction.
-- subject-invariant contrastive learning.
-- stimulus-conditioned fMRI prediction.
-- multi-task emotion label/vector/component prediction.
-- emotion geometry alignment loss.
-
-평가:
-
-- Horikawa -> Emo-FilM.
-- Emo-FilM -> Horikawa.
-- mixed emotion dataset -> held-out emotion dataset.
-- arousal-only gain인지 high-dimensional/component gain인지 분리.
-
-## 7. 즉시 할 일
-
-### Step 0. Benchmark contract 확정
-
-- [ ] `notes/benchmark_design.md`의 Dataset x BFM x Task master matrix 확정.
-- [ ] 각 cell을 `RUN`, `CHECK`, `NA`로 표시.
-- [ ] HRF lag/window alignment 정책 결정.
-- [ ] variable duration -> all observed, SL5, SL10, SL20, SL40 변환 정책 결정.
-- [ ] primary split을 LOSO로 정의하고 stimulus/movie split control을 추가.
-- [ ] normalization 정책 결정: subject-wise z-score, min-max, global scaling 비교 여부.
-- [ ] noise ceiling 계산 가능 조건 정의.
-- [ ] pooling 정책 결정: mean, late-frame, temporal/attention pooling.
-- [ ] first result table schema 확정: `Dataset | BFM | Task | Target | Split | Metric | Statistical floor | BFM score | Status | Decision`.
-
-### Step 1. Horikawa manifest 확정
-
-- [ ] `setup/code/build_horikawa_window_manifest.py` 실행.
-- [ ] `setup/data/horikawa_window_manifest.csv` 확인.
-- [ ] frame length distribution 확인.
-- [ ] SL5/10/20/40 condition manifest를 파생할지 결정.
-
-### Step 2. Target matrix 생성
-
-- [ ] Horikawa arousal/valence/dominance regression target.
-- [ ] Horikawa binary/category target.
-- [ ] Horikawa 34D score target.
-- [ ] Horikawa multi-label target.
-- [ ] missing label handling rule.
-- [ ] subject/stimulus split rule.
-
-### Step 3. ROI/parcel baseline
-
-- [ ] Schaefer 400 + Tian subcortex preprocessing 확인.
-- [ ] per-stimulus window summary 생성: mean, late-window mean, slope, max.
-- [ ] ridge/elastic-net baseline.
-- [ ] network-restricted baseline.
-- [ ] subject-wise result table.
-
-### Step 4. Voxel baseline
-
-- [ ] gray-matter mask 결정.
-- [ ] voxel variance/coverage filtering.
-- [ ] ridge baseline.
-- [ ] elastic-net/sparse baseline.
-- [ ] coefficient stability map.
-
-### Step 5. Temporal and FC baseline
-
-- [ ] SL5/10/20/40 ROI window input.
-- [ ] temporal MLP/TCN.
-- [ ] dynamic FC arousal/valence baseline.
-- [ ] compare local activation vs FC.
-
-### Step 6. SwiFT smoke test
-
-- [ ] checkpoint-native SL 확인.
-- [ ] input shape, padding, window attention config 확인.
-- [ ] frozen feature extraction smoke test.
-- [ ] SL sensitivity test.
-- [ ] simple baseline보다 좋은지 확인.
-
-### Step 7. Alternative BFM smoke test
-
-- [ ] Brain-JEPA ROI input and mask path 확인.
-- [ ] NeuroSTORM padding/pooling 확인.
-- [ ] BrainLM availability 확인.
-- [ ] 동일 target/split으로 비교 가능하게 정리.
-
-### Deferred. TRIBE/stimulus branch
-
-BFM benchmark 이후에 진행합니다.
-
-- [ ] `setup/code/run_tribe_horikawa.sh` 경로 확인.
-- [ ] Horikawa 2185 stimuli 전체 coverage 확인.
-- [ ] TRIBE predicted brain response summary.
-- [ ] stimulus-only emotion baseline.
-- [ ] fMRI latent와 TRIBE/stimulus latent alignment 후보 정의.
-
-### Step 9. Decision table 작성
-
-최소 table:
-
-| Axis | Best candidate | Evidence | Decision |
+| Level | Task | Output | Primary metric |
 |---|---|---|---|
-| arousal | TBD | metric | keep/pivot |
-| valence | TBD | metric | keep/pivot |
-| 34D emotion | TBD | metric | keep/pivot |
-| component/appraisal | TBD | metric | keep/pivot |
-| cross-dataset transfer | TBD | metric | keep/pivot |
-| interpretability | TBD | stable region/network | keep/pivot |
+| L0 | High/Low V/A binary | binary class | AUROC |
+| L1 | V/A regression | continuous | Pearson r |
+| L2 | One-hot classification | top-1 label | balanced accuracy |
+| L3 | Multi-label classification | multi-emotion prob | macro F1 |
+| L4 | Continuous dynamics | trajectory | CCC |
 
-### Step 10. Model-development 방향 결정
+### Statistical floors
 
-가능한 결론:
+각 task에 BFM 없는 baseline 1개.
 
-1. SwiFT가 좋다 -> SwiFT adapter/pretraining 확장.
-2. ROI/voxel/network가 더 좋다 -> neural representation model 중심으로 pivot.
-3. stimulus-only가 강하다 -> stimulus-brain residual/alignment 중심.
-4. Brain-JEPA/NeuroSTORM이 더 좋다 -> alternative BFM adaptation.
-5. 모든 brain model이 약하다 -> target timing/preprocessing/label quality 재검토.
+| Task | Floor | Input |
+|---|---|---|
+| L0 | Logistic regression | Schaefer400+Tian50 = 450 ROI features |
+| L1 | Ridge regression | 같은 ROI features |
+| L2 | Multinomial logistic | 같은 |
+| L3 | Multi-output ridge | 같은 |
+| L4 | Sliding-window ridge | dynamic FC features |
 
-## 8. 당장 만들면 좋은 산출물
+### Pass/fail threshold (사전 정의)
 
-- `setup/data/horikawa_window_manifest.csv`
-- `setup/data/horikawa_target_matrix.*`
-- `setup/data/horikawa_splits.*`
-- `setup/results/roi_baseline_results.*`
-- `setup/results/voxel_baseline_results.*`
-- `setup/results/network_ablation_results.*`
-- `setup/results/swift_smoke_test_report.*`
-- `setup/results/tribe_horikawa_coverage.*`
-- `reports/status/first_signal_report.md`
-- `reports/status/model_direction_decision.md`
+BFM이 "WIN"으로 분류되려면 세 조건 모두 만족:
 
-## 9. 성공 기준
+1. Δ(BFM - floor) > 2 × pooled SE
+2. Δ(BFM - floor) > 0.02 absolute
+3. Permutation test p < 0.05
 
-2개월 안에 완성 모델을 만드는 것이 아니라, 다음을 결정할 수 있으면 성공입니다.
+라벨: `WIN` / `MARGINAL` / `PAR` / `LOSE` / `FAIL`.
 
-1. 어떤 dataset/target이 실제로 runnable한가.
-2. emotion signal이 ROI/voxel/network/fMRI model 중 어디에 있는가.
-3. SwiFT를 계속 밀 가치가 있는가.
-4. pretraining은 naturalistic, emotion-labeled, two-stage 중 무엇이 유망한가.
-5. TRIBE/stimulus model이 brain representation을 개선하거나 해석하는 데 도움이 되는가.
-6. 최종 논문 방향이 model development인지, neural representation discovery인지, stimulus-brain alignment인지 정해지는가.
+### Phase 1에서 제외 (Phase 2 이후)
+
+- TRIBE/stimulus-only baseline
+- HCP/CNeuroMod/StudyForrest pretraining
+- Adapter/LoRA/fine-tuning variants (frozen probe만)
+- Window length sweep (SL5/10/20/40)
+- Stimulus-brain alignment
+- Affective LLM/VLM brain-tuning
+
+---
+
+## 1. Week 1: Data Download + Access Verification
+
+### Action items
+
+- [ ] `setup/code/check_dataset_access.py` 작성 (각 dataset 경로/파일 수/디스크 사용량 측정)
+- [ ] Emo-FilM 다운로드
+  - `aws s3 sync --no-sign-request s3://openneuro.org/ds004892 /pscratch/sd/s/sjmoon/datasets/EmoFilM/`
+- [ ] Affective Videos 다운로드 (OpenfMRI ds000205)
+  - `/pscratch/sd/s/sjmoon/datasets/AffectiveVideos/`
+- [ ] IAPS fMRI 다운로드 (NeuroVault collection 16284)
+  - `/pscratch/sd/s/sjmoon/datasets/IAPS_fMRI/`
+- [ ] NeuroEmo 다운로드 (OpenNeuro ds005700)
+  - `/pscratch/sd/s/sjmoon/datasets/NeuroEmo/`
+- [ ] `reports/status/dataset_access_2026-05-11.md` 작성 (YES/NO/PARTIAL, 경로, 디스크 사용량)
+- [ ] HCP movie access 확인 (Phase 2 대비 — Data Use Agreement 상태)
+
+### Deliverable
+
+- `setup/data/dataset_access.csv`
+- `reports/status/dataset_access_2026-05-11.md`
+
+---
+
+## 2. Week 2: Preprocessing + Noise Ceiling
+
+### 2.1 Parcellation 통일 (Schaefer 400 + Tian S3 50)
+
+- [ ] Horikawa는 이미 적용됨 (`/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_preprocess_JEPA_ROI/`)
+- [ ] `setup/code/parcellate_emofilm.py` + `.sh`
+- [ ] `setup/code/parcellate_affective_videos.py` + `.sh`
+- [ ] `setup/code/parcellate_iaps.py` + `.sh` (beta map용)
+- [ ] `setup/code/parcellate_neuroemo.py` + `.sh`
+
+### 2.2 BFM 입력 형식 변환
+
+- [ ] `setup/code/convert_to_swift_input.py` (96×96×96×SL 변환)
+- [ ] Brain-JEPA는 parcellated ROI time series 그대로 사용
+- [ ] dataset별 입력 shape table → `reports/status/bfm_input_shapes.md`
+
+### 2.3 Target matrix 생성
+
+- [ ] Horikawa
+  - L0: V/A median split → binary
+  - L1: V/A continuous score
+  - L2: top-1 emotion (34 categories argmax)
+  - L3: 34D continuous scores
+- [ ] Emo-FilM target matrix (50 items, TR-level smoothed)
+- [ ] Affective Videos (4 quadrants → V/A binary + continuous)
+- [ ] IAPS (pos/neu/neg + pos/neg binary)
+- [ ] NeuroEmo (5-class)
+- [ ] 모두 `setup/data/target_matrices/{dataset}_targets.npz`
+
+### 2.4 Split manifest
+
+- [ ] Horikawa stimulus-stratified
+  - train: stim 1~1748 × 5 sub = 8740
+  - val: stim 1749~1967 × 5 = 1085
+  - test: stim 1968~2185 × 5 = 1085
+  - `setup/data/horikawa_split.csv`
+- [ ] Emo-FilM film-stratified (13 train film + 1 test film, rotation)
+- [ ] Affective Videos trial-level (4 repetition을 같은 split에 묶기)
+- [ ] IAPS subject-stratified (50/3/3)
+- [ ] NeuroEmo subject-stratified (32/4/4)
+
+### 2.5 ISC noise ceiling
+
+- [ ] `setup/code/compute_isc.py` 작성
+- [ ] 각 dataset × 각 task별 ISC 계산
+- [ ] `setup/results/noise_ceilings.csv`
+
+### Deliverable
+
+- 모든 dataset의 parcellated time series
+- 모든 dataset × task의 target matrix
+- `setup/data/*_split.csv`
+- `setup/results/noise_ceilings.csv`
+
+---
+
+## 3. Week 3-4: Horikawa 전체 cell
+
+### 3.1 Statistical floor 먼저 (4 cells)
+
+- [ ] `setup/code/floor_logistic_binary.py` (L0)
+- [ ] `setup/code/floor_ridge_regression.py` (L1)
+- [ ] `setup/code/floor_multinomial.py` (L2)
+- [ ] `setup/code/floor_multioutput_ridge.py` (L3)
+- [ ] 각 floor × Horikawa × 5 seeds → 20 runs
+- [ ] `reports/results/horikawa_floor_results.csv`
+
+### 3.2 BFM frozen probe pipeline
+
+- [ ] `setup/code/extract_swift_embeddings.py` + `.sh`
+  - resting init, scratch init 두 번
+  - 8740 + 1085 + 1085 stimuli × 768-dim embedding
+- [ ] `setup/code/extract_jepa_embeddings.py` + `.sh`
+  - resting (`jepa-ep300.pth`), scratch
+  - ROI time series 입력
+- [ ] `setup/code/extract_neurostorm_embeddings.py` + `.sh`
+  - resting ckpt, scratch
+  - 96×96×96×SL 입력
+- [ ] `setup/code/probe_head_train.py` (embedding → task head, 모든 task type 지원)
+
+### 3.3 Horikawa × 6 models × 4 tasks = 24 cells
+
+- [ ] 각 cell × 5 seeds = 120 runs
+- [ ] sbatch array job으로 병렬화
+- [ ] `reports/results/horikawa_master.csv`
+
+### 3.4 Pass/fail 분류
+
+- [ ] `setup/code/classify_results.py` (Δ, SE, perm p 계산 → WIN/MARGINAL/PAR/LOSE/FAIL)
+- [ ] `reports/results/horikawa_classification.md`
+
+### Deliverable
+
+- 120 frozen probe runs + 20 floor runs = 140 runs
+- Horikawa master result table + classification report
+
+---
+
+## 4. Week 5-6: 나머지 4 dataset cell
+
+### 4.1 Emo-FilM × 6 × 4 = 24 cells
+
+- [ ] L0/L1/L3에 같은 pipeline 적용
+- [ ] L4 (continuous dynamics) — sliding-window head 별도 처리
+- [ ] `reports/results/emofilm_master.csv`
+
+### 4.2 Affective Videos × 6 × 3 = 18 cells
+
+- [ ] L0/L1/L2 (4 quadrants)
+- [ ] 4 repetition 같은 split 보장
+- [ ] `reports/results/affective_videos_master.csv`
+
+### 4.3 IAPS × 6 × 2 = 12 cells
+
+- [ ] L0/L2
+- [ ] SwiFT/NeuroSTORM: beta map → pseudo-time (1 frame) 변환
+- [ ] `reports/results/iaps_master.csv`
+
+### 4.4 NeuroEmo × 6 × 1 = 6 cells
+
+- [ ] L2 (5-class)
+- [ ] 200 task volume / 5 class → sparse, regularization 강화
+- [ ] `reports/results/neuroemo_master.csv`
+
+### Deliverable
+
+- 60 frozen probe cells × 5 seeds = 300 runs
+- 5 dataset master tables + classification reports
+
+---
+
+## 5. Week 7: Decision Table + Phase 2 Track Choice
+
+### 5.1 통합 결과
+
+- [ ] `setup/code/aggregate_master_results.py`
+- [ ] 102 cells × class 통합 → `reports/results/MASTER_CLASSIFICATION.md`
+
+### 5.2 Pattern 분석
+
+- [ ] Resting-pretrained vs scratch
+  - 같은 (dataset, task)에서 Δ > 2×SE인 cell 수 → H1 검증
+- [ ] BFM 간 ranking
+  - 어느 BFM이 가장 많은 WIN?
+- [ ] Task별 안정성
+  - L0~L4에서 WIN 비율 → H3 검증 (arousal 가장 안정?)
+- [ ] Dataset별 패턴
+  - cross-dataset robustness
+
+### 5.3 Phase 2 Track decision
+
+| Phase 1 패턴 | Phase 2 track |
+|---|---|
+| Resting > scratch consistently | Pretraining: movie/task pretraining 확장 |
+| Resting ≈ scratch | Adaptation: target-aware pretraining + adapter |
+| BFMs ≈ floors broadly | Representation: input/window/pooling 재검토 |
+| L3/L4에서 BFMs LOSE | Multimodal: stimulus context 추가 |
+| 특정 BFM dominates | Scale: 그 BFM 중심 adapter/fine-tune |
+
+- [ ] `reports/status/PHASE2_TRACK_DECISION.md`
+
+---
+
+## 6. Week 8: Writeup
+
+- [ ] Workshop venue 결정 (NeurIPS workshop / ICLR workshop / arXiv preprint)
+- [ ] `Paper/abstract.md`
+- [ ] 결과 figure 4개
+  - Fig 1: master matrix heatmap (102 cells × class)
+  - Fig 2: resting vs scratch
+  - Fig 3: BFM ranking per task
+  - Fig 4: noise-ceiling normalized scores
+- [ ] `Paper/methods_v1.md`
+- [ ] `Paper/results_v1.md`
+- [ ] Discussion: Phase 2 plan
+
+### Deliverable
+
+- Workshop preprint draft
+- 4 figures
+- Phase 2 plan
+
+---
+
+## 7. 오늘 당장 시작할 수 있는 5개
+
+다른 dataset download 기다리는 동안 Horikawa로 미리 시작 가능:
+
+1. [ ] `setup/code/check_dataset_access.py` 작성 + 실행
+2. [ ] Emo-FilM/Affective Videos/IAPS/NeuroEmo 다운로드 sbatch job 제출
+3. [ ] `setup/code/compute_isc.py` 작성 (Horikawa noise ceiling 계산)
+4. [ ] `setup/data/horikawa_split.csv` 생성 (stimulus-stratified)
+5. [ ] `setup/code/floor_ridge_regression.py` 작성 — Horikawa L1 V/A regression이 가장 단순
+
+---
+
+## 8. 산출물 목록
+
+### Phase 1 끝났을 때 있어야 할 파일
+
+```
+setup/data/
+├── horikawa_split.csv
+├── emofilm_split.csv
+├── affective_videos_split.csv
+├── iaps_split.csv
+├── neuroemo_split.csv
+├── target_matrices/
+│   ├── horikawa_targets.npz
+│   ├── emofilm_targets.npz
+│   ├── affective_videos_targets.npz
+│   ├── iaps_targets.npz
+│   └── neuroemo_targets.npz
+└── parcellated/
+    ├── emofilm/  (각 sub × stim 또는 sub × TR)
+    ├── affective_videos/
+    ├── iaps/  (beta maps)
+    └── neuroemo/
+
+setup/results/
+├── noise_ceilings.csv
+├── embeddings/
+│   ├── swift_resting_{dataset}.npz
+│   ├── swift_scratch_{dataset}.npz
+│   ├── jepa_resting_{dataset}.npz
+│   ├── jepa_scratch_{dataset}.npz
+│   ├── neurostorm_resting_{dataset}.npz
+│   └── neurostorm_scratch_{dataset}.npz
+└── (per-cell raw scores)
+
+reports/results/
+├── horikawa_master.csv
+├── emofilm_master.csv
+├── affective_videos_master.csv
+├── iaps_master.csv
+├── neuroemo_master.csv
+├── horikawa_classification.md
+├── emofilm_classification.md
+├── ...
+└── MASTER_CLASSIFICATION.md
+
+reports/status/
+├── dataset_access_2026-05-11.md
+├── bfm_input_shapes.md
+└── PHASE2_TRACK_DECISION.md
+
+Paper/
+├── abstract.md
+├── methods_v1.md
+├── results_v1.md
+└── figures/  (4 figs)
+```
+
+---
+
+## 9. Risk Register
+
+| 위험 | 임팩트 | 대응 |
+|---|---|---|
+| Emo-FilM access 거부/지연 | 24 cells 누락 | NeuroEmo/Affective Videos 비중 ↑ |
+| BFM checkpoint 호환성 실패 | 특정 cell 실패 | FAIL 마킹, 진행 |
+| NERSC GPU 할당 부족 | 102 cells 완료 못함 | seeds 5→3, parcel-only로 후퇴 |
+| ISC ceiling < 0.1 | 모든 BFM이 PAR | dataset 자체 문제 가능, target 재정의 |
+| Parcellation 변환 오류 | cascade 영향 | Week 2 sanity visualization 필수 |
+| BrainLM 호환성 (재고려 시) | A424 atlas, 490 TR 고정 | Phase 1에서 제외 (확정) |
+
+---
+
+## 10. 성공 기준
+
+8주 후 다음을 결정할 수 있으면 Phase 1 성공:
+
+1. 어느 BFM × init이 어느 (dataset, task)에서 floor 위인가
+2. Resting-state pretraining이 emotion 학습에 도움인가
+3. 어느 dataset이 robust signal을 주는가
+4. Phase 2 어느 track으로 갈 것인가 (pretraining / multimodal / adaptation / representation / scale)
+5. 완성형 emotion BFM을 어떻게 설계할지 (Phase 2 시작점)

@@ -1,6 +1,6 @@
-# NetFeeliX Onboarding
+# FEELIN Onboarding
 
-This file is the first stop for a new collaborator or AI agent. NetFeeliX is a
+This file is the first stop for a new collaborator or AI agent. FEELIN is a
 SwiFT-first but not SwiFT-locked model-development project aiming for an
 emotion-specific brain foundation model. The immediate artifact is the
 `Dataset x BFM x Task` master benchmark matrix, but that matrix is the first
@@ -12,7 +12,7 @@ search-space narrowing step rather than the final project scope.
    - Project thesis, model families, active strategy, and repository map.
 2. `README_KR.md`
    - Korean guide for the project structure and workflow.
-3. `CONTEXT_NETFEELIX.md`
+3. `CONTEXT_FEELIN.md`
    - Single source of truth for project framing and operating rules.
 4. `ACTION_PLAN.md`
    - Current execution plan and near-term research actions.
@@ -33,10 +33,10 @@ search-space narrowing step rather than the final project scope.
 
 ## Project Identity
 
-NetFeeliX stands for:
+FEELIN stands for:
 
 ```text
-Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
+Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data
 ```
 
 The project should not be presented as an emotion theory paper or as a benchmark
@@ -78,7 +78,7 @@ python3 scripts/build_project_status.py
 
 1. Build the `Dataset x BFM x Task` master matrix.
 2. Use emotion-fMRI datasets: Horikawa, Emo-FilM, Affective Videos, IAPS,
-   NeuroEmo, Koide-Majima/Nishimoto, and REELMO / Jojo Rabbit fMRI if usable.
+   NeuroEmo, Koide-Majima/Nishimoto, and REELMO if usable.
 3. Compare BFMs: SwiFT, Brain-JEPA, NeuroSTORM, and BrainLM.
 4. Cover tasks: binary, regression, multiclass, multi-label, high-dimensional
    vector, dynamic/binning, and component/appraisal where valid.

@@ -1,10 +1,10 @@
-# NetFeeliX Project Decisions
+# FEELIN Project Decisions
 
 ## 2026-05-08
 
 ### Project Name
 
-Confirmed working name: **NetFeeliX**.
+Confirmed working name: **FEELIN**.
 
 Formal subtitle:
 
@@ -12,7 +12,7 @@ Formal subtitle:
 
 ### Core Direction
 
-NetFeeliX will compare:
+FEELIN will compare:
 
 1. SwiFT-first emotion adaptation.
 2. HCP movie-watching pretraining.

@@ -1,4 +1,4 @@
-NetFeeliX 연구 관련 문헌과 코드를 탐색하고 reference에 저장하라.
+FEELIN 연구 관련 문헌과 코드를 탐색하고 reference에 저장하라.
 
 검색 토픽: $ARGUMENTS
 
@@ -8,13 +8,13 @@ NetFeeliX 연구 관련 문헌과 코드를 탐색하고 reference에 저장하�
 
 먼저 아래 파일을 읽는다.
 
-1. `/pscratch/sd/s/sjmoon/NetFeeliX/CLAUDE.md`
-2. `/pscratch/sd/s/sjmoon/NetFeeliX/CONTEXT_NETFEELIX.md`
-3. `/pscratch/sd/s/sjmoon/NetFeeliX/workflows/literature_sota_workflow.md`
-4. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/papers.md`
-5. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/systematic_reference_map.md`
-6. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/code_resources.md`
-7. `/pscratch/sd/s/sjmoon/NetFeeliX/reference/datasets.md`
+1. `/pscratch/sd/s/sjmoon/FEELIN/CLAUDE.md`
+2. `/pscratch/sd/s/sjmoon/FEELIN/CONTEXT_FEELIN.md`
+3. `/pscratch/sd/s/sjmoon/FEELIN/workflows/literature_sota_workflow.md`
+4. `/pscratch/sd/s/sjmoon/FEELIN/reference/papers.md`
+5. `/pscratch/sd/s/sjmoon/FEELIN/reference/systematic_reference_map.md`
+6. `/pscratch/sd/s/sjmoon/FEELIN/reference/code_resources.md`
+7. `/pscratch/sd/s/sjmoon/FEELIN/reference/datasets.md`
 
 이미 충분히 정리된 내용이면 외부 검색을 생략하고 업데이트만 수행한다.
 
@@ -41,7 +41,7 @@ NetFeeliX 연구 관련 문헌과 코드를 탐색하고 reference에 저장하�
 - **Type**:
 - **Venue/date**:
 - **Summary**:
-- **NetFeeliX relevance**:
+- **FEELIN relevance**:
 - **URL/DOI**:
 - **Action**:
 ```

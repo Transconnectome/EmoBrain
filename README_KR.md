@@ -1,18 +1,18 @@
-# NetFeeliX 한국어 가이드
+# FEELIN 한국어 가이드
 
-**NetFeeliX**는 감정 이론 프로젝트가 아니라, **emotion representation을 잘
+**FEELIN**는 감정 이론 프로젝트가 아니라, **emotion representation을 잘
 포착하는 emotion-specific brain foundation model / brain model을 만들기 위한
 모델 개발 프로젝트**입니다.
 
 정식 이름은 다음과 같습니다.
 
 ```text
-Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
+Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data
 ```
 
 한 줄로 말하면:
 
-> NetFeeliX는 emotion/affect fMRI에서 가능한 기본 실험을 먼저 넓게 펼쳐
+> FEELIN는 emotion/affect fMRI에서 가능한 기본 실험을 먼저 넓게 펼쳐
 > `Dataset x BFM x Task` master matrix를 채운 뒤, 그 결과로 search space를
 > 좁혀가며 emotion-specific brain foundation model을 개발하는 프로젝트입니다.
 
@@ -26,8 +26,8 @@ Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
    - 지금 읽는 파일입니다. 전체 구조를 한국어로 설명합니다.
 2. `ONBOARDING.md`
    - 새 연구자나 AI agent가 어떤 문서를 읽어야 하는지 정리한 파일입니다.
-3. `CONTEXT_NETFEELIX.md`
-   - NetFeeliX의 핵심 방향만 압축한 single source of truth입니다.
+3. `CONTEXT_FEELIN.md`
+   - FEELIN의 핵심 방향만 압축한 single source of truth입니다.
 4. `research_overview.md`
    - Teams 공유, abstract, presentation 준비용 상세 research overview입니다.
 5. `ACTION_PLAN.md`
@@ -43,9 +43,9 @@ Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
 
 ---
 
-## NetFeeliX의 핵심 방향
+## FEELIN의 핵심 방향
 
-NetFeeliX의 중심 질문은 이것입니다.
+FEELIN의 중심 질문은 이것입니다.
 
 ```text
 어떻게 하면 emotion-relevant representation을 가장 잘 담아내는
@@ -152,15 +152,15 @@ multimodal control/alignment 실험을 거쳐 증거가 쌓인 뒤에 해야 합
 
 ## 전체 폴더 구조
 
-현재 NetFeeliX는 이렇게 구성되어 있습니다.
+현재 FEELIN는 이렇게 구성되어 있습니다.
 
 ```text
-NetFeeliX/
+FEELIN/
 ├── README.md
 ├── README_KR.md
 ├── ACTION_PLAN.md
 ├── ONBOARDING.md
-├── CONTEXT_NETFEELIX.md
+├── CONTEXT_FEELIN.md
 ├── CLAUDE.md
 ├── CODEX.md
 ├── Paper/
@@ -398,7 +398,7 @@ AI가 다음 reviewer 관점으로 공격합니다.
 사용자 요청:
 
 ```text
-NetFeeliX [weekly status] 정리해줘
+FEELIN [weekly status] 정리해줘
 ```
 
 AI가 다음을 확인합니다.
@@ -422,7 +422,7 @@ AI가 다음을 확인합니다.
 
 2. **Dataset**
    - Horikawa, Emo-FilM, Affective Videos, IAPS fMRI 우선
-   - NeuroEmo, Koide-Majima, REELMO / Jojo Rabbit fMRI는 확인 후 확장
+   - NeuroEmo, Koide-Majima, REELMO는 확인 후 확장
    - 각 dataset의 subject, stimulus, target, risk, source는
      `reference/datasets.md`를 봅니다.
 
@@ -449,13 +449,13 @@ AI가 다음을 확인합니다.
 
 ## 핵심만 다시 요약
 
-NetFeeliX는 이제 이렇게 운영됩니다.
+FEELIN는 이제 이렇게 운영됩니다.
 
 ```text
 ACTION_PLAN.md
     = 지금 해야 할 실행 계획
 
-CONTEXT_NETFEELIX.md
+CONTEXT_FEELIN.md
     = 프로젝트 방향 압축본 / agent memory
 
 Paper/
@@ -479,5 +479,5 @@ setup/
 
 가장 중요한 문장:
 
-> NetFeeliX의 첫 목표는 `Dataset x BFM x Task` master matrix를 채워서, 어떤
+> FEELIN의 첫 목표는 `Dataset x BFM x Task` master matrix를 채워서, 어떤
 > brain foundation model이 어떤 emotion fMRI target에서 실제로 쓸 만한지 확인하는 것입니다.

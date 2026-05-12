@@ -36,7 +36,7 @@ reports/status/PROJECT_STATUS.md
 # Local embedding/model cache roots if copied or symlinked into the repo.
 Horikawa_embedding/
 extract_embedding/
-netfeelix_clean/
+feelin_clean/
 tribe_cache/
 tribe_horikawa/
 emode_clean_linear/

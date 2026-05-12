@@ -1,4 +1,4 @@
-# NetFeeliX Scripts
+# FEELIN Scripts
 
 Scripts here support project operations across the repository. Initial runnable
 experiments should live under `setup/code/`.

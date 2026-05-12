@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a compact NetFeeliX project status report."""
+"""Build a compact FEELIN project status report."""
 
 import subprocess
 from datetime import datetime
@@ -47,7 +47,7 @@ def main():
 
     dirty = status if status else "clean"
 
-    body = """# NetFeeliX Project Status
+    body = """# FEELIN Project Status
 
 Generated: {now}
 

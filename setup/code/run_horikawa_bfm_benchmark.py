@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run Horikawa probes on freshly extracted BFM embeddings.
 
-The default embedding roots are NetFeeliX fresh-output directories. This script
+The default embedding roots are FEELIN fresh-output directories. This script
 refuses legacy cache roots.
 """
 
@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 ROOT = Path("/pscratch/sd/s/sjmoon")
-NETFEELIX = ROOT / "NetFeeliX"
+NETFEELIX = ROOT / "FEELIN"
 PYTHON = ROOT / "brain-jepa-env/bin/python"
 EVALUATOR = ROOT / "EmoDe/evaluation/downstream_eval.py"
 DEFAULT_META = ROOT / "Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/horikawa_meta_data_with_dimension_binary.csv"

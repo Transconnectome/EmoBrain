@@ -1,4 +1,4 @@
-# NetFeeliX Code Workspace
+# FEELIN Code Workspace
 
 This directory is for shared modeling utilities and code plans. Initial runnable
 scripts should normally live in `setup/code/`.
@@ -31,7 +31,7 @@ scripts live in `setup/code/`.
 5. `setup/code/check_bfm_readiness.py`
    - Verify fresh benchmark readiness for SwiFT-v2, Brain-JEPA, NeuroSTORM, and
      BrainLM.
-   - This checks source code/checkpoint availability and fresh NetFeeliX output
+   - This checks source code/checkpoint availability and fresh FEELIN output
      directories only; old embedding caches are deliberately ignored.
 
 6. `setup/code/prepare_horikawa_bfm_fresh_extraction.py`

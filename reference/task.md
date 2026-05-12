@@ -1,16 +1,16 @@
-# NetFeeliX Task Inventory
+# FEELIN Task Inventory
 
-This document defines the task space for NetFeeliX. The main goal is not to maximize one emotion prediction score, but to identify which tasks reveal useful **emotion-specific brain representation learning**.
+This document defines the task space for FEELIN. The main goal is not to maximize one emotion prediction score, but to identify which tasks reveal useful **emotion-specific brain representation learning**.
 
 ## Affective Computing Task Landscape
 
 Affective computing does not define emotion as only one classification problem.
 The field uses a ladder of tasks, from simple label prediction to continuous
-affect tracking and, more recently, multimodal reasoning/generation. NetFeeliX
+affect tracking and, more recently, multimodal reasoning/generation. FEELIN
 should borrow this task ladder, but translate it carefully into fMRI-compatible
 targets.
 
-| Task family | Typical output | Usual metric | Examples | NetFeeliX interpretation |
+| Task family | Typical output | Usual metric | Examples | FEELIN interpretation |
 |---|---|---|---|---|
 | Sentiment / valence classification | positive, neutral, negative, or ordinal valence class | accuracy, macro F1, ordinal correlation | SemEval Affect in Tweets, IAPS-style categories | fast low-dimensional check; not sufficient for emotion representation |
 | Discrete emotion classification | one emotion label from a fixed taxonomy | accuracy, macro F1, balanced accuracy | IEMOCAP, MELD, DFEW/MAFW-style video emotion sets | useful baseline, but risks forcing one label onto mixed affective states |
@@ -21,7 +21,7 @@ targets.
 | Multimodal emotion recognition | emotion from video/audio/text/physiology, often with missing/noisy modalities | task-specific F1, correlation, robustness metrics | MER/MuSe challenges, AffectGPT benchmarks | motivates stimulus-only and multimodal alignment baselines |
 | Emotion cause / trigger / interpretation | why the emotion occurs; cue, cause, intent, appraisal, rationale | QA score, human/LLM judge, retrieval, explanation quality | EIBench, MME-Emotion reasoning score, emotion-cause extraction | should be stimulus-side or alignment target, not direct fMRI "reasoning" claim |
 | Descriptive affective captioning | natural-language emotion description, fine-grained caption, rationale | caption metrics, LLM judge, retrieval, human preference | AffectGPT / MER-Caption, EmoBench-M generation | can provide embedding targets for brain-stimulus alignment |
-| Affective interaction/generation | empathetic response, emotional speech, adaptive dialogue/action | human preference, task success, safety metrics | emotional TTS, empathetic dialogue, affective agents | later extension only; not core NetFeeliX fMRI task |
+| Affective interaction/generation | empathetic response, emotional speech, adaptive dialogue/action | human preference, task success, safety metrics | emotional TTS, empathetic dialogue, affective agents | later extension only; not core FEELIN fMRI task |
 
 Key lesson:
 
@@ -31,7 +31,7 @@ evaluates intensity, temporal dynamics, multimodal cue grounding, cause/intent,
 and free-form affective descriptions.
 ```
 
-For NetFeeliX, this means the first fMRI tasks should remain measurable
+For FEELIN, this means the first fMRI tasks should remain measurable
 classification/regression problems, while later model-development tracks can use
 stimulus-side affective captions, cue labels, and rationale embeddings as
 alignment targets.
@@ -127,7 +127,7 @@ or does stimulus context explain most observed emotion labels?
 
 ### Stage 3: Shared Latent and Context
 
-Purpose: build the NetFeeliX model direction.
+Purpose: build the FEELIN model direction.
 
 Tasks:
 
@@ -172,7 +172,7 @@ Use these conditions as the default ladder:
 5. **Padding/masking sensitivity**: when short windows are padded into longer
    models, report whether padded frames affect attention and pooling.
 
-## NetFeeliX Task Design Rule
+## FEELIN Task Design Rule
 
 The affective-computing task ladder should be used in order:
 

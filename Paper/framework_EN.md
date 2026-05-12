@@ -1,16 +1,16 @@
-# NetFeeliX Framework
+# FEELIN Framework
 
 ## Canonical Direction
 
-NetFeeliX is a **model-development project for emotion-aware brain representation learning**. It is not an emotion theory paper. Emotion theory should appear only as a short constraint on target design: emotion labels are noisy, dynamic, stimulus-dependent, and multi-component, so the model should be evaluated on arousal, valence, discrete categories, and high-dimensional emotion vectors rather than on one fixed label.
+FEELIN is a **model-development project for emotion-aware brain representation learning**. It is not an emotion theory paper. Emotion theory should appear only as a short constraint on target design: emotion labels are noisy, dynamic, stimulus-dependent, and multi-component, so the model should be evaluated on arousal, valence, discrete categories, and high-dimensional emotion vectors rather than on one fixed label.
 
 One-line framing:
 
-**NetFeeliX treats emotion representation as a model-development problem over brain dynamics, naturalistic stimulus dynamics, and affective annotations. Initial benchmarks decide which architecture and training objectives are worth developing.**
+**FEELIN treats emotion representation as a model-development problem over brain dynamics, naturalistic stimulus dynamics, and affective annotations. Initial benchmarks decide which architecture and training objectives are worth developing.**
 
 External-facing pitch:
 
-> NetFeeliX will not start by claiming a complete emotion foundation model. It will first build an initial benchmark around SwiFT, naturalistic movie/story fMRI datasets, TRIBE v2-style stimulus-to-brain models, and affective LLM/VLM representations. The benchmark asks which information source helps which emotion target. The model-development track is then chosen from four directions: SwiFT emotion adaptation, naturalistic fMRI continued pretraining, TRIBE-SwiFT stimulus-brain alignment, and brain-tuned affective LLM/VLM adapters.
+> FEELIN will not start by claiming a complete emotion foundation model. It will first build an initial benchmark around SwiFT, naturalistic movie/story fMRI datasets, TRIBE v2-style stimulus-to-brain models, and affective LLM/VLM representations. The benchmark asks which information source helps which emotion target. The model-development track is then chosen from four directions: SwiFT emotion adaptation, naturalistic fMRI continued pretraining, TRIBE-SwiFT stimulus-brain alignment, and brain-tuned affective LLM/VLM adapters.
 
 ## Model-Development Problem
 
@@ -21,7 +21,7 @@ Which model architecture and learning objective produce the most transferable
 brain-based representation of emotion under small downstream fMRI datasets?
 ```
 
-NetFeeliX decomposes this into eight testable modeling questions.
+FEELIN decomposes this into eight testable modeling questions.
 
 | Question | Modeling interpretation | First test |
 |---|---|---|
@@ -34,13 +34,13 @@ NetFeeliX decomposes this into eight testable modeling questions.
 | Does stimulus-brain alignment help? | Emotion depends on the shared structure between stimulus dynamics and brain dynamics. | TRIBE-style stimulus features aligned with fMRI latents. |
 | Can affective AI be brain-tuned? | LLM/VLM emotion features may improve when regularized by neural responses. | Small adapter or distillation from brain-aligned latent spaces. |
 
-The project should stay comparative. Arousal, valence, discrete emotion, and high-dimensional category vectors may prefer different architectures and brain representations. A useful result can be a pattern of failures, not only one winning model. SwiFT-first is a starting strategy, not a fixed conclusion. If SwiFT is not the right backbone, NetFeeliX should pivot to the neural representation or architecture that works.
+The project should stay comparative. Arousal, valence, discrete emotion, and high-dimensional category vectors may prefer different architectures and brain representations. A useful result can be a pattern of failures, not only one winning model. SwiFT-first is a starting strategy, not a fixed conclusion. If SwiFT is not the right backbone, FEELIN should pivot to the neural representation or architecture that works.
 
 ## Literature Landscape for Model Development
 
 ### fMRI Brain Foundation Models
 
-SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT, and related models define the brain-side foundation-model space. NetFeeliX is **SwiFT-first** because SwiFT is the local lab backbone that can be modified, pretrained, and inserted into multimodal architectures. The other BFMs define comparison points.
+SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT, and related models define the brain-side foundation-model space. FEELIN is **SwiFT-first** because SwiFT is the local lab backbone that can be modified, pretrained, and inserted into multimodal architectures. The other BFMs define comparison points.
 
 - **SwiFT**: direct 4D fMRI spatiotemporal window attention.
 - **BrainLM**: masked prediction over brain activity recordings.
@@ -49,13 +49,13 @@ SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT, and related models
 - **Omni-fMRI / Brain-DiT**: future references for atlas-free or multi-state pretraining.
 - **SwiFUN**: resting-state to task-activation bridge, useful because emotion-related task contrasts are included in its evaluation.
 
-For NetFeeliX, these are not final solutions. They are screening baselines that test whether generic brain representations already carry emotion-relevant information.
+For FEELIN, these are not final solutions. They are screening baselines that test whether generic brain representations already carry emotion-relevant information.
 
 ### Stimulus-to-Brain Encoding and Alignment
 
 TRIBE and TRIBE v2 are not fMRI encoders in the same native sense as SwiFT or BrainLM. They are **stimulus-to-brain encoding models**: video, audio, and language features are used to predict fMRI responses. This distinction matters, but it does not make comparison impossible.
 
-NetFeeliX should compare TRIBE-style and SwiFT-style models through a shared interface:
+FEELIN should compare TRIBE-style and SwiFT-style models through a shared interface:
 
 | Interface | Input | Model form | Objective |
 |---|---|---|---|
@@ -64,7 +64,7 @@ NetFeeliX should compare TRIBE-style and SwiFT-style models through a shared int
 | Encoding-regularized brain model | fMRI + stimulus during training | fMRI encoder + stimulus auxiliary loss | emotion + alignment |
 | Bidirectional aligned model | fMRI and/or stimulus | shared brain-stimulus latent | emotion + fMRI prediction + contrastive/JEPA loss |
 
-Thus the correct framing is not "TRIBE cannot be compared with SwiFT." The correct framing is: **their native input-output directions differ, so NetFeeliX compares modified variants with harmonized targets, splits, and heads.**
+Thus the correct framing is not "TRIBE cannot be compared with SwiFT." The correct framing is: **their native input-output directions differ, so FEELIN compares modified variants with harmonized targets, splits, and heads.**
 
 Concrete model-surgery variants:
 
@@ -72,20 +72,20 @@ Concrete model-surgery variants:
 2. **TRIBE-emotion baseline**: video/audio/text to emotion.
 3. **TRIBE-to-SwiFT distillation**: fMRI encoder learns stimulus-derived latent structure.
 4. **SwiFT-to-TRIBE alignment**: fMRI latents align with TRIBE-style stimulus latents.
-5. **Bidirectional NetFeeliX**: shared latent learns stimulus-to-brain encoding and brain-to-emotion decoding together.
+5. **Bidirectional FEELIN**: shared latent learns stimulus-to-brain encoding and brain-to-emotion decoding together.
 
 ### Affective Computing Foundation Models
 
 Affective computing is moving toward foundation models: LLM/VLM/MLLM emotion recognition, emotion reasoning, multimodal affective benchmarks, and affective generation. Schuller et al. describe this as a foundation-model disruption in affective computing; MMAFFBen and related work show that affective reasoning is now evaluated across text, image, video, and languages.
 
-This creates an opening for NetFeeliX. Affective AI has large external models but little brain grounding. fMRI BFMs have brain representations but rarely organize pretraining around emotion. NetFeeliX can bridge them by asking whether brain responses to emotional/naturalistic stimuli can regularize affective AI representations.
+This creates an opening for FEELIN. Affective AI has large external models but little brain grounding. fMRI BFMs have brain representations but rarely organize pretraining around emotion. FEELIN can bridge them by asking whether brain responses to emotional/naturalistic stimuli can regularize affective AI representations.
 
-Recent MLLM benchmarks such as MME-Emotion, EmoBench-M, Beyond Emotion Recognition, and EIBench also show that affective computing is shifting from "which emotion label?" to emotional understanding, trigger inference, and contextual reasoning. NetFeeliX should not simply copy these benchmarks, but they are useful for designing richer stimulus-side affective embeddings and auxiliary targets.
+Recent MLLM benchmarks such as MME-Emotion, EmoBench-M, Beyond Emotion Recognition, and EIBench also show that affective computing is shifting from "which emotion label?" to emotional understanding, trigger inference, and contextual reasoning. FEELIN should not simply copy these benchmarks, but they are useful for designing richer stimulus-side affective embeddings and auxiliary targets.
 
 Affective-computing task design is therefore broader than classification versus
 regression. A useful ladder is:
 
-| Task type | Output | NetFeeliX use |
+| Task type | Output | FEELIN use |
 |---|---|---|
 | Sentiment/valence classification | positive/neutral/negative or ordinal class | low-dimensional IAPS/Affective Videos check |
 | Discrete emotion classification | single label such as anger, fear, joy | baseline, but may over-simplify mixed affect |
@@ -95,16 +95,16 @@ regression. A useful ladder is:
 | Cue/cause/reasoning | trigger, intent, appraisal, rationale | stimulus-side auxiliary target or alignment target |
 | Affective captioning / QA | natural-language emotion description or answer | convert to embedding/retrieval targets before making brain-generation claims |
 
-Thus NetFeeliX should not choose only one of classification or regression. It
+Thus FEELIN should not choose only one of classification or regression. It
 should start with stable arousal/valence/category targets, move toward
 multi-label/high-dimensional emotion geometry and component trajectories, and
 use reasoning/caption targets mainly to enrich stimulus-side representations.
 
-Top-conference work makes this especially clear. ICML 2025 AffectGPT reframes multimodal emotion recognition as descriptive emotion understanding with large-scale fine-grained captions and a unified benchmark. NeurIPS 2025 VidEmo uses affective-tree reasoning guidance for emotion-centric video foundation modeling. ICLR 2026 AVERE, MME-Emotion, EmotionHallucer, and HitEmotion target audiovisual cue grounding, emotion hallucination, emotional-intelligence evaluation, and Theory-of-Mind-guided multimodal emotion reasoning. The practical lesson for NetFeeliX is that emotion models should explain or ground affective judgments in temporal context, not only predict labels.
+Top-conference work makes this especially clear. ICML 2025 AffectGPT reframes multimodal emotion recognition as descriptive emotion understanding with large-scale fine-grained captions and a unified benchmark. NeurIPS 2025 VidEmo uses affective-tree reasoning guidance for emotion-centric video foundation modeling. ICLR 2026 AVERE, MME-Emotion, EmotionHallucer, and HitEmotion target audiovisual cue grounding, emotion hallucination, emotional-intelligence evaluation, and Theory-of-Mind-guided multimodal emotion reasoning. The practical lesson for FEELIN is that emotion models should explain or ground affective judgments in temporal context, not only predict labels.
 
 ### Brain-Tuning and Brain-Aligned AI
 
-Brain-Score Vision, Brain-Score Language, EEG representational alignment, brain-tuning speech/language models, multi-participant brain-tuning, and fMRI language-encoding scaling laws show that neural data can be used not only to evaluate AI models but also to tune or regularize them. For NetFeeliX, this supports a cautious but concrete extension:
+Brain-Score Vision, Brain-Score Language, EEG representational alignment, brain-tuning speech/language models, multi-participant brain-tuning, and fMRI language-encoding scaling laws show that neural data can be used not only to evaluate AI models but also to tune or regularize them. For FEELIN, this supports a cautious but concrete extension:
 
 ```text
 affective LLM/VLM representation + fMRI response during emotional stimuli
@@ -117,7 +117,7 @@ SED-GPT is a useful nearby precedent because it combines fMRI, long-sequence sem
 
 ### Gap Statement
 
-There is no mature fMRI emotion foundation model direction yet. Existing fMRI BFMs are usually generic; neural-signal FMs may include emotion as one downstream benchmark; affective computing FMs usually lack brain grounding; stimulus-to-brain models usually optimize fMRI encoding rather than emotion representation. NetFeeliX fills this gap by making **screening-benchmark-driven model development for emotion-aware brain/stimulus representation** the central objective.
+There is no mature fMRI emotion foundation model direction yet. Existing fMRI BFMs are usually generic; neural-signal FMs may include emotion as one downstream benchmark; affective computing FMs usually lack brain grounding; stimulus-to-brain models usually optimize fMRI encoding rather than emotion representation. FEELIN fills this gap by making **screening-benchmark-driven model development for emotion-aware brain/stimulus representation** the central objective.
 
 ## Initial Benchmark Strategy
 
@@ -139,17 +139,17 @@ Minimum benchmark table:
 | Horikawa | high-dimensional emotion vector | planned | planned | planned | planned | core downstream |
 | Emo-FilM | emotion/appraisal/component ratings | planned | planned | planned | planned | modern naturalistic benchmark |
 | Affective Videos | valence/arousal | planned | optional | planned | optional | lightweight sanity check |
-| REELMO | time-resolved affect reports; Jojo Rabbit-only fMRI | optional | planned | limited one-movie fMRI | optional | strong stimulus-side supervision |
+| REELMO | time-resolved affect reports; fMRI participants watched Jojo Rabbit | optional | planned | limited one-movie fMRI | optional | strong stimulus-side supervision |
 | HCP 7T movie | pretraining objective | planned | planned features | planned | planned | naturalistic pretraining source |
 
 ## Horikawa vs. Reasoning/Context Understanding
 
-Horikawa should not be forced to carry the whole reasoning/context story. Its strength is different: it provides a high-dimensional, visually evoked emotion space with fMRI responses to many short videos. In NetFeeliX, Horikawa is best used as a **brain-side affect geometry probe**.
+Horikawa should not be forced to carry the whole reasoning/context story. Its strength is different: it provides a high-dimensional, visually evoked emotion space with fMRI responses to many short videos. In FEELIN, Horikawa is best used as a **brain-side affect geometry probe**.
 
 Reasoning and context understanding require longer temporal context, cue grounding, narrative structure, and sometimes natural-language rationales. These should come from other sources:
 
 - **Emo-FilM**: component/appraisal-style annotations and naturalistic film context.
-- **REELMO**: long movie trajectories, 20 emotion labels, stimulus features, subtitles, and a Jojo Rabbit-only fMRI subset.
+- **REELMO**: long movie trajectories, 20 emotion labels, stimulus features, subtitles, and fMRI in which participants watched Jojo Rabbit.
 - **HCP/CNeuroMod/StudyForrest/Narratives movie-story data**: naturalistic fMRI pretraining, modality/context ablations, and stimulus-brain alignment experiments.
 - **Affective MLLM benchmarks/models**: descriptive emotion captions, cue-emotion QA, rationale embeddings, and hallucination diagnostics.
 

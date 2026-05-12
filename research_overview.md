@@ -1,8 +1,8 @@
-# NetFeeliX: Research Overview for Abstract & Presentation
+# FEELIN: Research Overview for Abstract & Presentation
 
 > **목적**: 팀 공유용 연구 overview → abstract / presentation / experiment planning의 기반 문서
 > **형식**: Background → Rationale → Gap → Research Question → Methods → Expected Results → Future
-> **GitHub**: https://github.com/Transconnectome/NetFeeliX  
+> **GitHub**: https://github.com/Transconnectome/FEELIN  
 > **last-synced**: 2026-05-08
 > **canonical docs**: `Paper/framework_KR.md`, `Paper/framework_EN.md`, `reference/datasets.md`, `reference/task.md`, `reference/training_strategy.md`
 
@@ -10,7 +10,7 @@
 
 ## 0. One-Sentence Summary
 
-**NetFeeliX**는 emotion/affect fMRI dataset에서 Brain Foundation Model이
+**FEELIN**는 emotion/affect fMRI dataset에서 Brain Foundation Model이
 emotion-relevant representation을 얼마나 잘 잡는지 확인하기 위해,
 먼저 **Dataset x BFM x Task master matrix**를 구축하고 채우는 프로젝트이다.
 SwiFT는 첫 backbone이지만, Brain-JEPA, NeuroSTORM, BrainLM과 matched condition에서
@@ -19,7 +19,7 @@ SwiFT는 첫 backbone이지만, Brain-JEPA, NeuroSTORM, BrainLM과 matched condi
 정식 이름:
 
 ```text
-Neural nETwork For Emotion rEpresentation Learning and Inference in NeuroX
+Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data
 ```
 
 핵심 질문:
@@ -43,7 +43,7 @@ decision을 내릴 수 있는 benchmark 기반을 구축하는 것**이다.
 SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-OF, Brain-DiT 계열은
 대규모 brain activity에서 transferable representation을 학습하려는 모델들이다.
 
-| Model family | 예시 | 입력 | 핵심 아이디어 | NetFeeliX에서의 역할 |
+| Model family | 예시 | 입력 | 핵심 아이디어 | FEELIN에서의 역할 |
 |---|---|---|---|---|
 | 4D fMRI backbone | SwiFT | 4D fMRI volume | spatiotemporal window attention | 기본 brain backbone |
 | fMRI masked modeling | BrainLM | ROI/time-series fMRI | masked brain activity prediction | BFM transfer baseline |
@@ -51,7 +51,7 @@ SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-OF, Brain-DiT 계열은
 | Large-scale 4D fMRI FM | NeuroSTORM | raw 4D fMRI | large-scale fMRI representation | 비교 모델 후보 |
 | Omnifunctional neural FM | Brain-OF / Omni-fMRI | fMRI/EEG/MEG or atlas-free fMRI | multi-task neural representation | future reference |
 
-이 흐름은 NetFeeliX의 중요한 출발점이다. 하지만 대부분의 BFM은 emotion을 중심으로
+이 흐름은 FEELIN의 중요한 출발점이다. 하지만 대부분의 BFM은 emotion을 중심으로
 설계된 모델이 아니다. Emotion task가 downstream benchmark 중 하나로 포함될 수는
 있지만, emotion-specific representation을 잘 만들기 위한 objective나 architecture가
 명시적으로 설계된 경우는 드물다.
@@ -79,7 +79,7 @@ image/video/audio/text/fMRI -> anger / fear / joy / sadness / neutral
 - **Stimulus-dependent**: visual, auditory, language, social cue가 함께 작동
 - **Subject-dependent**: 같은 stimulus라도 개인마다 반응이 다름
 
-따라서 NetFeeliX의 질문은 단순히:
+따라서 FEELIN의 질문은 단순히:
 
 ```text
 fMRI로 emotion label을 맞힐 수 있는가?
@@ -103,7 +103,7 @@ Affective computing에서도 emotion task는 단순 classification에서 점점 
 reasoning, cue grounding, cause/trigger inference, affective captioning, multimodal
 emotion understanding까지 다룬다.
 
-| Task type | Output | 대표 metric | NetFeeliX에서의 의미 |
+| Task type | Output | 대표 metric | FEELIN에서의 의미 |
 |---|---|---|---|
 | Sentiment / valence classification | positive / neutral / negative | accuracy, macro F1 | IAPS/Affective Videos식 낮은 난이도 check |
 | Discrete emotion classification | anger, fear, joy 등 single label | balanced accuracy, macro F1 | baseline task |
@@ -115,7 +115,7 @@ emotion understanding까지 다룬다.
 | Emotion cause / trigger reasoning | cue, cause, intent, appraisal, rationale | QA, retrieval, human/LLM judge | stimulus-side auxiliary target |
 | Affective captioning / QA | natural-language emotion description | caption metric, LLM judge, retrieval | fMRI latent와 embedding alignment target |
 
-NetFeeliX는 이 task ladder를 fMRI-compatible하게 번역해야 한다.
+FEELIN는 이 task ladder를 fMRI-compatible하게 번역해야 한다.
 
 첫 단계에서는 측정 가능한 regression/classification/multi-label task를 사용한다. 이후에는
 MLLM-derived caption, rationale, cue embedding을 stimulus-side auxiliary target으로 사용한다.
@@ -123,7 +123,7 @@ MLLM-derived caption, rationale, cue embedding을 stimulus-side auxiliary target
 
 ### 1.4 왜 SwiFT-first인가
 
-NetFeeliX의 기본 brain backbone은 SwiFT다.
+FEELIN의 기본 brain backbone은 SwiFT다.
 
 이유는 두 가지다.
 
@@ -133,7 +133,7 @@ continued pretraining, stimulus-brain alignment module까지 실질적으로 개
 
 둘째, SwiFT는 4D fMRI를 직접 다루는 spatiotemporal transformer 계열이다. Emotion은
 자연주의적 stimulus, time-varying context, subject-specific response와 연결되어 있으므로,
-4D fMRI encoder를 emotion-specific하게 발전시키는 질문이 NetFeeliX의 중심이 된다.
+4D fMRI encoder를 emotion-specific하게 발전시키는 질문이 FEELIN의 중심이 된다.
 
 SwiFT-first의 의미:
 
@@ -148,7 +148,7 @@ emotion-specific naturalistic fMRI encoder로 발전시키는 방향을 먼저 �
 
 ### 2.1 핵심 테제
 
-NetFeeliX의 핵심 테제는 다음이다.
+FEELIN의 핵심 테제는 다음이다.
 
 > **Emotion fMRI modeling은 단순 emotion label prediction이 아니라, brain dynamics,
 > naturalistic stimulus dynamics, affective annotation이 만나는 representation learning
@@ -168,7 +168,7 @@ shortcut에서 나올 수 있다.
 - preprocessing artifact
 - label imbalance
 
-따라서 NetFeeliX는 단일 score가 아니라 다음 증거를 함께 봐야 한다.
+따라서 FEELIN는 단일 score가 아니라 다음 증거를 함께 봐야 한다.
 
 1. simple ROI/ridge baseline 대비 개선
 2. frozen SwiFT 대비 adapter/fine-tuning 개선
@@ -179,9 +179,9 @@ shortcut에서 나올 수 있다.
 7. cross-dataset transfer
 8. low-level visual/audio shortcut control
 
-### 2.2 Five-Axis NetFeeliX Framework
+### 2.2 Five-Axis FEELIN Framework
 
-NetFeeliX는 다섯 개의 축으로 정리할 수 있다.
+FEELIN는 다섯 개의 축으로 정리할 수 있다.
 
 ```text
 Axis 1: Brain backbone
@@ -200,7 +200,7 @@ Axis 5: Affective AI target richness
     label -> intensity -> distribution -> trajectory -> cue/rationale/caption embedding
 ```
 
-이 다섯 축의 조합이 NetFeeliX의 모델 개발 공간이다.
+이 다섯 축의 조합이 FEELIN의 모델 개발 공간이다.
 
 ### 2.3 왜 Naturalistic Movie/Story fMRI인가
 
@@ -243,7 +243,7 @@ pretraining 논리를 정당화할 수는 없다.
 
 Dataset 선택은 model hypothesis별로 해야 한다.
 
-| Dataset / source | 왜 쓰는가 | NetFeeliX에서 확인할 질문 |
+| Dataset / source | 왜 쓰는가 | FEELIN에서 확인할 질문 |
 |---|---|---|
 | HCP 7T movie | large-subject movie fMRI | stimulus-locked pretraining이 Horikawa/Emo-FilM transfer를 개선하는가 |
 | CNeuroMod / Algonauts 2025 | video/audio/transcript + fMRI encoding resource | TRIBE-style alignment가 emotion target에 도움이 되는가 |
@@ -295,7 +295,7 @@ TRIBE v2:
 ```
 
 즉 TRIBE v2는 fMRI encoder가 아니라 **stimulus-to-brain encoding model**이다. 그러나 바로
-그 점 때문에 NetFeeliX에 중요하다.
+그 점 때문에 FEELIN에 중요하다.
 
 TRIBE v2가 던지는 질문:
 
@@ -306,7 +306,7 @@ emotion target은 observed fMRI에서만 예측되는가,
 
 TRIBE v2 활용 방식:
 
-| Use mode | Input | Output | NetFeeliX role |
+| Use mode | Input | Output | FEELIN role |
 |---|---|---|---|
 | stimulus-only baseline | video/audio/text | emotion target | label이 stimulus만으로 설명되는지 확인 |
 | frozen teacher | video/audio/text | predicted brain response | stimulus-to-brain prior |
@@ -320,7 +320,7 @@ Affective computing의 최근 흐름은 label prediction을 넘어 cue grounding
 captioning, cause/trigger reasoning, multimodal emotional intelligence benchmark로 이동하고
 있다.
 
-NetFeeliX가 이 흐름에서 배울 점:
+FEELIN가 이 흐름에서 배울 점:
 
 - emotion target을 단순 category로만 두지 않는다.
 - stimulus-side affect representation을 더 풍부하게 만든다.
@@ -352,7 +352,7 @@ SwiFT, BrainLM, Brain-JEPA, NeuroSTORM 등은 brain-side foundation model space�
 task로 포함될 수 있지만, emotion representation을 중심으로 architecture와 objective를
 설계한 경우는 드물다.
 
-NetFeeliX gap:
+FEELIN gap:
 
 ```text
 SwiFT-style fMRI encoder를 emotion-specific하게 발전시키는
@@ -366,7 +366,7 @@ benchmark가 빠르게 늘고 있다. 그러나 이 모델들은 보통 external
 stimulus-only benchmark로 평가된다. Emotional stimulus에 대한 fMRI response와 직접 연결되는
 경우는 드물다.
 
-NetFeeliX gap:
+FEELIN gap:
 
 ```text
 Can brain responses provide biological grounding for affective AI representations?
@@ -378,7 +378,7 @@ TRIBE, TRIBE v2, VIBE, Algonauts-style models는 naturalistic stimulus로 fMRI r
 예측한다. 하지만 native objective는 fMRI encoding이지 emotion representation learning이
 아니다.
 
-NetFeeliX gap:
+FEELIN gap:
 
 ```text
 Can stimulus-to-brain encoding models be modified into
@@ -398,7 +398,7 @@ Emotion fMRI dataset은 매우 가치 있지만 규모와 형식이 제각각이
 | NeuroEmo | cross-cultural emotion clips | label mapping and stimulus access 확인 필요 |
 | Koide-Majima / Nishimoto | emotional movie fMRI candidate | access-dependent |
 
-NetFeeliX gap:
+FEELIN gap:
 
 ```text
 작은 dataset 하나에 end-to-end model을 바로 학습하기보다,
@@ -416,7 +416,7 @@ Emotion을 single-label classification으로만 보면 다음 구조를 놓친�
 - continuous trajectory
 - stimulus cue / cause / rationale
 
-NetFeeliX gap:
+FEELIN gap:
 
 ```text
 Emotion fMRI modeling에는 single target이 아니라 task ladder가 필요하다.
@@ -495,7 +495,7 @@ emotion representation learning from fMRI?
 
 ### 5.1 Experimental Design Overview
 
-NetFeeliX는 처음부터 큰 end-to-end model을 주장하지 않는다. 먼저 모든
+FEELIN는 처음부터 큰 end-to-end model을 주장하지 않는다. 먼저 모든
 `Dataset x BFM x Task` 조합을 펼친 master matrix를 만들고, 각 cell에 status,
 metric, failure reason, decision을 채운 뒤 model-development track을 선택한다.
 
@@ -531,7 +531,7 @@ Phase 6: Consolidation and paper direction
 - IAPS fMRI NeuroVault
 - NeuroEmo
 - Koide-Majima/Nishimoto
-- REELMO / Jojo Rabbit fMRI if accessible
+- REELMO if accessible
 
 HCP 7T movie, CNeuroMod/Algonauts, StudyForrest, Narratives, 101 Dalmatians는
 현재 benchmark dataset axis가 아니라 이후 pretraining/alignment resource다.
@@ -736,7 +736,7 @@ loss = contrastive(z_brain, z_affect)
 
 ### 5.8 Task and Metric Design
 
-NetFeeliX task ladder:
+FEELIN task ladder:
 
 | Level | Task | Dataset candidates | Metric |
 |---|---|---|---|
@@ -1069,7 +1069,7 @@ Deliverable:
 
 ## 8. Short Team Post Version
 
-NetFeeliX는 emotion-labeled fMRI에서 Brain Foundation Model이 emotion-relevant
+FEELIN는 emotion-labeled fMRI에서 Brain Foundation Model이 emotion-relevant
 representation을 얼마나 잘 잡는지 확인하기 위해 `Dataset x BFM x Task` master matrix를
 먼저 구축하는 모델 개발 프로젝트입니다.
 
@@ -1079,7 +1079,7 @@ trajectory, cue/rationale embedding까지 이어지는 task ladder에서 어떤 
 가장 transferable한지를 보는 것입니다.
 
 초기에는 Horikawa, Emo-FilM, Affective Videos, IAPS fMRI, NeuroEmo,
-Koide-Majima/Nishimoto, REELMO / Jojo Rabbit fMRI를 dataset axis로 두고, SwiFT,
+Koide-Majima/Nishimoto, REELMO를 dataset axis로 두고, SwiFT,
 Brain-JEPA, NeuroSTORM, BrainLM을 BFM axis로 두며, binary/regression/multiclass/
 multi-label/high-dimensional/dynamic/component task 조합을 모두 펼친 표를 채웁니다.
 logistic/ridge/ROI/voxel 모델은 statistical floor로만 사용합니다.
@@ -1097,7 +1097,7 @@ statistical floor, frozen BFM probe입니다.
 
 ### Project
 
-- NetFeeliX GitHub: https://github.com/Transconnectome/NetFeeliX
+- FEELIN GitHub: https://github.com/Transconnectome/FEELIN
 - SwiFT: https://github.com/Transconnectome/SwiFT
 - TRIBE v2: https://github.com/facebookresearch/tribev2
 

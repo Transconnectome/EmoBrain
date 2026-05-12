@@ -13,9 +13,9 @@ from typing import Dict
 
 
 REQUIRED_BLOCKS = (
-    "**Role in NetFeeliX**",
+    "**Role in FEELIN**",
     "**Dataset content**",
-    "**NetFeeliX task design**",
+    "**FEELIN task design**",
     "**SwiFT use**",
     "**TRIBE v2 / stimulus use**",
     "**Risks**",

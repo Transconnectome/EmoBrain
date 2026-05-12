@@ -25,7 +25,7 @@ def slugify(text):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Create a NetFeeliX experiment card.")
+    parser = argparse.ArgumentParser(description="Create a FEELIN experiment card.")
     parser.add_argument("--id", required=True, help="Experiment ID, e.g. NFx-001")
     parser.add_argument("--title", required=True, help="Experiment title")
     parser.add_argument("--owner", default="sjmoon", help="Owner name")
