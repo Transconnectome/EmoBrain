@@ -1,255 +1,111 @@
 # FEELIN
 
-**Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data**
+**Brain-conditioned Emotion-Vision-Language Model on Naturalistic fMRI**
 
-> Building an emotion-specific brain foundation model through benchmark-driven search.
 
-Korean guide: [`README_KR.md`](README_KR.md)
-Research overview: [`research_overview.md`](research_overview.md)
-Action plan: [`ACTION_PLAN.md`](ACTION_PLAN.md)
+## 한 줄 요약
 
-FEELIN is an attempt to build a brain model that captures emotion
-representations: not just "predict an emotion label," but learn fMRI
-representations that track affect, appraisal, context, and multimodal
-naturalistic experience.
+fMRI 와 video 를 함께 입력으로 받아 그 사람이 영상에서 느낀 emotion 을 자연어로 묘사하는 model 을 만든다. 그리고 fMRI 인코더로 어떤 brain foundation model 을 쓰면 가장 좋은지 비교한다.
 
-The first deliverable is a large `Dataset x BFM x Task` benchmark matrix. That
-matrix is not the final goal. It is the search-space narrowing stage that tells
-us which datasets, BFMs, targets, windows, and baselines contain usable signal
-before we commit to larger model-development tracks.
 
----
+## Big Question
 
-## Project Thesis
+> fMRI 와 video 를 함께 받는 model 이 그 사람이 영상에서 느낀 emotion 을 자연어로 묘사할 수 있는가? 그리고 fMRI 를 어떻게 인코딩해야 (어떤 brain foundation model 을 쓰면) 묘사가 가장 잘 되는가?
 
-The final goal is an **emotion-specific brain foundation model**: a brain model
-whose representations preserve emotion-relevant structure across datasets,
-stimuli, subjects, and target types.
 
-Emotion representation is unlikely to be solved by attaching a small emotion
-head to a generic resting-state brain foundation model. Emotion during
-naturalistic experience depends on the interaction between multimodal stimulus
-dynamics, subject-specific brain dynamics, task context, and affective labels
-or ratings. FEELIN therefore treats emotion representation learning as a
-brain-model search problem over:
+## 3 Sub-question
 
-```text
-brain foundation model + task/movie fMRI learning signal + multimodal stimulus context + emotion targets
+1. **Caption 의 affect 정확도** — Brain-conditioned caption 에서 추출한 V/A 가 그 subject 의 self-rating 과 within-subject Pearson r ≥ 0.4, video-only baseline 보다 유의하게 높은가?
+2. **Brain swap 의 caption 변화** — 같은 영상에 다른 사람 brain 을 conditioning 하면 caption affect tone 이 systematically 다른가? (brain 이 caption 의 driver 인가)
+3. **Stimulus retrieval** — 생성된 caption 으로 자극을 retrieval 할 때 Mind Captioning baseline 의 80% 이상 정확도 유지 (affect 에 집중하면서도 content grounding 보존)?
+
+
+## Architecture
+
+```
+fMRI ─► [fMRI encoder = swap-in BFM 후보] ─► z_brain
+                                                │
+                          ▼ as prefix / cross-attn ◄── video frames
+                  Brain-VLM (UMBRELLA_qwen, Qwen3-VL)
+                                                │
+                                                ▼
+                                  free-form emotion caption
+                                                │
+                       ┌────────────────────────┼────────────────────────┐
+                       ▼                        ▼                        ▼
+                  SQ1: affect accuracy   SQ2: brain swap         SQ3: retrieval
 ```
 
-FEELIN starts with a broad benchmark because the field does not yet tell us
-which combination of dataset, brain model, target, temporal window, or control
-actually exposes emotion-relevant neural structure. The benchmark is therefore
-a map-making step: run the basic experiments, identify stable signal and failure
-modes, then choose the next modeling direction.
+Vision tower swap 3 수준 (각각 go/no-go gate):
+- **L1**: Frozen BFM embedding → linear projection 으로 주입 (안전, Phase 2)
+- **L2**: BrainVLM 의 vision tower 를 BFM 으로 교체, freeze (Phase 3)
+- **L3**: LoRA fine-tune (deep, Phase 3 후반)
 
-The concrete benchmark axes, current model list, dataset details, task
-definitions, and statistical floors live in `notes/benchmark_design.md`,
-`reference/datasets.md`, `reference/code_resources.md`, and `reference/task.md`.
-The README stays at the project-thesis level.
 
-After the benchmark, the roadmap splits into two major search tracks:
+## BFM 의 역할
 
-1. **Pretraining and adaptation strategy**
-   - Use task-related or movie fMRI rather than only resting fMRI.
-   - Test loss terms such as masked fMRI modeling, future/JEPA-style latent
-     prediction, contrastive objectives, target-aware emotion supervision, and
-     subject-invariant learning.
-   - Compare frozen probes, adapters, late-block fine-tuning, affective pooling,
-     and multi-task emotion heads.
+BFM 4 종 (SwiFT, Brain-JEPA, NeuroSTORM, BrainLM) 은 **BrainVLM 의 fMRI 인코더 후보**. SQ2 의 핵심 비교 축. 우리가 한 BFM padding ablation / extraction / probe 작업이 이 비교의 build-up.
 
-2. **Multimodal brain-stimulus framework**
-   - Use video/audio/text models as controls, teachers, or context providers.
-   - Test TRIBE-like stimulus-to-brain alignment, late fusion between video and
-     brain models, and injection of video/text/audio embeddings into brain
-     foundation models.
-   - Ask whether multimodal context improves emotion representation beyond
-     brain-only BFM features and beyond stimulus-only shortcuts.
 
-The benchmark stage exists so these branches are not chosen by taste. We run
-the broad grid first, then narrow the search space with evidence.
+## EmoViS 와의 관계
 
-## Core Research Question
+- EmoViS = brain ↔ visual-semantic alignment 분석 (별도 repo)
+- FEELIN = brain-conditioned caption generation (이 repo)
+- **공유**: stimulus features (V-JEPA2, CLIP, DINOv2, VideoMAE, Qwen-VL caption). FEELIN 에서는 추출 안 함, `data/stimulus_features/` 에 EmoViS symlink
+- W12 / W18 에 결과 비교 meeting. Merge 가능성 열어둠.
 
-**How can we develop a brain foundation model that best captures
-emotion-relevant representation across naturalistic fMRI datasets and emotion
-tasks?**
 
-Subquestions:
+## Phase Status (6 month plan)
 
-- Benchmark phase: which Dataset x BFM x Task cells are runnable, blocked, or
-  invalid?
-- Baseline phase: which BFMs beat logistic/ridge/ROI/voxel statistical floors
-  under matched splits and metrics?
-- Target phase: which emotion targets are stable enough to drive model
-  development: arousal, valence, category, multi-label, high-dimensional
-  vector, dynamic/binning, or component/appraisal?
-- Pretraining phase: does task/movie fMRI pretraining improve emotion transfer
-  beyond generic resting/general BFM transfer?
-- Multimodal phase: does video/audio/text context or TRIBE-like alignment
-  improve brain emotion representations beyond brain-only and stimulus-only
-  shortcuts?
+| Phase | Week | 다루는 sub-Q | Gate | 상태 |
+|---|---|---|---|---|
+| Phase 1: Foundation (BrainVLM transfer + BFM 추출 완성 + EmoViS feature 통합) | W1-6 | (사전 검증) | W6 BrainVLM transferable? | **진행 중** |
+| Phase 2: Brain-conditioned VLM 학습 (L1: frozen BFM embedding) | W7-12 | SQ1 | W12 L1 result | 대기 |
+| Phase 3: Vision tower 교체 (L2) + LoRA (L3) | W13-18 | SQ1, SQ2, SQ3 | W18 L1/L2/L3 비교 | 대기 |
+| Phase 4: Synthesis + submission | W19-24 | (통합) | W24 venue 결정 | 대기 |
 
-## Working Hypotheses
+자세한 phase 별 task / go-no-go / agent review 는 [`docs/masterplan_v2.md`](docs/masterplan_v2.md).
 
-**H1. Resting-state BFM transfer is useful but incomplete.** Existing brain foundation models should provide nontrivial baselines, but their pretraining distribution may underrepresent stimulus-locked affective dynamics.
 
-**H2. The first decision should be empirical, not architectural.** Fill the
-Dataset x BFM x Task matrix before choosing adapters, pretraining, fusion, or
-alignment.
+## Repository Map
 
-**H3. Arousal may generalize more robustly than valence.** This must be checked
-across BFM and dataset cells before building a larger model around it.
-
-**H4. Task/movie fMRI pretraining is a central candidate.** If frozen BFMs are
-weak or narrow, FEELIN should test whether task-related or naturalistic movie
-fMRI objectives create more emotion-sensitive brain representations.
-
-**H5. Multimodal context may be necessary but must be controlled.** Video,
-audio, and text features may help emotion representation, but stimulus-only
-shortcuts must be measured before claiming brain-specific emotion modeling.
-
-## Key Model Families
-
-| Family | Examples | Input | Role in FEELIN |
-|---|---|---|---|
-| Current BFM benchmark | SwiFT | fMRI volumes | Primary BFM |
-| Current BFM benchmark | Brain-JEPA | fMRI or ROI time series | Alternative BFM |
-| Current BFM benchmark | NeuroSTORM | raw 4D fMRI | Alternative 4D BFM |
-| Current BFM benchmark | BrainLM | ROI/time-series fMRI | Alternative time-series BFM |
-| Statistical floors | logistic/ridge/ROI/voxel models | pooled BFM or simple brain features | Minimum comparison |
-| Pretraining/adaptation branch | task/movie fMRI objectives, adapters, affective heads | fMRI volumes or time series | Search track after benchmark |
-| Multimodal branch | TRIBE v2, V-JEPA2, CLIP, Whisper, text encoders | video/audio/text + fMRI | Stimulus controls, fusion, alignment, and feature injection |
-
-## Immediate Decision-Driven Strategy
-
-1. **Master benchmark matrix**
-   - Build the `Dataset x BFM x Task` table in `notes/benchmark_design.md`.
-   - Mark cells as `RUN`, `CHECK`, or `NA`.
-   - Use emotion-fMRI benchmark datasets only.
-   - For the dataset/model/task cheat sheets inside the matrix, see
-     `notes/benchmark_design.md`.
-
-2. **Dataset and target readiness**
-   - Build canonical Horikawa 2185-stimulus manifest.
-   - Confirm Emo-FilM, Affective Videos, IAPS fMRI, NeuroEmo, Koide-Majima, and
-     REELMO where usable.
-   - Define target matrices, splits, metrics, and statistical floors.
-   - For dataset content, targets, risks, and source links, see
-     `reference/datasets.md`.
-   - For task definitions and metrics, see `reference/task.md`.
-
-3. **BFM evaluation**
-   - Compare SwiFT, Brain-JEPA, NeuroSTORM, and BrainLM under matched conditions.
-   - Fill `Dataset | BFM | Task | Target | Split | Metric | Statistical floor |
-     BFM score | Status | Decision`.
-   - For BFM/model details, see `reference/code_resources.md` and
-     `reference/papers.md`.
-
-4. **Post-benchmark model search**
-   - Choose between two main branches:
-     1. pretraining/adaptation strategy for the brain model,
-     2. multimodal brain-stimulus framework.
-   - Keep both branches evidence-driven: benchmark result first, model
-     modification second.
-   - For post-benchmark adaptation/pretraining strategy, see
-     `reference/training_strategy.md`.
-
-## Where To Find Details
-
-The README is only the entry point. Details live in these files:
-
-| Need | File |
+| 경로 | 내용 |
 |---|---|
-| What each benchmark dataset is | `reference/datasets.md` |
-| What each BFM/model is | `reference/code_resources.md`, `reference/papers.md` |
-| What each task/metric means | `reference/task.md` |
-| Current `Dataset x BFM x Task` table | `notes/benchmark_design.md` |
-| What to do after the matrix is filled | `reference/training_strategy.md`, `ACTION_PLAN.md` |
+| `docs/masterplan_v2.md` | Forward plan (Big Q, 3 sub-Q, phase, go-no-go) |
+| `reports/phase1_foundation.md` | Phase 1 progress |
+| `data/stimulus_features/` | EmoViS symlinks (V-JEPA2, CLIP, DINOv2, VideoMAE, Qwen-VL caption) |
+| `data/{horikawa_split, *_binary_subset, feelin_canonical_stimuli}.csv` | Splits + V/A binary subset + 2185 canonical stim |
+| `code/bfm_embeddings/{_lib, extract_embedding, run_full}/` | BFM extraction (SwiFT / Brain-JEPA / NeuroSTORM lib + leaf scripts + per-subject wrappers) |
+| `code/probes/` | Tier 1 ROI feature + unified frozen probe |
+| `code/analysis/` | Padding ablation, multi-BFM probe, figure 생성 |
+| `code/brainvlm/` (Phase 1 에 생성 예정) | BrainVLM loader, transfer test, training |
+| `output/embeddings/` | 추출된 BFM .pt features (proper mean padding) |
+| `results/{padding_ablation, main_grid_3bfm, phase1}/` | Probe 결과 CSV + figure |
+| `baseline/` | BFM checkpoints |
+| `external/Brain-JEPA/`, `external/NeuroSTORM/` | Vendored model code |
+| `Paper/framework_*.md`, `Paper/methodology.md` | Canonical narrative + methodology |
+| `notes/{benchmark_design, project_decisions}.md` | Dataset matrix + decision log |
+| `reference/{datasets, task, papers, code_resources, training_strategy}.md` | Reference docs |
 
-## Repository Structure
 
-```text
-FEELIN/
-├── README.md
-├── README_KR.md
-├── ACTION_PLAN.md
-├── ONBOARDING.md
-├── CONTEXT_FEELIN.md
-├── CLAUDE.md
-├── CODEX.md
-├── Paper/
-│   ├── framework_EN.md
-│   ├── framework_KR.md
-│   └── methodology.md
-├── reference/
-│   ├── datasets.md
-│   ├── task.md
-│   ├── training_strategy.md
-│   ├── systematic_reference_map.md
-│   ├── papers.md
-│   ├── code_resources.md
-│   └── search_log_2026-05-08.md
-├── notes/
-│   ├── benchmark_design.md
-│   └── project_decisions.md
-├── templates/
-│   ├── paper_note.md
-│   ├── dataset_card.md
-│   ├── experiment_card.md
-│   ├── model_card.md
-│   ├── review_card.md
-│   └── decision_log.md
-├── workflows/
-│   ├── README.md
-│   ├── literature_sota_workflow.md
-│   ├── experiment_planning_workflow.md
-│   ├── red_blue_team_review.md
-│   └── weekly_update_workflow.md
-├── scripts/
-│   ├── README.md
-│   ├── check_md_completeness.py
-│   ├── build_project_status.py
-│   └── generate_experiment_cards.py
-├── reports/
-│   ├── weekly/
-│   ├── reviews/
-│   └── status/
-├── code/
-│   ├── README.md
-│   └── tools/
-│       └── check_dataset_inventory.py
-└── setup/
-    ├── README.md
-    ├── code/
-    │   ├── build_horikawa_window_manifest.py
-    │   ├── run_tribe_horikawa.py
-    │   └── run_tribe_horikawa.sh
-    ├── data/
-    ├── logs/
-    └── results/
-```
-
-## Current Planning Documents
-
-- `ONBOARDING.md`: first-read guide for new collaborators and AI agents.
-- `CONTEXT_FEELIN.md`: compact single source of truth for project framing.
-- `ACTION_PLAN.md`: current execution plan and phase-level next actions.
-- `Paper/framework_EN.md` and `Paper/framework_KR.md`: canonical project framework, narrative, and proposal-level framing.
-- `Paper/methodology.md`: detailed experimental plan.
-- `reference/datasets.md`: function-based dataset inventory.
-- `reference/task.md`: task inventory and target definitions.
-- `reference/training_strategy.md`: SwiFT-first training and model-development strategy.
-- `reference/systematic_reference_map.md`: organized reference map by conceptual role.
-- `notes/benchmark_design.md`: `Dataset x BFM x Task` master matrix.
-- `templates/`: reusable note/card templates for papers, datasets, models, experiments, reviews, and decisions.
-- `workflows/`: operating protocols for literature search, experiment planning, red-team review, and weekly updates.
-- `scripts/`: project-operation automation only.
-- `setup/code/`: runnable setup/experiment scripts.
-
-Project completeness and status can be checked with:
+## Phase 1 즉시 실행
 
 ```bash
-python3 scripts/check_md_completeness.py
-python3 scripts/build_project_status.py
+# 1. BrainVLM env setup (Phase 1 W1, critical path)
+#    UMBRELLA_qwen env 활성화 + ABCD checkpoint 확보
+#    위치: /pscratch/sd/s/sjmoon/BrainVLM/UMBRELLA_qwen/
+
+# 2. BFM proper mean 재추출 (병행 진행 중, 단일 wrapper)
+bash /pscratch/sd/s/sjmoon/FEELIN/code/bfm_embeddings/run_full/proper_mean_all.sh
+
+# 3. EmoViS feature 로딩 sanity check (이미 symlink 완료)
+ls /pscratch/sd/s/sjmoon/FEELIN/data/stimulus_features/
+
+# 4. Phase 1 W5-6 의 unified frozen probe (Tier 1 ROI + Tier 2 BFM, optional, 이미 만들어둠)
+bash /pscratch/sd/s/sjmoon/FEELIN/code/probes/run_unified_probe.sh
 ```
+
+
+## Cleanup history
+
+2026-05-19 — v3 reframing: "Brain-conditioned Emotion-VLM" 이 core. 이전 v2 의 "context-aware foundation model" framing 폐기. ACTION_PLAN, research_overview, 2026-05-11 시점 자료는 `_archive/` 에. Top-level .md 6개 유지.

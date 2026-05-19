@@ -5,9 +5,8 @@ __pycache__/
 *.py[cod]
 
 # Generated artifacts
-setup/logs/*
-setup/results/*
-setup/data/*
+output/
+results/
 reports/status/PROJECT_STATUS.md
 
 # Large scientific/model artifacts: never commit embeddings, checkpoints, or raw neuroimaging files.
@@ -35,7 +34,6 @@ reports/status/PROJECT_STATUS.md
 
 # Local embedding/model cache roots if copied or symlinked into the repo.
 Horikawa_embedding/
-extract_embedding/
 feelin_clean/
 tribe_cache/
 tribe_horikawa/
@@ -45,10 +43,19 @@ checkpoints/
 pretrained_models/
 models--*/
 
+# Vendored external model code (Brain-JEPA, NeuroSTORM, etc.)
+external/
+
+# Model checkpoints
+baseline/
+
 # Keep folder placeholders
-!setup/logs/.gitkeep
-!setup/results/.gitkeep
-!setup/data/.gitkeep
 !reports/status/.gitkeep
 !reports/weekly/.gitkeep
 !reports/reviews/.gitkeep
+
+# Archive directory (legacy content kept locally, not pushed to git)
+_archive/
+
+# Stimulus feature symlinks (user-specific paths to EmoViS extractions)
+data/stimulus_features/

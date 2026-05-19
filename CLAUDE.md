@@ -1,69 +1,35 @@
 # FEELIN Claude Instructions
 
-Read `CONTEXT_FEELIN.md` first. It is the compact project memory and should
-not be duplicated here.
+Read `CONTEXT_FEELIN.md` first. Active forward plan is `docs/masterplan_v2.md`.
 
 ## Operating Rules
 
-- Keep root files minimal. Do not create new brief/proposal/narrative markdown
-  files unless explicitly requested.
-- Do not duplicate dataset/model/task details in root files. Point to the
-  canonical reference file instead.
-- When updating entry-point docs such as `README.md`, `README_KR.md`,
-  `ONBOARDING.md`, or `ACTION_PLAN.md`, add short inline pointers near the
-  relevant section, e.g. "For dataset details, see `reference/datasets.md`."
-  Do not rely only on a separate lookup table.
-- Canonical narrative lives in `Paper/framework_EN.md` and
-  `Paper/framework_KR.md`.
-- Canonical methodology lives in `Paper/methodology.md`.
-- Active Korean execution plan lives in `ACTION_PLAN.md`.
-- Project-operation scripts live in `scripts/`.
-- Runnable setup/experiment scripts live in `setup/code/`.
-- Generated data/logs/results live in `setup/data/`, `setup/logs/`, and
-  `setup/results/`.
-- Do not overwrite raw data, model checkpoints, embeddings, or experiment
-  outputs.
+- Root .md 파일 새로 만들지 않음. 7개 (README.md, README_KR.md, CONTEXT_FEELIN.md, ONBOARDING.md, CLAUDE.md, CODEX.md) 로 유지.
+- Forward plan / phase report 은 `docs/` 와 `reports/` 에만 추가.
+- Narrative 는 `Paper/framework_EN.md`, `framework_KR.md`.
+- Methodology 는 `Paper/methodology.md`.
+- Decision log 는 `notes/project_decisions.md`.
+- 실험 코드는 `code/` 아래 (`bfm_embeddings/`, `probes/`, `analysis/`, `tools/`).
+- 입력 데이터 (splits, target matrices) 는 `data/`.
+- 추출된 features / logs 는 `output/`.
+- 분석 결과 (CSV, figure, slide text) 는 `results/`.
+- 모델 checkpoints 는 `baseline/`.
+- 추출된 raw data / checkpoint / output 덮어쓰지 않음.
 
 ## Scientific Rules
 
-- FEELIN is model-development, not emotion theory.
-- The first benchmark deliverable is a `Dataset x BFM x Task` master matrix.
-- Current benchmark models are brain foundation models: SwiFT, Brain-JEPA,
-  NeuroSTORM, and BrainLM.
-- Use SwiFT first, but pivot if matched `Dataset x BFM x Task` results favor
-  another BFM.
-- Treat logistic/ridge/ROI/voxel models as statistical floors, not as the main
-  Model Axis.
-- Treat video/audio/text stimulus-only models and TRIBE v2 as later
-  control/extension branches, not part of the first BFM benchmark.
-- Treat old EmoDe caches as reference only.
-- Use `2185` as the canonical Horikawa/Cowen stimulus count.
-- Keep claims separated from measured results.
-
-## Where To Look
-
-| Need | Use |
-|---|---|
-| Compact project memory | `CONTEXT_FEELIN.md` |
-| Current execution plan | `ACTION_PLAN.md` |
-| Dataset x BFM x Task master matrix | `notes/benchmark_design.md` |
-| Dataset details | `reference/datasets.md` |
-| BFM/model details | `reference/code_resources.md`, `reference/papers.md` |
-| Task and metric definitions | `reference/task.md` |
-| Post-benchmark training/adaptation strategy | `reference/training_strategy.md` |
-| Paper/proposal narrative | `Paper/framework_EN.md`, `Paper/framework_KR.md` |
-| Methodology details | `Paper/methodology.md` |
+- FEELIN 은 model-development project. Emotion theory paper 아님.
+- 세 tier baseline 비교가 본 framing: T1 statistical floor, T2 brain foundation model ceiling, T3 multimodal + vision-language upper bound.
+- Tier 2 brain foundation model: SwiFT (NewE96 + 변종), Brain-JEPA, NeuroSTORM, BrainLM.
+- Tier 1 floor 는 본 model axis 가 아닌 minimum baseline.
+- Horikawa stimulus 수 = 2185 canonical.
+- Claim 과 measured result 분리. Over-claim 금지.
+- 약어 (BFM, VLM, RSA, CKA) 첫 등장 시 풀어쓰기.
 
 ## Required Checks
 
-After structural documentation edits:
-
+문서 구조 변경 후:
 ```bash
 python3 scripts/check_md_completeness.py
-```
-
-To refresh generated status:
-
-```bash
 python3 scripts/build_project_status.py
 ```

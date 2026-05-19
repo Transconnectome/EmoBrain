@@ -1,10 +1,10 @@
-# FEELIN Benchmark Design (v2)
+# FEELIN Benchmark Design (v3)
 
-Last updated: 2026-05-11
+Last updated: 2026-05-17
 
 ## Goal
 
-`(Dataset) × (BFM × Init) × (Task)` 그리드를 채워서 **어디에 emotion signal이 있고 어디에 없는지** 지도를 만든다.
+`(Dataset) × (BFM × Init × Padding) × (Task × Head × Mode)` 다축 매트릭스를 채워서 **어디에 emotion signal이 있고 어디에 없는지** 지도를 만든다.
 
 이 매트릭스 자체가 첫 deliverable이다. 매트릭스를 채운 결과에 따라:
 - 어떤 BFM이 baseline 위에 있는가
@@ -32,35 +32,76 @@ Last updated: 2026-05-11
 - Koide-Majima/Nishimoto: access dependent, defer
 - REELMO: one-movie fMRI (Jojo Rabbit), defer to Phase 2
 
-### B. Model × Init Axis (6 conditions)
+### B. Model × Init × Padding Axis (42 conditions)
 
-3 BFM × 2 initialization = 6 model conditions per (dataset, task) cell.
+**7 base pretrained models × 2 init × 3 padding = 42 embedding configurations.**
 
-| BFM | Resting-state pretrained init | Scratch init |
-|---|---|---|
-| SwiFT | existing checkpoint (Transconnectome lab) | random init, same architecture |
-| Brain-JEPA | `jepa-ep300.pth` (ABCD resting) | random init |
-| NeuroSTORM | `pt_neurostorm_mae_ratio0.5.ckpt` | random init |
+#### B.1 Base models (7개)
 
-**핵심 비교**: 같은 architecture에서 weight initialization만 차이. 이게 H1을 직접 테스트한다 ("resting-state BFM transfer is useful but incomplete").
+| BFM | Code version | embed_dim | Note |
+|---|---|---:|---|
+| Brain-JEPA | ViT-Base | 768 (out) | `jepa-ep300.pth` (ABCD resting) |
+| NeuroSTORM | Swin 4D | 288 (out) | `pt_neurostorm_mae_ratio0.5.ckpt` (ABCD MAE) |
+| SwiFT UAH_P2_51M | ver9 | 96 | Lab pretrained, ~51M params |
+| SwiFT UAH_P3_806M | ver9 | 384 | Lab pretrained, ~806M params |
+| SwiFT NewUAH_newE36 | ver11 | 36 | Lab pretrained, ~9M params |
+| SwiFT NewUAH_newE96 | ver11 | 96 | Lab pretrained, ~66M params |
+| SwiFT NewUAH_newE192 | ver11 | 192 | Lab pretrained, ~264M params |
 
-**BrainLM 제외**: 490 timepoint fixed, A424 atlas 고정 → Horikawa(5 TR) 비호환. EmoDe에서 검증됨 (Pearson r ≈ 0.012, chance 수준).
+각 base model checkpoint 경로 → `code/bfm_embeddings/{model}/SETTINGS.md`.
+
+#### B.2 Init (2개)
+
+| Init | 의미 |
+|---|---|
+| Resting-pretrained | 위 ckpt 로드 |
+| Scratch | 같은 architecture, random init (seed=0) |
+
+**핵심 비교 (H1):** 같은 architecture에서 weight init만 차이 → "resting-state BFM transfer is useful but incomplete" 검증.
+
+#### B.3 Padding (3개)
+
+Horikawa 71.6% T=5 자극 → 입력 75% padding. DL fMRI 분야 padding 표준 없어 비교 필요.
+
+| Padding | 의미 |
+|---|---|
+| Replicate last frame | 자극 마지막 frame 복제 |
+| Zero pad | padded = 0 |
+| Mean → replicate | 자극 평균 → 1 vector → 20 복제 (spatial-only control) |
+
+**BrainLM 제외**: 490 timepoint fixed, A424 atlas 고정 → Horikawa 비호환.
 
 ### C. Task Axis (5 levels)
 
 | Level | Name | Output | Primary metric | Secondary metric |
 |---|---|---|---|---|
-| L0 | High/Low V/A binary | binary class | AUROC | balanced accuracy |
+| L0 | High/Low V/A binary (**quartile extreme**: top 25% vs bottom 25%, middle 50% 제외) | binary class | AUROC | balanced accuracy |
 | L1 | V/A regression | continuous (1D) | Pearson r | MAE |
 | L2 | One-hot classification | top-1 emotion label | balanced accuracy | macro F1 |
 | L3 | Multi-label classification | multi-emotion prob vector | macro F1 | AUROC |
 | L4 | Continuous dynamics | time-windowed trajectory | CCC | lagged correlation |
 
+### D. Head Axis (2 types)
+
+| Head | 의미 |
+|---|---|
+| Linear | logistic / ridge / multinomial / multi-output ridge (task type별) |
+| MLP | 2-layer, hidden 256, ReLU, dropout 0.3 |
+
+**비교 의도:** Linear는 BFM representation 자체 quality 측정 (frozen probe 표준). MLP는 representation이 linearly separable하지 않을 때 capacity로 회복 여부 측정.
+
+### E. Training Mode Axis (2 modes)
+
+| Mode | 의미 |
+|---|---|
+| Pooled | 1 model, 5 subjects 통합 (8,740 train samples) — universal emotion code |
+| Per-subject | 5 models, 각 subject 1,748 samples — personalized |
+
 ---
 
 ## Master Matrix: Dataset × Task Compatibility
 
-각 cell의 가능 여부를 표시. 각 valid cell마다 6 model conditions를 돌린다.
+각 cell의 가능 여부 표시. 각 valid (dataset, task) 쌍마다 **42 embedding conditions × 2 head × 2 mode = 168 head training runs**.
 
 | Dataset | L0 binary V/A | L1 V/A reg | L2 one-hot | L3 multi-label | L4 dynamics |
 |---|---|---|---|---|---|
@@ -70,19 +111,27 @@ Last updated: 2026-05-11
 | IAPS | RUN (pos/neg) | NA (beta only) | RUN (pos/neu/neg) | NA | NA |
 | NeuroEmo | CHECK (V/A from labels) | NA | RUN (5 class) | CHECK (overlap) | NA |
 
-**Valid (dataset × task) pairs: 17**
+**Valid (dataset × task) pairs: 17** (14 RUN + 3 CHECK).
+
+### Phase 1 전체 scope (Horikawa 우선)
 
 ```
-Horikawa:         L0, L1, L2, L3        = 4
-Emo-FilM:         L0, L1, L3, L4         = 4 (L2 check)
-Affective Videos: L0, L1, L2             = 3
-IAPS:             L0, L2                 = 2
-NeuroEmo:         L2                     = 1 (L0/L3 check)
-+ CHECK cells:                            = 3
-Total valid: 14 confirmed + 3 CHECK = 17
+Horikawa:
+  - 4 task (L0~L3)
+  - × 14 model conditions (7 base × 2 init)
+  - × 3 padding
+  - × 2 head (Linear, MLP)
+  - × 2 mode (Pooled, Per-subject)
+  - = 1,344 head training runs
+
+  + Statistical floor (BFM 없음): 4 task × 1 floor model × 2 mode = 8 floor runs
+
+  + Embedding extraction: 14 model × 3 padding × 5 subjects = 210 embedding jobs
+
+전체 Horikawa Phase 1: 1,344 + 8 head runs, 210 GPU extraction jobs
 ```
 
-**Total cells = 17 valid pairs × 6 model conditions = 102 cells.**
+5 dataset 모두 합치면 더 큰 규모. 자세한 산출물은 `ACTION_PLAN.md` 참조.
 
 ---
 

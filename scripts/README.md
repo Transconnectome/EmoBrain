@@ -1,7 +1,7 @@
 # FEELIN Scripts
 
 Scripts here support project operations across the repository. Initial runnable
-experiments should live under `setup/code/`.
+experiments should live under `code/`.
 
 ## Current Scripts
 
@@ -11,7 +11,7 @@ experiments should live under `setup/code/`.
 | `build_project_status.py` | writes `reports/status/PROJECT_STATUS.md` from git/docs state |
 | `generate_experiment_cards.py` | creates experiment-card skeletons from templates |
 
-Runnable setup/experiment scripts live in `setup/code/`, not here.
+Runnable setup/experiment scripts live in `code/`, not here.
 
 ## Common Commands
 
@@ -23,5 +23,5 @@ python3 scripts/generate_experiment_cards.py --id NFx-001 --title "Frozen SwiFT 
 
 ## Rule
 
-Do not store large data outputs here. Use `setup/data`, `setup/logs`, and
-`setup/results` for initial experiments.
+Do not store large data outputs here. Use `data`, `output/logs`, and
+`results` for initial experiments.

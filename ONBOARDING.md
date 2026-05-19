@@ -1,87 +1,54 @@
 # FEELIN Onboarding
 
-This file is the first stop for a new collaborator or AI agent. FEELIN is a
-SwiFT-first but not SwiFT-locked model-development project aiming for an
-emotion-specific brain foundation model. The immediate artifact is the
-`Dataset x BFM x Task` master benchmark matrix, but that matrix is the first
-search-space narrowing step rather than the final project scope.
+새 협업자 또는 AI agent 가 처음 읽을 파일. FEELIN 의 현재 framing (Masterplan v2.0, 2026-05-19) 과 읽을 순서를 정리.
 
-## Five-Minute Read Order
+## 프로젝트 정체성
 
-1. `README.md`
-   - Project thesis, model families, active strategy, and repository map.
-2. `README_KR.md`
-   - Korean guide for the project structure and workflow.
-3. `CONTEXT_FEELIN.md`
-   - Single source of truth for project framing and operating rules.
-4. `ACTION_PLAN.md`
-   - Current execution plan and near-term research actions.
-5. `notes/benchmark_design.md`
-   - Current `Dataset x BFM x Task` master matrix.
-6. `Paper/framework_EN.md`
-   - Canonical narrative and proposal-level framework.
-7. `Paper/methodology.md`
-   - Experimental plan and benchmark matrix.
-8. `reference/training_strategy.md`
-   - SwiFT-first model-development strategy.
-9. `reference/datasets.md`
-   - Function-based dataset inventory and dataset details.
-10. `reference/code_resources.md`
-   - BFM/model details and implementation resources.
-11. `workflows/README.md`
-   - How literature, experiment planning, review, and weekly updates should run.
+FEELIN = **Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data**.
 
-## Project Identity
+**Big Question (Masterplan v2.0)**:
+Naturalistic emotional experience 의 brain representation 을 context-aware foundation model 로 어떻게 잘 잡아낼 수 있는가 — 단일 stimulus snapshot, multimodal stimulus 표상, 혹은 language-grounded VLM 통합 중 어느 축이 emotion 을 결정하는가?
 
-FEELIN stands for:
+FEELIN 은 emotion theory paper 도, 단순 benchmark paper 도 아니다. **세 가지 representation tier (statistical floor / brain foundation model ceiling / multimodal-VLM upper bound) 를 동일 protocol 로 비교하여 emotion 표상의 organizing principle 을 찾는 model-development 프로젝트**.
 
-```text
-Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data
-```
+## 읽을 순서
 
-The project should not be presented as an emotion theory paper or as a benchmark
-paper only. It is a model-development project that first compares brain
-foundation models across emotion-fMRI datasets and tasks, then uses that
-evidence to choose between two larger tracks:
+1. **README.md** — 프로젝트 한눈에 (Big Q + 3-tier + phase status)
+2. **README_KR.md** — 한국어 가이드
+3. **docs/masterplan_v2.md** — 전체 phase plan / sub-question / go-no-go 기준 / agent review schedule
+4. **reports/phase1_foundation.md** — 현재 진행 중인 Phase 1 progress
+5. **Paper/framework_KR.md** (또는 EN) — canonical narrative
+6. **Paper/methodology.md** — 실험 방법
+7. **notes/benchmark_design.md** — Dataset × BFM × Task 매트릭스 디테일
+8. **notes/project_decisions.md** — 결정 로그
+9. **reference/datasets.md, task.md, papers.md, code_resources.md, training_strategy.md** — 각 axis 별 reference
+10. **ACTION_PLAN.md** — v1 legacy 실행 계획 (week-level detail, masterplan v2 와 함께 참조)
 
-1. task/movie-fMRI pretraining and brain-model adaptation, and
-2. multimodal brain-stimulus frameworks such as TRIBE-like alignment, late
-   fusion, or stimulus-feature injection.
+## 새 파일 추가 전 체크
 
-## What To Do Before Adding New Files
+1. 기존 canonical 문서 (Paper/, notes/, reference/, docs/masterplan_v2.md) 에 들어갈 내용 아닌지 확인
+2. `templates/` 의 카드 사용 (paper, dataset, model, experiment, review, decision)
+3. 검증:
+   ```bash
+   python3 scripts/check_md_completeness.py
+   ```
+4. 상태 갱신:
+   ```bash
+   python3 scripts/build_project_status.py
+   ```
 
-1. Check whether the content belongs in an existing canonical document.
-2. Use a template in `templates/` when adding a paper, dataset, model,
-   experiment, review, or decision.
-3. Run:
+## 주요 workflow
 
-```bash
-python3 scripts/check_md_completeness.py
-```
-
-4. Update `reports/status/PROJECT_STATUS.md` through:
-
-```bash
-python3 scripts/build_project_status.py
-```
-
-## Default Workflows
-
-| Intent | Workflow |
+| 의도 | Workflow |
 |---|---|
-| Find new papers or datasets | `workflows/literature_sota_workflow.md` |
-| Turn an idea into runnable experiments | `workflows/experiment_planning_workflow.md` |
-| Stress-test a strategy or model claim | `workflows/red_blue_team_review.md` |
-| Summarize project progress | `workflows/weekly_update_workflow.md` |
+| 새 논문 / 데이터셋 찾기 | `workflows/literature_sota_workflow.md` |
+| 아이디어를 실험으로 | `workflows/experiment_planning_workflow.md` |
+| 전략/모델 주장 stress-test | `workflows/red_blue_team_review.md` |
+| 진척도 정리 | `workflows/weekly_update_workflow.md` |
 
-## Immediate Scientific Path
+## 현재 진행 상황 (2026-05-19 기준)
 
-1. Build the `Dataset x BFM x Task` master matrix.
-2. Use emotion-fMRI datasets: Horikawa, Emo-FilM, Affective Videos, IAPS,
-   NeuroEmo, Koide-Majima/Nishimoto, and REELMO if usable.
-3. Compare BFMs: SwiFT, Brain-JEPA, NeuroSTORM, and BrainLM.
-4. Cover tasks: binary, regression, multiclass, multi-label, high-dimensional
-   vector, dynamic/binning, and component/appraisal where valid.
-5. Add logistic/ridge/ROI/voxel statistical floors for each runnable cell.
-6. Use the matrix to narrow the search space, then branch into:
-   pretraining/adaptation strategy or multimodal brain-stimulus framework.
+- **Phase 1** (W1-6) 진행 중: floor + cross-BFM consistency + BrainVLM zero-shot transfer 병행
+- **완료**: SwiFT NewE96 padding ablation, 3-BFM probe (NewE96 + Brain-JEPA + NeuroSTORM, spatial_only padding)
+- **진행 중**: proper mean padding 으로 30 cell 재추출
+- **대기**: 통계 floor (Schaefer ROI), BrainVLM env setup, SwiFT 다른 변종 추출

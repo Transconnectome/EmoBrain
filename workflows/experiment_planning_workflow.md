@@ -31,8 +31,8 @@ rules.
 4. Define the split and metric before running.
 5. Create an experiment card from `templates/experiment_card.md`.
 6. Store planned cards under `reports/status/` until code is ready.
-7. Initial runnable scripts go into `setup/code/`; outputs go to `setup/data/`,
-   `setup/logs/`, and `setup/results/`.
+7. Initial runnable scripts go into `code/`; outputs go to `data/`,
+   `output/logs/`, and `results/`.
 
 ## Required Decision Rule
 
