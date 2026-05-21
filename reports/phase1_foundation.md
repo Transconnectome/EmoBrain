@@ -13,9 +13,9 @@ Reference: [`docs/masterplan_v2.md`](../docs/masterplan_v2.md) Phase 1.
 - Track 3: EmoViS stimulus feature 통합 + reference caption 분석
 
 
-## Track 1 — Brain-VLM transfer test (critical path)
+## Track 1 — Architecture Option A (LLM token, BrainVLM) transfer test (critical path)
 
-**Goal**: ABCD 에서 학습된 BrainVLM (UMBRELLA_qwen, Qwen3-VL backbone) 이 Horikawa naturalistic fMRI 에 transfer 가능한가 검증. 이게 안 되면 Phase 2/3 plan 전면 재검토.
+**Goal**: ABCD 에서 학습된 BrainVLM (UMBRELLA_qwen, Qwen3-VL backbone) 이 Horikawa naturalistic fMRI 에 transfer 가능한가 검증. 이는 fMRI 통합 4 option 중 **Option A (LLM token 화)** 의 baseline architecture 검증. Option A 가 fail 시 Phase 2 의 main path 를 Option B/C/D 로 전환.
 
 **작업**:
 - W1-2: BrainVLM env setup. `/pscratch/sd/s/sjmoon/BrainVLM/UMBRELLA_qwen/` 의 environment + ABCD checkpoint 확보. fMRI patchifier (`project/model/patch_embed.py:13-121`) 동작 확인
@@ -30,8 +30,8 @@ Reference: [`docs/masterplan_v2.md`](../docs/masterplan_v2.md) Phase 1.
 - `results/phase1/brainvlm_zeroshot_probe.csv` — token-level V/A probe metrics
 
 **Gate (W6)**:
-- Token-level V/A linear probe r ≥ 0.3 → Phase 2 진입 (L1 frozen embedding 주입 가능)
-- r < 0.3 → BrainVLM 직접 fine-tune 으로 우회 검토 (Phase 2 계획 조정)
+- Token-level V/A linear probe r ≥ 0.3 → Option A main path 로 Phase 2 진입 (L1 frozen embedding 주입)
+- r < 0.3 → Option A 약함, Phase 2 에서 Option B (cross-attention) 또는 C (contrastive) 를 main path 로 전환
 
 
 ## Track 2 — BFM 추출 완성 (병행, vision tower 후보 4 종 준비)
@@ -80,14 +80,14 @@ Reference: [`docs/masterplan_v2.md`](../docs/masterplan_v2.md) Phase 1.
 - [ ] Track 2: 4 BFM × 5 subj × proper mean padding 100% 추출. BrainLM 가능 여부 결정
 - [ ] Track 3: EmoViS feature 9 종 로딩 sanity check 통과, caption reference 분석
 - [ ] Phase 2 진입 결정 작성:
-  - Track 1 gate 통과 → L1 (frozen BFM embedding 주입) 으로 Phase 2 진입
-  - Gate 미통과 → BrainVLM 직접 fine-tune 으로 Phase 2 계획 수정
+  - Track 1 gate 통과 → Option A (LLM token) 의 L1 (frozen brain encoder embedding 주입) 으로 Phase 2 진입
+  - Gate 미통과 → Phase 2 의 main architecture path 를 Option B (cross-attention) / C (contrastive) / D (late fusion) 중 선택해서 전환
 - [ ] `CHANGELOG.md` 에 Phase 1 결정 기록 (날짜, gate 결과, 다음 action)
 - [ ] README.md phase status 업데이트 (Phase 1 → 완료, Phase 2 → 진행 중)
 
 
 ## Pivot scenarios
 
-- **Track 1 gate fail**: BrainVLM 이 우리 데이터에 zero-shot 안 됨. 우회: BrainVLM 의 patchifier 만 가져와서 처음부터 학습 (frozen LLM + 우리 데이터로 patchifier + projection 학습)
-- **Track 2 의 BrainLM 비호환**: 3 BFM (SwiFT / Brain-JEPA / NeuroSTORM) 만으로 진행. Paper 의 BFM 비교 axis 가 4 → 3 으로 축소
+- **Track 1 gate fail (Option A 부적합)**: BrainVLM 이 우리 데이터에 zero-shot 안 됨. 우회 1: BrainVLM 의 patchifier 만 가져와서 처음부터 학습. 우회 2: Phase 2 의 main path 를 Option B (cross-attention) 또는 C (contrastive) 로 전환
+- **Track 2 의 BrainLM 비호환**: 3 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM) 만으로 진행. Paper 의 encoder 비교 axis 가 4 → 3 으로 축소
 - **Track 3 의 caption diversity 부족**: Qwen-VL caption 이 emotion 묘사 빈약하면 prompt 재설계 (EmoViS 측에 요청 또는 FEELIN 측에서 추가 추출)

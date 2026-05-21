@@ -1,82 +1,112 @@
-# FEELIN Masterplan v3 — Brain-conditioned Emotion-VLM
+# FEELIN Masterplan v3 — Emotion-aware Multimodal Foundation Model
 
-작성: 2026-05-19
+작성: 2026-05-19 (v3.1 framing refinement)
 사용자 결정 + 3 agent search 종합. 이전 v2.1 전면 교체.
 
 
 ## 0. 한 줄 요약
 
-fMRI 와 video 를 함께 입력으로 받아 그 사람이 영상에서 느낀 emotion 을 자연어로 묘사하는 model 을 만든다. fMRI 인코더로 어떤 brain foundation model (SwiFT, Brain-JEPA, NeuroSTORM, BrainLM) 을 쓰면 가장 좋은지 비교한다.
+fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model 을 만든다. fMRI 를 어떤 방식으로 인코딩 / 통합해야 (어떤 architecture × 어떤 brain encoder) 그 model 의 emotion 이해 능력이 가장 잘 형성되는지 비교한다.
 
 
 ## 1. Big Question
 
-> **fMRI 와 video 를 함께 받는 model 이 그 사람이 영상에서 느낀 emotion 을 자연어로 묘사할 수 있는가? 그리고 fMRI 를 어떻게 인코딩해야 (어떤 brain foundation model 을 쓰면) 묘사가 가장 잘 되는가?**
+> **fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model 을 만들 수 있는가? 그리고 fMRI 를 어떻게 인코딩 / 통합해야 (어떤 architecture × 어떤 brain encoder) model 의 emotion 이해 능력이 가장 잘 형성되는가?**
 
 
 ## 2. Sub-questions (각각 측정 가능, go/no-go 명확)
 
-### Sub-question 1. Caption 의 affect 정확도
+### Sub-question 1. fMRI 통합 방법 + brain encoder 선택 (main contribution)
 
-Brain + video 를 받아 생성한 emotion caption 에서 RoBERTa-emotion / sentiment classifier 로 V/A 를 추출했을 때, 그 점수가 같은 자극에 대한 그 subject 의 self-rating 과 within-subject Pearson r 0.4 이상으로 일치하는가? 그리고 video-only caption baseline 보다 유의하게 높은가?
+어떤 architecture (아래 4 option) 와 어떤 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM / BrainLM) 의 조합이 emotion-aware multimodal foundation model 에 가장 적합한가?
 
-**Go**: within-subject Pearson r ≥ 0.4 AND brain-conditioned > video-only paired bootstrap p < 0.05.
-**Pivot**: r < 0.4 또는 baseline 과 구별 없음 → brain conditioning 이 작동 안 함, fMRI 인코더 / fine-tune 방식 재검토.
+| Option | 설명 |
+|---|---|
+| **A. LLM token 화** | fMRI → patches → LLM token 으로 직접 주입. BrainVLM (UMBRELLA_qwen) architecture |
+| **B. Cross-attention** | fMRI embedding 을 LLM 의 cross-attention key/value 로 주입 |
+| **C. Contrastive alignment** | fMRI embedding 과 video / caption embedding 을 shared latent 로 contrastive 학습 후 downstream |
+| **D. Late fusion** | Brain 과 video 를 각자 처리 후 concat / element-wise |
 
-### Sub-question 2. Brain swap 의 caption 변화
+각 option 안에서 brain encoder 4 종을 swap-in.
 
-같은 영상에 subject A 의 brain 을 conditioning 한 caption 과 subject B 의 brain 을 conditioning 한 caption 의 affect tone 차이가, 같은 subject A 의 다른 영상 caption 의 affect tone 차이보다 systematically 큰가? 이게 성립하면 brain 이 caption 의 affect 를 실제로 driving 하고 있다는 직접 증거.
+**Go**: 4 option × 4 encoder = 16 cell 중 best 가 video-only baseline 대비 emotion task (V/A regression + 27-cat 분류) 에서 통계적으로 유의한 향상.
+**Pivot**: 모든 cell 이 baseline 과 구별 없음 → "brain conditioning 자체가 emotion 정보 추가 못 함" 결론. 다음 phase 는 brain encoder fine-tune 으로.
 
-**Go**: same-video / different-brain affect distance > 0.5 × same-subject / different-video affect distance (paired bootstrap p < 0.05).
-**Pivot**: 차이 없음 → caption 이 brain 이 아니라 video 또는 VLM prior 에 의해 결정됨. Brain encoder 또는 cross-attention 재설계 필요.
+### Sub-question 2. Emotion 표상의 evidence (multi-channel)
 
-### Sub-question 3. Stimulus retrieval
+학습된 model 안에 emotion 표상이 실제로 형성되었는가? 여러 emotion task 에서 측정.
 
-생성된 caption 으로 원래 자극을 retrieval 했을 때 정확도가 Horikawa Mind Captioning baseline 의 80% 이상을 유지하는가? 즉 affect 에 집중한 결과 visual content grounding 을 너무 잃지 않았는지 확인.
+- (a) V/A continuous regression: within-subject Pearson r ≥ 0.4 (self-rating 과)
+- (b) Cowen 27-category classification: balanced accuracy
+- (c) Free-form caption 의 affect accuracy: RoBERTa-emotion 으로 caption 에서 V/A 추출 → self-rating 과 비교
 
-**Go**: caption → stimulus top-5 retrieval accuracy ≥ Mind Captioning baseline × 0.8.
-**Pivot**: 80% 미만이면 affect 와 stimulus content 의 trade-off 가 너무 큼. Loss balance 또는 video grounding 강화.
+**Go**: 위 3 channel 모두에서 video-only baseline 대비 통계적으로 유의한 향상 (paired bootstrap p < 0.05 각각).
+**Pivot**: 1-2 channel 만 향상이면 어느 emotion 측면이 brain 에 의해 잡히는지 specific reporting.
+
+### Sub-question 3. Brain 의 causal 기여 (counterfactual subject swap)
+
+Model 안의 emotion 표상이 brain signal 을 실제 driver 로 쓰는가, 아니면 video 만 쓰고 brain 은 ornament 인가?
+
+같은 video × subject A brain vs subject B brain → model output 의 차이가 systematic 한가? 그리고 그 차이가 video swap 의 차이 대비 신호 가치가 있는가?
+
+**Go**: Brain swap 으로 인한 emotion output 차이의 effect size > 0 with p < 0.05 (paired bootstrap). 차이 방향이 subject A 와 B 의 actual self-rating 차이와 correlate.
+**Pivot**: Brain swap 에 model output 변화 없음 → brain 무시되는 architecture, SQ1 design 재검토.
+
+### Sub-question 4. Content grounding 보존 (defensive lower bound)
+
+Emotion 에 집중하면서도 자극 content 를 잡고 있는가? Caption 생성 능력으로 stimulus retrieval 측정.
+
+**Go**: Caption → stimulus top-5 retrieval accuracy ≥ Horikawa Mind Captioning baseline × 0.8.
+**Pivot**: 80% 미만이면 affect 와 content 의 trade-off 가 너무 큼. Loss balance 또는 video grounding 강화.
 
 
-## 3. Architecture
+## 3. Architecture — design space
 
-### Base
+### Common pipeline
 
 ```
 fMRI (B, T, 96, 96, 96)
    │
    ▼
-fMRI encoder (BFM swap-in 후보: SwiFT / Brain-JEPA / NeuroSTORM / BrainLM)
+fMRI encoder (brain encoder 4 종 swap-in: SwiFT / Brain-JEPA / NeuroSTORM / BrainLM)
    │
-   ▼ z_brain (B, D_brain)
-   ┌────────────────────────────────────────┐
-   │   linear projection or cross-attention  │
-   └────────────────────────────────────────┘
+   ▼ z_brain
+   ┌─────────────────────────────────────────┐
+   │  fMRI 통합 방법 4 option (SQ1 비교 axis) │
+   │  A: LLM token (BrainVLM)                  │
+   │  B: Cross-attention key/value             │
+   │  C: Contrastive alignment + downstream    │
+   │  D: Late fusion (concat / element-wise)   │
+   └─────────────────────────────────────────┘
               │
-              ▼  as prefix / soft prompt
-       Brain-VLM (UMBRELLA_qwen, Qwen3-VL backbone)
-              ▲
-              │ as cross-attention key/value
-              │
-       Video frames (16-frame uniform sampled)
+              ▼  + video features (V-JEPA2 / CLIP / DINOv2 from EmoViS)
+                  + (optional) reference caption supervision
+   ┌─────────────────────────────────────────┐
+   │  Foundation model (LLM 또는 transformer)  │
+   │  Qwen3-VL (BrainVLM) / Llama / etc.       │
+   └─────────────────────────────────────────┘
               │
               ▼
-       free-form emotion caption
-              │
-              ├─► caption affect classifier (RoBERTa-emotion) → V/A → SQ1
-              ├─► counterfactual subject swap → SQ2
-              └─► caption → stimulus retrieval → SQ3
+   Multi-channel output:
+   - V/A continuous regression
+   - 27-cat classification
+   - Free-form emotion caption (SQ4 retrieval 도)
+   - Latent embedding (counterfactual swap)
 ```
 
-### Vision tower swap 의 3 수준 (각각 go/no-go gate)
+### Vision tower swap 의 3 수준 (Option A 안에서 깊이)
+
+Option A (LLM token) 를 채택하면 그 안에서 다시 3 수준의 swap depth 비교.
 
 | 수준 | 설명 | 시점 |
 |---|---|---|
-| **L1. Frozen embedding 주입** | BFM 으로 미리 추출한 embedding (2185, D) 을 linear projection 으로 BrainVLM 에 주입. BFM freeze. 안전, 우리 BFM extraction 결과 즉시 활용 | Phase 1 W5-8 |
-| **L2. Vision tower 교체 + freeze** | BrainVLM 의 patchify layer 자체를 BFM 으로 교체. BFM freeze. 더 deep integration | L1 결과 보고 → Phase 2 W9-12 |
-| **L3. Vision tower + LoRA fine-tune** | BFM + projection 모두 LoRA fine-tune. 가장 deep, 가장 risk | L2 결과 보고 → Phase 3 W13-18 |
+| **L1. Frozen embedding 주입** | brain encoder 로 미리 추출한 embedding (2185, D) 을 linear projection 으로 LLM token space 에 주입. encoder freeze. 안전, 우리 추출 결과 즉시 활용 | Phase 2 W7-10 |
+| **L2. Vision tower 교체 + freeze** | BrainVLM 의 patchify layer 자체를 brain encoder 로 교체. encoder freeze. 더 deep integration | L1 결과 보고 → Phase 2 W11-12 |
+| **L3. Vision tower + LoRA fine-tune** | encoder + projection 모두 LoRA fine-tune. 가장 deep, 가장 risk | L2 결과 보고 → Phase 3 W13-18 |
 
-각 수준의 go/no-go: 다음 수준으로 가려면 현재 수준에서 SQ1 의 baseline (video-only caption) 을 넘어야 함.
+각 수준의 go/no-go: 다음 수준으로 가려면 현재 수준에서 video-only baseline 을 넘어야 함.
+
+Option B/C/D 는 Phase 2 의 Option A 결과 보고 결정 — A 가 충분히 잘 working 하면 부수 비교로, A 가 fail 하면 main path 로 전환.
 
 
 ## 4. 자원 분배

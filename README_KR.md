@@ -1,48 +1,55 @@
 # FEELIN 한국어 가이드
 
-**Brain-conditioned Emotion-Vision-Language Model on Naturalistic fMRI**
+**Emotion-aware Multimodal Foundation Model from Naturalistic fMRI + Video**
 
 
 ## 한 줄
 
-fMRI 와 video 를 함께 입력으로 받아 그 사람이 영상에서 느낀 emotion 을 자연어로 묘사하는 model 을 만든다. fMRI 인코더로 어떤 brain foundation model (SwiFT, Brain-JEPA, NeuroSTORM, BrainLM) 을 쓰면 가장 좋은지 비교한다.
+fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model 을 만든다. fMRI 를 어떤 architecture × 어떤 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM / BrainLM) 로 통합해야 model 의 emotion 이해 능력이 가장 잘 형성되는지 비교한다.
 
 
 ## Big Question
 
-fMRI 와 video 를 함께 받는 model 이 그 사람이 영상에서 느낀 emotion 을 자연어로 묘사할 수 있는가? 그리고 fMRI 를 어떻게 인코딩해야 (어떤 brain foundation model 을 쓰면) 묘사가 가장 잘 되는가?
+fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model 을 만들 수 있는가? 그리고 fMRI 를 어떻게 인코딩 / 통합해야 (어떤 architecture × 어떤 brain encoder) model 의 emotion 이해 능력이 가장 잘 형성되는가?
 
 
-## 3 Sub-question
+## 4 Sub-question
 
-1. **Caption affect 정확도** — Brain-conditioned caption 에서 추출한 V/A 가 self-rating 과 within-subject Pearson r ≥ 0.4 이고 video-only 보다 높은가?
-2. **Brain swap caption 변화** — 같은 영상에 다른 사람 brain 으로 conditioning 하면 caption affect tone 이 달라지는가?
-3. **Stimulus retrieval** — 생성된 caption 으로 자극 retrieval 시 Mind Captioning baseline 의 80% 이상 정확도 유지?
+1. **fMRI 통합 방법 + brain encoder 선택 (main)** — 4 architecture (LLM token / cross-attention / contrastive / late fusion) × 4 brain encoder 중 어느 조합이 video-only baseline 을 넘는가?
+2. **Emotion 표상의 evidence** — V/A regression + 27-cat 분류 + caption affect accuracy 3 channel 모두에서 향상?
+3. **Brain causal 기여** — 같은 video × 다른 brain 으로 conditioning 했을 때 output 차이가 systematic 한가? (counterfactual subject swap)
+4. **Content grounding 보존** — Caption 으로 stimulus retrieval 시 Mind Captioning baseline 80% 유지?
 
 
-## Architecture
+## Architecture — design space
 
 ```
-fMRI ─► fMRI encoder (BFM 후보: SwiFT / Brain-JEPA / NeuroSTORM / BrainLM)
-                                                │
-                              ▼ prefix / cross-attn ◄── video frames
-                  Brain-VLM (UMBRELLA_qwen, Qwen3-VL backbone)
-                                                │
-                                                ▼
-                                  free-form emotion caption
+fMRI ─► brain encoder (4 종 swap-in) ─► z_brain
+                                            │
+                ▼ 4 통합 option (SQ1) ◄── video features (EmoViS reuse)
+                  A: LLM token (BrainVLM)
+                  B: Cross-attention
+                  C: Contrastive alignment
+                  D: Late fusion
+                                            │
+                                            ▼
+                          Foundation model (LLM / transformer)
+                                            │
+                                            ▼
+                  Multi-channel output:
+                  - V/A continuous regression
+                  - 27-cat classification
+                  - Free-form emotion caption
+                  - Latent embedding (counterfactual swap)
 ```
 
-Vision tower swap 3 수준:
-- L1 frozen embedding 주입 (Phase 2)
-- L2 vision tower 교체 freeze (Phase 3)
-- L3 LoRA fine-tune (Phase 3 후반)
-
-각 수준마다 go/no-go.
+Option A 안에서 vision tower swap depth 3 수준 (L1 frozen → L2 swap+freeze → L3 LoRA), 각각 go/no-go.
+Option B/C/D 는 Phase 2 의 A 결과 보고 결정.
 
 
-## BFM 의 역할
+## Brain encoder 4 종의 역할
 
-4 종 brain foundation model 은 BrainVLM 의 fMRI 인코더 후보. 우리가 한 BFM extraction 작업이 vision tower swap 비교의 build-up.
+SwiFT / Brain-JEPA / NeuroSTORM / BrainLM = **fMRI 를 model 입력으로 변환하는 인코더 후보**. SQ1 의 핵심 비교 축. 우리가 한 BFM extraction 작업이 이 비교의 build-up.
 
 
 ## EmoViS 와의 관계
@@ -59,9 +66,9 @@ CCN (사용자 발표) 의 결과는 인용 안 함. 아이디어만 reference.
 
 | Phase | Week | 다루는 sub-Q | Gate | 상태 |
 |---|---|---|---|---|
-| Phase 1: Foundation | W1-6 | (사전 검증) | W6 BrainVLM transferable? | **진행 중** |
-| Phase 2: L1 학습 | W7-12 | SQ1 | W12 L1 result | 대기 |
-| Phase 3: L2 + L3 | W13-18 | SQ1, SQ2, SQ3 | W18 | 대기 |
+| Phase 1: Foundation | W1-6 | (사전 검증) | W6 Option A transferable? | **진행 중** |
+| Phase 2: 통합 학습 (Option A L1 → L2, 필요 시 B/C/D pilot) | W7-12 | SQ1, SQ2 | W12 baseline 넘는가 | 대기 |
+| Phase 3: Deep integration (L3 LoRA) + causal | W13-18 | SQ2, SQ3, SQ4 | W18 brain swap + retrieval | 대기 |
 | Phase 4: Submission | W19-24 | (통합) | W24 venue | 대기 |
 
 자세한 plan: [`docs/masterplan_v2.md`](docs/masterplan_v2.md).
@@ -107,4 +114,4 @@ bash /pscratch/sd/s/sjmoon/FEELIN/code/probes/run_unified_probe.sh
 
 ## Cleanup history
 
-2026-05-19 — v3 reframing 으로 "Brain-conditioned Emotion-VLM" 이 core. 이전 v2 의 "context-aware foundation model" framing 폐기. ACTION_PLAN, research_overview, 2026-05-11 시점 자료는 `_archive/` 에.
+2026-05-19 — v3 reframing 으로 "Emotion-aware Multimodal Foundation Model" 이 core. fMRI 통합 architecture 는 design space (LLM token / cross-attention / contrastive / late fusion). BrainVLM 은 Option A 의 baseline. 이전 v2 의 "context-aware foundation model" framing 폐기. ACTION_PLAN, research_overview, 2026-05-11 시점 자료는 `_archive/` 에.
