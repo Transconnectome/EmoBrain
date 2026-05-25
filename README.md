@@ -66,6 +66,16 @@ Option B/C/D 는 Phase 2 의 A 결과 보고 결정.
 SwiFT / Brain-JEPA / NeuroSTORM / BrainLM = **fMRI 를 model 입력으로 변환하는 인코더 후보**. SQ1 의 핵심 비교 축. 우리가 한 BFM padding ablation / extraction / probe 작업이 이 비교의 build-up.
 
 
+## Evaluation protocol (모든 probe 공통)
+
+- **5-fold stim-stratified CV** (`data/horikawa_5fold.csv`, V × A quartile joint stratification)
+- 각 outer fold k 마다: test = fold k, val = (k%5)+1, train = 나머지 3 fold
+- 6 task: V_binary, A_binary, V_reg, A_reg, Cat34_top1, Dim14_multi
+- Head 2 종: Linear (deterministic, 1 seed) + MLP (default 1 seed screening, final paper 시 3 seed)
+- BFM probe 는 추가로 `pooled` vs `per_subject` 2 mode
+- 모든 결과: per-fold per-seed row → CSV (`results/phase1/`)
+
+
 ## EmoViS 와의 관계
 
 - EmoViS = brain ↔ visual-semantic alignment 분석 (별도 repo)

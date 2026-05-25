@@ -62,6 +62,13 @@ Option B/C/D 는 Phase 2 의 A 결과 보고 결정.
 SwiFT / Brain-JEPA / NeuroSTORM / BrainLM = **fMRI 를 model 입력으로 변환하는 인코더 후보**. SQ1 의 핵심 비교 축. 우리가 한 BFM extraction 작업이 이 비교의 build-up.
 
 
+## Evaluation protocol
+
+- **5-fold stim-stratified CV** (`data/horikawa_5fold.csv`)
+- 각 fold k: test=k, val=(k%5)+1, train=나머지 3
+- 6 task × 2 head (Linear + MLP) × (BFM 의 경우 2 mode) × 1 seed (screening) / 3 seed (final paper)
+
+
 ## EmoViS 와의 관계
 
 - EmoViS = brain ↔ visual-semantic alignment (별도 repo)

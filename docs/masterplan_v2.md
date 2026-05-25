@@ -44,6 +44,15 @@ fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model �
 **Go**: 위 channel 들에서 video-only baseline 대비 통계적으로 유의한 향상 (paired bootstrap p < 0.05).
 **Pivot**: 1-2 channel 만 향상이면 어느 emotion 측면이 brain 에 의해 잡히는지 specific reporting.
 
+#### Evaluation protocol (모든 probe 공통)
+
+- **5-fold stim-stratified CV** (`data/horikawa_5fold.csv`, V × A quartile joint stratification)
+- 각 outer fold k: test = fold k, val = (k%5)+1, train = 나머지 3 fold
+- 6 task: V_binary, A_binary, V_reg, A_reg, Cat34_top1, Dim14_multi
+- 2 head: Linear (deterministic, 1 seed) + MLP (1 seed screening, final paper 시 3 seed)
+- BFM probe 는 추가로 pooled vs per_subject 2 mode
+- CSV schema 통일: BFM / Video probe 모두 동일 column (fold + mode + subject 등)
+
 #### Sub-question 2 의 evaluation pipeline 별 scientific question
 
 각 probe 실행은 독립된 scientific question 에 답함:

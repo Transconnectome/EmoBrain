@@ -30,19 +30,26 @@ Output:
 import argparse
 import json
 import sys
+import warnings
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.metrics import (average_precision_score, balanced_accuracy_score,
                              f1_score, mean_absolute_error, mean_squared_error,
                              roc_auc_score)
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.preprocessing import StandardScaler
+from scipy.linalg import LinAlgWarning
 from scipy.stats import pearsonr
+
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.metrics")
+warnings.filterwarnings("ignore", category=LinAlgWarning)
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "analysis"))
 from _lib.heads import SwiftMLP
@@ -82,6 +89,7 @@ TASKS = {
 
 HEADS = ["linear", "mlp"]
 SEEDS = [0]  # default screening: 1 seed. Final paper 직전에 --seeds 0,1,2 로 늘리기.
+FOLDS = [1, 2, 3, 4, 5]  # 5-fold CV (data/horikawa_5fold.csv)
 
 LINEAR_CS = [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]
 RIDGE_ALPHAS = [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]
@@ -133,12 +141,20 @@ def _load_task_labels(task):
     raise ValueError(task)
 
 
-def build_task_data(filename, task):
-    """Stim-level data (no subject dim).
-    Split from sub-01 row of horikawa_split.csv (모든 subject 동일 stim → 동일 split)."""
+def _get_fold_split(test_fold):
+    """5-fold CV: test = fold k, val = (k%5)+1, train = remaining 3."""
+    df5 = pd.read_csv(DATA / "horikawa_5fold.csv")
+    val_fold = (test_fold % 5) + 1
+    df5["split"] = "train"
+    df5.loc[df5["fold"] == val_fold, "split"] = "val"
+    df5.loc[df5["fold"] == test_fold, "split"] = "test"
+    return df5[["stimulus_num", "split"]]
+
+
+def build_task_data(filename, task, test_fold):
+    """Stim-level data (no subject dim). 5-fold CV (test_fold = which fold is test)."""
     label_df, label_col, ttype = _load_task_labels(task)
-    split = pd.read_csv(DATA / "horikawa_split.csv")
-    split = split[split["subject"] == "sub-01"][["stimulus_num", "split"]]
+    split = _get_fold_split(test_fold)
     feat, stim_num = load_video_feature(filename)
     stim_to_idx = {int(s): i for i, s in enumerate(stim_num)}
 
@@ -359,6 +375,8 @@ def main():
     ap.add_argument("--features", default="all",
                     help="comma-separated video feature names. 'all' 이면 9 video 다.")
     ap.add_argument("--seeds", default="0", help="comma-separated seeds, default 1 seed.")
+    ap.add_argument("--folds", default="1,2,3,4,5",
+                    help="comma-separated outer folds for 5-fold CV.")
     args = ap.parse_args()
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -375,33 +393,39 @@ def main():
             raise ValueError(f"no features matched {wanted}. valid: {valid}")
 
     seeds_global = [int(s) for s in args.seeds.split(",")]
+    folds_global = [int(f) for f in args.folds.split(",")]
     heads_to_run = ["linear"] if args.skip_mlp else HEADS
 
     print(f"Device: {dev}, skip_mlp={args.skip_mlp}")
-    print(f"Video features: {len(features_to_run)}, tasks: {task_list}, heads: {heads_to_run}, seeds: {seeds_global}")
+    print(f"Video features: {len(features_to_run)}, tasks: {task_list}, heads: {heads_to_run}, "
+          f"seeds: {seeds_global}, folds: {folds_global}")
 
     rows = []
     for feat_name, filename in features_to_run:
         print(f"\n{'='*70}\nFEATURE: {feat_name}\n{'='*70}")
         for task in task_list:
             cfg = TASKS[task]; ttype, n_out = cfg["type"], cfg["n_out"]
-            try:
-                data, _ = build_task_data(filename, task)
-            except FileNotFoundError as e:
-                print(f"  [skip] {e}"); continue
-            ntr, nva, nte = data["y_train"].shape[0], data["y_val"].shape[0], data["y_test"].shape[0]
-            for head_name in heads_to_run:
-                seeds_for_this = [seeds_global[0]] if head_name == "linear" else seeds_global
-                for seed in seeds_for_this:
-                    res = linear_probe(data, ttype, seed) if head_name == "linear" \
-                          else mlp_probe(data, ttype, seed, dev, n_out)
-                    row = {
-                        "feature": feat_name, "filename": filename,
-                        "task": task, "task_type": ttype, "main_metric": cfg["main_metric"],
-                        "head": head_name, "seed": seed,
-                        "n_train": ntr, "n_val": nva, "n_test": nte,
-                        "best_hp": res["best_hp"], "val_main": res["val_main"],
-                        "test_main": res["test_main"],
+            for fold in folds_global:
+                try:
+                    data, _ = build_task_data(filename, task, fold)
+                except FileNotFoundError as e:
+                    print(f"  [skip] {e}"); continue
+                ntr, nva, nte = data["y_train"].shape[0], data["y_val"].shape[0], data["y_test"].shape[0]
+                for head_name in heads_to_run:
+                    seeds_for_this = [seeds_global[0]] if head_name == "linear" else seeds_global
+                    for seed in seeds_for_this:
+                        res = linear_probe(data, ttype, seed) if head_name == "linear" \
+                              else mlp_probe(data, ttype, seed, dev, n_out)
+                        # Unified schema with BFM probe (mode/subject/init/padding/dir_prefix 추가)
+                        row = {
+                            "feature": feat_name, "dir_prefix": filename,
+                            "padding": "n/a", "init": "n/a",
+                            "task": task, "task_type": ttype, "main_metric": cfg["main_metric"],
+                            "head": head_name, "mode": "stim_level", "subject": "all",
+                            "fold": fold, "seed": seed,
+                            "n_train": ntr, "n_val": nva, "n_test": nte,
+                            "best_hp": res["best_hp"], "val_main": res["val_main"],
+                            "test_main": res["test_main"],
                         "test_auroc": res.get("test_auroc"),
                         "test_auprc": res.get("test_auprc"),
                         "test_bal_acc": res.get("test_bal_acc"),
@@ -418,16 +442,17 @@ def main():
                         "test_pearson_r_per_dim": (
                             json.dumps(res.get("test_pearson_r_per_dim"))
                             if res.get("test_pearson_r_per_dim") is not None else None),
-                    }
-                    rows.append(row)
-                    print(f"  [{feat_name:24s} {task:11s} {head_name:6s} s{seed}] "
-                          f"main={res['test_main']:.3f} ({cfg['main_metric']})")
+                        }
+                        rows.append(row)
+                        print(f"  [{feat_name:24s} {task:11s} {head_name:6s} f{fold} s{seed}] "
+                              f"main={res['test_main']:.3f} ({cfg['main_metric']})")
 
     df = pd.DataFrame(rows)
     df.to_csv(args.out_csv, index=False)
     print(f"\n[done] {args.out_csv}  ({len(df)} rows)")
 
-    grp = ["feature", "task", "task_type", "main_metric", "head"]
+    # Aggregate across folds and seeds
+    grp = ["feature", "task", "task_type", "main_metric", "head", "mode", "subject"]
     agg = df.groupby(grp)["test_main"].agg(["mean", "std", "count"]).reset_index()
     agg.to_csv(args.summary_csv, index=False)
     print(f"[done] {args.summary_csv}  ({len(agg)} cells)")
