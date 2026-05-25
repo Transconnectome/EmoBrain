@@ -16,9 +16,19 @@ fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model �
 ## 4 Sub-question
 
 1. **fMRI 통합 방법 + brain encoder 선택 (main)** — 4 architecture (LLM token / cross-attention / contrastive / late fusion) × 4 brain encoder 중 어느 조합이 video-only baseline 을 넘는가?
-2. **Emotion 표상의 evidence** — V/A regression + 27-cat 분류 + caption affect accuracy 3 channel 모두에서 향상?
+2. **Emotion 표상의 evidence** — V/A regression + 27/34-cat 분류 + 14 affective dim + caption affect 모두에서 향상?
 3. **Brain causal 기여** — 같은 video × 다른 brain 으로 conditioning 했을 때 output 차이가 systematic 한가? (counterfactual subject swap)
 4. **Content grounding 보존** — Caption 으로 stimulus retrieval 시 Mind Captioning baseline 80% 유지?
+
+### Probe 별 scientific question
+
+| Probe | Question |
+|---|---|
+| BFM frozen probe | 각 brain foundation model 의 frozen embedding 이 emotion 의 어떤 측면을 capture 하나? |
+| Video-only probe | 자극 feature 만으로 emotion 예측 ceiling 은? Brain 의 added value 의 reference baseline |
+| Late fusion (Phase 2) | Brain + video 결합이 단독 대비 향상이 있는가? |
+| Contrastive (Phase 2-3) | Brain-video shared latent 학습이 emotion 표상 향상시키나? |
+| LLM-token (Phase 3) | fMRI 를 LLM token 으로 주입한 model 이 emotion caption 을 생성하나? |
 
 
 ## Architecture — design space

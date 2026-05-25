@@ -16,9 +16,19 @@ fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model �
 ## 4 Sub-question
 
 1. **fMRI 통합 방법 + brain encoder 선택 (main)** — 4 architecture (LLM token / cross-attention / contrastive / late fusion) × 4 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM / BrainLM) 중 어느 조합이 emotion task 에서 video-only baseline 을 넘는가?
-2. **Emotion 표상의 evidence** — V/A regression + 27-cat 분류 + caption affect accuracy 3 channel 모두에서 model 이 baseline 을 넘는가? (multi-channel 측정)
+2. **Emotion 표상의 evidence** — V/A regression + 27/34-cat 분류 + 14 affective dim + caption affect 모두에서 model 이 baseline 을 넘는가?
 3. **Brain 의 causal 기여** — 같은 video × 다른 brain → output 차이가 systematic 한가? (counterfactual subject swap)
 4. **Content grounding 보존** — Caption 으로 stimulus retrieval 시 Horikawa Mind Captioning baseline 의 80% 정확도 유지?
+
+### Probe pipeline 별 scientific question
+
+| Probe | Scientific question | 답하는 것 |
+|---|---|---|
+| **BFM frozen probe** | 각 brain foundation model 의 frozen embedding 이 emotion 의 어떤 측면을 capture 하나? Architecture × init × subject mode 의 어느 조합이 어느 task 에 강한가? | Tier 2 ceiling 측정 (SQ1 brain side) |
+| **Video-only probe** | 자극 (영상) 자체의 feature 만으로 emotion 이 어디까지 예측되나? Brain 없이 video model 만의 ceiling 은? | "Brain 이 video 위에 추가하는 value" 의 reference. **Reviewer 의 가장 큰 challenge 에 대한 직접 답** |
+| (Phase 2) Late fusion | Brain + video 결합이 단독 대비 향상이 있는가? | Architecture D 결과, brain unique contribution evidence |
+| (Phase 2-3) Contrastive | Brain-video shared latent 학습이 emotion 표상 capture 향상? | Architecture C 결과 |
+| (Phase 3) LLM-token | fMRI 를 LLM token 으로 주입한 model 이 emotion caption 생성하나? | Architecture A 의 generative novelty |
 
 
 ## Architecture — design space

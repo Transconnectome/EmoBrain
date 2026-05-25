@@ -6,11 +6,16 @@ Reference: [`docs/masterplan_v2.md`](../docs/masterplan_v2.md) Phase 1.
 
 ## 목적
 
-3 트랙 병행으로 다음 phase 진입 준비.
+4 트랙 병행으로 다음 phase 진입 준비.
 
-- Track 1 (critical path): Brain-VLM 이 우리 데이터에 transfer 되는지 검증
-- Track 2: BFM 추출 완성 (vision tower 후보 4 종 준비)
-- Track 3: EmoViS stimulus feature 통합 + reference caption 분석
+- Track 1: BrainVLM env setup + Architecture A baseline 준비 (LLM token 통합용 환경)
+- Track 2: BFM frozen probe (Tier 2 ceiling) — 4 BFM × 6 task × 2 mode 결과
+- Track 3: Video-only probe (Tier 3 reference baseline) — 9 video model × 6 task
+- Track 4: EmoViS stimulus feature 통합 (Track 3 의 입력)
+
+각 트랙의 scientific question:
+- **Track 2 (BFM probe)**: 각 brain foundation model 의 frozen embedding 이 emotion 의 어떤 측면을 capture 하나?
+- **Track 3 (Video probe)**: 자극 feature 만으로 emotion 예측 ceiling 은? Brain 의 added value 측정의 reference baseline. Reviewer 의 가장 큰 challenge ("brain 이 video 위에 추가하는 게 있나?") 의 직접 답.
 
 
 ## Track 1 — Architecture Option A (LLM token, BrainVLM) transfer test (critical path)

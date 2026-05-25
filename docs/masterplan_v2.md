@@ -37,11 +37,24 @@ fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model �
 학습된 model 안에 emotion 표상이 실제로 형성되었는가? 여러 emotion task 에서 측정.
 
 - (a) V/A continuous regression: within-subject Pearson r ≥ 0.4 (self-rating 과)
-- (b) Cowen 27-category classification: balanced accuracy
-- (c) Free-form caption 의 affect accuracy: RoBERTa-emotion 으로 caption 에서 V/A 추출 → self-rating 과 비교
+- (b) Cowen 27/34-category classification: balanced accuracy
+- (c) Cowen 14 affective dimension multi-output regression: mean Pearson r
+- (d) (Phase 2+) Free-form caption 의 affect accuracy: RoBERTa-emotion 으로 caption 에서 V/A 추출 → self-rating 과 비교
 
-**Go**: 위 3 channel 모두에서 video-only baseline 대비 통계적으로 유의한 향상 (paired bootstrap p < 0.05 각각).
+**Go**: 위 channel 들에서 video-only baseline 대비 통계적으로 유의한 향상 (paired bootstrap p < 0.05).
 **Pivot**: 1-2 channel 만 향상이면 어느 emotion 측면이 brain 에 의해 잡히는지 specific reporting.
+
+#### Sub-question 2 의 evaluation pipeline 별 scientific question
+
+각 probe 실행은 독립된 scientific question 에 답함:
+
+| Probe | Scientific question | 답하는 것 |
+|---|---|---|
+| **BFM frozen probe** (`run_unified_probe.py`) | 각 brain foundation model 의 frozen embedding 이 emotion 의 어떤 측면을 capture 하는가? Architecture × init × subject mode 의 어느 조합이 어느 task 에 강한가? | Tier 2 ceiling 측정, sub-question 1 의 BFM 부분 |
+| **Video-only probe** (`run_video_probe.py`) | 자극 (영상) 자체의 feature 만으로 emotion 이 어디까지 예측되는가? Brain 없이 video model 의 ceiling 은? | "Brain 이 video 위에 얼마나 추가하는가" 의 reference baseline. Reviewer 의 가장 큰 challenge 에 대한 직접 답 |
+| (Phase 2) **Late fusion** | Brain + video 결합이 단독 대비 향상이 있는가? | Architecture D 의 결과, brain unique contribution evidence |
+| (Phase 2-3) **Contrastive alignment** | Brain-video shared latent 학습이 emotion 표상 capture 를 향상시키나? | Architecture C 의 결과 |
+| (Phase 3) **LLM-token (BrainVLM-style)** | fMRI 를 LLM token 으로 주입한 model 이 emotion 의 자연어 표현 (caption) 을 생성하나? | Architecture A 의 generative novelty |
 
 ### Sub-question 3. Brain 의 causal 기여 (counterfactual subject swap)
 
