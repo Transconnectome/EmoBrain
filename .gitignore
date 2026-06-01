@@ -59,3 +59,14 @@ _archive/
 
 # Stimulus feature symlinks (user-specific paths to EmoViS extractions)
 data/stimulus_features/
+
+# LaTeX intermediates
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.synctex.gz
+*.fls
+*.fdb_latexmk

@@ -39,23 +39,21 @@ Reference: [`docs/masterplan_v2.md`](../docs/masterplan_v2.md) Phase 1.
 - r < 0.3 → Option A 약함, Phase 2 에서 Option B (cross-attention) 또는 C (contrastive) 를 main path 로 전환
 
 
-## Track 2 — BFM 추출 완성 (병행, vision tower 후보 4 종 준비)
+## Track 2 — BFM 추출 완성 (병행, vision tower 후보 3 종 준비)
 
-**Goal**: 4 BFM (SwiFT 5 변종, Brain-JEPA, NeuroSTORM, BrainLM) 의 5 subject × 2 init × proper mean padding 추출 완성. Phase 2 의 L1 swap 비교에 필요.
+**Goal**: 3 BFM (SwiFT 6 변종, Brain-JEPA, NeuroSTORM) 의 5 subject × 2 init × proper mean padding 추출 완성. Phase 2 의 L1 swap 비교에 필요. (BrainLM 은 490 timepoint × A424 atlas 고정으로 Horikawa 비호환, scope 제외.)
 
 **현재 상태**:
 - ✅ NewE96 / Brain-JEPA / NeuroSTORM × 5 subj × 2 init × **spatial_only padding** (legacy mean): 완료
 - 🔄 NewE96 / Brain-JEPA / NeuroSTORM × 5 subj × 2 init × **proper mean padding**: 진행 중 (30 cell). 명령: `bash code/bfm_embeddings/run_full/proper_mean_all.sh`
-- ⏳ SwiFT 나머지 4 변종 (NewE36, NewE192, UAH 51M, UAH 806M) × 5 subj × 2 init × proper mean: W3-4 시작 예정
-- ⏳ BrainLM: 추출 인프라 점검 필요 (atlas 호환성 — Brain-JEPA 와 다른 A424 / 490 TR fixed)
+- ⏳ SwiFT 5 변종 (NewE36, NewE192, UAH 5M, UAH 51M, UAH 202M) × 5 subj × 2 init: padding ablation 결과의 best padding 으로 W3-4 시작 예정. 명령: `bash code/bfm_embeddings/run_full/extract_swift_variants_with_padding.sh <best_padding>`
 
 **산출물**:
-- `output/embeddings/<model>_<init>_pad-mean/sub-XX.pt` × 5 model × 2 init × 5 subj
+- `output/embeddings/<model>_<init>_pad-mean/sub-XX.pt` × 7 model × 2 init × 5 subj
 - `output/embeddings/roi_schaefer400tian50_mean/sub-XX.pt` (Tier 1 floor 후보, 이미 추출 완료)
 
 **Gate (W6)**:
-- 4 BFM × 5 subj × 2 init = 최소 40 cell 추출 완료
-- BrainLM 가능 여부 결정
+- 3 BFM × 5 subj × 2 init × main padding = 최소 30 cell 추출 완료
 
 
 ## Track 3 — EmoViS stimulus feature 통합 (가벼움)
@@ -82,7 +80,7 @@ Reference: [`docs/masterplan_v2.md`](../docs/masterplan_v2.md) Phase 1.
 
 체크리스트:
 - [ ] Track 1: BrainVLM transfer 검증 완료, token V/A r 측정값 기록
-- [ ] Track 2: 4 BFM × 5 subj × proper mean padding 100% 추출. BrainLM 가능 여부 결정
+- [ ] Track 2: 3 BFM (SwiFT 변종 포함) × 5 subj × proper mean padding 100% 추출
 - [ ] Track 3: EmoViS feature 9 종 로딩 sanity check 통과, caption reference 분석
 - [ ] Phase 2 진입 결정 작성:
   - Track 1 gate 통과 → Option A (LLM token) 의 L1 (frozen brain encoder embedding 주입) 으로 Phase 2 진입
@@ -94,5 +92,4 @@ Reference: [`docs/masterplan_v2.md`](../docs/masterplan_v2.md) Phase 1.
 ## Pivot scenarios
 
 - **Track 1 gate fail (Option A 부적합)**: BrainVLM 이 우리 데이터에 zero-shot 안 됨. 우회 1: BrainVLM 의 patchifier 만 가져와서 처음부터 학습. 우회 2: Phase 2 의 main path 를 Option B (cross-attention) 또는 C (contrastive) 로 전환
-- **Track 2 의 BrainLM 비호환**: 3 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM) 만으로 진행. Paper 의 encoder 비교 axis 가 4 → 3 으로 축소
-- **Track 3 의 caption diversity 부족**: Qwen-VL caption 이 emotion 묘사 빈약하면 prompt 재설계 (EmoViS 측에 요청 또는 FEELIN 측에서 추가 추출)
+- **Track 3 의 caption diversity 부족**: Qwen-VL caption 이 emotion 묘사 빈약하면 prompt 재설계 (추가 추출)

@@ -1,0 +1,698 @@
+\documentclass[10pt, a4paper, landscape]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1.3cm]{geometry}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{makecell}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{siunitx}
+\sisetup{detect-all, table-format=1.4}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=blue!50!black, urlcolor=blue!50!black}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\small FEELIN Phase 1 Supplementary Material}
+\rfoot{\thepage}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\title{\vspace{-2em}\textbf{Supplementary Material}\\
+       \large Full benchmark tables for FEELIN Phase 1 frozen-probe report}
+\author{}
+\date{2026-05-27}
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+
+\section{Chance baselines}
+
+\begin{table}[h]
+\centering
+\caption{Chance baselines per task, by dummy-predictor strategy. Stratified rows are averaged over 3 seeds.} \label{tab:chance}
+\small
+\begin{tabular}{l l S[table-format=1.4] S[table-format=1.4] r}
+\toprule
+Task & Head & {$\mu$} & {$\sigma$} & n \\
+\midrule
+A\_binary & most\_frequent & 0.5000 & 0.0000 & 5\\
+A\_binary & stratified & 0.4795 & 0.0301 & 15\\
+A\_reg & mean & 0.0000 & 0.0000 & 5\\
+A\_reg & median & 0.0000 & 0.0000 & 5\\
+V\_binary & most\_frequent & 0.5000 & 0.0000 & 5\\
+V\_binary & stratified & 0.5053 & 0.0329 & 15\\
+V\_reg & mean & 0.0000 & 0.0000 & 5\\
+V\_reg & median & 0.0000 & 0.0000 & 5\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Per-task full benchmark}
+All cells are reported. Within each category (brain, video) rows are sorted by the main
+metric (AUROC for binary, Pearson $r$ for regression). The $n$ column shows the number of
+underlying fold $\times$ seed (or, for per\_subject mode, fold $\times$ seed $\times$ subject)
+fits that were averaged.
+
+\subsection{V\_binary}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{r l l l l l S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] r}
+\caption{Full benchmark for V\_binary (Valence binary classification (extreme Q4 vs Q1)). Main metric: AUROC. Cells sorted by main metric within category.} \label{tab:supp-V-binary}\\
+\toprule
+\# & Feature & Init & Padding & Head & Mode & \multicolumn{2}{c}{AUROC} & \multicolumn{2}{c}{AUPRC} & \multicolumn{2}{c}{balAcc} & n \\
+  &         &      &         &      &       & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} &   \\
+\midrule
+\endfirsthead
+\multicolumn{13}{l}{\small\itshape continued from previous page} \\
+\toprule
+\# & Feature & Init & Padding & Head & Mode & \multicolumn{2}{c}{AUROC} & \multicolumn{2}{c}{AUPRC} & \multicolumn{2}{c}{balAcc} & n \\
+  &         &      &         &      &       & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} &   \\
+\midrule
+\endhead
+\midrule \multicolumn{13}{r}{\small\itshape continued on next page} \\
+\endfoot
+\bottomrule
+\endlastfoot
+\multicolumn{13}{l}{\textit{Brain models (fMRI input)}} \\
+1 & ROI\_Schaefer400Tian50 & n/a & time\_mean & linear & pooled & 0.7889 & 0.0119 & 0.7940 & 0.0099 & 0.7199 & 0.0107 & 5 \\
+2 & ROI\_Schaefer400Tian50 & n/a & time\_mean & linear & per\_subject & 0.7885 & 0.0263 & 0.7979 & 0.0248 & 0.7229 & 0.0272 & 25 \\
+3 & ROI\_Schaefer400Tian50 & n/a & time\_mean & mlp & pooled & 0.7626 & 0.0142 & 0.7569 & 0.0243 & 0.6998 & 0.0237 & 5 \\
+4 & ROI\_Schaefer400Tian50 & n/a & time\_mean & mlp & per\_subject & 0.7601 & 0.0319 & 0.7611 & 0.0415 & 0.7058 & 0.0275 & 25 \\
+5 & Brain-JEPA & resting & zero & linear & per\_subject & 0.7402 & 0.0365 & 0.7571 & 0.0293 & 0.6797 & 0.0350 & 25 \\
+6 & Brain-JEPA & resting & zero & linear & pooled & 0.7376 & 0.0194 & 0.7411 & 0.0132 & 0.6768 & 0.0180 & 5 \\
+7 & NeuroSTORM & resting & mean & linear & per\_subject & 0.7292 & 0.0361 & 0.7402 & 0.0371 & 0.6657 & 0.0342 & 25 \\
+8 & Brain-JEPA & resting & zero & mlp & pooled & 0.7083 & 0.0178 & 0.7092 & 0.0184 & 0.6576 & 0.0160 & 5 \\
+9 & NeuroSTORM & resting & mean & mlp & per\_subject & 0.7081 & 0.0398 & 0.7174 & 0.0445 & 0.6576 & 0.0343 & 25 \\
+10 & NeuroSTORM & resting & mean & linear & pooled & 0.7019 & 0.0190 & 0.7110 & 0.0229 & 0.6454 & 0.0150 & 5 \\
+11 & Brain-JEPA & scratch & zero & linear & pooled & 0.6957 & 0.0178 & 0.6977 & 0.0214 & 0.6476 & 0.0216 & 5 \\
+12 & SwiFT\_UAH\_202M & scratch & zero & linear & per\_subject & 0.6911 & 0.0368 & 0.7102 & 0.0333 & 0.6413 & 0.0346 & 25 \\
+13 & Brain-JEPA & resting & zero & mlp & per\_subject & 0.6900 & 0.0320 & 0.7001 & 0.0312 & 0.6262 & 0.0381 & 25 \\
+14 & SwiFT\_UAH\_202M & resting & zero & linear & per\_subject & 0.6899 & 0.0360 & 0.7079 & 0.0411 & 0.6377 & 0.0386 & 25 \\
+15 & NeuroSTORM & resting & mean & mlp & pooled & 0.6898 & 0.0273 & 0.6936 & 0.0241 & 0.6415 & 0.0221 & 5 \\
+16 & SwiFT\_NewE96 & resting & zero & linear & pooled & 0.6884 & 0.0166 & 0.7075 & 0.0141 & 0.6399 & 0.0113 & 5 \\
+17 & SwiFT\_NewE192 & resting & zero & linear & pooled & 0.6863 & 0.0221 & 0.7077 & 0.0135 & 0.6342 & 0.0101 & 5 \\
+18 & SwiFT\_NewE96 & resting & mean & linear & pooled & 0.6860 & 0.0177 & 0.7010 & 0.0224 & 0.6300 & 0.0103 & 10 \\
+19 & SwiFT\_NewE96 & resting & spatial\_only & linear & pooled & 0.6848 & 0.0187 & 0.7008 & 0.0238 & 0.6334 & 0.0111 & 5 \\
+20 & SwiFT\_NewE96 & resting & cyclic\_replicate & linear & pooled & 0.6835 & 0.0173 & 0.6989 & 0.0226 & 0.6315 & 0.0167 & 5 \\
+21 & Brain-JEPA & scratch & zero & linear & per\_subject & 0.6751 & 0.0317 & 0.6778 & 0.0395 & 0.6320 & 0.0292 & 25 \\
+22 & SwiFT\_NewE96 & resting & mean & linear & per\_subject & 0.6711 & 0.0343 & 0.6931 & 0.0382 & 0.6233 & 0.0319 & 50 \\
+23 & SwiFT\_UAH\_5M & scratch & zero & linear & per\_subject & 0.6700 & 0.0356 & 0.6929 & 0.0371 & 0.6239 & 0.0285 & 25 \\
+24 & SwiFT\_NewE96 & resting & spatial\_only & linear & per\_subject & 0.6696 & 0.0333 & 0.6909 & 0.0364 & 0.6258 & 0.0280 & 25 \\
+25 & SwiFT\_NewE96 & resting & cyclic\_replicate & linear & per\_subject & 0.6677 & 0.0334 & 0.6906 & 0.0362 & 0.6177 & 0.0316 & 25 \\
+26 & SwiFT\_UAH\_51M & scratch & zero & linear & per\_subject & 0.6660 & 0.0360 & 0.6805 & 0.0386 & 0.6206 & 0.0265 & 25 \\
+27 & SwiFT\_UAH\_202M & resting & zero & linear & pooled & 0.6654 & 0.0058 & 0.6739 & 0.0085 & 0.6227 & 0.0064 & 5 \\
+28 & SwiFT\_NewE96 & resting & zero & linear & per\_subject & 0.6649 & 0.0290 & 0.6852 & 0.0266 & 0.6204 & 0.0305 & 25 \\
+29 & SwiFT\_UAH\_202M & scratch & zero & linear & pooled & 0.6631 & 0.0127 & 0.6833 & 0.0189 & 0.6254 & 0.0116 & 5 \\
+30 & SwiFT\_UAH\_202M & scratch & zero & mlp & per\_subject & 0.6630 & 0.0378 & 0.6909 & 0.0370 & 0.5934 & 0.0427 & 25 \\
+31 & SwiFT\_UAH\_51M & resting & zero & linear & per\_subject & 0.6618 & 0.0379 & 0.6799 & 0.0318 & 0.6150 & 0.0382 & 25 \\
+32 & SwiFT\_NewE36 & resting & zero & linear & pooled & 0.6615 & 0.0272 & 0.6799 & 0.0201 & 0.6185 & 0.0229 & 5 \\
+33 & SwiFT\_NewE36 & resting & zero & linear & per\_subject & 0.6590 & 0.0396 & 0.6814 & 0.0390 & 0.6199 & 0.0350 & 25 \\
+34 & SwiFT\_UAH\_51M & resting & zero & linear & pooled & 0.6586 & 0.0156 & 0.6822 & 0.0104 & 0.6204 & 0.0088 & 5 \\
+35 & SwiFT\_NewE192 & scratch & zero & linear & per\_subject & 0.6583 & 0.0333 & 0.6904 & 0.0367 & 0.6138 & 0.0252 & 25 \\
+36 & SwiFT\_NewE96 & scratch & mean & linear & per\_subject & 0.6571 & 0.0385 & 0.6830 & 0.0412 & 0.6101 & 0.0311 & 50 \\
+37 & SwiFT\_NewE96 & scratch & zero & linear & per\_subject & 0.6546 & 0.0426 & 0.6874 & 0.0373 & 0.6109 & 0.0383 & 25 \\
+38 & SwiFT\_NewE96 & scratch & spatial\_only & linear & per\_subject & 0.6544 & 0.0409 & 0.6803 & 0.0456 & 0.6110 & 0.0336 & 25 \\
+39 & SwiFT\_NewE96 & scratch & cyclic\_replicate & linear & per\_subject & 0.6537 & 0.0374 & 0.6816 & 0.0373 & 0.6084 & 0.0304 & 25 \\
+40 & SwiFT\_UAH\_202M & scratch & zero & mlp & pooled & 0.6531 & 0.0137 & 0.6791 & 0.0060 & 0.6077 & 0.0222 & 5 \\
+41 & SwiFT\_NewE96 & scratch & replicate & linear & per\_subject & 0.6500 & 0.0300 & 0.6771 & 0.0274 & 0.6062 & 0.0251 & 25 \\
+42 & NeuroSTORM & scratch & mean & linear & per\_subject & 0.6497 & 0.0477 & 0.6797 & 0.0418 & 0.6092 & 0.0397 & 25 \\
+43 & SwiFT\_NewE192 & resting & zero & linear & per\_subject & 0.6464 & 0.0367 & 0.6736 & 0.0368 & 0.6115 & 0.0296 & 25 \\
+44 & SwiFT\_NewE96 & resting & replicate & linear & pooled & 0.6462 & 0.0198 & 0.6606 & 0.0191 & 0.6079 & 0.0157 & 5 \\
+45 & SwiFT\_UAH\_5M & scratch & zero & mlp & per\_subject & 0.6421 & 0.0396 & 0.6713 & 0.0419 & 0.5951 & 0.0335 & 25 \\
+46 & NeuroSTORM & scratch & mean & linear & pooled & 0.6410 & 0.0260 & 0.6592 & 0.0238 & 0.6047 & 0.0224 & 5 \\
+47 & SwiFT\_NewE96 & scratch & mean & linear & pooled & 0.6349 & 0.0161 & 0.6599 & 0.0089 & 0.5934 & 0.0185 & 10 \\
+48 & SwiFT\_NewE96 & scratch & cyclic\_replicate & linear & pooled & 0.6331 & 0.0083 & 0.6592 & 0.0052 & 0.5918 & 0.0083 & 5 \\
+49 & SwiFT\_UAH\_51M & scratch & zero & linear & pooled & 0.6325 & 0.0217 & 0.6511 & 0.0112 & 0.5987 & 0.0273 & 5 \\
+50 & SwiFT\_NewE96 & scratch & mean & mlp & per\_subject & 0.6315 & 0.0386 & 0.6563 & 0.0372 & 0.5937 & 0.0360 & 50 \\
+51 & SwiFT\_NewE96 & scratch & zero & linear & pooled & 0.6314 & 0.0162 & 0.6593 & 0.0178 & 0.5925 & 0.0158 & 5 \\
+52 & SwiFT\_NewE96 & scratch & spatial\_only & linear & pooled & 0.6303 & 0.0184 & 0.6551 & 0.0117 & 0.5874 & 0.0205 & 5 \\
+53 & SwiFT\_NewE192 & scratch & zero & mlp & per\_subject & 0.6302 & 0.0367 & 0.6633 & 0.0394 & 0.5831 & 0.0367 & 25 \\
+54 & SwiFT\_UAH\_5M & scratch & zero & linear & pooled & 0.6258 & 0.0070 & 0.6475 & 0.0110 & 0.5883 & 0.0081 & 5 \\
+55 & SwiFT\_NewE96 & scratch & replicate & mlp & per\_subject & 0.6251 & 0.0371 & 0.6446 & 0.0407 & 0.5865 & 0.0233 & 25 \\
+56 & SwiFT\_NewE96 & scratch & cyclic\_replicate & mlp & per\_subject & 0.6250 & 0.0408 & 0.6462 & 0.0414 & 0.5899 & 0.0400 & 25 \\
+57 & SwiFT\_NewE96 & scratch & replicate & linear & pooled & 0.6250 & 0.0186 & 0.6596 & 0.0183 & 0.5880 & 0.0165 & 5 \\
+58 & SwiFT\_NewE192 & scratch & zero & linear & pooled & 0.6246 & 0.0191 & 0.6554 & 0.0131 & 0.5899 & 0.0221 & 5 \\
+59 & SwiFT\_NewE96 & resting & replicate & linear & per\_subject & 0.6242 & 0.0423 & 0.6490 & 0.0327 & 0.5908 & 0.0358 & 25 \\
+60 & SwiFT\_NewE96 & scratch & cyclic\_replicate & mlp & pooled & 0.6233 & 0.0087 & 0.6403 & 0.0063 & 0.5865 & 0.0092 & 5 \\
+61 & SwiFT\_UAH\_51M & scratch & zero & mlp & per\_subject & 0.6229 & 0.0339 & 0.6484 & 0.0360 & 0.5854 & 0.0255 & 25 \\
+62 & NeuroSTORM & scratch & mean & mlp & per\_subject & 0.6218 & 0.0550 & 0.6450 & 0.0475 & 0.5836 & 0.0453 & 25 \\
+63 & SwiFT\_NewE36 & scratch & zero & linear & per\_subject & 0.6215 & 0.0433 & 0.6537 & 0.0397 & 0.5895 & 0.0318 & 25 \\
+64 & SwiFT\_NewE96 & scratch & zero & mlp & per\_subject & 0.6215 & 0.0449 & 0.6469 & 0.0392 & 0.5827 & 0.0416 & 25 \\
+65 & NeuroSTORM & scratch & mean & mlp & pooled & 0.6193 & 0.0195 & 0.6396 & 0.0226 & 0.5840 & 0.0147 & 5 \\
+66 & SwiFT\_NewE96 & scratch & mean & mlp & pooled & 0.6187 & 0.0173 & 0.6313 & 0.0149 & 0.5895 & 0.0134 & 10 \\
+67 & SwiFT\_NewE96 & resting & cyclic\_replicate & mlp & pooled & 0.6180 & 0.0237 & 0.6376 & 0.0268 & 0.5858 & 0.0239 & 5 \\
+68 & SwiFT\_NewE96 & resting & mean & mlp & pooled & 0.6163 & 0.0119 & 0.6362 & 0.0065 & 0.5903 & 0.0120 & 10 \\
+69 & SwiFT\_NewE192 & resting & zero & mlp & pooled & 0.6156 & 0.0037 & 0.6375 & 0.0063 & 0.5883 & 0.0111 & 5 \\
+70 & SwiFT\_NewE36 & resting & zero & mlp & pooled & 0.6151 & 0.0241 & 0.6439 & 0.0222 & 0.5863 & 0.0122 & 5 \\
+71 & SwiFT\_NewE96 & scratch & spatial\_only & mlp & per\_subject & 0.6135 & 0.0328 & 0.6393 & 0.0359 & 0.5840 & 0.0353 & 25 \\
+72 & SwiFT\_UAH\_5M & resting & zero & linear & pooled & 0.6128 & 0.0248 & 0.6264 & 0.0347 & 0.5876 & 0.0141 & 5 \\
+73 & SwiFT\_NewE96 & scratch & spatial\_only & mlp & pooled & 0.6113 & 0.0130 & 0.6390 & 0.0150 & 0.5807 & 0.0074 & 5 \\
+74 & SwiFT\_UAH\_51M & scratch & zero & mlp & pooled & 0.6108 & 0.0131 & 0.6337 & 0.0171 & 0.5792 & 0.0086 & 5 \\
+75 & SwiFT\_NewE36 & resting & zero & mlp & per\_subject & 0.6107 & 0.0372 & 0.6497 & 0.0405 & 0.5794 & 0.0265 & 25 \\
+76 & SwiFT\_NewE96 & scratch & replicate & mlp & pooled & 0.6095 & 0.0241 & 0.6336 & 0.0243 & 0.5772 & 0.0146 & 5 \\
+77 & SwiFT\_NewE96 & scratch & zero & mlp & pooled & 0.6070 & 0.0065 & 0.6290 & 0.0067 & 0.5732 & 0.0107 & 5 \\
+78 & SwiFT\_NewE192 & scratch & zero & mlp & pooled & 0.6051 & 0.0147 & 0.6385 & 0.0183 & 0.5713 & 0.0107 & 5 \\
+79 & SwiFT\_NewE96 & resting & spatial\_only & mlp & per\_subject & 0.6037 & 0.0393 & 0.6333 & 0.0345 & 0.5691 & 0.0455 & 25 \\
+80 & SwiFT\_UAH\_5M & scratch & zero & mlp & pooled & 0.6024 & 0.0130 & 0.6208 & 0.0137 & 0.5781 & 0.0124 & 5 \\
+81 & SwiFT\_NewE192 & resting & zero & mlp & per\_subject & 0.6015 & 0.0459 & 0.6311 & 0.0400 & 0.5721 & 0.0439 & 25 \\
+82 & SwiFT\_NewE96 & resting & zero & mlp & per\_subject & 0.5999 & 0.0371 & 0.6280 & 0.0315 & 0.5618 & 0.0340 & 25 \\
+83 & SwiFT\_NewE96 & resting & spatial\_only & mlp & pooled & 0.5994 & 0.0156 & 0.6181 & 0.0148 & 0.5619 & 0.0214 & 5 \\
+84 & SwiFT\_NewE36 & scratch & zero & linear & pooled & 0.5990 & 0.0074 & 0.6268 & 0.0059 & 0.5712 & 0.0128 & 5 \\
+85 & SwiFT\_UAH\_5M & resting & zero & linear & per\_subject & 0.5988 & 0.0496 & 0.6263 & 0.0424 & 0.5737 & 0.0446 & 25 \\
+86 & SwiFT\_NewE96 & resting & mean & mlp & per\_subject & 0.5986 & 0.0345 & 0.6276 & 0.0403 & 0.5614 & 0.0289 & 50 \\
+87 & SwiFT\_NewE96 & resting & zero & mlp & pooled & 0.5949 & 0.0186 & 0.6165 & 0.0125 & 0.5592 & 0.0253 & 5 \\
+88 & SwiFT\_NewE96 & resting & cyclic\_replicate & mlp & per\_subject & 0.5899 & 0.0484 & 0.6228 & 0.0437 & 0.5649 & 0.0313 & 25 \\
+89 & SwiFT\_NewE36 & scratch & zero & mlp & per\_subject & 0.5890 & 0.0522 & 0.6210 & 0.0472 & 0.5635 & 0.0404 & 25 \\
+90 & SwiFT\_NewE36 & scratch & zero & mlp & pooled & 0.5867 & 0.0074 & 0.6064 & 0.0088 & 0.5604 & 0.0121 & 5 \\
+91 & SwiFT\_NewE96 & resting & replicate & mlp & pooled & 0.5824 & 0.0235 & 0.5991 & 0.0222 & 0.5524 & 0.0229 & 5 \\
+92 & Brain-JEPA & scratch & zero & mlp & pooled & 0.5771 & 0.0395 & 0.6009 & 0.0379 & 0.5589 & 0.0312 & 5 \\
+93 & Brain-JEPA & scratch & zero & mlp & per\_subject & 0.5734 & 0.0615 & 0.6059 & 0.0517 & 0.5430 & 0.0482 & 25 \\
+94 & SwiFT\_NewE96 & resting & replicate & mlp & per\_subject & 0.5727 & 0.0351 & 0.6007 & 0.0271 & 0.5454 & 0.0362 & 25 \\
+95 & SwiFT\_UAH\_51M & resting & zero & mlp & per\_subject & 0.5598 & 0.0477 & 0.6027 & 0.0467 & 0.5154 & 0.0316 & 25 \\
+96 & SwiFT\_UAH\_5M & resting & zero & mlp & per\_subject & 0.5536 & 0.0470 & 0.5956 & 0.0444 & 0.5348 & 0.0324 & 25 \\
+97 & SwiFT\_UAH\_5M & resting & zero & mlp & pooled & 0.5367 & 0.0112 & 0.5765 & 0.0097 & 0.5157 & 0.0098 & 5 \\
+98 & SwiFT\_UAH\_202M & resting & zero & mlp & per\_subject & 0.5281 & 0.0427 & 0.5713 & 0.0368 & 0.5110 & 0.0248 & 25 \\
+99 & SwiFT\_UAH\_51M & resting & zero & mlp & pooled & 0.5221 & 0.0186 & 0.5589 & 0.0244 & 0.5009 & 0.0021 & 5 \\
+100 & chance & n/a & n/a & stratified & stim\_level & 0.5053 & 0.0329 & 0.5446 & 0.0168 & 0.5053 & 0.0329 & 15 \\
+101 & chance & n/a & n/a & most\_frequent & stim\_level & 0.5000 & 0.0000 & 0.5411 & 0.0020 & 0.5000 & 0.0000 & 5 \\
+102 & SwiFT\_UAH\_202M & resting & zero & mlp & pooled & 0.4980 & 0.0504 & 0.5350 & 0.0411 & 0.5024 & 0.0042 & 5 \\
+\midrule
+\multicolumn{13}{l}{\textit{Video models (stimulus features)}} \\
+1 & CLIP\_pretrained & n/a & n/a & linear & stim\_level & 0.9708 & 0.0112 & 0.9755 & 0.0098 & 0.9113 & 0.0145 & 5 \\
+2 & CLIP\_pretrained & n/a & n/a & mlp & stim\_level & 0.9520 & 0.0078 & 0.9568 & 0.0060 & 0.8835 & 0.0170 & 5 \\
+3 & DINOv2\_pretrained & n/a & n/a & linear & stim\_level & 0.9135 & 0.0071 & 0.9229 & 0.0088 & 0.8272 & 0.0084 & 5 \\
+4 & Qwen-VL\_caption & n/a & n/a & linear & stim\_level & 0.9024 & 0.0165 & 0.9118 & 0.0193 & 0.8189 & 0.0058 & 5 \\
+5 & DINOv2\_pretrained & n/a & n/a & mlp & stim\_level & 0.8814 & 0.0078 & 0.8847 & 0.0188 & 0.8031 & 0.0200 & 5 \\
+6 & VideoMAE\_pretrained & n/a & n/a & linear & stim\_level & 0.8782 & 0.0214 & 0.8935 & 0.0197 & 0.8006 & 0.0167 & 5 \\
+7 & Qwen-VL\_caption & n/a & n/a & mlp & stim\_level & 0.8760 & 0.0168 & 0.8875 & 0.0211 & 0.7970 & 0.0231 & 5 \\
+8 & V-JEPA2\_pretrained & n/a & n/a & linear & stim\_level & 0.8545 & 0.0215 & 0.8650 & 0.0279 & 0.7813 & 0.0200 & 5 \\
+9 & VideoMAE\_pretrained & n/a & n/a & mlp & stim\_level & 0.8518 & 0.0244 & 0.8583 & 0.0266 & 0.7682 & 0.0311 & 5 \\
+10 & V-JEPA2\_pretrained & n/a & n/a & mlp & stim\_level & 0.8453 & 0.0266 & 0.8562 & 0.0320 & 0.7739 & 0.0269 & 5 \\
+11 & V-JEPA2\_scratch & n/a & n/a & linear & stim\_level & 0.6268 & 0.0359 & 0.6633 & 0.0324 & 0.5807 & 0.0404 & 5 \\
+12 & V-JEPA2\_scratch & n/a & n/a & mlp & stim\_level & 0.6156 & 0.0332 & 0.6453 & 0.0367 & 0.5721 & 0.0232 & 5 \\
+13 & VideoMAE\_scratch & n/a & n/a & mlp & stim\_level & 0.6108 & 0.0483 & 0.6468 & 0.0387 & 0.5588 & 0.0584 & 5 \\
+14 & CLIP\_scratch & n/a & n/a & linear & stim\_level & 0.5953 & 0.0320 & 0.6246 & 0.0285 & 0.5717 & 0.0160 & 5 \\
+15 & CLIP\_scratch & n/a & n/a & mlp & stim\_level & 0.5907 & 0.0282 & 0.6300 & 0.0133 & 0.5312 & 0.0206 & 5 \\
+16 & VideoMAE\_scratch & n/a & n/a & linear & stim\_level & 0.5884 & 0.0207 & 0.6266 & 0.0164 & 0.5516 & 0.0199 & 5 \\
+17 & DINOv2\_scratch & n/a & n/a & linear & stim\_level & 0.5809 & 0.0067 & 0.6439 & 0.0203 & 0.5525 & 0.0222 & 5 \\
+18 & DINOv2\_scratch & n/a & n/a & mlp & stim\_level & 0.5801 & 0.0443 & 0.6290 & 0.0348 & 0.5286 & 0.0341 & 5 \\
+\end{longtable}
+\normalsize
+\subsection{A\_binary}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{r l l l l l S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] r}
+\caption{Full benchmark for A\_binary (Arousal binary classification (extreme Q4 vs Q1)). Main metric: AUROC. Cells sorted by main metric within category.} \label{tab:supp-A-binary}\\
+\toprule
+\# & Feature & Init & Padding & Head & Mode & \multicolumn{2}{c}{AUROC} & \multicolumn{2}{c}{AUPRC} & \multicolumn{2}{c}{balAcc} & n \\
+  &         &      &         &      &       & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} &   \\
+\midrule
+\endfirsthead
+\multicolumn{13}{l}{\small\itshape continued from previous page} \\
+\toprule
+\# & Feature & Init & Padding & Head & Mode & \multicolumn{2}{c}{AUROC} & \multicolumn{2}{c}{AUPRC} & \multicolumn{2}{c}{balAcc} & n \\
+  &         &      &         &      &       & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} &   \\
+\midrule
+\endhead
+\midrule \multicolumn{13}{r}{\small\itshape continued on next page} \\
+\endfoot
+\bottomrule
+\endlastfoot
+\multicolumn{13}{l}{\textit{Brain models (fMRI input)}} \\
+1 & ROI\_Schaefer400Tian50 & n/a & time\_mean & linear & pooled & 0.6784 & 0.0532 & 0.7117 & 0.0447 & 0.6378 & 0.0377 & 5 \\
+2 & ROI\_Schaefer400Tian50 & n/a & time\_mean & linear & per\_subject & 0.6694 & 0.0437 & 0.7100 & 0.0389 & 0.6272 & 0.0335 & 25 \\
+3 & Brain-JEPA & resting & zero & linear & pooled & 0.6624 & 0.0382 & 0.6969 & 0.0212 & 0.6177 & 0.0289 & 5 \\
+4 & ROI\_Schaefer400Tian50 & n/a & time\_mean & mlp & pooled & 0.6595 & 0.0388 & 0.6948 & 0.0308 & 0.6100 & 0.0331 & 5 \\
+5 & Brain-JEPA & resting & zero & mlp & pooled & 0.6489 & 0.0411 & 0.6908 & 0.0335 & 0.6054 & 0.0326 & 5 \\
+6 & Brain-JEPA & resting & zero & linear & per\_subject & 0.6480 & 0.0444 & 0.6933 & 0.0333 & 0.6155 & 0.0458 & 25 \\
+7 & ROI\_Schaefer400Tian50 & n/a & time\_mean & mlp & per\_subject & 0.6388 & 0.0433 & 0.6859 & 0.0348 & 0.6010 & 0.0389 & 25 \\
+8 & NeuroSTORM & resting & mean & linear & pooled & 0.6372 & 0.0521 & 0.6868 & 0.0439 & 0.5970 & 0.0345 & 5 \\
+9 & NeuroSTORM & resting & mean & linear & per\_subject & 0.6306 & 0.0500 & 0.6833 & 0.0466 & 0.5907 & 0.0321 & 25 \\
+10 & Brain-JEPA & scratch & zero & linear & pooled & 0.6282 & 0.0264 & 0.6609 & 0.0144 & 0.6005 & 0.0220 & 5 \\
+11 & Brain-JEPA & resting & zero & mlp & per\_subject & 0.6209 & 0.0319 & 0.6677 & 0.0346 & 0.5725 & 0.0387 & 25 \\
+12 & SwiFT\_UAH\_202M & resting & zero & linear & pooled & 0.6206 & 0.0332 & 0.6555 & 0.0357 & 0.5881 & 0.0301 & 5 \\
+13 & NeuroSTORM & resting & mean & mlp & pooled & 0.6198 & 0.0317 & 0.6674 & 0.0242 & 0.5853 & 0.0124 & 5 \\
+14 & SwiFT\_UAH\_51M & scratch & zero & linear & per\_subject & 0.6159 & 0.0358 & 0.6621 & 0.0304 & 0.5900 & 0.0353 & 25 \\
+15 & SwiFT\_NewE36 & resting & zero & linear & pooled & 0.6130 & 0.0370 & 0.6580 & 0.0249 & 0.5857 & 0.0315 & 5 \\
+16 & SwiFT\_NewE96 & resting & spatial\_only & linear & pooled & 0.6121 & 0.0373 & 0.6541 & 0.0271 & 0.5900 & 0.0303 & 5 \\
+17 & SwiFT\_NewE192 & resting & zero & linear & pooled & 0.6093 & 0.0333 & 0.6505 & 0.0212 & 0.5866 & 0.0282 & 5 \\
+18 & SwiFT\_NewE96 & resting & mean & linear & pooled & 0.6067 & 0.0330 & 0.6484 & 0.0268 & 0.5800 & 0.0299 & 10 \\
+19 & SwiFT\_UAH\_202M & scratch & zero & linear & per\_subject & 0.6064 & 0.0376 & 0.6563 & 0.0350 & 0.5823 & 0.0362 & 25 \\
+20 & SwiFT\_NewE96 & resting & zero & linear & pooled & 0.6055 & 0.0316 & 0.6488 & 0.0150 & 0.5772 & 0.0290 & 5 \\
+21 & SwiFT\_NewE36 & resting & zero & linear & per\_subject & 0.6055 & 0.0504 & 0.6536 & 0.0398 & 0.5826 & 0.0374 & 25 \\
+22 & NeuroSTORM & resting & mean & mlp & per\_subject & 0.6049 & 0.0484 & 0.6566 & 0.0449 & 0.5720 & 0.0374 & 25 \\
+23 & SwiFT\_UAH\_202M & scratch & zero & linear & pooled & 0.6043 & 0.0279 & 0.6484 & 0.0198 & 0.5823 & 0.0277 & 5 \\
+24 & SwiFT\_NewE192 & scratch & zero & linear & per\_subject & 0.6039 & 0.0373 & 0.6548 & 0.0304 & 0.5712 & 0.0308 & 25 \\
+25 & SwiFT\_UAH\_5M & scratch & zero & linear & per\_subject & 0.6015 & 0.0343 & 0.6476 & 0.0251 & 0.5727 & 0.0298 & 25 \\
+26 & SwiFT\_UAH\_202M & resting & zero & linear & per\_subject & 0.6009 & 0.0478 & 0.6543 & 0.0397 & 0.5783 & 0.0342 & 25 \\
+27 & SwiFT\_NewE36 & resting & zero & mlp & per\_subject & 0.6001 & 0.0379 & 0.6517 & 0.0343 & 0.5583 & 0.0450 & 25 \\
+28 & SwiFT\_NewE36 & resting & zero & mlp & pooled & 0.5995 & 0.0310 & 0.6395 & 0.0222 & 0.5792 & 0.0296 & 5 \\
+29 & SwiFT\_NewE192 & resting & zero & linear & per\_subject & 0.5993 & 0.0442 & 0.6461 & 0.0309 & 0.5740 & 0.0395 & 25 \\
+30 & SwiFT\_NewE192 & scratch & zero & linear & pooled & 0.5989 & 0.0224 & 0.6472 & 0.0131 & 0.5746 & 0.0212 & 5 \\
+31 & SwiFT\_NewE192 & resting & zero & mlp & pooled & 0.5981 & 0.0287 & 0.6407 & 0.0225 & 0.5338 & 0.0296 & 5 \\
+32 & SwiFT\_UAH\_5M & scratch & zero & linear & pooled & 0.5980 & 0.0284 & 0.6428 & 0.0280 & 0.5762 & 0.0261 & 5 \\
+33 & SwiFT\_NewE192 & scratch & zero & mlp & per\_subject & 0.5973 & 0.0471 & 0.6477 & 0.0424 & 0.5612 & 0.0350 & 25 \\
+34 & SwiFT\_NewE96 & resting & cyclic\_replicate & linear & pooled & 0.5972 & 0.0317 & 0.6363 & 0.0274 & 0.5760 & 0.0312 & 5 \\
+35 & SwiFT\_UAH\_51M & resting & zero & linear & pooled & 0.5945 & 0.0320 & 0.6440 & 0.0369 & 0.5641 & 0.0286 & 5 \\
+36 & SwiFT\_UAH\_51M & resting & zero & linear & per\_subject & 0.5937 & 0.0363 & 0.6481 & 0.0391 & 0.5657 & 0.0304 & 25 \\
+37 & SwiFT\_UAH\_51M & scratch & zero & linear & pooled & 0.5936 & 0.0209 & 0.6409 & 0.0188 & 0.5720 & 0.0183 & 5 \\
+38 & Brain-JEPA & scratch & zero & linear & per\_subject & 0.5913 & 0.0504 & 0.6446 & 0.0437 & 0.5738 & 0.0418 & 25 \\
+39 & SwiFT\_NewE96 & resting & spatial\_only & linear & per\_subject & 0.5889 & 0.0455 & 0.6415 & 0.0461 & 0.5642 & 0.0392 & 25 \\
+40 & SwiFT\_NewE96 & resting & zero & linear & per\_subject & 0.5873 & 0.0518 & 0.6403 & 0.0441 & 0.5655 & 0.0468 & 25 \\
+41 & SwiFT\_NewE36 & scratch & zero & linear & pooled & 0.5848 & 0.0237 & 0.6323 & 0.0247 & 0.5601 & 0.0192 & 5 \\
+42 & SwiFT\_UAH\_51M & scratch & zero & mlp & per\_subject & 0.5847 & 0.0384 & 0.6337 & 0.0342 & 0.5514 & 0.0377 & 25 \\
+43 & SwiFT\_NewE96 & resting & zero & mlp & pooled & 0.5840 & 0.0253 & 0.6345 & 0.0200 & 0.5601 & 0.0243 & 5 \\
+44 & SwiFT\_UAH\_51M & scratch & zero & mlp & pooled & 0.5833 & 0.0151 & 0.6295 & 0.0258 & 0.5621 & 0.0130 & 5 \\
+45 & NeuroSTORM & scratch & mean & linear & per\_subject & 0.5830 & 0.0418 & 0.6375 & 0.0341 & 0.5575 & 0.0316 & 25 \\
+46 & SwiFT\_NewE96 & scratch & zero & linear & per\_subject & 0.5825 & 0.0327 & 0.6377 & 0.0293 & 0.5553 & 0.0255 & 25 \\
+47 & SwiFT\_UAH\_202M & scratch & zero & mlp & pooled & 0.5821 & 0.0171 & 0.6286 & 0.0146 & 0.5531 & 0.0206 & 5 \\
+48 & SwiFT\_UAH\_202M & scratch & zero & mlp & per\_subject & 0.5820 & 0.0434 & 0.6284 & 0.0356 & 0.5438 & 0.0408 & 25 \\
+49 & SwiFT\_NewE96 & resting & mean & linear & per\_subject & 0.5818 & 0.0450 & 0.6343 & 0.0451 & 0.5596 & 0.0359 & 50 \\
+50 & SwiFT\_NewE96 & scratch & spatial\_only & linear & pooled & 0.5809 & 0.0296 & 0.6301 & 0.0228 & 0.5554 & 0.0266 & 5 \\
+51 & NeuroSTORM & scratch & mean & linear & pooled & 0.5806 & 0.0221 & 0.6244 & 0.0177 & 0.5602 & 0.0189 & 5 \\
+52 & SwiFT\_UAH\_5M & resting & zero & mlp & pooled & 0.5804 & 0.0191 & 0.6238 & 0.0233 & 0.5673 & 0.0208 & 5 \\
+53 & SwiFT\_NewE96 & scratch & spatial\_only & linear & per\_subject & 0.5798 & 0.0369 & 0.6333 & 0.0332 & 0.5552 & 0.0303 & 25 \\
+54 & SwiFT\_NewE192 & scratch & zero & mlp & pooled & 0.5798 & 0.0246 & 0.6170 & 0.0214 & 0.5613 & 0.0204 & 5 \\
+55 & SwiFT\_NewE96 & resting & spatial\_only & mlp & pooled & 0.5797 & 0.0268 & 0.6312 & 0.0175 & 0.5592 & 0.0155 & 5 \\
+56 & SwiFT\_NewE96 & scratch & mean & linear & per\_subject & 0.5795 & 0.0352 & 0.6334 & 0.0319 & 0.5559 & 0.0293 & 50 \\
+57 & SwiFT\_NewE96 & scratch & mean & linear & pooled & 0.5791 & 0.0267 & 0.6281 & 0.0189 & 0.5550 & 0.0266 & 10 \\
+58 & SwiFT\_NewE96 & resting & mean & mlp & pooled & 0.5779 & 0.0155 & 0.6241 & 0.0061 & 0.5525 & 0.0169 & 10 \\
+59 & SwiFT\_UAH\_5M & scratch & zero & mlp & pooled & 0.5778 & 0.0331 & 0.6340 & 0.0325 & 0.5386 & 0.0194 & 5 \\
+60 & SwiFT\_NewE96 & scratch & cyclic\_replicate & linear & per\_subject & 0.5777 & 0.0374 & 0.6310 & 0.0331 & 0.5535 & 0.0294 & 25 \\
+61 & SwiFT\_NewE96 & scratch & cyclic\_replicate & linear & pooled & 0.5771 & 0.0252 & 0.6239 & 0.0205 & 0.5554 & 0.0259 & 5 \\
+62 & SwiFT\_NewE36 & scratch & zero & mlp & pooled & 0.5760 & 0.0249 & 0.6256 & 0.0215 & 0.5471 & 0.0307 & 5 \\
+63 & SwiFT\_UAH\_5M & scratch & zero & mlp & per\_subject & 0.5758 & 0.0356 & 0.6321 & 0.0280 & 0.5568 & 0.0299 & 25 \\
+64 & SwiFT\_NewE36 & scratch & zero & linear & per\_subject & 0.5753 & 0.0381 & 0.6339 & 0.0306 & 0.5597 & 0.0353 & 25 \\
+65 & SwiFT\_UAH\_51M & resting & zero & mlp & pooled & 0.5745 & 0.0207 & 0.6212 & 0.0147 & 0.5126 & 0.0283 & 5 \\
+66 & SwiFT\_NewE36 & scratch & zero & mlp & per\_subject & 0.5736 & 0.0394 & 0.6299 & 0.0394 & 0.5515 & 0.0332 & 25 \\
+67 & SwiFT\_NewE96 & resting & replicate & linear & pooled & 0.5734 & 0.0248 & 0.6240 & 0.0206 & 0.5504 & 0.0221 & 5 \\
+68 & SwiFT\_NewE192 & resting & zero & mlp & per\_subject & 0.5733 & 0.0403 & 0.6292 & 0.0330 & 0.5349 & 0.0320 & 25 \\
+69 & SwiFT\_UAH\_51M & resting & zero & mlp & per\_subject & 0.5727 & 0.0352 & 0.6365 & 0.0158 & 0.5291 & 0.0296 & 25 \\
+70 & SwiFT\_UAH\_5M & resting & zero & linear & pooled & 0.5708 & 0.0322 & 0.6203 & 0.0296 & 0.5565 & 0.0290 & 5 \\
+71 & SwiFT\_NewE96 & scratch & zero & mlp & pooled & 0.5703 & 0.0205 & 0.6145 & 0.0193 & 0.5493 & 0.0113 & 5 \\
+72 & NeuroSTORM & scratch & mean & mlp & pooled & 0.5670 & 0.0236 & 0.6059 & 0.0149 & 0.5503 & 0.0184 & 5 \\
+73 & SwiFT\_NewE96 & scratch & spatial\_only & mlp & pooled & 0.5655 & 0.0210 & 0.6112 & 0.0143 & 0.5398 & 0.0192 & 5 \\
+74 & SwiFT\_UAH\_5M & resting & zero & linear & per\_subject & 0.5654 & 0.0432 & 0.6207 & 0.0316 & 0.5548 & 0.0330 & 25 \\
+75 & SwiFT\_NewE96 & scratch & zero & mlp & per\_subject & 0.5650 & 0.0542 & 0.6133 & 0.0500 & 0.5406 & 0.0475 & 25 \\
+76 & SwiFT\_NewE96 & resting & cyclic\_replicate & linear & per\_subject & 0.5649 & 0.0478 & 0.6195 & 0.0444 & 0.5481 & 0.0355 & 25 \\
+77 & SwiFT\_NewE96 & resting & zero & mlp & per\_subject & 0.5643 & 0.0375 & 0.6261 & 0.0322 & 0.5340 & 0.0250 & 25 \\
+78 & SwiFT\_NewE96 & scratch & zero & linear & pooled & 0.5642 & 0.0191 & 0.6238 & 0.0126 & 0.5397 & 0.0159 & 5 \\
+79 & SwiFT\_UAH\_5M & resting & zero & mlp & per\_subject & 0.5631 & 0.0318 & 0.6229 & 0.0331 & 0.5412 & 0.0404 & 25 \\
+80 & Brain-JEPA & scratch & zero & mlp & pooled & 0.5616 & 0.0164 & 0.6128 & 0.0119 & 0.5417 & 0.0080 & 5 \\
+81 & SwiFT\_NewE96 & scratch & mean & mlp & per\_subject & 0.5598 & 0.0403 & 0.6200 & 0.0372 & 0.5388 & 0.0322 & 50 \\
+82 & SwiFT\_NewE96 & scratch & mean & mlp & pooled & 0.5596 & 0.0246 & 0.6095 & 0.0187 & 0.5347 & 0.0221 & 10 \\
+83 & SwiFT\_NewE96 & resting & cyclic\_replicate & mlp & pooled & 0.5588 & 0.0177 & 0.6046 & 0.0169 & 0.5286 & 0.0212 & 5 \\
+84 & SwiFT\_NewE96 & resting & replicate & linear & per\_subject & 0.5567 & 0.0408 & 0.6172 & 0.0357 & 0.5417 & 0.0359 & 25 \\
+85 & SwiFT\_UAH\_202M & resting & zero & mlp & per\_subject & 0.5565 & 0.0324 & 0.6237 & 0.0238 & 0.5158 & 0.0291 & 25 \\
+86 & SwiFT\_NewE96 & scratch & replicate & linear & per\_subject & 0.5550 & 0.0486 & 0.6177 & 0.0387 & 0.5370 & 0.0343 & 25 \\
+87 & SwiFT\_NewE96 & scratch & cyclic\_replicate & mlp & per\_subject & 0.5540 & 0.0409 & 0.6161 & 0.0409 & 0.5376 & 0.0334 & 25 \\
+88 & SwiFT\_UAH\_202M & resting & zero & mlp & pooled & 0.5538 & 0.0233 & 0.6193 & 0.0198 & 0.5346 & 0.0317 & 5 \\
+89 & SwiFT\_NewE96 & scratch & spatial\_only & mlp & per\_subject & 0.5532 & 0.0472 & 0.6133 & 0.0417 & 0.5345 & 0.0400 & 25 \\
+90 & SwiFT\_NewE96 & scratch & cyclic\_replicate & mlp & pooled & 0.5510 & 0.0158 & 0.6086 & 0.0208 & 0.5338 & 0.0225 & 5 \\
+91 & SwiFT\_NewE96 & resting & spatial\_only & mlp & per\_subject & 0.5444 & 0.0493 & 0.6139 & 0.0419 & 0.5259 & 0.0299 & 25 \\
+92 & NeuroSTORM & scratch & mean & mlp & per\_subject & 0.5441 & 0.0371 & 0.6029 & 0.0372 & 0.5405 & 0.0266 & 25 \\
+93 & Brain-JEPA & scratch & zero & mlp & per\_subject & 0.5414 & 0.0378 & 0.6076 & 0.0281 & 0.5265 & 0.0252 & 25 \\
+94 & SwiFT\_NewE96 & resting & mean & mlp & per\_subject & 0.5405 & 0.0498 & 0.6170 & 0.0395 & 0.5131 & 0.0305 & 50 \\
+95 & SwiFT\_NewE96 & scratch & replicate & mlp & per\_subject & 0.5358 & 0.0504 & 0.6064 & 0.0361 & 0.5218 & 0.0324 & 25 \\
+96 & SwiFT\_NewE96 & resting & cyclic\_replicate & mlp & per\_subject & 0.5344 & 0.0502 & 0.6062 & 0.0395 & 0.5215 & 0.0297 & 25 \\
+97 & SwiFT\_NewE96 & resting & replicate & mlp & pooled & 0.5326 & 0.0173 & 0.5851 & 0.0165 & 0.5202 & 0.0170 & 5 \\
+98 & SwiFT\_NewE96 & scratch & replicate & linear & pooled & 0.5315 & 0.0233 & 0.5897 & 0.0134 & 0.5217 & 0.0201 & 5 \\
+99 & SwiFT\_NewE96 & resting & replicate & mlp & per\_subject & 0.5300 & 0.0435 & 0.5970 & 0.0387 & 0.5069 & 0.0312 & 25 \\
+100 & SwiFT\_NewE96 & scratch & replicate & mlp & pooled & 0.5166 & 0.0230 & 0.5757 & 0.0147 & 0.5077 & 0.0184 & 5 \\
+101 & chance & n/a & n/a & most\_frequent & stim\_level & 0.5000 & 0.0000 & 0.5619 & 0.0050 & 0.5000 & 0.0000 & 5 \\
+102 & chance & n/a & n/a & stratified & stim\_level & 0.4795 & 0.0301 & 0.5528 & 0.0157 & 0.4795 & 0.0301 & 15 \\
+\midrule
+\multicolumn{13}{l}{\textit{Video models (stimulus features)}} \\
+1 & CLIP\_pretrained & n/a & n/a & linear & stim\_level & 0.8003 & 0.0521 & 0.8232 & 0.0353 & 0.7349 & 0.0559 & 5 \\
+2 & CLIP\_pretrained & n/a & n/a & mlp & stim\_level & 0.7813 & 0.0401 & 0.7921 & 0.0455 & 0.6748 & 0.1033 & 5 \\
+3 & VideoMAE\_pretrained & n/a & n/a & linear & stim\_level & 0.7465 & 0.0196 & 0.7869 & 0.0163 & 0.6618 & 0.0098 & 5 \\
+4 & V-JEPA2\_pretrained & n/a & n/a & linear & stim\_level & 0.7339 & 0.0380 & 0.7581 & 0.0215 & 0.6738 & 0.0521 & 5 \\
+5 & DINOv2\_pretrained & n/a & n/a & linear & stim\_level & 0.7278 & 0.0603 & 0.7601 & 0.0465 & 0.6611 & 0.0648 & 5 \\
+6 & Qwen-VL\_caption & n/a & n/a & linear & stim\_level & 0.7106 & 0.0261 & 0.7478 & 0.0221 & 0.6556 & 0.0275 & 5 \\
+7 & DINOv2\_pretrained & n/a & n/a & mlp & stim\_level & 0.7071 & 0.0493 & 0.7487 & 0.0405 & 0.6292 & 0.0522 & 5 \\
+8 & Qwen-VL\_caption & n/a & n/a & mlp & stim\_level & 0.7001 & 0.0246 & 0.7371 & 0.0294 & 0.6395 & 0.0357 & 5 \\
+9 & V-JEPA2\_pretrained & n/a & n/a & mlp & stim\_level & 0.6940 & 0.0572 & 0.7282 & 0.0422 & 0.6332 & 0.0327 & 5 \\
+10 & VideoMAE\_pretrained & n/a & n/a & mlp & stim\_level & 0.6893 & 0.0430 & 0.7194 & 0.0492 & 0.6364 & 0.0402 & 5 \\
+11 & VideoMAE\_scratch & n/a & n/a & linear & stim\_level & 0.5946 & 0.0269 & 0.6485 & 0.0226 & 0.5673 & 0.0192 & 5 \\
+12 & CLIP\_scratch & n/a & n/a & mlp & stim\_level & 0.5804 & 0.0341 & 0.6344 & 0.0369 & 0.5440 & 0.0326 & 5 \\
+13 & DINOv2\_scratch & n/a & n/a & linear & stim\_level & 0.5740 & 0.0357 & 0.6255 & 0.0513 & 0.5582 & 0.0199 & 5 \\
+14 & DINOv2\_scratch & n/a & n/a & mlp & stim\_level & 0.5736 & 0.0439 & 0.6242 & 0.0457 & 0.5531 & 0.0451 & 5 \\
+15 & VideoMAE\_scratch & n/a & n/a & mlp & stim\_level & 0.5733 & 0.0466 & 0.6316 & 0.0437 & 0.5408 & 0.0517 & 5 \\
+16 & V-JEPA2\_scratch & n/a & n/a & linear & stim\_level & 0.5726 & 0.0233 & 0.6262 & 0.0333 & 0.5584 & 0.0171 & 5 \\
+17 & V-JEPA2\_scratch & n/a & n/a & mlp & stim\_level & 0.5720 & 0.0418 & 0.6167 & 0.0468 & 0.5296 & 0.0205 & 5 \\
+18 & CLIP\_scratch & n/a & n/a & linear & stim\_level & 0.5479 & 0.0434 & 0.6091 & 0.0288 & 0.5491 & 0.0378 & 5 \\
+\end{longtable}
+\normalsize
+\subsection{V\_reg}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{r l l l l l S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] r}
+\caption{Full benchmark for V\_reg (Valence continuous regression). Main metric: Pearson r. Cells sorted by main metric within category.} \label{tab:supp-V-reg}\\
+\toprule
+\# & Feature & Init & Padding & Head & Mode & \multicolumn{2}{c}{r} & \multicolumn{2}{c}{MAE} & \multicolumn{2}{c}{MSE} & \multicolumn{2}{c}{RMSE} & n \\
+  &         &      &         &      &       & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} &   \\
+\midrule
+\endfirsthead
+\multicolumn{15}{l}{\small\itshape continued from previous page} \\
+\toprule
+\# & Feature & Init & Padding & Head & Mode & \multicolumn{2}{c}{r} & \multicolumn{2}{c}{MAE} & \multicolumn{2}{c}{MSE} & \multicolumn{2}{c}{RMSE} & n \\
+  &         &      &         &      &       & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} &   \\
+\midrule
+\endhead
+\midrule \multicolumn{15}{r}{\small\itshape continued on next page} \\
+\endfoot
+\bottomrule
+\endlastfoot
+\multicolumn{15}{l}{\textit{Brain models (fMRI input)}} \\
+1 & ROI\_Schaefer400Tian50 & n/a & time\_mean & mlp & pooled & 0.4158 & 0.0220 & 1.4870 & 0.0547 & 3.4119 & 0.1817 & 1.8466 & 0.0492 & 5 \\
+2 & ROI\_Schaefer400Tian50 & n/a & time\_mean & linear & per\_subject & 0.4042 & 0.0310 & 1.4963 & 0.0326 & 3.3132 & 0.1306 & 1.8199 & 0.0358 & 25 \\
+3 & ROI\_Schaefer400Tian50 & n/a & time\_mean & mlp & per\_subject & 0.4024 & 0.0446 & 1.5619 & 0.0978 & 3.8856 & 0.5979 & 1.9659 & 0.1480 & 25 \\
+4 & ROI\_Schaefer400Tian50 & n/a & time\_mean & linear & pooled & 0.3964 & 0.0131 & 1.4991 & 0.0174 & 3.2920 & 0.0421 & 1.8144 & 0.0116 & 5 \\
+5 & Brain-JEPA & resting & zero & linear & pooled & 0.3296 & 0.0245 & 1.5539 & 0.0260 & 3.4606 & 0.1331 & 1.8600 & 0.0360 & 5 \\
+6 & Brain-JEPA & resting & zero & linear & per\_subject & 0.3275 & 0.0486 & 1.5584 & 0.0443 & 3.5205 & 0.2157 & 1.8755 & 0.0570 & 25 \\
+7 & NeuroSTORM & resting & mean & linear & per\_subject & 0.3119 & 0.0471 & 1.5696 & 0.0386 & 3.5814 & 0.1761 & 1.8919 & 0.0465 & 25 \\
+8 & Brain-JEPA & resting & zero & mlp & pooled & 0.3112 & 0.0188 & 1.5640 & 0.0269 & 3.6626 & 0.2273 & 1.9131 & 0.0593 & 5 \\
+9 & NeuroSTORM & resting & mean & mlp & per\_subject & 0.2988 & 0.0519 & 1.6157 & 0.0807 & 4.1203 & 0.5295 & 2.0260 & 0.1275 & 25 \\
+10 & NeuroSTORM & resting & mean & mlp & pooled & 0.2972 & 0.0209 & 1.5866 & 0.0264 & 3.8093 & 0.2562 & 1.9509 & 0.0648 & 5 \\
+11 & NeuroSTORM & resting & mean & linear & pooled & 0.2797 & 0.0229 & 1.5809 & 0.0186 & 3.5844 & 0.0951 & 1.8931 & 0.0251 & 5 \\
+12 & Brain-JEPA & resting & zero & mlp & per\_subject & 0.2777 & 0.0575 & 1.6218 & 0.0766 & 3.9945 & 0.4785 & 1.9953 & 0.1181 & 25 \\
+13 & SwiFT\_NewE96 & resting & spatial\_only & linear & per\_subject & 0.2647 & 0.0408 & 1.6093 & 0.0351 & 3.7721 & 0.2047 & 1.9415 & 0.0525 & 25 \\
+14 & SwiFT\_NewE96 & resting & mean & linear & per\_subject & 0.2640 & 0.0397 & 1.6098 & 0.0344 & 3.7751 & 0.1992 & 1.9423 & 0.0511 & 50 \\
+15 & SwiFT\_UAH\_202M & resting & zero & linear & per\_subject & 0.2636 & 0.0592 & 1.6148 & 0.0313 & 3.7249 & 0.2034 & 1.9293 & 0.0528 & 25 \\
+16 & SwiFT\_NewE96 & resting & cyclic\_replicate & linear & per\_subject & 0.2618 & 0.0411 & 1.6053 & 0.0333 & 3.7394 & 0.1749 & 1.9333 & 0.0450 & 25 \\
+17 & SwiFT\_NewE96 & resting & spatial\_only & linear & pooled & 0.2596 & 0.0209 & 1.5970 & 0.0197 & 3.6440 & 0.0925 & 1.9088 & 0.0242 & 5 \\
+18 & SwiFT\_NewE96 & resting & zero & linear & per\_subject & 0.2564 & 0.0359 & 1.6176 & 0.0280 & 3.7958 & 0.1771 & 1.9478 & 0.0454 & 25 \\
+19 & SwiFT\_NewE96 & resting & mean & linear & pooled & 0.2561 & 0.0141 & 1.6003 & 0.0136 & 3.6672 & 0.0750 & 1.9149 & 0.0196 & 10 \\
+20 & SwiFT\_NewE96 & resting & cyclic\_replicate & linear & pooled & 0.2559 & 0.0220 & 1.5986 & 0.0186 & 3.6400 & 0.0864 & 1.9078 & 0.0226 & 5 \\
+21 & SwiFT\_NewE192 & resting & zero & linear & pooled & 0.2552 & 0.0348 & 1.6000 & 0.0205 & 3.6449 & 0.1297 & 1.9089 & 0.0338 & 5 \\
+22 & SwiFT\_NewE96 & resting & zero & linear & pooled & 0.2510 & 0.0204 & 1.6014 & 0.0145 & 3.6557 & 0.0984 & 1.9119 & 0.0259 & 5 \\
+23 & SwiFT\_UAH\_202M & resting & zero & linear & pooled & 0.2468 & 0.0169 & 1.6112 & 0.0168 & 3.7574 & 0.1663 & 1.9380 & 0.0433 & 5 \\
+24 & Brain-JEPA & scratch & zero & linear & pooled & 0.2440 & 0.0254 & 1.6072 & 0.0288 & 3.6881 & 0.1225 & 1.9202 & 0.0321 & 5 \\
+25 & SwiFT\_NewE192 & resting & zero & linear & per\_subject & 0.2340 & 0.0556 & 1.6374 & 0.0551 & 3.9481 & 0.3497 & 1.9852 & 0.0860 & 25 \\
+26 & SwiFT\_UAH\_51M & resting & zero & linear & per\_subject & 0.2237 & 0.0554 & 1.6580 & 0.0956 & 3.9999 & 0.5420 & 1.9959 & 0.1301 & 25 \\
+27 & SwiFT\_UAH\_51M & resting & zero & linear & pooled & 0.2200 & 0.0253 & 1.6260 & 0.0235 & 3.7920 & 0.1710 & 1.9469 & 0.0436 & 5 \\
+28 & SwiFT\_NewE36 & resting & zero & linear & pooled & 0.2168 & 0.0269 & 1.6194 & 0.0173 & 3.7184 & 0.1190 & 1.9281 & 0.0310 & 5 \\
+29 & SwiFT\_UAH\_5M & scratch & zero & linear & per\_subject & 0.2136 & 0.0460 & 1.6501 & 0.0352 & 3.9702 & 0.1591 & 1.9922 & 0.0402 & 25 \\
+30 & SwiFT\_NewE36 & resting & zero & linear & per\_subject & 0.2133 & 0.0473 & 1.6319 & 0.0348 & 3.8122 & 0.2065 & 1.9518 & 0.0524 & 25 \\
+31 & SwiFT\_UAH\_202M & scratch & zero & mlp & per\_subject & 0.2085 & 0.0543 & 1.7550 & 0.1148 & 4.6767 & 0.7075 & 2.1568 & 0.1610 & 25 \\
+32 & SwiFT\_NewE96 & resting & replicate & linear & pooled & 0.2042 & 0.0246 & 1.6215 & 0.0177 & 3.7248 & 0.0859 & 1.9299 & 0.0223 & 5 \\
+33 & SwiFT\_NewE96 & resting & replicate & linear & per\_subject & 0.1990 & 0.0443 & 1.6458 & 0.0576 & 3.9236 & 0.3313 & 1.9792 & 0.0807 & 25 \\
+34 & SwiFT\_NewE96 & scratch & zero & linear & per\_subject & 0.1950 & 0.0559 & 1.7352 & 0.0681 & 4.5083 & 0.3186 & 2.1220 & 0.0751 & 25 \\
+35 & SwiFT\_UAH\_202M & scratch & zero & mlp & pooled & 0.1937 & 0.0090 & 1.6646 & 0.0537 & 4.0558 & 0.1832 & 2.0135 & 0.0452 & 5 \\
+36 & Brain-JEPA & scratch & zero & linear & per\_subject & 0.1932 & 0.0415 & 1.6722 & 0.0833 & 4.2973 & 1.0324 & 2.0622 & 0.2155 & 25 \\
+37 & SwiFT\_NewE96 & scratch & spatial\_only & mlp & per\_subject & 0.1926 & 0.0618 & 1.7714 & 0.0893 & 4.8950 & 0.6129 & 2.2082 & 0.1408 & 25 \\
+38 & SwiFT\_UAH\_51M & scratch & zero & linear & pooled & 0.1909 & 0.0174 & 1.6511 & 0.0110 & 3.9250 & 0.0994 & 1.9810 & 0.0250 & 5 \\
+39 & SwiFT\_UAH\_5M & scratch & zero & mlp & per\_subject & 0.1902 & 0.0531 & 1.7397 & 0.1010 & 4.7242 & 0.6107 & 2.1694 & 0.1372 & 25 \\
+40 & SwiFT\_NewE96 & scratch & cyclic\_replicate & linear & per\_subject & 0.1896 & 0.0420 & 1.7597 & 0.0528 & 4.6776 & 0.2429 & 2.1621 & 0.0567 & 25 \\
+41 & SwiFT\_NewE96 & scratch & mean & mlp & pooled & 0.1890 & 0.0214 & 1.6697 & 0.0385 & 4.1020 & 0.3633 & 2.0236 & 0.0877 & 10 \\
+42 & SwiFT\_UAH\_51M & scratch & zero & linear & per\_subject & 0.1882 & 0.0391 & 1.7347 & 0.0547 & 4.5405 & 0.2436 & 2.1301 & 0.0571 & 25 \\
+43 & SwiFT\_NewE96 & scratch & mean & mlp & per\_subject & 0.1878 & 0.0592 & 1.7837 & 0.1147 & 4.9446 & 0.7483 & 2.2174 & 0.1686 & 50 \\
+44 & SwiFT\_NewE96 & scratch & mean & linear & per\_subject & 0.1867 & 0.0480 & 1.7706 & 0.0504 & 4.7433 & 0.2597 & 2.1771 & 0.0602 & 50 \\
+45 & SwiFT\_NewE192 & scratch & zero & mlp & per\_subject & 0.1842 & 0.0426 & 1.7988 & 0.1605 & 4.9706 & 0.8829 & 2.2213 & 0.1943 & 25 \\
+46 & SwiFT\_NewE96 & scratch & zero & linear & pooled & 0.1835 & 0.0184 & 1.6447 & 0.0187 & 3.9187 & 0.0959 & 1.9795 & 0.0242 & 5 \\
+47 & NeuroSTORM & scratch & mean & linear & pooled & 0.1834 & 0.0310 & 1.6355 & 0.0238 & 3.7948 & 0.0959 & 1.9479 & 0.0245 & 5 \\
+48 & SwiFT\_NewE96 & scratch & spatial\_only & linear & per\_subject & 0.1830 & 0.0523 & 1.7754 & 0.0543 & 4.7670 & 0.2774 & 2.1824 & 0.0643 & 25 \\
+49 & SwiFT\_NewE96 & scratch & cyclic\_replicate & mlp & per\_subject & 0.1830 & 0.0461 & 1.8322 & 0.2253 & 5.2579 & 1.4613 & 2.2776 & 0.2708 & 25 \\
+50 & SwiFT\_NewE96 & scratch & cyclic\_replicate & linear & pooled & 0.1828 & 0.0134 & 1.6499 & 0.0092 & 3.9505 & 0.0442 & 1.9876 & 0.0111 & 5 \\
+51 & SwiFT\_NewE96 & scratch & zero & mlp & per\_subject & 0.1816 & 0.0525 & 1.8608 & 0.3291 & 5.3687 & 2.0909 & 2.2882 & 0.3717 & 25 \\
+52 & NeuroSTORM & scratch & mean & mlp & per\_subject & 0.1797 & 0.0550 & 1.7770 & 0.1385 & 4.8960 & 0.8880 & 2.2041 & 0.1983 & 25 \\
+53 & SwiFT\_NewE96 & scratch & mean & linear & pooled & 0.1795 & 0.0134 & 1.6532 & 0.0059 & 3.9627 & 0.0407 & 1.9906 & 0.0102 & 10 \\
+54 & NeuroSTORM & scratch & mean & mlp & pooled & 0.1779 & 0.0272 & 1.6544 & 0.0275 & 3.9036 & 0.1312 & 1.9755 & 0.0333 & 5 \\
+55 & SwiFT\_UAH\_202M & scratch & zero & linear & per\_subject & 0.1778 & 0.0435 & 1.8657 & 0.0623 & 5.3343 & 0.3369 & 2.3085 & 0.0726 & 25 \\
+56 & SwiFT\_NewE96 & resting & mean & mlp & pooled & 0.1772 & 0.0172 & 1.6625 & 0.0288 & 4.0598 & 0.1831 & 2.0144 & 0.0460 & 10 \\
+57 & SwiFT\_UAH\_51M & scratch & zero & mlp & pooled & 0.1769 & 0.0132 & 1.6549 & 0.0335 & 4.0195 & 0.2556 & 2.0041 & 0.0630 & 5 \\
+58 & SwiFT\_NewE96 & scratch & spatial\_only & mlp & pooled & 0.1762 & 0.0161 & 1.6727 & 0.0181 & 3.9965 & 0.1345 & 1.9989 & 0.0337 & 5 \\
+59 & SwiFT\_UAH\_51M & scratch & zero & mlp & per\_subject & 0.1760 & 0.0394 & 1.7701 & 0.1134 & 4.7604 & 0.7542 & 2.1753 & 0.1720 & 25 \\
+60 & SwiFT\_NewE96 & scratch & replicate & mlp & per\_subject & 0.1748 & 0.0426 & 1.8202 & 0.1207 & 4.9307 & 0.7766 & 2.2139 & 0.1750 & 25 \\
+61 & NeuroSTORM & scratch & mean & linear & per\_subject & 0.1744 & 0.0637 & 1.6897 & 0.0600 & 4.1743 & 0.2999 & 2.0419 & 0.0715 & 25 \\
+62 & SwiFT\_NewE96 & scratch & spatial\_only & linear & pooled & 0.1729 & 0.0145 & 1.6572 & 0.0051 & 3.9778 & 0.0392 & 1.9944 & 0.0098 & 5 \\
+63 & SwiFT\_UAH\_202M & scratch & zero & linear & pooled & 0.1729 & 0.0131 & 1.7033 & 0.0158 & 4.2536 & 0.0958 & 2.0623 & 0.0232 & 5 \\
+64 & SwiFT\_UAH\_5M & scratch & zero & linear & pooled & 0.1693 & 0.0229 & 1.6419 & 0.0116 & 3.8180 & 0.0674 & 1.9539 & 0.0172 & 5 \\
+65 & SwiFT\_NewE96 & scratch & cyclic\_replicate & mlp & pooled & 0.1693 & 0.0124 & 1.6883 & 0.0739 & 4.2493 & 0.5169 & 2.0584 & 0.1237 & 5 \\
+66 & SwiFT\_NewE36 & scratch & zero & linear & per\_subject & 0.1686 & 0.0600 & 1.6831 & 0.0591 & 4.1106 & 0.2871 & 2.0263 & 0.0702 & 25 \\
+67 & SwiFT\_NewE96 & resting & cyclic\_replicate & mlp & pooled & 0.1672 & 0.0160 & 1.6531 & 0.0359 & 3.9118 & 0.1526 & 1.9775 & 0.0386 & 5 \\
+68 & SwiFT\_NewE96 & scratch & replicate & mlp & pooled & 0.1646 & 0.0159 & 1.7162 & 0.0836 & 4.3549 & 0.4910 & 2.0842 & 0.1169 & 5 \\
+69 & SwiFT\_NewE96 & resting & spatial\_only & mlp & pooled & 0.1625 & 0.0145 & 1.6561 & 0.0272 & 4.0419 & 0.2574 & 2.0096 & 0.0635 & 5 \\
+70 & SwiFT\_UAH\_5M & scratch & zero & mlp & pooled & 0.1554 & 0.0213 & 1.7066 & 0.0875 & 4.4304 & 0.6049 & 2.1010 & 0.1418 & 5 \\
+71 & SwiFT\_UAH\_5M & resting & zero & linear & per\_subject & 0.1544 & 0.0483 & 1.6817 & 0.0371 & 4.0770 & 0.2867 & 2.0180 & 0.0697 & 25 \\
+72 & SwiFT\_NewE96 & scratch & replicate & linear & pooled & 0.1541 & 0.0213 & 1.6654 & 0.0093 & 4.0109 & 0.0789 & 2.0027 & 0.0197 & 5 \\
+73 & SwiFT\_NewE192 & scratch & zero & linear & per\_subject & 0.1526 & 0.0436 & 1.9192 & 0.0595 & 5.6023 & 0.3324 & 2.3659 & 0.0693 & 25 \\
+74 & SwiFT\_NewE36 & resting & zero & mlp & pooled & 0.1525 & 0.0224 & 1.6622 & 0.0130 & 3.9765 & 0.0919 & 1.9940 & 0.0229 & 5 \\
+75 & SwiFT\_NewE96 & scratch & zero & mlp & pooled & 0.1514 & 0.0176 & 1.6710 & 0.0391 & 4.1765 & 0.2964 & 2.0426 & 0.0727 & 5 \\
+76 & SwiFT\_NewE96 & scratch & replicate & linear & per\_subject & 0.1508 & 0.0523 & 1.7998 & 0.0597 & 4.8889 & 0.2985 & 2.2101 & 0.0678 & 25 \\
+77 & SwiFT\_UAH\_5M & resting & zero & linear & pooled & 0.1464 & 0.0382 & 1.6596 & 0.0300 & 3.8908 & 0.1964 & 1.9720 & 0.0494 & 5 \\
+78 & SwiFT\_NewE192 & scratch & zero & linear & pooled & 0.1449 & 0.0094 & 1.7144 & 0.0184 & 4.3561 & 0.0713 & 2.0871 & 0.0171 & 5 \\
+79 & SwiFT\_NewE36 & resting & zero & mlp & per\_subject & 0.1439 & 0.0542 & 1.6865 & 0.0578 & 4.1759 & 0.3465 & 2.0418 & 0.0842 & 25 \\
+80 & SwiFT\_NewE192 & resting & zero & mlp & per\_subject & 0.1433 & 0.0797 & 1.7811 & 0.1087 & 4.7514 & 0.6562 & 2.1747 & 0.1511 & 25 \\
+81 & SwiFT\_NewE192 & scratch & zero & mlp & pooled & 0.1430 & 0.0056 & 1.7243 & 0.0714 & 4.5077 & 0.3640 & 2.1217 & 0.0865 & 5 \\
+82 & SwiFT\_NewE192 & resting & zero & mlp & pooled & 0.1420 & 0.0089 & 1.7210 & 0.0459 & 4.3376 & 0.3251 & 2.0815 & 0.0778 & 5 \\
+83 & SwiFT\_NewE36 & scratch & zero & linear & pooled & 0.1408 & 0.0112 & 1.6522 & 0.0132 & 3.8467 & 0.0741 & 1.9612 & 0.0190 & 5 \\
+84 & SwiFT\_NewE96 & resting & spatial\_only & mlp & per\_subject & 0.1392 & 0.0551 & 1.7272 & 0.0786 & 4.3532 & 0.5080 & 2.0832 & 0.1184 & 25 \\
+85 & SwiFT\_NewE96 & resting & zero & mlp & per\_subject & 0.1387 & 0.0416 & 1.6800 & 0.0578 & 4.0998 & 0.3376 & 2.0232 & 0.0824 & 25 \\
+86 & SwiFT\_NewE96 & resting & zero & mlp & pooled & 0.1346 & 0.0255 & 1.6620 & 0.0428 & 3.9945 & 0.1304 & 1.9984 & 0.0327 & 5 \\
+87 & SwiFT\_NewE96 & resting & cyclic\_replicate & mlp & per\_subject & 0.1340 & 0.0431 & 1.6833 & 0.0594 & 4.1413 & 0.3359 & 2.0335 & 0.0814 & 25 \\
+88 & SwiFT\_NewE96 & resting & mean & mlp & per\_subject & 0.1306 & 0.0377 & 1.7283 & 0.0681 & 4.3470 & 0.3870 & 2.0830 & 0.0910 & 50 \\
+89 & SwiFT\_NewE96 & resting & replicate & mlp & pooled & 0.1221 & 0.0317 & 1.6752 & 0.0454 & 3.9742 & 0.1911 & 1.9931 & 0.0480 & 5 \\
+90 & SwiFT\_NewE36 & scratch & zero & mlp & per\_subject & 0.1216 & 0.0632 & 1.7616 & 0.1308 & 4.7052 & 0.8480 & 2.1612 & 0.1892 & 25 \\
+91 & SwiFT\_NewE36 & scratch & zero & mlp & pooled & 0.1187 & 0.0072 & 1.6512 & 0.0158 & 3.9639 & 0.0571 & 1.9909 & 0.0143 & 5 \\
+92 & Brain-JEPA & scratch & zero & mlp & per\_subject & 0.1016 & 0.0619 & 1.7281 & 0.1586 & 4.2628 & 0.7745 & 2.0582 & 0.1665 & 25 \\
+93 & Brain-JEPA & scratch & zero & mlp & pooled & 0.0931 & 0.0339 & 1.6592 & 0.0196 & 3.8961 & 0.0403 & 1.9738 & 0.0102 & 5 \\
+94 & SwiFT\_NewE96 & resting & replicate & mlp & per\_subject & 0.0798 & 0.0703 & 1.7325 & 0.0809 & 4.3634 & 0.5136 & 2.0856 & 0.1198 & 25 \\
+95 & SwiFT\_UAH\_5M & resting & zero & mlp & per\_subject & 0.0612 & 0.0616 & 1.6800 & 0.0323 & 3.9327 & 0.1089 & 1.9829 & 0.0274 & 25 \\
+96 & SwiFT\_UAH\_51M & resting & zero & mlp & per\_subject & 0.0339 & 0.0722 & 1.7582 & 0.1992 & 4.4287 & 1.3037 & 2.0874 & 0.2728 & 25 \\
+97 & SwiFT\_UAH\_5M & resting & zero & mlp & pooled & 0.0267 & 0.0312 & 1.6768 & 0.0132 & 3.8925 & 0.0852 & 1.9728 & 0.0217 & 5 \\
+98 & SwiFT\_UAH\_51M & resting & zero & mlp & pooled & 0.0199 & 0.0354 & 1.7639 & 0.1852 & 4.2682 & 0.8342 & 2.0589 & 0.1908 & 5 \\
+99 & SwiFT\_UAH\_202M & resting & zero & mlp & per\_subject & 0.0107 & 0.0460 & 1.7729 & 0.1653 & 4.6213 & 0.9666 & 2.1397 & 0.2114 & 25 \\
+100 & chance & n/a & n/a & mean & stim\_level & 0.0000 & 0.0000 & 1.6711 & 0.0125 & 3.8599 & 0.0713 & 1.9646 & 0.0182 & 5 \\
+101 & chance & n/a & n/a & median & stim\_level & 0.0000 & 0.0000 & 1.6392 & 0.0107 & 4.0468 & 0.0860 & 2.0116 & 0.0214 & 5 \\
+102 & SwiFT\_UAH\_202M & resting & zero & mlp & pooled & -0.0081 & 0.0539 & 1.6626 & 0.0281 & 4.0175 & 0.1979 & 2.0039 & 0.0492 & 5 \\
+\midrule
+\multicolumn{15}{l}{\textit{Video models (stimulus features)}} \\
+1 & CLIP\_pretrained & n/a & n/a & mlp & stim\_level & 0.7645 & 0.0309 & 1.0446 & 0.0647 & 1.8286 & 0.3121 & 1.3484 & 0.1143 & 5 \\
+2 & CLIP\_pretrained & n/a & n/a & linear & stim\_level & 0.6832 & 0.0243 & 1.2011 & 0.0386 & 2.3084 & 0.1712 & 1.5185 & 0.0559 & 5 \\
+3 & DINOv2\_pretrained & n/a & n/a & mlp & stim\_level & 0.6008 & 0.0360 & 1.3958 & 0.1378 & 3.1539 & 0.5791 & 1.7698 & 0.1649 & 5 \\
+4 & Qwen-VL\_caption & n/a & n/a & mlp & stim\_level & 0.5990 & 0.0395 & 1.3723 & 0.1971 & 3.1159 & 1.0313 & 1.7485 & 0.2708 & 5 \\
+5 & Qwen-VL\_caption & n/a & n/a & linear & stim\_level & 0.5741 & 0.0263 & 1.3189 & 0.0505 & 2.7260 & 0.1881 & 1.6503 & 0.0566 & 5 \\
+6 & VideoMAE\_pretrained & n/a & n/a & mlp & stim\_level & 0.5455 & 0.0351 & 1.5762 & 0.1901 & 3.9391 & 0.8208 & 1.9758 & 0.2104 & 5 \\
+7 & V-JEPA2\_pretrained & n/a & n/a & mlp & stim\_level & 0.5296 & 0.0213 & 1.4617 & 0.0960 & 3.4231 & 0.5364 & 1.8456 & 0.1449 & 5 \\
+8 & VideoMAE\_pretrained & n/a & n/a & linear & stim\_level & 0.5201 & 0.0399 & 1.4179 & 0.0550 & 3.1629 & 0.2603 & 1.7772 & 0.0733 & 5 \\
+9 & DINOv2\_pretrained & n/a & n/a & linear & stim\_level & 0.4964 & 0.0138 & 1.5299 & 0.0488 & 3.7741 & 0.1781 & 1.9423 & 0.0463 & 5 \\
+10 & V-JEPA2\_pretrained & n/a & n/a & linear & stim\_level & 0.4703 & 0.0394 & 1.5205 & 0.0701 & 3.5625 & 0.3103 & 1.8860 & 0.0826 & 5 \\
+11 & V-JEPA2\_scratch & n/a & n/a & linear & stim\_level & 0.1459 & 0.0305 & 1.6789 & 0.0131 & 4.0101 & 0.1000 & 2.0024 & 0.0249 & 5 \\
+12 & V-JEPA2\_scratch & n/a & n/a & mlp & stim\_level & 0.1381 & 0.0121 & 1.6977 & 0.0506 & 4.0933 & 0.3104 & 2.0220 & 0.0766 & 5 \\
+13 & VideoMAE\_scratch & n/a & n/a & linear & stim\_level & 0.1379 & 0.0092 & 1.6786 & 0.0289 & 3.9706 & 0.1564 & 1.9923 & 0.0388 & 5 \\
+14 & CLIP\_scratch & n/a & n/a & linear & stim\_level & 0.1345 & 0.0444 & 1.6543 & 0.0313 & 3.9014 & 0.1608 & 1.9749 & 0.0404 & 5 \\
+15 & VideoMAE\_scratch & n/a & n/a & mlp & stim\_level & 0.1123 & 0.0367 & 1.6900 & 0.0516 & 4.0724 & 0.2418 & 2.0173 & 0.0593 & 5 \\
+16 & CLIP\_scratch & n/a & n/a & mlp & stim\_level & 0.1011 & 0.0308 & 1.6744 & 0.0553 & 4.1187 & 0.2291 & 2.0288 & 0.0567 & 5 \\
+17 & DINOv2\_scratch & n/a & n/a & mlp & stim\_level & 0.0934 & 0.0337 & 1.8569 & 0.1074 & 4.8862 & 0.4544 & 2.2086 & 0.1020 & 5 \\
+18 & DINOv2\_scratch & n/a & n/a & linear & stim\_level & 0.0696 & 0.0401 & 3.3389 & 3.3599 & 38.0838 & 73.9443 & 4.4015 & 4.8362 & 5 \\
+\end{longtable}
+\normalsize
+\subsection{A\_reg}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{r l l l l l S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] S[table-format=1.4,table-column-width=1.05cm] r}
+\caption{Full benchmark for A\_reg (Arousal continuous regression). Main metric: Pearson r. Cells sorted by main metric within category.} \label{tab:supp-A-reg}\\
+\toprule
+\# & Feature & Init & Padding & Head & Mode & \multicolumn{2}{c}{r} & \multicolumn{2}{c}{MAE} & \multicolumn{2}{c}{MSE} & \multicolumn{2}{c}{RMSE} & n \\
+  &         &      &         &      &       & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} &   \\
+\midrule
+\endfirsthead
+\multicolumn{15}{l}{\small\itshape continued from previous page} \\
+\toprule
+\# & Feature & Init & Padding & Head & Mode & \multicolumn{2}{c}{r} & \multicolumn{2}{c}{MAE} & \multicolumn{2}{c}{MSE} & \multicolumn{2}{c}{RMSE} & n \\
+  &         &      &         &      &       & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} & {$\mu$} & {$\sigma$} &   \\
+\midrule
+\endhead
+\midrule \multicolumn{15}{r}{\small\itshape continued on next page} \\
+\endfoot
+\bottomrule
+\endlastfoot
+\multicolumn{15}{l}{\textit{Brain models (fMRI input)}} \\
+1 & ROI\_Schaefer400Tian50 & n/a & time\_mean & linear & pooled & 0.2334 & 0.0524 & 0.7120 & 0.0090 & 0.8061 & 0.0256 & 0.8978 & 0.0142 & 5 \\
+2 & ROI\_Schaefer400Tian50 & n/a & time\_mean & mlp & pooled & 0.2254 & 0.0497 & 0.7328 & 0.0266 & 0.8544 & 0.0716 & 0.9237 & 0.0382 & 5 \\
+3 & Brain-JEPA & resting & zero & linear & pooled & 0.2214 & 0.0302 & 0.7071 & 0.0105 & 0.7964 & 0.0365 & 0.8922 & 0.0206 & 5 \\
+4 & ROI\_Schaefer400Tian50 & n/a & time\_mean & linear & per\_subject & 0.2207 & 0.0576 & 0.7232 & 0.0196 & 0.8364 & 0.0443 & 0.9142 & 0.0240 & 25 \\
+5 & Brain-JEPA & resting & zero & mlp & pooled & 0.2138 & 0.0389 & 0.7211 & 0.0151 & 0.8290 & 0.0489 & 0.9102 & 0.0269 & 5 \\
+6 & Brain-JEPA & resting & zero & linear & per\_subject & 0.2011 & 0.0484 & 0.7201 & 0.0222 & 0.8322 & 0.0735 & 0.9115 & 0.0389 & 25 \\
+7 & ROI\_Schaefer400Tian50 & n/a & time\_mean & mlp & per\_subject & 0.2003 & 0.0567 & 0.7641 & 0.0543 & 0.9426 & 0.1393 & 0.9684 & 0.0704 & 25 \\
+8 & NeuroSTORM & resting & mean & linear & pooled & 0.1911 & 0.0600 & 0.7134 & 0.0070 & 0.8114 & 0.0252 & 0.9007 & 0.0140 & 5 \\
+9 & Brain-JEPA & resting & zero & mlp & per\_subject & 0.1737 & 0.0525 & 0.7378 & 0.0235 & 0.8634 & 0.0653 & 0.9285 & 0.0349 & 25 \\
+10 & SwiFT\_NewE96 & resting & spatial\_only & linear & pooled & 0.1591 & 0.0440 & 0.7145 & 0.0082 & 0.8151 & 0.0297 & 0.9027 & 0.0166 & 5 \\
+11 & Brain-JEPA & scratch & zero & linear & pooled & 0.1583 & 0.0269 & 0.7202 & 0.0099 & 0.8279 & 0.0346 & 0.9097 & 0.0192 & 5 \\
+12 & NeuroSTORM & resting & mean & mlp & pooled & 0.1575 & 0.0455 & 0.7258 & 0.0177 & 0.8309 & 0.0414 & 0.9113 & 0.0230 & 5 \\
+13 & SwiFT\_NewE36 & resting & zero & mlp & pooled & 0.1560 & 0.0523 & 0.7178 & 0.0069 & 0.8187 & 0.0213 & 0.9047 & 0.0118 & 5 \\
+14 & SwiFT\_NewE96 & resting & mean & linear & pooled & 0.1538 & 0.0420 & 0.7153 & 0.0075 & 0.8168 & 0.0281 & 0.9037 & 0.0157 & 10 \\
+15 & SwiFT\_NewE36 & resting & zero & linear & pooled & 0.1538 & 0.0382 & 0.7184 & 0.0077 & 0.8158 & 0.0277 & 0.9031 & 0.0154 & 5 \\
+16 & SwiFT\_UAH\_202M & scratch & zero & mlp & pooled & 0.1456 & 0.0323 & 0.7818 & 0.0586 & 0.9746 & 0.1218 & 0.9857 & 0.0620 & 5 \\
+17 & SwiFT\_UAH\_202M & resting & zero & linear & pooled & 0.1453 & 0.0351 & 0.7205 & 0.0086 & 0.8235 & 0.0293 & 0.9074 & 0.0161 & 5 \\
+18 & SwiFT\_NewE96 & resting & cyclic\_replicate & linear & pooled & 0.1447 & 0.0434 & 0.7162 & 0.0080 & 0.8190 & 0.0304 & 0.9048 & 0.0169 & 5 \\
+19 & SwiFT\_NewE192 & resting & zero & linear & pooled & 0.1432 & 0.0304 & 0.7227 & 0.0094 & 0.8328 & 0.0314 & 0.9125 & 0.0173 & 5 \\
+20 & SwiFT\_UAH\_51M & resting & zero & linear & pooled & 0.1414 & 0.0309 & 0.7194 & 0.0090 & 0.8198 & 0.0297 & 0.9053 & 0.0164 & 5 \\
+21 & SwiFT\_NewE96 & resting & zero & linear & pooled & 0.1414 & 0.0287 & 0.7171 & 0.0089 & 0.8185 & 0.0334 & 0.9046 & 0.0186 & 5 \\
+22 & SwiFT\_UAH\_202M & resting & zero & linear & per\_subject & 0.1407 & 0.0564 & 0.7386 & 0.0673 & 0.8706 & 0.1789 & 0.9293 & 0.0850 & 25 \\
+23 & SwiFT\_NewE192 & scratch & zero & mlp & pooled & 0.1385 & 0.0169 & 0.7464 & 0.0291 & 0.8897 & 0.0808 & 0.9424 & 0.0432 & 5 \\
+24 & SwiFT\_UAH\_51M & resting & zero & linear & per\_subject & 0.1366 & 0.0407 & 0.7276 & 0.0169 & 0.8373 & 0.0441 & 0.9148 & 0.0238 & 25 \\
+25 & SwiFT\_NewE192 & resting & zero & mlp & pooled & 0.1366 & 0.0450 & 0.7198 & 0.0145 & 0.8242 & 0.0412 & 0.9076 & 0.0227 & 5 \\
+26 & SwiFT\_NewE36 & resting & zero & linear & per\_subject & 0.1355 & 0.0612 & 0.7358 & 0.0286 & 0.8590 & 0.0691 & 0.9261 & 0.0363 & 25 \\
+27 & NeuroSTORM & resting & mean & linear & per\_subject & 0.1340 & 0.0734 & 0.7454 & 0.0338 & 0.8888 & 0.0795 & 0.9419 & 0.0412 & 25 \\
+28 & SwiFT\_UAH\_51M & scratch & zero & mlp & per\_subject & 0.1307 & 0.0442 & 0.7836 & 0.0726 & 0.9881 & 0.1945 & 0.9899 & 0.0927 & 25 \\
+29 & SwiFT\_UAH\_202M & scratch & zero & mlp & per\_subject & 0.1282 & 0.0459 & 0.8512 & 0.1345 & 1.1695 & 0.3610 & 1.0706 & 0.1554 & 25 \\
+30 & SwiFT\_NewE36 & resting & zero & mlp & per\_subject & 0.1257 & 0.0545 & 0.7525 & 0.0327 & 0.9008 & 0.0770 & 0.9483 & 0.0397 & 25 \\
+31 & SwiFT\_NewE192 & scratch & zero & mlp & per\_subject & 0.1246 & 0.0538 & 0.8206 & 0.0624 & 1.0726 & 0.1648 & 1.0327 & 0.0795 & 25 \\
+32 & SwiFT\_UAH\_5M & resting & zero & mlp & pooled & 0.1220 & 0.0323 & 0.7226 & 0.0110 & 0.8265 & 0.0362 & 0.9090 & 0.0198 & 5 \\
+33 & SwiFT\_NewE96 & resting & spatial\_only & linear & per\_subject & 0.1217 & 0.0597 & 0.7480 & 0.0811 & 0.9025 & 0.2469 & 0.9443 & 0.1058 & 25 \\
+34 & SwiFT\_UAH\_5M & scratch & zero & mlp & pooled & 0.1213 & 0.0326 & 0.7227 & 0.0074 & 0.8295 & 0.0356 & 0.9106 & 0.0196 & 5 \\
+35 & SwiFT\_NewE96 & resting & zero & mlp & pooled & 0.1203 & 0.0292 & 0.7214 & 0.0091 & 0.8256 & 0.0360 & 0.9085 & 0.0199 & 5 \\
+36 & NeuroSTORM & resting & mean & mlp & per\_subject & 0.1199 & 0.0615 & 0.7645 & 0.0587 & 0.9342 & 0.1559 & 0.9637 & 0.0750 & 25 \\
+37 & SwiFT\_NewE192 & resting & zero & linear & per\_subject & 0.1197 & 0.0635 & 0.7525 & 0.0362 & 0.9004 & 0.0889 & 0.9478 & 0.0461 & 25 \\
+38 & SwiFT\_NewE96 & resting & mean & linear & per\_subject & 0.1166 & 0.0582 & 0.7468 & 0.0736 & 0.8979 & 0.2162 & 0.9429 & 0.0950 & 50 \\
+39 & SwiFT\_UAH\_51M & scratch & zero & mlp & pooled & 0.1147 & 0.0184 & 0.7281 & 0.0077 & 0.8399 & 0.0281 & 0.9164 & 0.0153 & 5 \\
+40 & SwiFT\_NewE96 & scratch & zero & mlp & per\_subject & 0.1137 & 0.0499 & 0.7863 & 0.0633 & 0.9893 & 0.1723 & 0.9913 & 0.0835 & 25 \\
+41 & NeuroSTORM & scratch & mean & linear & pooled & 0.1132 & 0.0136 & 0.7266 & 0.0097 & 0.8408 & 0.0367 & 0.9168 & 0.0201 & 5 \\
+42 & Brain-JEPA & scratch & zero & linear & per\_subject & 0.1131 & 0.0614 & 0.7388 & 0.0355 & 0.9230 & 0.2184 & 0.9555 & 0.1025 & 25 \\
+43 & SwiFT\_NewE96 & resting & spatial\_only & mlp & pooled & 0.1128 & 0.0267 & 0.7243 & 0.0095 & 0.8311 & 0.0297 & 0.9115 & 0.0163 & 5 \\
+44 & SwiFT\_NewE96 & resting & replicate & linear & pooled & 0.1123 & 0.0292 & 0.7221 & 0.0055 & 0.8296 & 0.0237 & 0.9108 & 0.0130 & 5 \\
+45 & SwiFT\_UAH\_5M & scratch & zero & mlp & per\_subject & 0.1114 & 0.0503 & 0.7667 & 0.0519 & 0.9394 & 0.1301 & 0.9671 & 0.0656 & 25 \\
+46 & NeuroSTORM & scratch & mean & mlp & pooled & 0.1109 & 0.0219 & 0.7303 & 0.0202 & 0.8427 & 0.0619 & 0.9175 & 0.0334 & 5 \\
+47 & SwiFT\_NewE36 & scratch & zero & linear & pooled & 0.1075 & 0.0215 & 0.7276 & 0.0118 & 0.8401 & 0.0345 & 0.9164 & 0.0188 & 5 \\
+48 & SwiFT\_NewE96 & resting & cyclic\_replicate & linear & per\_subject & 0.1073 & 0.0542 & 0.7509 & 0.0732 & 0.9079 & 0.1961 & 0.9490 & 0.0877 & 25 \\
+49 & SwiFT\_NewE96 & resting & zero & linear & per\_subject & 0.1071 & 0.0529 & 0.7729 & 0.1031 & 0.9767 & 0.3201 & 0.9786 & 0.1403 & 25 \\
+50 & SwiFT\_NewE36 & scratch & zero & mlp & pooled & 0.1061 & 0.0175 & 0.7254 & 0.0092 & 0.8320 & 0.0362 & 0.9120 & 0.0199 & 5 \\
+51 & SwiFT\_NewE96 & resting & mean & mlp & pooled & 0.1059 & 0.0205 & 0.7300 & 0.0108 & 0.8459 & 0.0398 & 0.9195 & 0.0219 & 10 \\
+52 & SwiFT\_UAH\_5M & resting & zero & linear & pooled & 0.1022 & 0.0278 & 0.7236 & 0.0063 & 0.8304 & 0.0274 & 0.9112 & 0.0151 & 5 \\
+53 & SwiFT\_NewE192 & resting & zero & mlp & per\_subject & 0.1020 & 0.0683 & 0.7727 & 0.0586 & 0.9555 & 0.1607 & 0.9748 & 0.0745 & 25 \\
+54 & SwiFT\_UAH\_5M & resting & zero & mlp & per\_subject & 0.1018 & 0.0506 & 0.7292 & 0.0117 & 0.8435 & 0.0311 & 0.9183 & 0.0170 & 25 \\
+55 & SwiFT\_UAH\_51M & resting & zero & mlp & pooled & 0.1010 & 0.0178 & 0.7272 & 0.0111 & 0.8397 & 0.0384 & 0.9161 & 0.0211 & 5 \\
+56 & SwiFT\_UAH\_5M & scratch & zero & linear & pooled & 0.0997 & 0.0387 & 0.7312 & 0.0082 & 0.8477 & 0.0296 & 0.9206 & 0.0161 & 5 \\
+57 & SwiFT\_NewE96 & scratch & zero & mlp & pooled & 0.0994 & 0.0202 & 0.7587 & 0.0084 & 0.9122 & 0.0444 & 0.9549 & 0.0229 & 5 \\
+58 & SwiFT\_UAH\_51M & resting & zero & mlp & per\_subject & 0.0965 & 0.0269 & 0.7354 & 0.0273 & 0.8586 & 0.0637 & 0.9260 & 0.0334 & 25 \\
+59 & Brain-JEPA & scratch & zero & mlp & pooled & 0.0962 & 0.0246 & 0.7249 & 0.0082 & 0.8311 & 0.0258 & 0.9116 & 0.0141 & 5 \\
+60 & SwiFT\_UAH\_51M & scratch & zero & linear & pooled & 0.0959 & 0.0019 & 0.7480 & 0.0124 & 0.8869 & 0.0417 & 0.9415 & 0.0222 & 5 \\
+61 & SwiFT\_UAH\_202M & resting & zero & mlp & per\_subject & 0.0959 & 0.0334 & 0.7457 & 0.0366 & 0.8782 & 0.0828 & 0.9362 & 0.0428 & 25 \\
+62 & SwiFT\_UAH\_202M & scratch & zero & linear & pooled & 0.0958 & 0.0230 & 0.7807 & 0.0146 & 0.9620 & 0.0341 & 0.9807 & 0.0174 & 5 \\
+63 & NeuroSTORM & scratch & mean & linear & per\_subject & 0.0950 & 0.0476 & 0.7766 & 0.0259 & 0.9544 & 0.0579 & 0.9765 & 0.0295 & 25 \\
+64 & SwiFT\_NewE36 & scratch & zero & mlp & per\_subject & 0.0944 & 0.0412 & 0.7874 & 0.0686 & 0.9887 & 0.1798 & 0.9908 & 0.0862 & 25 \\
+65 & SwiFT\_UAH\_202M & resting & zero & mlp & pooled & 0.0942 & 0.0269 & 0.7278 & 0.0125 & 0.8371 & 0.0409 & 0.9147 & 0.0223 & 5 \\
+66 & SwiFT\_UAH\_5M & scratch & zero & linear & per\_subject & 0.0937 & 0.0459 & 0.7688 & 0.0219 & 0.9395 & 0.0555 & 0.9689 & 0.0285 & 25 \\
+67 & SwiFT\_NewE36 & scratch & zero & linear & per\_subject & 0.0934 & 0.0473 & 0.7682 & 0.0292 & 0.9348 & 0.0650 & 0.9663 & 0.0331 & 25 \\
+68 & SwiFT\_NewE192 & scratch & zero & linear & pooled & 0.0921 & 0.0171 & 0.7822 & 0.0129 & 0.9668 & 0.0336 & 0.9832 & 0.0172 & 5 \\
+69 & SwiFT\_NewE96 & resting & zero & mlp & per\_subject & 0.0917 & 0.0356 & 0.7454 & 0.0232 & 0.8863 & 0.0730 & 0.9407 & 0.0380 & 25 \\
+70 & SwiFT\_NewE96 & resting & cyclic\_replicate & mlp & pooled & 0.0914 & 0.0167 & 0.7250 & 0.0071 & 0.8352 & 0.0275 & 0.9138 & 0.0150 & 5 \\
+71 & SwiFT\_NewE96 & scratch & mean & mlp & pooled & 0.0912 & 0.0146 & 0.7353 & 0.0133 & 0.8660 & 0.0499 & 0.9303 & 0.0264 & 10 \\
+72 & SwiFT\_NewE96 & scratch & zero & linear & pooled & 0.0900 & 0.0196 & 0.7489 & 0.0147 & 0.8887 & 0.0383 & 0.9426 & 0.0203 & 5 \\
+73 & SwiFT\_NewE96 & scratch & spatial\_only & linear & pooled & 0.0892 & 0.0267 & 0.7502 & 0.0087 & 0.8909 & 0.0313 & 0.9437 & 0.0166 & 5 \\
+74 & SwiFT\_NewE96 & scratch & cyclic\_replicate & mlp & per\_subject & 0.0891 & 0.0437 & 0.8399 & 0.0914 & 1.1212 & 0.2412 & 1.0536 & 0.1074 & 25 \\
+75 & SwiFT\_NewE96 & scratch & spatial\_only & mlp & pooled & 0.0884 & 0.0369 & 0.7798 & 0.0569 & 0.9745 & 0.1691 & 0.9842 & 0.0846 & 5 \\
+76 & SwiFT\_NewE96 & scratch & mean & linear & pooled & 0.0873 & 0.0249 & 0.7503 & 0.0075 & 0.8920 & 0.0289 & 0.9443 & 0.0154 & 10 \\
+77 & SwiFT\_NewE96 & scratch & spatial\_only & mlp & per\_subject & 0.0855 & 0.0391 & 0.8232 & 0.0818 & 1.0707 & 0.2033 & 1.0305 & 0.0957 & 25 \\
+78 & SwiFT\_NewE96 & scratch & cyclic\_replicate & mlp & pooled & 0.0845 & 0.0184 & 0.7399 & 0.0243 & 0.8746 & 0.0557 & 0.9348 & 0.0295 & 5 \\
+79 & SwiFT\_NewE96 & scratch & cyclic\_replicate & linear & pooled & 0.0814 & 0.0211 & 0.7499 & 0.0084 & 0.8938 & 0.0319 & 0.9453 & 0.0169 & 5 \\
+80 & SwiFT\_UAH\_5M & resting & zero & linear & per\_subject & 0.0804 & 0.0493 & 0.7466 & 0.0307 & 0.8878 & 0.0811 & 0.9413 & 0.0422 & 25 \\
+81 & SwiFT\_NewE96 & resting & replicate & linear & per\_subject & 0.0791 & 0.0590 & 0.7789 & 0.0991 & 0.9819 & 0.2848 & 0.9834 & 0.1245 & 25 \\
+82 & NeuroSTORM & scratch & mean & mlp & per\_subject & 0.0783 & 0.0684 & 0.8014 & 0.0532 & 1.0264 & 0.1451 & 1.0107 & 0.0709 & 25 \\
+83 & SwiFT\_UAH\_51M & scratch & zero & linear & per\_subject & 0.0745 & 0.0490 & 0.8406 & 0.0780 & 1.1260 & 0.2416 & 1.0568 & 0.0978 & 25 \\
+84 & SwiFT\_NewE96 & resting & spatial\_only & mlp & per\_subject & 0.0718 & 0.0611 & 0.7520 & 0.0275 & 0.9051 & 0.0843 & 0.9504 & 0.0433 & 25 \\
+85 & SwiFT\_NewE96 & scratch & mean & mlp & per\_subject & 0.0711 & 0.0541 & 0.8299 & 0.0652 & 1.0859 & 0.1672 & 1.0390 & 0.0811 & 50 \\
+86 & SwiFT\_UAH\_202M & scratch & zero & linear & per\_subject & 0.0697 & 0.0479 & 1.0735 & 0.4061 & 2.1400 & 1.9995 & 1.3660 & 0.5342 & 25 \\
+87 & SwiFT\_NewE96 & scratch & zero & linear & per\_subject & 0.0690 & 0.0621 & 0.8501 & 0.0903 & 1.1655 & 0.2546 & 1.0744 & 0.1080 & 25 \\
+88 & SwiFT\_NewE96 & scratch & mean & linear & per\_subject & 0.0672 & 0.0383 & 0.8663 & 0.0702 & 1.1960 & 0.2131 & 1.0900 & 0.0897 & 50 \\
+89 & SwiFT\_NewE96 & scratch & replicate & mlp & per\_subject & 0.0670 & 0.0556 & 0.8141 & 0.0680 & 1.0491 & 0.1761 & 1.0208 & 0.0854 & 25 \\
+90 & SwiFT\_NewE96 & scratch & spatial\_only & linear & per\_subject & 0.0656 & 0.0435 & 0.8775 & 0.0916 & 1.2348 & 0.2830 & 1.1053 & 0.1171 & 25 \\
+91 & SwiFT\_NewE96 & scratch & cyclic\_replicate & linear & per\_subject & 0.0651 & 0.0391 & 0.8803 & 0.0906 & 1.2367 & 0.2731 & 1.1065 & 0.1131 & 25 \\
+92 & SwiFT\_NewE192 & scratch & zero & linear & per\_subject & 0.0611 & 0.0525 & 1.0831 & 0.3700 & 2.0331 & 1.6949 & 1.3518 & 0.4630 & 25 \\
+93 & SwiFT\_NewE96 & scratch & replicate & linear & per\_subject & 0.0591 & 0.0495 & 0.9021 & 0.0937 & 1.3050 & 0.2959 & 1.1360 & 0.1227 & 25 \\
+94 & Brain-JEPA & scratch & zero & mlp & per\_subject & 0.0559 & 0.0368 & 0.7390 & 0.0168 & 0.8670 & 0.0426 & 0.9308 & 0.0230 & 25 \\
+95 & SwiFT\_NewE96 & resting & replicate & mlp & pooled & 0.0535 & 0.0237 & 0.7247 & 0.0111 & 0.8313 & 0.0382 & 0.9116 & 0.0210 & 5 \\
+96 & SwiFT\_NewE96 & resting & mean & mlp & per\_subject & 0.0490 & 0.0440 & 0.7509 & 0.0301 & 0.8991 & 0.0920 & 0.9470 & 0.0474 & 50 \\
+97 & SwiFT\_NewE96 & scratch & replicate & mlp & pooled & 0.0482 & 0.0187 & 0.7399 & 0.0288 & 0.8689 & 0.0739 & 0.9315 & 0.0397 & 5 \\
+98 & SwiFT\_NewE96 & scratch & replicate & linear & pooled & 0.0427 & 0.0198 & 0.7559 & 0.0111 & 0.9088 & 0.0378 & 0.9531 & 0.0199 & 5 \\
+99 & SwiFT\_NewE96 & resting & cyclic\_replicate & mlp & per\_subject & 0.0392 & 0.0530 & 0.7583 & 0.0363 & 0.9146 & 0.0954 & 0.9551 & 0.0489 & 25 \\
+100 & SwiFT\_NewE96 & resting & replicate & mlp & per\_subject & 0.0349 & 0.0591 & 0.7826 & 0.0824 & 0.9720 & 0.2014 & 0.9814 & 0.0957 & 25 \\
+101 & chance & n/a & n/a & mean & stim\_level & 0.0000 & 0.0000 & 0.7253 & 0.0113 & 0.8315 & 0.0385 & 0.9117 & 0.0212 & 5 \\
+102 & chance & n/a & n/a & median & stim\_level & 0.0000 & 0.0000 & 0.7250 & 0.0116 & 0.8358 & 0.0396 & 0.9140 & 0.0217 & 5 \\
+\midrule
+\multicolumn{15}{l}{\textit{Video models (stimulus features)}} \\
+1 & CLIP\_pretrained & n/a & n/a & mlp & stim\_level & 0.4231 & 0.0421 & 0.7133 & 0.0391 & 0.7998 & 0.0842 & 0.8933 & 0.0474 & 5 \\
+2 & CLIP\_pretrained & n/a & n/a & linear & stim\_level & 0.3375 & 0.0472 & 0.7787 & 0.0261 & 0.9634 & 0.0602 & 0.9812 & 0.0305 & 5 \\
+3 & V-JEPA2\_pretrained & n/a & n/a & mlp & stim\_level & 0.3237 & 0.0567 & 0.8019 & 0.1029 & 1.0246 & 0.2520 & 1.0065 & 0.1205 & 5 \\
+4 & VideoMAE\_pretrained & n/a & n/a & mlp & stim\_level & 0.3043 & 0.0307 & 0.7981 & 0.1066 & 1.0090 & 0.2171 & 1.0001 & 0.1048 & 5 \\
+5 & Qwen-VL\_caption & n/a & n/a & mlp & stim\_level & 0.3013 & 0.0287 & 0.7193 & 0.0399 & 0.8447 & 0.0864 & 0.9182 & 0.0459 & 5 \\
+6 & DINOv2\_pretrained & n/a & n/a & mlp & stim\_level & 0.2985 & 0.0453 & 0.7734 & 0.0469 & 0.9663 & 0.1204 & 0.9814 & 0.0636 & 5 \\
+7 & VideoMAE\_pretrained & n/a & n/a & linear & stim\_level & 0.2758 & 0.0417 & 0.7649 & 0.0189 & 0.9420 & 0.0580 & 0.9702 & 0.0299 & 5 \\
+8 & V-JEPA2\_pretrained & n/a & n/a & linear & stim\_level & 0.2499 & 0.0376 & 0.7940 & 0.0253 & 1.0065 & 0.0639 & 1.0029 & 0.0320 & 5 \\
+9 & Qwen-VL\_caption & n/a & n/a & linear & stim\_level & 0.2339 & 0.0626 & 0.7528 & 0.0212 & 0.9016 & 0.0609 & 0.9491 & 0.0327 & 5 \\
+10 & DINOv2\_pretrained & n/a & n/a & linear & stim\_level & 0.1864 & 0.0381 & 0.9137 & 0.0167 & 1.3367 & 0.0616 & 1.1559 & 0.0266 & 5 \\
+11 & VideoMAE\_scratch & n/a & n/a & linear & stim\_level & 0.1355 & 0.0858 & 0.7400 & 0.0322 & 0.8622 & 0.0634 & 0.9281 & 0.0336 & 5 \\
+12 & V-JEPA2\_scratch & n/a & n/a & mlp & stim\_level & 0.1112 & 0.0458 & 0.7459 & 0.0217 & 0.8724 & 0.0514 & 0.9337 & 0.0277 & 5 \\
+13 & V-JEPA2\_scratch & n/a & n/a & linear & stim\_level & 0.1107 & 0.0261 & 0.8395 & 0.2075 & 1.2137 & 0.7285 & 1.0711 & 0.2882 & 5 \\
+14 & VideoMAE\_scratch & n/a & n/a & mlp & stim\_level & 0.1095 & 0.0493 & 0.7544 & 0.0205 & 0.8918 & 0.0381 & 0.9442 & 0.0200 & 5 \\
+15 & DINOv2\_scratch & n/a & n/a & mlp & stim\_level & 0.0921 & 0.0372 & 0.8697 & 0.2398 & 1.2052 & 0.5933 & 1.0762 & 0.2421 & 5 \\
+16 & DINOv2\_scratch & n/a & n/a & linear & stim\_level & 0.0828 & 0.0595 & 1.6309 & 1.6660 & 9.5235 & 18.3974 & 2.2039 & 2.4151 & 5 \\
+17 & CLIP\_scratch & n/a & n/a & mlp & stim\_level & 0.0804 & 0.0649 & 0.7798 & 0.0730 & 0.9550 & 0.1676 & 0.9744 & 0.0829 & 5 \\
+18 & CLIP\_scratch & n/a & n/a & linear & stim\_level & 0.0526 & 0.0514 & 0.8596 & 0.2707 & 1.3049 & 0.9998 & 1.0922 & 0.3742 & 5 \\
+\end{longtable}
+\normalsize
+
+\section{SwiFT padding ablation -- detailed breakdown}
+The aggregate padding ablation in the main report averages across init, head, and mode.
+Table~\ref{tab:supp-padding-detail} below shows the same data broken out by every
+combination, in case patterns differ between subject-conditional and pooled modes or
+between heads.
+
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{l l l l S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] S[table-format=1.4] }
+\caption{SwiFT NewE96 padding ablation, broken out by init, head, and mode. Each cell is the mean test\_main across 5 folds (and 5 subjects for per\_subject mode).} \label{tab:supp-padding-detail}\\
+\toprule
+Task & Init & Head & Mode & {mean} & {replicate} & {zero} & {spatial\_only} & {cyclic\_replicate} \\
+\midrule
+\endfirsthead
+\toprule
+Task & Init & Head & Mode & {mean} & {replicate} & {zero} & {spatial\_only} & {cyclic\_replicate} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+A\_binary & resting & linear & per\_subject & 0.5818 & 0.5567 & 0.5873 & 0.5889 & 0.5649\\
+A\_binary & resting & linear & pooled & 0.6067 & 0.5734 & 0.6055 & 0.6121 & 0.5972\\
+A\_binary & resting & mlp & per\_subject & 0.5405 & 0.5300 & 0.5643 & 0.5444 & 0.5344\\
+A\_binary & resting & mlp & pooled & 0.5779 & 0.5326 & 0.5840 & 0.5797 & 0.5588\\
+A\_binary & scratch & linear & per\_subject & 0.5795 & 0.5550 & 0.5825 & 0.5798 & 0.5777\\
+A\_binary & scratch & linear & pooled & 0.5791 & 0.5315 & 0.5642 & 0.5809 & 0.5771\\
+A\_binary & scratch & mlp & per\_subject & 0.5598 & 0.5358 & 0.5650 & 0.5532 & 0.5540\\
+A\_binary & scratch & mlp & pooled & 0.5596 & 0.5166 & 0.5703 & 0.5655 & 0.5510\\
+\midrule
+A\_reg & resting & linear & per\_subject & 0.1166 & 0.0791 & 0.1071 & 0.1217 & 0.1073\\
+A\_reg & resting & linear & pooled & 0.1538 & 0.1123 & 0.1414 & 0.1591 & 0.1447\\
+A\_reg & resting & mlp & per\_subject & 0.0490 & 0.0349 & 0.0917 & 0.0718 & 0.0392\\
+A\_reg & resting & mlp & pooled & 0.1059 & 0.0535 & 0.1203 & 0.1128 & 0.0914\\
+A\_reg & scratch & linear & per\_subject & 0.0672 & 0.0591 & 0.0690 & 0.0656 & 0.0651\\
+A\_reg & scratch & linear & pooled & 0.0873 & 0.0427 & 0.0900 & 0.0892 & 0.0814\\
+A\_reg & scratch & mlp & per\_subject & 0.0711 & 0.0670 & 0.1137 & 0.0855 & 0.0891\\
+A\_reg & scratch & mlp & pooled & 0.0912 & 0.0482 & 0.0994 & 0.0884 & 0.0845\\
+\midrule
+V\_binary & resting & linear & per\_subject & 0.6711 & 0.6242 & 0.6649 & 0.6696 & 0.6677\\
+V\_binary & resting & linear & pooled & 0.6860 & 0.6462 & 0.6884 & 0.6848 & 0.6835\\
+V\_binary & resting & mlp & per\_subject & 0.5986 & 0.5727 & 0.5999 & 0.6037 & 0.5899\\
+V\_binary & resting & mlp & pooled & 0.6163 & 0.5824 & 0.5949 & 0.5994 & 0.6180\\
+V\_binary & scratch & linear & per\_subject & 0.6571 & 0.6500 & 0.6546 & 0.6544 & 0.6537\\
+V\_binary & scratch & linear & pooled & 0.6349 & 0.6250 & 0.6314 & 0.6303 & 0.6331\\
+V\_binary & scratch & mlp & per\_subject & 0.6315 & 0.6251 & 0.6215 & 0.6135 & 0.6250\\
+V\_binary & scratch & mlp & pooled & 0.6187 & 0.6095 & 0.6070 & 0.6113 & 0.6233\\
+\midrule
+V\_reg & resting & linear & per\_subject & 0.2640 & 0.1990 & 0.2564 & 0.2647 & 0.2618\\
+V\_reg & resting & linear & pooled & 0.2561 & 0.2042 & 0.2510 & 0.2596 & 0.2559\\
+V\_reg & resting & mlp & per\_subject & 0.1306 & 0.0798 & 0.1387 & 0.1392 & 0.1340\\
+V\_reg & resting & mlp & pooled & 0.1772 & 0.1221 & 0.1346 & 0.1625 & 0.1672\\
+V\_reg & scratch & linear & per\_subject & 0.1867 & 0.1508 & 0.1950 & 0.1830 & 0.1896\\
+V\_reg & scratch & linear & pooled & 0.1795 & 0.1541 & 0.1835 & 0.1729 & 0.1828\\
+V\_reg & scratch & mlp & per\_subject & 0.1878 & 0.1748 & 0.1816 & 0.1926 & 0.1830\\
+V\_reg & scratch & mlp & pooled & 0.1890 & 0.1646 & 0.1514 & 0.1762 & 0.1693\\
+\end{longtable}
+\normalsize
+\end{document}
