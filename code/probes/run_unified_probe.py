@@ -66,12 +66,56 @@ OUT_DIR = FEELIN / "results/phase1"
 # Feature source 정의
 FEATURES = [
     ("ROI_Schaefer400Tian50", "roi_schaefer400tian50_mean", "time_mean", "n/a"),
-    ("SwiFT_NewE96",  "swift_NewE96_SL20", "mean", "resting"),
-    ("SwiFT_NewE96",  "swift_NewE96_SL20", "mean", "scratch"),
-    ("Brain-JEPA",    "brain_jepa",        "mean", "resting"),
-    ("Brain-JEPA",    "brain_jepa",        "mean", "scratch"),
-    ("NeuroSTORM",    "neurostorm",        "mean", "resting"),
-    ("NeuroSTORM",    "neurostorm",        "mean", "scratch"),
+    # Zero padding default across all BFM: matches znorm_minback pretrain convention
+    # (background-zero spatial padding + zero temporal padding is the natural extension).
+    ("SwiFT_NewE96",  "swift_NewE96_SL20", "zero", "resting"),
+    ("SwiFT_NewE96",  "swift_NewE96_SL20", "zero", "scratch"),
+    ("Brain-JEPA",    "brain_jepa",        "zero", "resting"),
+    ("Brain-JEPA",    "brain_jepa",        "zero", "scratch"),
+    ("NeuroSTORM",    "neurostorm",        "zero", "resting"),
+    ("NeuroSTORM",    "neurostorm",        "zero", "scratch"),
+]
+
+# SwiFT padding ablation grid: 4 padding x 2 init.
+# Question: SL=20 채우는 padding 방식이 SwiFT frozen embedding 에 어떻게 영향?
+SWIFT_PADDING_ABLATION = [
+    ("SwiFT_NewE96", "swift_NewE96_SL20", "mean",         "resting"),
+    ("SwiFT_NewE96", "swift_NewE96_SL20", "mean",         "scratch"),
+    ("SwiFT_NewE96", "swift_NewE96_SL20", "replicate",    "resting"),
+    ("SwiFT_NewE96", "swift_NewE96_SL20", "replicate",    "scratch"),
+    ("SwiFT_NewE96", "swift_NewE96_SL20", "zero",         "resting"),
+    ("SwiFT_NewE96", "swift_NewE96_SL20", "zero",         "scratch"),
+    ("SwiFT_NewE96", "swift_NewE96_SL20", "spatial_only", "resting"),
+    ("SwiFT_NewE96", "swift_NewE96_SL20", "spatial_only", "scratch"),
+]
+
+# Cyclic-replicate 만 추가로 (기존 ablation 끝난 후 incremental). 2 cells × 2 init.
+# Question: T frames 를 cyclic 으로 반복해 SL=20 채우는 게 (last-frame replicate 보다) 도움 되나?
+SWIFT_PADDING_CYCLIC_ONLY = [
+    ("SwiFT_NewE96", "swift_NewE96_SL20", "cyclic_replicate", "resting"),
+    ("SwiFT_NewE96", "swift_NewE96_SL20", "cyclic_replicate", "scratch"),
+]
+
+CONFIG_SETS = {
+    "main": FEATURES,
+    "swift_padding_ablation": SWIFT_PADDING_ABLATION,
+    "swift_padding_cyclic_only": SWIFT_PADDING_CYCLIC_ONLY,
+}
+
+# SwiFT variants (5 variants: NewE36 / NewE192 / UAH_5M / UAH_51M / UAH_202M) probe.
+# NewE96 은 main grid 에 있어 제외. UAH_806M / deepE192 / SL60 / HCP / 3B 는 scope 밖.
+# Padding 은 외부에서 결정 (ablation 결과의 best). --swift_variants_padding 으로 주입.
+SWIFT_VARIANTS_TEMPLATE = [
+    ("SwiFT_UAH_5M",   "swift_UAH_5M_SL20",   "{PAD}", "resting"),
+    ("SwiFT_UAH_5M",   "swift_UAH_5M_SL20",   "{PAD}", "scratch"),
+    ("SwiFT_UAH_51M",  "swift_UAH_51M_SL20",  "{PAD}", "resting"),
+    ("SwiFT_UAH_51M",  "swift_UAH_51M_SL20",  "{PAD}", "scratch"),
+    ("SwiFT_UAH_202M", "swift_UAH_202M_SL20", "{PAD}", "resting"),
+    ("SwiFT_UAH_202M", "swift_UAH_202M_SL20", "{PAD}", "scratch"),
+    ("SwiFT_NewE36",   "swift_NewE36_SL20",   "{PAD}", "resting"),
+    ("SwiFT_NewE36",   "swift_NewE36_SL20",   "{PAD}", "scratch"),
+    ("SwiFT_NewE192",  "swift_NewE192_SL20",  "{PAD}", "resting"),
+    ("SwiFT_NewE192",  "swift_NewE192_SL20",  "{PAD}", "scratch"),
 ]
 
 ALL_SUBJECTS = ["sub-01", "sub-02", "sub-03", "sub-04", "sub-05"]
@@ -481,7 +525,22 @@ def main():
     ap.add_argument("--seeds", default="0", help="comma-separated seeds, default 1 seed.")
     ap.add_argument("--folds", default="1,2,3,4,5",
                     help="comma-separated outer folds for 5-fold CV (default all 5).")
+    ap.add_argument("--config_set", default="main",
+                    choices=list(CONFIG_SETS.keys()) + ["swift_variants"],
+                    help="main = 4 BFM × mean padding × 2 init + ROI. "
+                         "swift_padding_ablation = SwiFT only × 4 padding × 2 init. "
+                         "swift_variants = SwiFT NewE36/NewE192/UAH_51M × 2 init "
+                         "(padding 은 --swift_variants_padding 으로 지정).")
+    ap.add_argument("--swift_variants_padding", default="zero",
+                    help="config_set=swift_variants 일 때 적용할 padding. "
+                         "Default mean. ablation 결과의 best 로 줘.")
     args = ap.parse_args()
+    if args.config_set == "swift_variants":
+        FEATURES_ACTIVE = [
+            (n, d, args.swift_variants_padding, i) for (n, d, _p, i) in SWIFT_VARIANTS_TEMPLATE
+        ]
+    else:
+        FEATURES_ACTIVE = CONFIG_SETS[args.config_set]
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -495,12 +554,12 @@ def main():
                 raise ValueError(f"unknown task {t}. valid: {list(TASKS.keys())}")
 
     if args.features == "all":
-        features_to_run = FEATURES
+        features_to_run = FEATURES_ACTIVE
     else:
         wanted = set(f.strip() for f in args.features.split(","))
-        features_to_run = [f for f in FEATURES if f[0] in wanted]
+        features_to_run = [f for f in FEATURES_ACTIVE if f[0] in wanted]
         if not features_to_run:
-            valid = sorted(set(f[0] for f in FEATURES))
+            valid = sorted(set(f[0] for f in FEATURES_ACTIVE))
             raise ValueError(f"no features matched {wanted}. valid: {valid}")
 
     seeds_global = [int(s) for s in args.seeds.split(",")]
@@ -576,11 +635,10 @@ def main():
     df.to_csv(args.out_csv, index=False)
     print(f"\n[done] {args.out_csv}  ({len(df)} rows)")
 
-    # Aggregate across fold + seed
-    grp = ["feature", "init", "padding", "task", "task_type", "main_metric", "head", "mode", "subject"]
-    agg = df.groupby(grp)["test_main"].agg(["mean", "std", "count"]).reset_index()
-    agg.to_csv(args.summary_csv, index=False)
-    print(f"[done] {args.summary_csv}  ({len(agg)} cells)")
+    # Aggregate across fold + seed for ALL test_* metrics (mean + std)
+    from _summary_helper import summarize_probe_csv
+    summary = summarize_probe_csv(args.out_csv, args.summary_csv)
+    print(f"[done] {args.summary_csv}  ({len(summary)} cells, {len(summary.columns)} cols)")
 
     print("\n=== test_main per (feature, head, task) [mean over seeds × subjects/pool] ===")
     print(df.groupby(["feature", "init", "head", "task"])["test_main"].mean().unstack("task").round(3))

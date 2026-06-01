@@ -34,7 +34,10 @@ CANONICAL_CSV = FEELIN_ROOT / "data/feelin_canonical_stimuli.csv"
 
 # Constants
 N_ROIS = 450
-NUM_FRAMES = 20  # model crop_size temporal dim
+NUM_FRAMES = 16  # BJ patch_size=16, NUM_FRAMES=16 정확히 1 time patch.
+                 # T >= 16 자극은 center-crop (앞/뒤 trim) → middle 16 TR 사용,
+                 # initial hemodynamic transient 회피.
+                 # T < 16 자극은 padding 필요 (mean default).
 
 
 class FEELINHorikawaJEPADataset(Dataset):
@@ -76,12 +79,17 @@ class FEELINHorikawaJEPADataset(Dataset):
         return np.concatenate([cortex, subcort], axis=0)            # (450, T)
 
     def _pad_or_crop(self, ts: np.ndarray, mode: str = "replicate") -> tuple[np.ndarray, int]:
-        """Padding strategies. T > 20: always first 20 (truncate)."""
+        """Padding / cropping for Brain-JEPA.
+
+        T >= NUM_FRAMES (16): center-crop to middle NUM_FRAMES TR,
+            dropping (T-NUM_FRAMES)//2 from start and remainder from end.
+            예: T=20 → drop 2 head + 2 tail, keep TR 2..17.
+        T < NUM_FRAMES: pad to NUM_FRAMES using `mode`.
+        """
         original_T = ts.shape[1]
-        if original_T > NUM_FRAMES:
-            return ts[:, :NUM_FRAMES].astype(np.float32), original_T
-        if original_T == NUM_FRAMES:
-            return ts.astype(np.float32), original_T
+        if original_T >= NUM_FRAMES:
+            start = (original_T - NUM_FRAMES) // 2
+            return ts[:, start:start + NUM_FRAMES].astype(np.float32), original_T
         # T < NUM_FRAMES, need to pad
         pad_len = NUM_FRAMES - original_T
         if mode == "replicate":

@@ -1,0 +1,43 @@
+#!/bin/bash
+# FEELIN — Brain-JEPA zero padding only re-extraction
+# (NUM_FRAMES=16 center-crop for T>=16, zero pad for T<16).
+# 5 subj × 2 init × zero = 10 cells.  ~1-2h on 1 GPU.
+set -e
+cd /pscratch/sd/s/sjmoon/FEELIN
+
+LEAF_DIR="code/bfm_embeddings/extract_embedding/brain_jepa"
+LOG_DIR="output/logs/brain_jepa_T16center_zero"
+mkdir -p "${LOG_DIR}"
+
+START_ALL=$(date +%s)
+echo "============================================================"
+echo "Brain-JEPA NUM_FRAMES=16 center-crop, padding=zero re-extraction"
+echo "Start: $(date)"
+echo "============================================================"
+
+COUNT=0
+TOTAL=10
+for leaf in "${LEAF_DIR}"/brain_jepa_resting_zero_sub-*.sh "${LEAF_DIR}"/brain_jepa_scratch_zero_sub-*.sh; do
+  COUNT=$((COUNT + 1))
+  name=$(basename "${leaf}" .sh)
+  LOG="${LOG_DIR}/${name}.log"
+  short="${name#brain_jepa_}"
+  init=$(echo "$short" | cut -d_ -f1)
+  pad=$(echo "$short" | cut -d_ -f2)
+  sub=$(echo "$short" | cut -d_ -f3-)
+  OUT_PT="output/embeddings/brain_jepa_${init}_pad-${pad}/${sub}.pt"
+  if [ -f "$OUT_PT" ]; then
+    echo "[${COUNT}/${TOTAL}] SKIP ${name} (exists)"
+    continue
+  fi
+  echo "[${COUNT}/${TOTAL}] ${name}  → ${LOG}"
+  START=$(date +%s)
+  bash "${leaf}" > "${LOG}" 2>&1
+  END=$(date +%s)
+  echo "  done in $((END - START))s"
+done
+
+END_ALL=$(date +%s)
+echo "============================================================"
+echo "Done in $((END_ALL - START_ALL))s. New extracts at output/embeddings/brain_jepa_*_pad-zero/"
+echo "============================================================"

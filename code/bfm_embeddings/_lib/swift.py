@@ -2,12 +2,14 @@
 """
 FEELIN SwiFT_v2 embedding extraction.
 
-Supports 5 lab pretrained models (and scratch init for each):
-  - UAH_P2_51M  (ver9, embed_dim=96,  patch [6,6,6,2])
-  - UAH_P3_806M (ver9, embed_dim=384, patch [6,6,6,2])
-  - NewUAH_newE36  (ver11, embed_dim=36,  patch [6,6,6,1])
-  - NewUAH_newE96  (ver11, embed_dim=96,  patch [6,6,6,1])
-  - NewUAH_newE192 (ver11, embed_dim=192, patch [6,6,6,1])
+Supports 7 lab pretrained models (and scratch init for each):
+  - UAH_P1_5M   (ver9, embed_dim=36,  patch [6,6,6,2])  ~5M
+  - UAH_P2_51M  (ver9, embed_dim=96,  patch [6,6,6,2])  ~51M
+  - UAH_P3_202M (ver9, embed_dim=192, patch [6,6,6,2])  ~202M
+  - UAH_P3_806M (ver9, embed_dim=384, patch [6,6,6,2])  ~806M (excluded from grid by user)
+  - NewUAH_newE36  (ver11, embed_dim=36,  patch [6,6,6,1])  ~9M
+  - NewUAH_newE96  (ver11, embed_dim=96,  patch [6,6,6,1])  ~66M
+  - NewUAH_newE192 (ver11, embed_dim=192, patch [6,6,6,1])  ~264M
 
 Input: Horikawa 4D volumes (74,91,81,T) → spatial pad to 96^3 → temporal pad to 20
 Padding modes: replicate / zero / mean
@@ -37,12 +39,28 @@ NUM_FRAMES = 20
 # All use depths=[2,2,18,2], num_heads=[6,12,24,48], c_multiplier=2, last_layer_full_MSA=True,
 # SL=20, window=(4,4,4,window_t)
 MODEL_CONFIGS = {
+    "UAH_P1_5M": dict(
+        version="ver9",
+        ckpt="/pscratch/sd/j/jubchoi/Newdata_Phase3_MR0p6/UAH_P1_5M_MR_0p6_L1e-3/best.pt",
+        embed_dim=36,
+        patch_size=(6, 6, 6, 2),
+        window_size=(4, 4, 4, 4),         # lab reference: 4 (not 20)
+        first_window_size=(4, 4, 4, 4),
+    ),
     "UAH_P2_51M": dict(
         version="ver9",
         ckpt="/pscratch/sd/j/jubchoi/Newdata_Phase3_MR0p6/UAH_P2_51M_MR_0p6_L1e-4/best.pt",
         embed_dim=96,
         patch_size=(6, 6, 6, 2),
-        window_size=(4, 4, 4, 20),       # full temporal window
+        window_size=(4, 4, 4, 4),         # lab reference (NEW_extract_embeddings_ver9_GARD_UAH.sh:70)
+        first_window_size=(4, 4, 4, 4),
+    ),
+    "UAH_P3_202M": dict(
+        version="ver9",
+        ckpt="/pscratch/sd/j/jubchoi/Newdata_Phase3_MR0p6/UAH_P3_202M_MR_0p6_L1e-4/best.pt",
+        embed_dim=192,
+        patch_size=(6, 6, 6, 2),
+        window_size=(4, 4, 4, 4),
         first_window_size=(4, 4, 4, 4),
     ),
     "UAH_P3_806M": dict(
@@ -143,9 +161,13 @@ class FEELINHorikawaSwiFTDataset(Dataset):
             mean_frame = y.mean(dim=-1, keepdim=True)
             return mean_frame.expand(*mean_frame.shape[:-1], NUM_FRAMES).contiguous()
         if self.padding == "cyclic_replicate":
-            # cyclic: T frames 를 반복해서 N 길이로. e.g. T=5 -> [f1..f5, f1..f5, ...] cut at N
-            reps = (NUM_FRAMES + original_T - 1) // original_T  # ceil
-            tiled = y.repeat(*([1] * (y.dim() - 1)), reps)
+            # cyclic: T frames 를 반복해서 N 길이로. e.g. T=5 -> [f0..f4, f0..f4, ...] cut at N
+            reps = (NUM_FRAMES + T - 1) // T  # ceil
+            # y shape: (..., T). repeat 만 마지막 axis 에.
+            shape = list(y.shape)
+            shape[-1] = -1  # placeholder
+            rep_dims = [1] * (y.dim() - 1) + [reps]
+            tiled = y.repeat(*rep_dims)
             return tiled[..., :NUM_FRAMES].contiguous()
         raise ValueError(self.padding)
 

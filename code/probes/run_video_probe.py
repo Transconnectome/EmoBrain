@@ -451,11 +451,10 @@ def main():
     df.to_csv(args.out_csv, index=False)
     print(f"\n[done] {args.out_csv}  ({len(df)} rows)")
 
-    # Aggregate across folds and seeds
-    grp = ["feature", "task", "task_type", "main_metric", "head", "mode", "subject"]
-    agg = df.groupby(grp)["test_main"].agg(["mean", "std", "count"]).reset_index()
-    agg.to_csv(args.summary_csv, index=False)
-    print(f"[done] {args.summary_csv}  ({len(agg)} cells)")
+    # Aggregate across folds + seeds for ALL test_* metrics (mean + std + count)
+    from _summary_helper import summarize_probe_csv
+    summary = summarize_probe_csv(args.out_csv, args.summary_csv)
+    print(f"[done] {args.summary_csv}  ({len(summary)} cells, {len(summary.columns)} cols)")
 
     print("\n=== test_main per (feature, head, task) [seed 평균] ===")
     print(df.groupby(["feature", "head", "task"])["test_main"].mean().unstack("task").round(3))
