@@ -15,7 +15,7 @@ fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model �
 
 ## 4 Sub-question
 
-1. **fMRI 통합 방법 + brain encoder 선택 (main)** — 4 architecture (LLM token / cross-attention / contrastive / late fusion) × 4 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM / BrainLM) 중 어느 조합이 emotion task 에서 video-only baseline 을 넘는가?
+1. **fMRI 통합 방법 + brain encoder 선택 (main)** — 4 architecture (LLM token / cross-attention / contrastive / late fusion) × 3 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM) 중 어느 조합이 emotion task 에서 video-only baseline 을 넘는가?
 2. **Emotion 표상의 evidence** — V/A regression + 27/34-cat 분류 + 14 affective dim + caption affect 모두에서 model 이 baseline 을 넘는가?
 3. **Brain 의 causal 기여** — 같은 video × 다른 brain → output 차이가 systematic 한가? (counterfactual subject swap)
 4. **Content grounding 보존** — Caption 으로 stimulus retrieval 시 Horikawa Mind Captioning baseline 의 80% 정확도 유지?
@@ -63,7 +63,7 @@ Option B/C/D 는 Phase 2 의 A 결과 보고 결정.
 
 ## Brain encoder 4 종의 역할
 
-SwiFT / Brain-JEPA / NeuroSTORM / BrainLM = **fMRI 를 model 입력으로 변환하는 인코더 후보**. SQ1 의 핵심 비교 축. 우리가 한 BFM padding ablation / extraction / probe 작업이 이 비교의 build-up.
+SwiFT (NewE96 + 변종) / Brain-JEPA / NeuroSTORM = **fMRI 를 model 입력으로 변환하는 인코더 후보**. SQ1 의 핵심 비교 축. 우리가 한 BFM padding ablation / extraction / probe 작업이 이 비교의 build-up. BrainLM 은 490 timepoint × A424 atlas 가 고정이라 Horikawa 비호환으로 scope 제외.
 
 
 ## Evaluation protocol (모든 probe 공통)
@@ -76,24 +76,33 @@ SwiFT / Brain-JEPA / NeuroSTORM / BrainLM = **fMRI 를 model 입력으로 변환
 - 모든 결과: per-fold per-seed row → CSV (`results/phase1/`)
 
 
-## EmoViS 와의 관계
-
-- EmoViS = brain ↔ visual-semantic alignment 분석 (별도 repo)
-- FEELIN = brain-conditioned caption generation (이 repo)
-- **공유**: stimulus features (V-JEPA2, CLIP, DINOv2, VideoMAE, Qwen-VL caption). FEELIN 에서는 추출 안 함, `data/stimulus_features/` 에 EmoViS symlink
-- W12 / W18 에 결과 비교 meeting. Merge 가능성 열어둠.
-
-
 ## Phase Status (6 month plan)
 
-| Phase | Week | 다루는 sub-Q | Gate | 상태 |
-|---|---|---|---|---|
-| Phase 1: Foundation (architecture A transfer + brain encoder 추출 완성 + EmoViS feature 통합) | W1-6 | (사전 검증) | W6 Option A transferable? | **진행 중** |
-| Phase 2: 통합 학습 (Option A L1 → L2, 필요 시 B/C/D pilot) | W7-12 | SQ1, SQ2 | W12 video-only baseline 넘는가 | 대기 |
-| Phase 3: Deep integration (L3 LoRA) + causal evidence | W13-18 | SQ2, SQ3, SQ4 | W18 brain swap effect + retrieval | 대기 |
-| Phase 4: Synthesis + submission | W19-24 | (통합) | W24 venue 결정 | 대기 |
+| Phase | Week | 다루는 sub-Q | 상태 |
+|---|---|---|---|
+| Phase 1: Foundation (frozen probe benchmark + SwiFT padding ablation + 6 SwiFT variants) | W1-6 | (사전 검증) | **✅ 완료** (15p main + 11p supplementary PDF report) |
+| Phase 2: 통합 학습 (4 architecture A/B/C/D + brain-only 4 methods I/II/III/IV) | W7-12 | SQ1, SQ2 | **🔄 진행 중** (D/A/B/C joint 끝, brain-only 학습 중) |
+| Phase 3: Deep integration + subject-conditioned variability | W13-18 | SQ2, SQ3, SQ4 | 대기 |
+| Phase 4: Synthesis + submission | W19-24 | (통합) | 대기 |
 
 자세한 phase 별 task / go-no-go / agent review 는 [`docs/masterplan_v2.md`](docs/masterplan_v2.md).
+Phase 1 결과 정리: [`reports/phase1_wrapup/main.pdf`](reports/phase1_wrapup/main.pdf).
+Phase 2 진행 상황: [`code/phase2/README.md`](code/phase2/README.md).
+
+### Phase 1 핵심 finding (한 줄)
+
+Frozen brain foundation model probe 어떤 변종도 video pretrained baseline 을 못 넘음
+(CLIP V_binary 0.97 ≫ best frozen BFM 0.74). Crowd-sourced V/A label 이 video attribute
+라 video 가 우세한 게 trivial. SwiFT 5M~264M size 효과 무. 시간 정보도 frozen probe 에선
+거의 사용 안 됨 (padding ablation 4 mode 비슷). Phase 2 trained integration 으로 진행.
+
+### Phase 2 진행 중 finding
+
+- 4 fusion arch (D/A/B/C joint inference) 결과 V_binary AUROC ~0.97 (= CLIP 단독)
+- Joint 가 video baseline 위로 추가 향상 만들지 못함 → "brain 의 unique value 는 group 의
+  V/A label 이 아닌 subject-specific response" 가설 강화
+- 진행 중: brain-only 4 method (supervised MLP / CLIP distill / multitask / subject-aware) 로
+  "brain encoder 학습 paradigm 이 frozen probe 보다 brain emotion-prediction 향상시키나" 측정
 
 
 ## Repository Map

@@ -102,6 +102,9 @@ Benchmark comparisons:
 | brain-only vs stimulus-only vs aligned | Does fMRI add information beyond stimulus context? |
 | MLLM rationale alignment vs emotion-label alignment | Does brain latent align with "why" representations or only labels? |
 | context ablation | Which modalities or preceding context drive the prediction? |
+| frozen-probe vs trained-integration temporal modeling | Does trained integration recover the early-visual temporal alignment that frozen probes miss (Sartzetaki et al. 2025)? |
+| layer-wise alignment scan per BFM | Are CNN-Swin (SwiFT) and pure Transformer (Brain-JEPA) layer-depth alignment patterns distinct, mirroring Sartzetaki's CNN vs Transformer comparison? |
+| FLOPs vs emotion-task performance across SwiFT variants | Does the Sartzetaki negative FLOPs-alignment trend hold for affective targets across SwiFT 5M / 51M / 202M / NewE36 / NewE192? |
 
 First feasible implementation:
 

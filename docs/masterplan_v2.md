@@ -18,7 +18,7 @@ fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model �
 
 ### Sub-question 1. fMRI 통합 방법 + brain encoder 선택 (main contribution)
 
-어떤 architecture (아래 4 option) 와 어떤 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM / BrainLM) 의 조합이 emotion-aware multimodal foundation model 에 가장 적합한가?
+어떤 architecture (아래 4 option) 와 어떤 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM) 의 조합이 emotion-aware multimodal foundation model 에 가장 적합한가? (BrainLM 은 490 timepoint × A424 atlas 고정으로 Horikawa 비호환, scope 제외.)
 
 | Option | 설명 |
 |---|---|
@@ -27,9 +27,9 @@ fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model �
 | **C. Contrastive alignment** | fMRI embedding 과 video / caption embedding 을 shared latent 로 contrastive 학습 후 downstream |
 | **D. Late fusion** | Brain 과 video 를 각자 처리 후 concat / element-wise |
 
-각 option 안에서 brain encoder 4 종을 swap-in.
+각 option 안에서 brain encoder 3 종을 swap-in.
 
-**Go**: 4 option × 4 encoder = 16 cell 중 best 가 video-only baseline 대비 emotion task (V/A regression + 27-cat 분류) 에서 통계적으로 유의한 향상.
+**Go**: 4 option × 3 encoder = 12 cell 중 best 가 video-only baseline 대비 emotion task (V/A regression + 27-cat 분류) 에서 통계적으로 유의한 향상.
 **Pivot**: 모든 cell 이 baseline 과 구별 없음 → "brain conditioning 자체가 emotion 정보 추가 못 함" 결론. 다음 phase 는 brain encoder fine-tune 으로.
 
 ### Sub-question 2. Emotion 표상의 evidence (multi-channel)
@@ -90,7 +90,7 @@ Emotion 에 집중하면서도 자극 content 를 잡고 있는가? Caption 생�
 fMRI (B, T, 96, 96, 96)
    │
    ▼
-fMRI encoder (brain encoder 4 종 swap-in: SwiFT / Brain-JEPA / NeuroSTORM / BrainLM)
+fMRI encoder (brain encoder 3 종 swap-in: SwiFT / Brain-JEPA / NeuroSTORM)
    │
    ▼ z_brain
    ┌─────────────────────────────────────────┐
@@ -133,14 +133,15 @@ Option B/C/D 는 Phase 2 의 Option A 결과 보고 결정 — A 가 충분히 �
 
 ## 4. 자원 분배
 
-### Brain foundation model 4 종 (우리 추출 작업이 직접 활용)
+### Brain foundation model 3 종 (우리 추출 작업이 직접 활용)
 
 | Model | 추출 상태 | 역할 |
 |---|---|---|
-| SwiFT NewE96 (+ NewE36 / NewE192 / UAH 51M / UAH 806M) | NewE96 부분 완료, 나머지 추출 대기 | vision tower 후보 1 |
-| Brain-JEPA | 추출 완료 (spatial_only padding, proper mean 재추출 진행 중) | vision tower 후보 2 |
-| NeuroSTORM | 추출 완료 (spatial_only padding, proper mean 재추출 진행 중) | vision tower 후보 3 |
-| BrainLM | 추출 인프라 확인 필요 (atlas 호환성 문제 가능) | vision tower 후보 4 (가능 시) |
+| SwiFT NewE96 (+ NewE36 / NewE192 / UAH 5M / UAH 51M / UAH 202M) | NewE96 완료, 5 변종 padding ablation 결정 후 추출 | vision tower 후보 1 |
+| Brain-JEPA | 추출 완료 (proper mean padding) | vision tower 후보 2 |
+| NeuroSTORM | 추출 완료 (proper mean padding) | vision tower 후보 3 |
+
+**BrainLM 제외**: 490 timepoint 와 A424 atlas 가 고정 입력으로 강제돼 Horikawa 자극 (T=5-15) 와 비호환. Scope 밖.
 
 ### Stimulus features (EmoViS 에서 reuse, FEELIN 에서 추출 안 함)
 
@@ -164,24 +165,7 @@ Option B/C/D 는 Phase 2 의 Option A 결과 보고 결정 — A 가 충분히 �
 - Phase 1 의 첫 task = 우리 데이터에 transfer 되는지 검증
 
 
-## 5. EmoViS 와의 분업
-
-EmoViS 는 brain ↔ visual-semantic model alignment 분석 (descriptive: 어떤 model representation 이 brain emotion 과 align?). FEELIN 은 brain 을 받아 emotion 을 generate 하는 model 구축 (transformative).
-
-| 작업 | 어디서 |
-|---|---|
-| Stimulus feature 추출 (V-JEPA2, CLIP, DINOv2, VideoMAE, Qwen-VL caption) | EmoViS (이미 완료, FEELIN 이 symlink 로 reuse) |
-| Brain RDM, brain-stimulus RSA / CKA | EmoViS |
-| Brain foundation model embedding 추출 | FEELIN |
-| Brain-conditioned caption generation | FEELIN |
-| Brain swap counterfactual | FEELIN |
-
-CCN (사용자 발표) 의 결과는 참고하지 않음. CCN 의 아이디어 (video-brain alignment 가 emotion-relevant 할 수 있다) 만 동기로 사용.
-
-EmoViS branch 가 FEELIN main 과 나중에 merge 될 가능성 열어둠. Phase 3 끝 (W18) 시점에 두 결과 비교 후 결정.
-
-
-## 6. Phase plan (6 month, 4 phase)
+## 5. Phase plan (6 month, 4 phase)
 
 ### Phase 1: Foundation (Week 1-6)
 
@@ -194,8 +178,7 @@ EmoViS branch 가 FEELIN main 과 나중에 merge 될 가능성 열어둠. Phase
 
 **Track 2. Brain foundation model 추출 완성 (병행)**
 - 진행 중: proper mean padding 으로 NewE96 + Brain-JEPA + NeuroSTORM × 5 subject × 2 init = 30 cell
-- W3-4 시작: SwiFT 나머지 4 변종 (NewE36, NewE192, UAH 51M, UAH 806M) 추출
-- W5-6: BrainLM 인프라 점검 (atlas 호환 가능?)
+- W3-4 시작: SwiFT padding ablation 결과의 best padding 으로 SwiFT 5 변종 (NewE36, NewE192, UAH 5M, UAH 51M, UAH 202M) 추출
 
 **Track 3. Stimulus feature + reference caption 통합 (가벼움)**
 - W1: EmoViS feature symlink 확인 (이미 완료)
@@ -206,8 +189,7 @@ EmoViS branch 가 FEELIN main 과 나중에 merge 될 가능성 열어둠. Phase
 
 체크리스트:
 - [ ] Brain-VLM transfer 검증: ABCD vs Horikawa token KL 측정 + token linear probe V/A r 측정
-- [ ] BFM 4 종 × 5 subject 추출본 100% 확인 (proper mean padding)
-- [ ] BrainLM 추출 가능 여부 결정
+- [ ] BFM 3 종 × 5 subject 추출본 100% 확인 (proper mean padding)
 - [ ] EmoViS feature 9 종 로딩 sanity check
 - [ ] Caption reference 분석 결과 표
 - [ ] Phase 2 진입 결정: token linear probe V/A r ≥ 0.3 → Go, < 0.3 → BrainVLM 직접 fine-tune 으로 우회
@@ -259,7 +241,7 @@ L2 (vision tower 교체 + freeze) → L3 (LoRA fine-tune).
 - W24: Submission target 결정 (NeurIPS / Nat Commun / Imaging Neuroscience)
 
 
-## 7. Critical files
+## 6. Critical files
 
 **기존 작업 재사용**:
 - `code/bfm_embeddings/_lib/{swift,brain_jepa,neurostorm}.py` — BFM extraction
@@ -286,14 +268,12 @@ L2 (vision tower 교체 + freeze) → L3 (LoRA fine-tune).
 - `/pscratch/sd/s/sjmoon/EmoViS/study1/results/` — stimulus features
 
 
-## 8. Risk register
+## 7. Risk register
 
 | Risk | Probability | Impact | Mitigation |
 |------|------|--------|------------|
 | BrainVLM transfer fail (Phase 1 gate) | Med-High | Critical | Phase 1 W5-6 에 zero-shot 측정으로 일찍 노출. Fail 시 BrainVLM 직접 fine-tune 으로 우회 |
 | Caption 의 affect 가 video / VLM prior 에 묶임 (SQ2 fail) | Med | High | Counterfactual swap 으로 직접 측정. Fail 시 brain encoder 또는 cross-attention 재설계 |
 | 5 subject 통계 검정력 부족 | High | Med | Within-subject + bootstrap CI 강조. Subject-level claim 자제 |
-| BrainLM atlas 비호환 | High | Low | 4 BFM 대신 3 BFM 으로 진행 (SwiFT + Brain-JEPA + NeuroSTORM) |
-| EmoViS branch divergence | Low | Med | W12 시점 alignment meeting |
 | Reviewer "BrainChat reskin" 격하 | Med | Med | Counterfactual subject swap + L1/L2/L3 BFM 비교를 직접 차별화 |
 | 6 month budget overrun | Med | Med | Phase 3 의 L3 (LoRA) 가 미완 가능 — Phase 4 로 미루기 |

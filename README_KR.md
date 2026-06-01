@@ -5,7 +5,7 @@
 
 ## 한 줄
 
-fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model 을 만든다. fMRI 를 어떤 architecture × 어떤 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM / BrainLM) 로 통합해야 model 의 emotion 이해 능력이 가장 잘 형성되는지 비교한다.
+fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model 을 만든다. fMRI 를 어떤 architecture × 어떤 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM) 로 통합해야 model 의 emotion 이해 능력이 가장 잘 형성되는지 비교한다.
 
 
 ## Big Question
@@ -59,7 +59,7 @@ Option B/C/D 는 Phase 2 의 A 결과 보고 결정.
 
 ## Brain encoder 4 종의 역할
 
-SwiFT / Brain-JEPA / NeuroSTORM / BrainLM = **fMRI 를 model 입력으로 변환하는 인코더 후보**. SQ1 의 핵심 비교 축. 우리가 한 BFM extraction 작업이 이 비교의 build-up.
+SwiFT (NewE96 + 변종) / Brain-JEPA / NeuroSTORM = **fMRI 를 model 입력으로 변환하는 인코더 후보**. SQ1 의 핵심 비교 축. 우리가 한 BFM extraction 작업이 이 비교의 build-up. BrainLM 은 490 timepoint × A424 atlas 고정 → Horikawa 비호환으로 scope 제외.
 
 
 ## Evaluation protocol
@@ -69,26 +69,29 @@ SwiFT / Brain-JEPA / NeuroSTORM / BrainLM = **fMRI 를 model 입력으로 변환
 - 6 task × 2 head (Linear + MLP) × (BFM 의 경우 2 mode) × 1 seed (screening) / 3 seed (final paper)
 
 
-## EmoViS 와의 관계
-
-- EmoViS = brain ↔ visual-semantic alignment (별도 repo)
-- FEELIN = brain-conditioned caption generation
-- **공유**: stimulus features. FEELIN 은 추출 안 함, `data/stimulus_features/` 에 EmoViS symlink. EmoViS 에 V-JEPA2, CLIP, DINOv2, VideoMAE, Qwen-VL caption 다 있음.
-- W12, W18 결과 비교. Merge 가능성 열어둠.
-
-CCN (사용자 발표) 의 결과는 인용 안 함. 아이디어만 reference.
-
-
 ## Phase Status
 
-| Phase | Week | 다루는 sub-Q | Gate | 상태 |
-|---|---|---|---|---|
-| Phase 1: Foundation | W1-6 | (사전 검증) | W6 Option A transferable? | **진행 중** |
-| Phase 2: 통합 학습 (Option A L1 → L2, 필요 시 B/C/D pilot) | W7-12 | SQ1, SQ2 | W12 baseline 넘는가 | 대기 |
-| Phase 3: Deep integration (L3 LoRA) + causal | W13-18 | SQ2, SQ3, SQ4 | W18 brain swap + retrieval | 대기 |
-| Phase 4: Submission | W19-24 | (통합) | W24 venue | 대기 |
+| Phase | Week | 다루는 sub-Q | 상태 |
+|---|---|---|---|
+| Phase 1: Foundation (frozen probe benchmark + SwiFT padding ablation + 6 SwiFT variants) | W1-6 | (사전 검증) | **✅ 완료** (15p main + 11p supplementary PDF) |
+| Phase 2: 통합 학습 (4 architecture A/B/C/D + brain-only 4 methods I/II/III/IV) | W7-12 | SQ1, SQ2 | **🔄 진행 중** |
+| Phase 3: Deep integration + subject-conditioned variability | W13-18 | SQ2, SQ3, SQ4 | 대기 |
+| Phase 4: Submission | W19-24 | (통합) | 대기 |
 
 자세한 plan: [`docs/masterplan_v2.md`](docs/masterplan_v2.md).
+Phase 1 보고서: [`reports/phase1_wrapup/main.pdf`](reports/phase1_wrapup/main.pdf).
+Phase 2 진행: [`code/phase2/README.md`](code/phase2/README.md).
+
+### Phase 1 핵심 finding
+
+Frozen BFM 모두 video baseline 못 넘음 (CLIP 0.97 ≫ BFM best 0.74). 이건 V/A label 이
+crowd-sourced video attribute 라 trivial. SwiFT 5M~264M size 효과 무. Padding ablation 4
+mode 거의 비슷 (시간 정보 frozen 으로 안 씀). Phase 2 trained integration 으로 진행.
+
+### Phase 2 finding (진행 중)
+
+4 fusion arch (D/A/B/C joint) 가 V_binary 0.97 (CLIP 단독 = 그대로 saturate). Brain 추가
+효과 noise 수준. Brain-only 4 method 학습 중.
 
 
 ## Repository Map

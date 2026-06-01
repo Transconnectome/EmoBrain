@@ -195,6 +195,15 @@ This file records the currently relevant papers and how each should be used in t
 - **FEELIN role**: auxiliary dataset for short-video stimulus-brain modeling and possible non-emotion pretraining.
 - **Source**: https://www.nature.com/articles/s41467-024-50310-3
 
+### Sartzetaki et al. 2025: One Hundred Neural Networks and Brains Watching Videos
+
+- **Authors**: Christina Sartzetaki, Gemma Roig, Cees G.M. Snoek, Iris I.A. Groen.
+- **Venue**: ICLR 2025.
+- **Type**: large-scale benchmarking of 99 deep video and image models against human brain responses on the BOLD Moments dataset using Representational Similarity Analysis (RSA) across 17 brain regions.
+- **Claim**: Disentangles four factors of variation (temporal modeling, classification task, architecture, training dataset). **Temporal modeling is the key driver of alignment with early visual regions (V1, V2, V3)**, while **action-recognition classification task drives alignment with late higher-level regions (LOC, FFA, OFA)**. CNN and Transformer architectures show distinct layer-depth alignment patterns (Transformers align early in the network, CNNs gradually). Reports a negative correlation between model FLOPs and alignment in higher-level regions.
+- **FEELIN role**: methodological prior for FEELIN. Our Phase 1 frozen-probe finding that SwiFT does not use temporal information is consistent with Sartzetaki's observation that temporal modeling matters only when the video model is end-to-end trained on a task that requires it. Motivates Phase 2 trained-integration architectures over frozen-probe extraction. Also motivates layer-wise alignment scans and FLOPs scaling analyses across SwiFT variants (UAH 5M to 202M; NewE36 to NewE192) as direct emotion-domain replications of their visual-domain analyses.
+- **Source**: https://openreview.net/forum?id=LM4PYXBId5 (paper PDF: https://openreview.net/pdf?id=LM4PYXBId5)
+
 ### Spacetop
 
 - **Type**: multimodal fMRI dataset with naturalistic and task data.

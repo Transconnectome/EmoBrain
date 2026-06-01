@@ -16,7 +16,7 @@ Naturalistic emotional experience 의 brain representation 을 context-aware fou
 | Tier | Name | Models | Role |
 |---|---|---|---|
 | **T1** Floor | Statistical | Schaefer 200/400/1000 ROI mean + Ridge / Logistic | Minimum performance |
-| **T2** BFM Ceiling | Brain Foundation Model | SwiFT (NewE96 + 4 변종), Brain-JEPA, NeuroSTORM, BrainLM | BFM-class ceiling |
+| **T2** BFM Ceiling | Brain Foundation Model | SwiFT (NewE96 + 5 변종), Brain-JEPA, NeuroSTORM | BFM-class ceiling (BrainLM 은 490 TR × A424 고정으로 Horikawa 비호환, 제외) |
 | **T3** Multimodal / VLM | Visual-semantic + VLM | VideoMAE / DINOv2 / V-JEPA2 / CLIP + Qwen-VL caption + BrainVLM + TRIBE v2 | Context-aware upper bound |
 
 ## 4 Sub-Questions
