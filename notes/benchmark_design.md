@@ -16,6 +16,17 @@ Last updated: 2026-05-17
 
 ---
 
+## v4 update (2026-06-02): target promotion + cross-dataset axis
+
+이 매트릭스 (Dataset × BFM × Task) 는 보존된다. v4 는 두 가지를 덧붙인다.
+
+1. **Target 승격.** primary target 을 L2 (Cowen 34-category top-1), L3 (34 multi-label / 14 dimension), 그리고 신규 **L3b OV emotion-text embedding** 으로 올린다. L0 / L1 (V/A binary / regression) 은 video 가 saturate 하는 게 Phase 1 에서 측정됐으므로 reference / floor axis 로 강등.
+2. **Cross-dataset evaluation 을 1급 축으로.** 기존 Master Matrix 는 dataset 마다 task 가능 여부만 봤다. v4 는 "Horikawa 학습 → 다른 dataset transfer" 를 명시 측정한다. metadata 빈약한 target 을 위해 네 전략: (1) shared text-embedding zero-shot (main), (2) label-space intersection (안전), (3) OV-MER / AffectGPT universal annotator, (4) representational alignment (label-free). 자세한 내용 `docs/masterplan_v2.md` 4 절.
+
+OV emotion-text embedding target: stimulus 의 emotion label / description 을 frozen sentence encoder 로 embedding 한 벡터를 brain encoder 가 회귀. open-vocabulary / cross-taxonomy zero-shot 가능. Horikawa 는 Cowen gold norm 으로 만들고, norm 없는 target dataset 은 OV-MER / AffectGPT 로 라벨 생성.
+
+---
+
 ## Axes
 
 ### A. Dataset Axis

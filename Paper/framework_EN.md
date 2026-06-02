@@ -12,6 +12,22 @@ External-facing pitch:
 
 > FEELIN will not start by claiming a complete emotion foundation model. It will first build an initial benchmark around SwiFT, naturalistic movie/story fMRI datasets, TRIBE v2-style stimulus-to-brain models, and affective LLM/VLM representations. The benchmark asks which information source helps which emotion target. The model-development track is then chosen from four directions: SwiFT emotion adaptation, naturalistic fMRI continued pretraining, TRIBE-SwiFT stimulus-brain alignment, and brain-tuned affective LLM/VLM adapters.
 
+## v4 Reframing (2026-06-02)
+
+The canonical direction above is preserved. The Big Question axis moves from the v3 framing ("does fMRI + video fusion beat the video-only baseline") to **transfer**. All measured results are preserved (`reports/phase1_wrapup/`, `docs/masterplan_v2.md` section 7.0).
+
+**Two distinct questions.** Question A (does the brain beat video features on the same stimulus) was answered by the Phase 1 frozen probe and Phase 2 joint inference: it does not. The crowd-sourced valence and arousal labels are by construction a property of the stimulus video, so a video encoder such as CLIP wins trivially. Question B (does a brain emotion representation learned on Horikawa transfer to new subjects, datasets, and taxonomies) is the real foundation-model question. Video is not a competitor in Question B but a supervision oracle, since video cannot be applied to a new fMRI dataset's brain data.
+
+**Scientific grounding (Horikawa, Cowen, Keltner, Kamitani 2020, iScience).** Emotion category representations predicted cortical and subcortical responses better than affective dimensions such as valence, and outperformed visual and semantic covariates (that is, video features) in transmodal regions. High-dimensional categorical and appraisal targets, not scalar valence and arousal, are the battleground where brain-specific signal lives.
+
+**Five v4 sub-questions.** SQ1 transfer (main), SQ2 supervision richness, SQ3 representation geometry, SQ4 data efficiency, SQ5 where (label-free). All are representation questions and none assume the brain must beat video.
+
+**Target hierarchy.** Cowen 34-category, Cowen 14-dimension, and open-vocabulary emotion-text embedding are promoted to primary targets. Valence and arousal are demoted to a reference axis.
+
+**Cross-dataset evaluation.** (1) shared text-embedding zero-shot (main), (2) label-space intersection (safe baseline), (3) MLLM (OV-MER / AffectGPT) universal annotator, (4) representational alignment (label-free). Metadata-poor independent datasets remain evaluable. Horikawa is trained on Cowen gold norms, while OV-MER / AffectGPT serve only as a label-harmonization tool for target datasets without such norms.
+
+Forward plan: `docs/masterplan_v2.md` (v4).
+
 ## Model-Development Problem
 
 The main question is not "what is emotion?" The main question is:

@@ -116,3 +116,29 @@ Subject block은 "personalized emotion decoding" 트랙으로 분리. Phase 2 �
 
 **기록 위치:**
 이 결정은 `Paper/methodology.md` Phase 2 Track A0 (architecture exploration) 으로도 반영.
+
+---
+
+## 2026-06-02
+
+### v4 Reframing, Transferable Emotion Brain Foundation Model
+
+**결정:** Big Question 의 축을 v3 의 "fMRI + video fusion 이 video-only baseline 을 넘는가" 에서 **transfer** 로 옮긴다. 새 정체성 = Transferable Emotion Brain Foundation Model.
+
+**근거:**
+1. 두 질문 분리. 질문 A (brain 이 같은 stimulus 에서 video 를 이기나) 는 Phase 1 frozen probe + Phase 2 joint inference 가 "못 넘는다" 로 답함. crowd-sourced V/A label 이 stimulus 속성이라 CLIP 이 이기는 게 trivial. 질문 B (Horikawa 학습 brain emotion representation 이 새 subject / dataset / taxonomy 로 transfer 되나) 가 foundation model 의 본 질문. video 는 질문 B 에서 supervision oracle 이지 경쟁자가 아님.
+2. Horikawa et al. 2020 (iScience): emotion category 가 affective dimension 보다, transmodal region 에서 visual / semantic covariate (video feature) 를 능가. scalar V/A 가 아닌 high-dimensional categorical target 이 brain 고유 신호의 전장.
+
+**결과 보존 (중요):** v4 reframe 는 기존 측정 결과를 **폐기하지 않는다**. Phase 1 frozen probe benchmark (CLIP 0.971 / ROI 0.789 / BFM, padding ablation, 6 SwiFT variants), Phase 2 joint inference 표 (D/A/B/C), brain-only smoke 전부 보존. 원본: `reports/phase1_wrapup/{main,supplementary}.pdf`, `reports/phase1_foundation.md`, `reports/weekly/2026-06-01.md`, `results/{phase1,padding_ablation,main_grid_3bfm}/` CSV, `output/embeddings/`. 측정값 요약은 `docs/masterplan_v2.md` 7.0 에 인라인 보존. 이 결과들은 질문 A evidence + Phase 4 fallback 논문 ("crowd-labeled naturalistic emotion fMRI 는 video-prediction task 임") 의 본문이 됨. **추출된 raw data / checkpoint / output / CSV 덮어쓰지 않음 (CLAUDE.md 규칙 유지).**
+
+**Target hierarchy 변경:** Cowen 34-category / 14-dimension / open-vocabulary emotion-text embedding 을 primary 로 승격, V/A 를 reference axis 로 강등.
+
+**Sub-question 변경:** SQ1 transfer (main) / SQ2 supervision richness / SQ3 representation geometry (RSA, CKA) / SQ4 data efficiency / SQ5 where (label-free). 전부 representation 질문.
+
+**Cross-dataset evaluation protocol 신설:** (1) shared text-embedding zero-shot (main), (2) label-space intersection (안전), (3) MLLM (OV-MER / AffectGPT) universal annotator, (4) representational alignment (label-free). Horikawa 는 Cowen gold norm 학습, OV-MER / AffectGPT 는 norm 없는 target dataset 의 harmonization 도구로만.
+
+**신규 도구:** OV-MER (Lian et al. 2025, ICML), AffectGPT / AffectGPT-R1 (github zeroQiaoba/AffectGPT). first action = Horikawa 무음 short clip 에 AffectGPT 출력 sanity check.
+
+**우선 확인 (open):** Horikawa 원 데이터에 per-subject self-rating 이 있는지. 있으면 subject-specific transfer 분석에 wiring, 없으면 group-label + ISC ceiling 으로 재설계.
+
+**반영 위치:** `docs/masterplan_v2.md` (v4 전면), `CONTEXT_FEELIN.md`, `README.md`, `README_KR.md`, `ONBOARDING.md`, `Paper/framework_{KR,EN}.md`, `Paper/methodology.md`, `reference/papers.md`, `notes/benchmark_design.md`, `reference/task.md`.

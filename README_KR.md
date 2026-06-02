@@ -1,24 +1,31 @@
 # FEELIN 한국어 가이드
 
-**Emotion-aware Multimodal Foundation Model from Naturalistic fMRI + Video**
+**Transferable Emotion Brain Foundation Model from Naturalistic fMRI**
 
 
 ## 한 줄
 
-fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model 을 만든다. fMRI 를 어떤 architecture × 어떤 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM) 로 통합해야 model 의 emotion 이해 능력이 가장 잘 형성되는지 비교한다.
+Horikawa naturalistic fMRI 로 transfer 가능한 multi-dimensional emotion brain representation 을 학습하고, metadata 가 빈약한 independent dataset / 새 subject / 다른 taxonomy 로 일반화되는지 측정한다. 어떤 supervision 과 어떤 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM) 가 가장 transferable 한 표상을 만드는지 비교한다.
 
 
 ## Big Question
 
-fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model 을 만들 수 있는가? 그리고 fMRI 를 어떻게 인코딩 / 통합해야 (어떤 architecture × 어떤 brain encoder) model 의 emotion 이해 능력이 가장 잘 형성되는가?
+Horikawa naturalistic fMRI 로 학습한 multi-dimensional emotion brain representation 이, metadata 가 풍부하지 않은 independent dataset / 새 subject / 다른 emotion taxonomy 로 transfer 되는 emotion brain foundation model 이 될 수 있는가? 어떤 supervision (scalar V/A vs Cowen 34-category vs 14-dimension vs open-vocabulary description) 과 어떤 brain encoder 가 가장 transferable 한 표상을 만드는가?
+
+v3 의 질문 ("fMRI + video fusion 이 video baseline 을 넘는가") 은 Phase 1 + Phase 2 joint 가 "넘지 못한다" 로 답했고 (crowd V/A label = stimulus 속성이라 trivial), 측정 결과는 보존된다. 근거 (Horikawa 2020): emotion category 가 affective dimension 보다, transmodal region 에서 video feature 를 능가.
 
 
-## 4 Sub-question
+## 5 Sub-question (전부 representation 질문)
 
-1. **fMRI 통합 방법 + brain encoder 선택 (main)** — 4 architecture (LLM token / cross-attention / contrastive / late fusion) × 4 brain encoder 중 어느 조합이 video-only baseline 을 넘는가?
-2. **Emotion 표상의 evidence** — V/A regression + 27/34-cat 분류 + 14 affective dim + caption affect 모두에서 향상?
-3. **Brain causal 기여** — 같은 video × 다른 brain 으로 conditioning 했을 때 output 차이가 systematic 한가? (counterfactual subject swap)
-4. **Content grounding 보존** — Caption 으로 stimulus retrieval 시 Mind Captioning baseline 80% 유지?
+1. **SQ1 Transfer (main)**, Horikawa 학습 표상이 새 dataset / subject / taxonomy 로 일반화되는가? (zero-shot + few-shot)
+2. **SQ2 Supervision richness**, scalar V/A vs Cowen 34 / 14 / open-vocabulary 중 어느 supervision 이 더 transferable 한가?
+3. **SQ3 Representation geometry**, 학습된 emotion space 가 Horikawa 2020 구조를 복원하나? (RSA / CKA)
+4. **SQ4 Data efficiency**, pretrained FM 이 from-scratch 대비 몇 배 적은 label 로 같은 성능?
+5. **SQ5 Where (label-free)**, emotion 정보가 brain 의 어디에? network-restricted, ISC ceiling.
+
+### Cross-dataset evaluation (metadata 빈곤 해결)
+
+1 Shared text-embedding zero-shot (main), 2 Label-space intersection (안전), 3 MLLM (OV-MER / AffectGPT) universal annotator, 4 Representational alignment (label-free). 자세한 내용 `docs/masterplan_v2.md` 4 절.
 
 ### Probe 별 scientific question
 
@@ -91,7 +98,15 @@ mode 거의 비슷 (시간 정보 frozen 으로 안 씀). Phase 2 trained integr
 ### Phase 2 finding (진행 중)
 
 4 fusion arch (D/A/B/C joint) 가 V_binary 0.97 (CLIP 단독 = 그대로 saturate). Brain 추가
-효과 noise 수준. Brain-only 4 method 학습 중.
+효과 noise 수준 → 질문 A 종료. Brain-only 4 method 학습 중.
+
+측정값 전부 보존 (`reports/phase1_wrapup/`, `docs/masterplan_v2.md` 7.0).
+
+### v4 pivot (2026-06-02)
+
+질문을 transfer 로 이동. target 을 Cat34 / Dim14 / OV-text-embedding 으로 승격, brain → emotion-text
+projector 로 cross-dataset zero-shot / few-shot 측정. OV-MER / AffectGPT 는 metadata 빈약한 target
+dataset 의 라벨 harmonization 도구 (Horikawa 는 Cowen gold norm 사용).
 
 
 ## Repository Map

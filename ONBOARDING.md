@@ -4,12 +4,12 @@
 
 ## 프로젝트 정체성
 
-FEELIN = **Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data**.
+FEELIN = **Transferable Emotion Brain Foundation Model**.
 
-**Big Question (Masterplan v2.0)**:
-Naturalistic emotional experience 의 brain representation 을 context-aware foundation model 로 어떻게 잘 잡아낼 수 있는가 — 단일 stimulus snapshot, multimodal stimulus 표상, 혹은 language-grounded VLM 통합 중 어느 축이 emotion 을 결정하는가?
+**Big Question (Masterplan v4, 2026-06-02)**:
+Horikawa naturalistic fMRI 로 학습한 multi-dimensional emotion brain representation 이, metadata 가 풍부하지 않은 independent dataset / 새 subject / 다른 emotion taxonomy 로 transfer 되는 emotion brain foundation model 이 될 수 있는가? 어떤 supervision 과 어떤 brain encoder 가 가장 transferable 한 표상을 만드는가?
 
-FEELIN 은 emotion theory paper 도, 단순 benchmark paper 도 아니다. **세 가지 representation tier (statistical floor / brain foundation model ceiling / multimodal-VLM upper bound) 를 동일 protocol 로 비교하여 emotion 표상의 organizing principle 을 찾는 model-development 프로젝트**.
+FEELIN 은 emotion theory paper 가 아니라 **model-development 프로젝트**. contribution 은 "brain 이 video 를 이기나" 가 아니라 representation 의 transfer / generalization / data-efficiency / universality 다. v3 의 질문 ("fMRI + video fusion 이 video baseline 을 넘는가") 은 Phase 1 + Phase 2 joint 가 "넘지 못한다 (crowd V/A label = stimulus 속성이라 trivial)" 로 답했고, 그 측정 결과는 보존된다 (`reports/phase1_wrapup/`, `docs/masterplan_v2.md` 7.0). v4 는 질문을 transfer 로 옮긴다.
 
 ## 읽을 순서
 
@@ -46,9 +46,9 @@ FEELIN 은 emotion theory paper 도, 단순 benchmark paper 도 아니다. **세
 | 전략/모델 주장 stress-test | `workflows/red_blue_team_review.md` |
 | 진척도 정리 | `workflows/weekly_update_workflow.md` |
 
-## 현재 진행 상황 (2026-05-19 기준)
+## 현재 진행 상황 (2026-06-02 기준)
 
-- **Phase 1** (W1-6) 진행 중: floor + cross-BFM consistency + BrainVLM zero-shot transfer 병행
-- **완료**: SwiFT NewE96 padding ablation, 3-BFM probe (NewE96 + Brain-JEPA + NeuroSTORM, spatial_only padding)
-- **진행 중**: proper mean padding 으로 30 cell 재추출
-- **대기**: 통계 floor (Schaefer ROI), BrainVLM env setup, SwiFT 다른 변종 추출
+- **Phase 1** (W1-6) 완료: frozen probe benchmark + padding ablation + 6 SwiFT variants. `reports/phase1_wrapup/main.pdf` (15p) + supplementary (11p). 측정값은 `docs/masterplan_v2.md` 7.0 에 보존.
+- **Phase 2** (W7-12) 진행 중: 4 fusion arch joint inference 완료 (video saturate, 질문 A 종료). brain-only 4 method 학습 중.
+- **v4 pivot (2026-06-02)**: 질문을 transfer 로 이동. target 을 Cat34 / Dim14 / OV-text-embedding 으로 승격. cross-dataset zero-shot / few-shot 평가 프로토콜 도입. OV-MER / AffectGPT 를 label-poor target dataset 의 harmonization 도구로.
+- **대기 (next)**: AffectGPT Horikawa sanity check, brain → emotion-text projector prototype, Horikawa per-subject rating 존재 확인.

@@ -97,13 +97,14 @@ This file records the currently relevant papers and how each should be used in t
 
 ## Emotion and Naturalistic fMRI
 
-### Horikawa et al. 2020: High-dimensional visually evoked emotion
+### Horikawa, Cowen, Keltner, Kamitani 2020: High-dimensional visually evoked emotion
 
-- **Type**: emotional video fMRI and high-dimensional category representation.
-- **Claim**: Dozens of video-evoked emotions are predictable from fMRI; categorical emotion structure outperforms lower-dimensional affective dimensions in parts of the brain.
-- **FEELIN role**: core downstream benchmark.
-- **Source**: https://www.sciencedirect.com/science/article/pii/S2589004220302455
-- **Dataset link noted in search**: https://openneuro.org/datasets/ds002425
+- **Type**: emotional video fMRI and high-dimensional category representation (5 subjects, 2185 short videos, 34 emotion categories, 14 affective dimensions).
+- **Claim**: Dozens of video-evoked emotions are accurately predicted from fMRI patterns. Emotion **categories** predict cortical and subcortical responses **better than affective dimensions** (valence, arousal), and **outperform visual and semantic covariates in transmodal regions**. Emotion-related responses have a cluster-like, distributed organization.
+- **FEELIN role**: core downstream benchmark AND the scientific grounding for the v4 reframing. The transmodal-region finding is why FEELIN promotes high-dimensional categorical targets over scalar valence/arousal (where video features dominate) and why the brain's unique signal is expected on categorical, not dimensional, targets.
+- **Source**: https://www.sciencedirect.com/science/article/pii/S2589004220302455 (PMC: https://pmc.ncbi.nlm.nih.gov/articles/PMC7191651/)
+- **Dataset (OpenNeuro)**: https://openneuro.org/datasets/ds002425
+- **Code/data (KamitaniLab)**: https://github.com/KamitaniLab/EmotionVideoNeuralRepresentation
 - **Mendeley data mirror**: https://data.mendeley.com/datasets/jbk2r73mzh
 
 ### Koide-Majima, Nakai, Nishimoto 2020
@@ -222,6 +223,24 @@ This file records the currently relevant papers and how each should be used in t
 - **Source**: https://icml.cc/virtual/2025/oral/47171
 - **Code/data**: https://github.com/zeroQiaoba/AffectGPT
 
+### OV-MER: Towards Open-Vocabulary Multimodal Emotion Recognition
+
+- **Authors**: Zheng Lian, Haiyang Sun, Licai Sun, et al. (CASIA and collaborators).
+- **Venue**: ICML 2025 (PMLR v267).
+- **Type**: open-vocabulary multimodal emotion recognition paradigm, dataset (OV-MERD, 236 categories, 1-9 labels per sample), set-based evaluation metric, and baseline.
+- **Claim**: Fixed taxonomies (one-hot, multi-label) cannot capture the breadth of human emotion. OV-MER predicts any number and any category of emotions. A human-LLM collaboration pipeline (audio LLM + video LLM + text -> CLUE-Multi description -> LLM-extracted OV labels) builds the dataset, and evaluation uses set-based Precision/Recall/F with emotion-wheel or GPT-based synonym grouping.
+- **FEELIN role**: source of the open-vocabulary target and the MLLM universal-annotator strategy (masterplan v4 section 4.3). Used to harmonize heterogeneous label taxonomies across metadata-poor target datasets, not as a competitor to the brain. Caveat logged: OV labels are stimulus-side and AffectGPT is trained on speech-bearing movie/TV data, so its outputs on Horikawa's short silent clips must be sanity-checked first.
+- **Source**: https://proceedings.mlr.press/v267/lian25b.html
+- **OpenReview**: https://openreview.net/forum?id=Y8lfuSoqQz
+- **Code/data**: https://github.com/zeroQiaoba/AffectGPT
+
+### AffectGPT-R1: Reinforcement Learning for Open-Vocabulary MER
+
+- **Type**: follow-up to OV-MER/AffectGPT using reinforcement learning.
+- **Claim**: Treats emotion-wheel-based metrics as a reward function and applies policy optimization, improving OV-MER and reaching state-of-the-art on MER-UniBench.
+- **FEELIN role**: newest open-vocabulary affective annotator option for the universal-annotator strategy; relevant if AffectGPT outputs need reward-aligned refinement.
+- **Source**: https://arxiv.org/abs/2508.01318 (PDF: https://arxiv.org/pdf/2508.01318)
+
 ### VidEmo
 
 - **Venue**: NeurIPS 2025.
@@ -318,6 +337,23 @@ This file records the currently relevant papers and how each should be used in t
 - **Claim**: Reviews MER advances from 2020-2025, emphasizing transformer models, fusion strategies, missing data, imbalance, and user generalization.
 - **FEELIN role**: practical reference for stimulus-only baselines, missing-modality handling, and temporal fusion.
 - **Source**: https://www.sciencedirect.com/science/article/pii/S2667305326000177
+
+## Cross-Dataset Transfer and Label Harmonization
+
+### See Through Their Minds: Transferable Brain Decoding from Cross-Subject fMRI
+
+- **Venue**: AAAI 2025.
+- **Type**: cross-subject transferable fMRI decoding.
+- **Claim**: Training with cross-subject fMRI benefits both high-level and low-level decoding, and new subjects with limited data can be handled by training small adapters rather than full retraining.
+- **FEELIN role**: methodological precedent for SQ1 (transfer) and SQ4 (data efficiency); supports the few-shot adapter approach for new subjects and datasets.
+- **Source**: https://ojs.aaai.org/index.php/AAAI/article/view/32611 (preprint: https://arxiv.org/html/2403.06361v1)
+
+### Leveraging LLM Embeddings for Cross-Dataset Label Alignment and Zero-Shot Emotion Prediction
+
+- **Type**: cross-dataset emotion-label alignment via LLM embeddings (music emotion case study).
+- **Claim**: Computes LLM embeddings of emotion-label names and applies non-parametric clustering to align disjoint label taxonomies across datasets, enabling zero-shot prediction on unseen label sets.
+- **FEELIN role**: direct methodological basis for the shared text-embedding zero-shot strategy (masterplan v4 section 4.1) and the MLLM-harmonization strategy (4.3); shows that heterogeneous affect taxonomies can be unified in a text-embedding space.
+- **Source**: https://arxiv.org/abs/2410.11522 (PDF: https://arxiv.org/pdf/2410.11522)
 
 ## Neural-Signal Foundation Models with Emotion Downstream
 

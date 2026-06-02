@@ -187,6 +187,23 @@ The affective-computing task ladder should be used in order:
    targets as embeddings or retrieval labels; do not claim fMRI directly
    generates explanations until there is explicit evidence.
 
+## v4 Cross-Dataset Evaluation and Open-Vocabulary Target (2026-06-02)
+
+The task ladder above is preserved. v4 adds an explicit transfer axis and an open-vocabulary target, grounded in Horikawa et al. 2020 (emotion categories outperform affective dimensions and visual/semantic covariates in transmodal regions).
+
+**Target promotion.** Primary targets are Cowen 34-category (top-1 and multi-label), Cowen 14-dimension (multi-output), and an open-vocabulary emotion-text embedding. Valence and arousal are demoted to a reference axis since Phase 1 showed they are dominated by stimulus video features.
+
+**Open-vocabulary emotion-text embedding.** Train the brain encoder to project fMRI into a frozen sentence-transformer or CLIP-text embedding space, with the target being the text embedding of each stimulus's emotion label or description. This makes the representation taxonomy-agnostic and enables zero-shot transfer to datasets with different label sets.
+
+**Cross-dataset evaluation for metadata-poor targets.** Independent datasets (Emo-FilM, Affective Videos, IAPS, NeuroEmo) lack Horikawa's rich 34x14 metadata. Four strategies fill the table regardless of target richness.
+
+1. Shared text-embedding zero-shot (main): encode the target's native label names with the same text encoder, classify brain projections by nearest-neighbor retrieval.
+2. Label-space intersection (safe baseline): evaluate only the subspace the target carries.
+3. MLLM universal annotator: run OV-MER / AffectGPT on each dataset's stimuli for a shared open-vocabulary label space. Use Cowen gold norms for Horikawa training and OV labels only for norm-less targets. Sanity-check AffectGPT on Horikawa's short silent clips first.
+4. Representational alignment (label-free): RSA between brain and stimulus emotion-space structure, ISC as noise ceiling.
+
+Detail: `docs/masterplan_v2.md` sections 3-4 (v4).
+
 Sources:
 
 - AVEC continuous affect: https://portal.fis.tum.de/en/publications/avec-2012-the-continuous-audiovisual-emotion-challenge

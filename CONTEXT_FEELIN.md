@@ -4,29 +4,41 @@ Agent/협업자가 빠르게 참조할 single source of truth. 자세한 내용�
 
 ## 정체성
 
-FEELIN = **Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data**.
+FEELIN = **Transferable Emotion Brain Foundation Model**.
 
-**Big Question (Masterplan v2.0, 2026-05-19)**:
-Naturalistic emotional experience 의 brain representation 을 context-aware foundation model 로 어떻게 잘 잡아낼 수 있는가 — 단일 stimulus snapshot, multimodal stimulus 표상, 혹은 language-grounded VLM 통합 중 어느 축이 emotion 을 결정하는가?
+**Big Question (Masterplan v4, 2026-06-02)**:
+Horikawa naturalistic fMRI 로 학습한 multi-dimensional emotion brain representation 이, metadata 가 풍부하지 않은 independent dataset / 새 subject / 다른 emotion taxonomy 로 transfer 되는 emotion brain foundation model 이 될 수 있는가? 어떤 supervision (scalar V/A vs Cowen 34-category vs 14-dimension vs open-vocabulary description) 과 어떤 brain encoder 가 가장 transferable 한 표상을 만드는가?
 
-이 프로젝트는 emotion theory paper 가 아니라 **model-development project**. 세 가지 representation tier (statistical floor / brain foundation model ceiling / multimodal-VLM upper bound) 를 동일 protocol 로 비교해 emotion 의 organizing principle 을 찾는다.
+이 프로젝트는 emotion theory paper 가 아니라 **model-development project**. contribution 은 "brain 이 video 를 이기나" 가 아니라 representation 의 **transfer / generalization / data-efficiency / universality** 다.
 
-## Three-Tier Baseline
+## 두 개의 다른 질문 (v3 → v4 핵심)
 
-| Tier | Name | Models | Role |
-|---|---|---|---|
-| **T1** Floor | Statistical | Schaefer 200/400/1000 ROI mean + Ridge / Logistic | Minimum performance |
-| **T2** BFM Ceiling | Brain Foundation Model | SwiFT (NewE96 + 5 변종), Brain-JEPA, NeuroSTORM | BFM-class ceiling (BrainLM 은 490 TR × A424 고정으로 Horikawa 비호환, 제외) |
-| **T3** Multimodal / VLM | Visual-semantic + VLM | VideoMAE / DINOv2 / V-JEPA2 / CLIP + Qwen-VL caption + BrainVLM + TRIBE v2 | Context-aware upper bound |
+| | 질문 A (v3, 측정 완료) | 질문 B (v4, 본 plan) |
+|---|---|---|
+| 묻는 것 | 같은 stimulus 에서 brain 이 video feature 를 이기나? | brain emotion representation 이 새 subject / dataset / taxonomy 로 transfer 되나? |
+| video | 경쟁자 (brain 패배 = trivial) | teacher / oracle (새 fMRI 엔 적용 불가, 경쟁자 아님) |
 
-## 4 Sub-Questions
+Phase 1 + Phase 2 joint 가 질문 A 에 "넘지 못한다" 로 답했다. 이유는 crowd-sourced V/A label 이 stimulus 속성이라 video 가 이기는 게 trivial 하기 때문. **근거 (Horikawa 2020, iScience)**: emotion category 표상이 affective dimension 보다, transmodal region 에서 visual / semantic covariate (video feature) 를 능가. 그래서 scalar V/A 가 아닌 high-dimensional categorical target 이 올바른 전장.
 
-1. **Floor**: 통계적 baseline (Schaefer ROI + Ridge / Logistic) 으로 V/A 와 6-class 가 어디까지 잡히는가?
-2. **BFM Consistency**: 서로 다른 brain foundation model 들이 동일 evaluation 에서 같은 ranking 으로 정렬되는가, 아니면 모델 architecture 마다 잘 잡는 emotion 측면이 다른가?
-3. **Representation Axis**: discrete label / visual-semantic feature ladder / multimodal language-grounded representation 중 brain RSA 와 가장 잘 정렬되는 것은?
-4. **Context Integration**: ABCD pretrained BrainVLM 의 fMRI tokenizer 를 Horikawa fMRI 에 zero-shot transfer 한 후 emotion VQA 가 가능한가?
+## Target hierarchy (multi-dim 승격)
 
-자세한 motivation / experiment / go-no-go 는 [`docs/masterplan_v2.md`](docs/masterplan_v2.md).
+| Tier | Target | 비고 |
+|---|---|---|
+| Primary | Cowen 34-category, Cowen 14-dimension, OV emotion-text embedding | brain 고유 신호 + cross-dataset 호환 |
+| Reference | V/A binary / regression | video 가 이기는 게 알려진 axis, floor / sanity 로만 |
+
+## Cross-dataset evaluation (metadata 빈곤 해결)
+
+1. **Shared text-embedding zero-shot** (main): brain → emotion-text space 사영, 새 dataset 의 native label 이름만으로 zero-shot retrieval.
+2. **Label-space intersection** (안전 baseline): target dataset 이 가진 축만 잘라 평가.
+3. **MLLM universal annotator**: OV-MER / AffectGPT 로 모든 dataset stimulus 에 OV 라벨 생성. Horikawa 는 Cowen gold, OV 는 norm 없는 target 에만.
+4. **Representational alignment** (label-free): RSA / ISC ceiling.
+
+## Brain encoder 후보 (SQ1 / SQ2 swap 축)
+
+SwiFT (NewE96 + 5 변종), Brain-JEPA, NeuroSTORM. BrainLM 은 490 TR × A424 고정으로 Horikawa 비호환, 제외.
+
+자세한 sub-question (SQ1 transfer / SQ2 supervision richness / SQ3 geometry / SQ4 data-efficiency / SQ5 where) 와 go-no-go 는 [`docs/masterplan_v2.md`](docs/masterplan_v2.md).
 
 ## Canonical Data
 

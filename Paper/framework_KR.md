@@ -12,6 +12,22 @@ FEELIN는 **emotion-aware brain representation learning을 위한 모델 개발 
 
 > FEELIN는 처음부터 완성형 emotion foundation model을 주장하지 않겠습니다. 먼저 SwiFT, naturalistic movie/story fMRI dataset, TRIBE v2-style stimulus-to-brain model, affective LLM/VLM representation을 하나의 initial benchmark에서 비교하겠습니다. Benchmark는 어떤 정보원이 어떤 emotion target에 도움이 되는지 확인하는 단계이고, 그 결과에 따라 SwiFT emotion adaptation, naturalistic fMRI continued pretraining, TRIBE-SwiFT stimulus-brain alignment, brain-tuned affective LLM/VLM adapter 중 어떤 model-development track을 밀지 결정하겠습니다.
 
+## v4 Reframing (2026-06-02)
+
+위 canonical 방향은 유지된다. 다만 Big Question 의 축을 v3 의 "fMRI + video fusion 이 video-only baseline 을 넘는가" 에서 **transfer** 로 옮긴다. 측정 결과는 전부 보존된다 (`reports/phase1_wrapup/`, `docs/masterplan_v2.md` 7.0 측정 완료 결과 블록).
+
+**두 개의 다른 질문 분리.** 질문 A (brain 이 같은 stimulus 에서 video feature 를 이기나) 는 Phase 1 frozen probe + Phase 2 joint inference 가 "못 넘는다" 로 답했다. crowd-sourced V/A label 이 stimulus (영상) 속성이라 CLIP 같은 video encoder 가 이기는 게 trivial 하기 때문이다. 질문 B (Horikawa 로 학습한 brain emotion representation 이 새 subject / dataset / taxonomy 로 transfer 되나) 가 foundation model 의 본 질문이다. video 는 질문 B 에서 경쟁자가 아니라 supervision oracle 이다. 새 fMRI dataset 의 brain data 엔 video 를 적용할 수 없기 때문이다.
+
+**과학적 근거 (Horikawa, Cowen, Keltner, Kamitani 2020, iScience).** emotion category 표상이 affective dimension (valence 등) 보다 cortical / subcortical 반응을 잘 예측하고, transmodal region 에서 visual / semantic covariate (즉 video feature) 를 능가한다. 따라서 scalar V/A 가 아니라 high-dimensional categorical / appraisal target 이 brain 고유 신호가 사는 올바른 전장이다.
+
+**v4 의 5 sub-question.** SQ1 transfer (main), SQ2 supervision richness, SQ3 representation geometry, SQ4 data efficiency, SQ5 where (label-free). 전부 representation 질문이며 "brain 이 video 를 이겨야" 를 전제하지 않는다.
+
+**Target hierarchy.** Cowen 34-category / 14-dimension / open-vocabulary emotion-text embedding 을 primary 로 승격, V/A 는 reference axis 로 강등.
+
+**Cross-dataset evaluation.** (1) shared text-embedding zero-shot (main), (2) label-space intersection (안전 baseline), (3) MLLM (OV-MER / AffectGPT) universal annotator, (4) representational alignment (label-free). metadata 빈약한 independent dataset 도 평가 가능. Horikawa 는 Cowen gold norm 으로 학습하고, OV-MER / AffectGPT 는 norm 이 없는 target dataset 의 라벨 harmonization 도구로만 쓴다.
+
+자세한 forward plan: `docs/masterplan_v2.md` (v4).
+
 ## 모델 개발 문제 정의
 
 핵심 질문은 "emotion이 무엇인가?"가 아니다. 핵심 질문은 다음이다.

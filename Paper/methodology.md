@@ -11,6 +11,33 @@ dataset/model inventory -> lightweight baselines -> frozen/adapted SwiFT probes
     -> stimulus-only and alignment baselines -> decision on model-development track
 ```
 
+## v4 Transfer Evaluation (2026-06-02, primary methodology axis)
+
+The methodology below (screening benchmark, brain-only baselines, BFM transfer, alignment) is preserved as the measurement substrate. v4 reframes the headline evaluation from "does fMRI plus video beat video alone" to "does a brain emotion representation learned on Horikawa transfer to new datasets, subjects, and taxonomies." Measured Phase 1 and Phase 2 results are preserved (`reports/phase1_wrapup/`, `docs/masterplan_v2.md` section 7.0) as Question-A evidence.
+
+### Target hierarchy
+
+Primary targets are Cowen 34-category (top-1 and multi-label distribution), Cowen 14 affective dimensions (multi-output), and an open-vocabulary emotion-text embedding. Valence and arousal are demoted to a reference axis, since Phase 1 showed they are dominated by stimulus video features. The promotion is grounded in Horikawa et al. 2020, which found emotion categories outperform affective dimensions and visual/semantic covariates in transmodal regions.
+
+### Open-vocabulary emotion-text embedding target
+
+Instead of predicting a fixed label set, the brain encoder is trained to project fMRI into a frozen emotion-text embedding space (sentence-transformer or CLIP-text). The regression target is the text embedding of each stimulus's emotion label or description. This makes the representation open-vocabulary and taxonomy-agnostic, enabling zero-shot transfer to datasets with different label sets.
+
+### Cross-dataset evaluation protocol (metadata-poverty solution)
+
+Independent test datasets (Emo-FilM, Affective Videos ds000205, IAPS, NeuroEmo) lack the rich Cowen 34x14 metadata of Horikawa. Four strategies, ordered by safety, fill the evaluation table regardless of target metadata richness.
+
+1. **Shared text-embedding zero-shot (main).** Encode the target dataset's native label names with the same text encoder used at training, then classify brain projections by nearest-neighbor retrieval. Works even if the target only has valence/arousal or a 5-class taxonomy. This is the CLIP-style open-vocabulary transfer adapted to brain emotion.
+2. **Label-space intersection (safe baseline).** Evaluate only the subspace the target dataset carries (valence/arousal for ds000205, valence axis for IAPS). Conservative and hard to dispute.
+3. **MLLM universal annotator.** Run OV-MER / AffectGPT (Lian et al. 2025, AffectGPT-R1 2025) on every dataset's stimuli to generate a shared open-vocabulary label space. Cross-dataset alignment of heterogeneous taxonomies via LLM embeddings follows arXiv 2410.11522. These OV labels are stimulus-side, so the framing must be "the brain decodes the rich emotion structure the MLLM defines and transfers it," not "the brain beats the MLLM." Use Cowen gold norms for Horikawa training and OV labels only for target datasets that lack norms. First action: sanity-check AffectGPT outputs on Horikawa's short, often silent clips before committing, because its audio and text branches may be near-useless there.
+4. **Representational alignment (label-free).** When labels are absent, measure whether the brain representation's similarity structure (RSA) aligns with the stimulus emotion-space structure, with ISC as a noise ceiling. Answers whether emotion geometry is preserved without any target labels.
+
+### Decision rules (v4)
+
+- If shared-embedding zero-shot beats chance on at least one independent dataset and few-shot beats from-scratch, the transfer claim (SQ1) holds.
+- If rich supervision (category, dimension, open-vocabulary) yields more transferable representations than scalar valence/arousal, prioritize the rich-supervision track (SQ2).
+- If transfer is absent everywhere, narrow the claim to a Horikawa-specific decoder and report cross-dataset results only via representational alignment.
+
 ## Phase 0: Dataset and Model Inventory
 
 Phase 0 answers what can actually be run. It should produce one table with dataset access, fMRI format, stimulus availability, annotation type, preprocessing burden, and first target.
