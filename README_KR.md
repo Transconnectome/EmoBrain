@@ -10,7 +10,9 @@ Horikawa naturalistic fMRI 로 transfer 가능한 multi-dimensional emotion brai
 
 ## Big Question
 
-Horikawa naturalistic fMRI 로 학습한 multi-dimensional emotion brain representation 이, metadata 가 풍부하지 않은 independent dataset / 새 subject / 다른 emotion taxonomy 로 transfer 되는 emotion brain foundation model 이 될 수 있는가? 어떤 supervision (scalar V/A vs Cowen 34-category vs 14-dimension vs open-vocabulary description) 과 어떤 brain encoder 가 가장 transferable 한 표상을 만드는가?
+Naturalistic fMRI 로부터 학습한 multi-dimensional emotion brain representation 이, 단일 dataset 과 label taxonomy 에 종속되지 않고 새로운 subject, 자극, emotion 어휘로 transfer 되는 emotion brain foundation model 이 될 수 있는가?
+
+<sub>운영 정의 (operationalization, FEELIN testbed): Horikawa naturalistic fMRI 로 학습한 multi-dimensional emotion brain representation 이, metadata 가 풍부하지 않은 independent dataset / 새 subject / 다른 emotion taxonomy 로 transfer 되는 emotion brain foundation model 이 될 수 있는가? 그리고 어떤 supervision (scalar V/A vs Cowen 34-category vs 14-dimension vs open-vocabulary description) 과 어떤 brain encoder 가 가장 transferable 한 표상을 만드는가? supervision 과 encoder 비교는 SQ2 와 encoder-swap 축에서 다룬다.</sub>
 
 v3 의 질문 ("fMRI + video fusion 이 video baseline 을 넘는가") 은 Phase 1 + Phase 2 joint 가 "넘지 못한다" 로 답했고 (crowd V/A label = stimulus 속성이라 trivial), 측정 결과는 보존된다. 근거 (Horikawa 2020): emotion category 가 affective dimension 보다, transmodal region 에서 video feature 를 능가.
 
