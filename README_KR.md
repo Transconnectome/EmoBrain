@@ -40,35 +40,30 @@ v3 의 질문 ("fMRI + video fusion 이 video baseline 을 넘는가") 은 Phase
 | LLM-token (Phase 3) | fMRI 를 LLM token 으로 주입한 model 이 emotion caption 을 생성하나? |
 
 
-## Architecture — design space
+## 어떻게 만드는가 (build recipe)
+
+5 subject × 2185 stimulus 로는 FM 을 from-scratch pretrain 할 수 없다. 그래서 **대규모 pretrained brain backbone + 대규모 pretrained emotion-language space 를 emotion-transferable 하게 잇는 adaptation** 이 핵심이다. 상세는 [`docs/masterplan_v2.md`](docs/masterplan_v2.md) 5 절.
 
 ```
-fMRI ─► brain encoder (4 종 swap-in) ─► z_brain
-                                            │
-                ▼ 4 통합 option (SQ1) ◄── video features (EmoViS reuse)
-                  A: LLM token (BrainVLM)
-                  B: Cross-attention
-                  C: Contrastive alignment
-                  D: Late fusion
-                                            │
-                                            ▼
-                          Foundation model (LLM / transformer)
-                                            │
-                                            ▼
-                  Multi-channel output:
-                  - V/A continuous regression
-                  - 27-cat classification
-                  - Free-form emotion caption
-                  - Latent embedding (counterfactual swap)
+fMRI ─► [A] 450-ROI parcel 입력 (Schaefer-400 + Tian-50, scanner / dataset 무관 substrate)
+        │
+        ▼ [B] Brain-JEPA backbone + LoRA   (frozen 금지, resting prior → emotion 으로 reshape)
+        │
+        ▼ projection
+        z_emo ─► [C] frozen emotion-text embedding space (sentence-transformer / CLIP-text)
+                  target = embed( Cowen 34-cat + 14-dim 문장화 또는 AffectGPT OV description )
+                  loss  = contrastive InfoNCE (brain ↔ matched emotion-text) + 보조 regression
+        │
+        ▼ [D] subject + multi-dataset pooling (Horikawa + Emo-FilM + Koide-Majima + Affective Videos)
+                shared text space 가 이질적 taxonomy harmonize → foundation 규모 데이터
+        ▼ 평가 (freeze 후)
+        - zero-shot cross-dataset retrieval (native label 을 같은 text space 로 encode)
+        - few-shot scaling (SQ4) / RSA geometry (SQ3) / region-restricted (SQ5)
 ```
 
-Option A 안에서 vision tower swap depth 3 수준 (L1 frozen → L2 swap+freeze → L3 LoRA), 각각 go/no-go.
-Option B/C/D 는 Phase 2 의 A 결과 보고 결정.
-
-
-## Brain encoder 4 종의 역할
-
-SwiFT (NewE96 + 변종) / Brain-JEPA / NeuroSTORM = **fMRI 를 model 입력으로 변환하는 인코더 후보**. SQ1 의 핵심 비교 축. 우리가 한 BFM extraction 작업이 이 비교의 build-up. BrainLM 은 490 timepoint × A424 atlas 고정 → Horikawa 비호환으로 scope 제외.
+- **foundation 의 출처**: backbone (수만 subject pretrained) + emotion-text space (수천 emotion 개념 geometry). FEELIN 기여 = 둘을 잇는 adaptation recipe.
+- **brain encoder 후보 (Block B swap 축)**: Brain-JEPA (ROI, default) / SwiFT (NewE96 + 변종) / NeuroSTORM. BrainLM 은 490 TR × A424 고정으로 Horikawa 비호환, 제외.
+- **옛 frame 탈피**: brain + video fusion, BrainVLM token, late fusion 은 main path 아님. video 는 옵션 teacher 로만. 정직한 framing = from-scratch pretrain 이 아니라 brain FM 의 emotion-specialized adaptation.
 
 
 ## Evaluation protocol
@@ -103,12 +98,6 @@ mode 거의 비슷 (시간 정보 frozen 으로 안 씀). Phase 2 trained integr
 효과 noise 수준 → 질문 A 종료. Brain-only 4 method 학습 중.
 
 측정값 전부 보존 (`reports/phase1_wrapup/`, `docs/masterplan_v2.md` 7.0).
-
-### v4 pivot (2026-06-02)
-
-질문을 transfer 로 이동. target 을 Cat34 / Dim14 / OV-text-embedding 으로 승격, brain → emotion-text
-projector 로 cross-dataset zero-shot / few-shot 측정. OV-MER / AffectGPT 는 metadata 빈약한 target
-dataset 의 라벨 harmonization 도구 (Horikawa 는 Cowen gold norm 사용).
 
 
 ## Repository Map
@@ -150,5 +139,7 @@ bash /pscratch/sd/s/sjmoon/FEELIN/code/probes/run_unified_probe.sh
 
 
 ## Cleanup history
+
+2026-06-02, v4 reframing: Big Question 축을 transfer 로 이동 (질문 A = video fusion, 측정 완료 / 질문 B = transfer 가 본 plan). target 을 Cowen 34 / 14 / OV emotion-text embedding 으로 승격, V/A 강등. cross-dataset 평가 4 전략 + build recipe (Brain-JEPA backbone + LoRA → emotion-text space) 도입. 측정 결과 전부 보존 (`docs/masterplan_v2.md` 7.0). 상세 결정 로그는 `notes/project_decisions.md`.
 
 2026-05-19 — v3 reframing 으로 "Emotion-aware Multimodal Foundation Model" 이 core. fMRI 통합 architecture 는 design space (LLM token / cross-attention / contrastive / late fusion). BrainVLM 은 Option A 의 baseline. 이전 v2 의 "context-aware foundation model" framing 폐기. ACTION_PLAN, research_overview, 2026-05-11 시점 자료는 `_archive/` 에.

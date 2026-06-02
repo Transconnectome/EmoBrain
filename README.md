@@ -14,11 +14,6 @@ Horikawa naturalistic fMRI 로 transfer 가능한 multi-dimensional emotion brai
 
 <sub>운영 정의 (operationalization, FEELIN testbed): Horikawa naturalistic fMRI 로 학습한 multi-dimensional emotion brain representation 이, metadata 가 풍부하지 않은 independent dataset / 새 subject / 다른 emotion taxonomy 로 transfer 되는 emotion brain foundation model 이 될 수 있는가? 그리고 어떤 supervision (scalar V/A vs Cowen 34-category vs 14-dimension vs open-vocabulary description) 과 어떤 brain encoder 가 가장 transferable 한 표상을 만드는가? supervision 과 encoder 비교는 SQ2 와 encoder-swap 축에서 다룬다.</sub>
 
-### v3 → v4 (두 개의 다른 질문 분리)
-
-v3 의 질문 ("fMRI + video fusion 이 video-only baseline 을 넘는가") 은 Phase 1 + Phase 2 joint 가 "넘지 못한다" 로 답했다. crowd-sourced V/A label 은 stimulus 속성이라 CLIP 같은 video encoder 가 이기는 게 trivial 하기 때문이다. v4 는 질문을 transfer 로 옮긴다. foundation model 의 contribution 은 "brain 이 video 를 이기나" 가 아니라 representation 의 transfer / generalization / data-efficiency / universality 다. 근거는 Horikawa et al. 2020 (iScience): emotion category 표상이 affective dimension 보다, transmodal region 에서 visual / semantic covariate (video feature) 를 능가한다.
-
-
 ## 5 Sub-question (전부 representation 질문, "brain 이 video 를 이겨야" 전제 없음)
 
 1. **SQ1 Transfer (main)**, Horikawa 에서 학습한 brain emotion representation 이 retrain 없이 새 dataset / subject / taxonomy 로 일반화되는가? (zero-shot + few-shot scaling)
@@ -44,39 +39,30 @@ v3 의 질문 ("fMRI + video fusion 이 video-only baseline 을 넘는가") 은 
 | 4. Representational alignment (label-free) | RSA / ISC ceiling | 4.4 |
 
 
-## Architecture — design space
+## 어떻게 만드는가 (build recipe)
+
+5 subject × 2185 stimulus 로는 FM 을 from-scratch pretrain 할 수 없다. 그래서 **대규모 pretrained brain backbone + 대규모 pretrained emotion-language space 를 emotion-transferable 하게 잇는 adaptation** 이 핵심이다. 상세는 [`docs/masterplan_v2.md`](docs/masterplan_v2.md) 5 절.
 
 ```
-fMRI ─► brain encoder (4 종 swap-in) ─► z_brain
-                                            │
-                ▼ 4 통합 option (SQ1) ◄── video features (EmoViS 추출본 reuse)
-                  A: LLM token (BrainVLM)
-                  B: Cross-attention
-                  C: Contrastive alignment
-                  D: Late fusion
-                                            │
-                                            ▼
-                          Foundation model (LLM / transformer)
-                                            │
-                                            ▼
-                  Multi-channel output:
-                  - V/A continuous regression
-                  - 27-cat classification
-                  - Free-form emotion caption (retrieval evaluation)
-                  - Latent embedding (counterfactual swap)
+fMRI ─► [A] 450-ROI parcel 입력 (Schaefer-400 + Tian-50, scanner / dataset 무관 substrate)
+        │
+        ▼ [B] Brain-JEPA backbone + LoRA   (frozen 금지, resting prior → emotion 으로 reshape)
+        │
+        ▼ projection
+        z_emo ─► [C] frozen emotion-text embedding space (sentence-transformer / CLIP-text)
+                  target = embed( Cowen 34-cat + 14-dim 문장화 또는 AffectGPT OV description )
+                  loss  = contrastive InfoNCE (brain ↔ matched emotion-text) + 보조 regression
+        │
+        ▼ [D] subject + multi-dataset pooling (Horikawa + Emo-FilM + Koide-Majima + Affective Videos)
+                shared text space 가 이질적 taxonomy harmonize → foundation 규모 데이터
+        ▼ 평가 (freeze 후)
+        - zero-shot cross-dataset retrieval (native label 을 같은 text space 로 encode)
+        - few-shot scaling (SQ4) / RSA geometry (SQ3) / region-restricted (SQ5)
 ```
 
-Option A (LLM token, BrainVLM) 안에서 vision tower swap depth 3 수준:
-- L1: Frozen embedding → linear projection 으로 주입
-- L2: Vision tower 교체 + freeze
-- L3: LoRA fine-tune
-
-Option B/C/D 는 Phase 2 의 A 결과 보고 결정.
-
-
-## Brain encoder 4 종의 역할
-
-SwiFT (NewE96 + 변종) / Brain-JEPA / NeuroSTORM = **fMRI 를 model 입력으로 변환하는 인코더 후보**. SQ1 의 핵심 비교 축. 우리가 한 BFM padding ablation / extraction / probe 작업이 이 비교의 build-up. BrainLM 은 490 timepoint × A424 atlas 가 고정이라 Horikawa 비호환으로 scope 제외.
+- **foundation 의 출처**: backbone (수만 subject pretrained) + emotion-text space (수천 emotion 개념 geometry). FEELIN 기여 = 둘을 잇는 adaptation recipe.
+- **brain encoder 후보 (Block B swap 축)**: Brain-JEPA (ROI, default) / SwiFT (NewE96 + 변종) / NeuroSTORM. BrainLM 은 490 TR × A424 고정으로 Horikawa 비호환, 제외.
+- **옛 frame 탈피**: brain + video fusion, BrainVLM token, late fusion 은 main path 아님. video 는 옵션 teacher 로만. 정직한 framing = from-scratch pretrain 이 아니라 brain FM 의 emotion-specialized adaptation.
 
 
 ## Evaluation protocol (모든 probe 공통)
@@ -115,14 +101,6 @@ Frozen brain foundation model probe 어떤 변종도 video pretrained baseline �
 - Joint 가 video baseline 위로 추가 향상 만들지 못함 → 질문 A 종료. video 가 stimulus-property
   label 을 saturate 하는 게 trivial 임이 확정
 - 진행 중: brain-only 4 method (supervised MLP / CLIP distill / multitask / subject-aware)
-
-### v4 pivot (2026-06-02)
-
-질문을 transfer 로 옮긴다 (위 5 Sub-question). target 을 Cat34 / Dim14 / OV-text-embedding 으로
-승격하고 (multi-dim), brain → emotion-text projector 로 cross-dataset zero-shot / few-shot transfer
-를 측정한다. OV-MER / AffectGPT 는 metadata 빈약한 target dataset 의 라벨 harmonization 도구로
-도입 (Horikawa 자체는 Cowen gold norm 사용). 자세한 내용은 [`docs/masterplan_v2.md`](docs/masterplan_v2.md).
-
 
 ## Repository Map
 
@@ -164,5 +142,7 @@ bash /pscratch/sd/s/sjmoon/FEELIN/code/probes/run_unified_probe.sh
 
 
 ## Cleanup history
+
+2026-06-02, v4 reframing: Big Question 축을 transfer 로 이동 (질문 A = video fusion, Phase 1 + Phase 2 joint 로 측정 완료 / 질문 B = transfer 가 본 plan). target 을 Cowen 34 / 14 / OV emotion-text embedding 으로 승격, V/A 강등. cross-dataset 평가 4 전략 + build recipe (Brain-JEPA backbone + LoRA → emotion-text space) 도입. 측정 결과 전부 보존 (`docs/masterplan_v2.md` 7.0). 상세 결정 로그는 `notes/project_decisions.md`.
 
 2026-05-19 — v3 reframing: "Emotion-aware Multimodal Foundation Model" 이 core. fMRI 통합 architecture 는 design space (LLM token / cross-attention / contrastive / late fusion 4 option). BrainVLM 은 Option A 의 baseline architecture. 이전 v2 의 "context-aware foundation model" framing 폐기. ACTION_PLAN, research_overview, 2026-05-11 시점 자료는 `_archive/` 에. Top-level .md 6개 유지.

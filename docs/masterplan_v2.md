@@ -10,11 +10,9 @@
 Horikawa naturalistic emotion fMRI 로 **transfer 가능한 multi-dimensional emotion brain representation** 을 학습하고, metadata 가 빈약한 independent dataset / 새 subject / 다른 label taxonomy 로 일반화되는지를 측정해 emotion brain foundation model 을 만든다.
 
 
-## 0.1 v3 → v4 가 바뀐 이유 (두 개의 다른 질문 분리)
+## 0.1 Scope: 두 질문의 분리
 
-v3 의 Big Question 은 "fMRI + video fusion 이 video-only baseline 을 넘는가" 였다. Phase 1 (frozen probe benchmark) 과 Phase 2 joint inference 가 이 질문에 거의 결론적으로 답했다. **넘지 못한다.** 그 이유는 model 실패가 아니라 target 의 성질이다. crowd-sourced V/A label 은 정의상 stimulus (영상) 의 속성이라 CLIP 같은 video encoder 가 이기는 게 trivial 하다.
-
-그래서 두 질문을 명확히 분리한다.
+FEELIN 은 두 질문을 명확히 분리한다. 질문 A (fMRI + video fusion 이 video-only baseline 을 넘는가) 는 Phase 1 frozen probe benchmark + Phase 2 joint inference 가 "넘지 못한다" 로 측정 완료했다 (결과 보존: 7.0). 이유는 model 실패가 아니라 target 의 성질이다. crowd-sourced V/A label 은 정의상 stimulus (영상) 의 속성이라 CLIP 같은 video encoder 가 이기는 게 trivial 하다. 본 plan 은 질문 B 다. (v3 → v4 변경 경위는 `notes/project_decisions.md` 2026-06-02 항목.)
 
 | | 질문 A (v3, 측정 완료) | 질문 B (v4, 본 plan) |
 |---|---|---|
@@ -121,42 +119,49 @@ label 이 정말 없으면, target dataset 에서 brain representation 의 simil
 **운영**: 전략 1 = main, 전략 2 = 안전 baseline, 전략 3 = 라벨 생성 도구, 전략 4 = label-free 보강.
 
 
-## 5. Architecture, design space
+## 5. Architecture, 어떻게 만드는가 (build recipe)
 
-### 5.1 통합 architecture (v4 의 main): brain → emotion-text embedding projector
+핵심 제약: 5 subject × 2185 stimulus 로는 foundation model 을 from-scratch pretrain 할 수 없다. 따라서 "emotion brain foundation model 을 만든다" = **(a) 대규모 pretrained brain backbone 을 emotion 으로 specialize 하고, (b) 대규모 pretrained emotion-language space 에 brain 을 binding 하고, (c) 여러 emotion fMRI dataset 을 pooling** 하는 것이다. foundation 은 backbone 과 language space 라는 두 큰 prior 에서 오고, FEELIN 의 기여는 그 둘을 emotion-transferable 하게 잇는 adaptation recipe 다.
+
+### Block A, Substrate (transferable input)
+
+raw 4D volume 이 아니라 **atlas / parcel 입력 (Schaefer-400 + Tian-50 = 450 ROI)** 을 쓴다. 어떤 dataset / scanner 든 같은 450-ROI space 로 사영되므로 cross-dataset transfer 가 가능하다. Phase 1 에서 450-ROI mean 이 모든 frozen BFM 을 이긴 것이 이 substrate 가 강하다는 증거. raw-volume encoder (SwiFT / NeuroSTORM) 는 registration / voxel grid 에 묶여 transfer 가 약하므로 ROI route 를 default 로 한다.
+
+### Block B, Backbone (foundation 규모 prior)
+
+Phase 1 최상위 BFM (**Brain-JEPA**, ROI 기반) 에서 출발. **frozen 금지** (Phase 1 이 frozen 실패를 증명). LoRA / adapter / partial unfreeze 로 resting-pretrained prior 를 stimulus-evoked emotion 쪽으로 reshape. 이게 이 데이터 규모에서 현실적인 FM-building move (continued / parameter-efficient adaptation).
+
+### Block C, Target = emotion-language space (multi-dim, open-vocabulary, transferable)
+
+label 을 예측하지 않는다. brain encoder 를 **frozen emotion-text embedding space (sentence-transformer / CLIP-text)** 로 사영하도록 학습한다. target = 그 stimulus 의 emotion description 의 text embedding (Cowen 34-category + 14-dimension 을 문장으로 verbalize, 또는 AffectGPT OV description). loss = contrastive InfoNCE (brain ↔ matched emotion-text) + 보조 regression. 이 text space 가 곧 "foundation" 이다 (수천 개 emotion 개념의 geometry 를 이미 담고 있음). brain 을 그 manifold 에 binding 하면 새 taxonomy 의 label 이름만 같은 space 로 encode 해서 open-vocabulary cross-taxonomy zero-shot 이 공짜로 된다.
+
+### Block D, Generalization machinery (across subjects / datasets)
+
+- Subject: pooled training (Phase 1 에서 pooled ≈ per_subject 확인). 필요 시 inference 때 버리는 subject-adapter.
+- Multi-dataset pretraining: Horikawa + Emo-FilM + Koide-Majima + Affective Videos 를 **같은 450-ROI 입력 + 같은 emotion-text target** 으로 pooling. 서로 다른 taxonomy 를 shared text space 가 harmonize 하므로 pooling 가능, 이렇게 foundation-model data scale 에 도달.
+
+### 학습 recipe (concrete)
 
 ```
-fMRI (B, T, 96, 96, 96)
-   │
-   ▼  brain encoder (SwiFT / Brain-JEPA / NeuroSTORM swap-in)
-   z_brain
-   │
-   ▼  projection head
-   z_emo  ──────────────────────► emotion-text embedding space (frozen sentence / CLIP-text encoder)
-                                   target = embed( Cowen 34/14 label or OV description )
-   │
-   ▼  평가
-   - zero-shot / few-shot cross-dataset (4.1, 4.2)
-   - RSA / CKA geometry (SQ3)
-   - region-restricted (SQ5)
+[A] 모든 emotion fMRI dataset → 450-ROI parcellation + emotion-text target 으로 harmonize
+[B] backbone = Brain-JEPA (ROI) + LoRA
+[C] contrastive align  brain → emotion-text  (subject + dataset pooled)
+[ ] freeze 후 평가:
+    - zero-shot retrieval: held-out dataset 의 native label 을 같은 text space 로 encode (4.1)
+    - few-shot scaling head (SQ4) / RSA geometry (SQ3) / region-restricted (SQ5)
 ```
 
-이 단일 architecture 가 OV-MER + multi-dimensional + cross-dataset 을 한 번에 묶는다. brain encoder 는 SQ1 / SQ2 의 swap 축.
+### 이게 아닌 것 (옛 frame 탈피)
 
-### 5.2 보조 / legacy: 4 fusion option (v3 의 design space)
+brain + video fusion, BrainVLM token 주입, late fusion 은 v4 의 main path 가 아니다. video 는 (옵션) teacher 로만 남고 model 입력에서 빠진다. BrainVLM (LLM token 주입) 은 generative caption / VQA novelty track 으로만 별도 유지하되, 학습 결과 한 줄이 나오기 전까지 main contribution 으로 적지 않는다.
 
-| Option | 설명 | v4 위치 |
-|---|---|---|
-| A. LLM token (BrainVLM) | fMRI → patches → LLM token. Qwen3-VL backbone | generative track. token-level V/A probe gate 미측정 상태 (Risk) |
-| B. Cross-attention | fMRI embedding → LLM cross-attn key/value | 보조 |
-| C. Contrastive alignment | brain-video shared latent | 5.1 의 brain-text 버전이 우선 |
-| D. Late fusion | concat / element-wise | Phase 2 에서 측정 완료 (video saturate) |
+### 정직한 framing
 
-fusion option 은 질문 A 에 해당하므로 v4 의 main path 가 아니다. BrainVLM (A) 은 generative caption / VQA novelty track 으로만 유지하되, 학습 결과 한 줄이 나오기 전까지는 main contribution 으로 적지 않는다.
+"brain FM 을 from-scratch pretrain 했다" 가 아니라 **"brain foundation model 의 emotion-specialized adaptation"** 이다. 기여 = 가장 transferable 한 emotion representation 을 만드는 adaptation recipe (어떤 backbone, 어떤 target space, 어떤 pooling) + cross-dataset 평가. honest 하면서도 강한 model-development 논문.
 
-### 5.3 Brain encoder 후보
+### Brain encoder 후보 (Block B swap 축)
 
-SwiFT (NewE96 + 변종) / Brain-JEPA / NeuroSTORM = fMRI 를 model 입력으로 변환하는 인코더 후보, SQ1 / SQ2 의 swap 축. BrainLM 은 490 timepoint × A424 atlas 고정이라 Horikawa 비호환으로 scope 제외.
+Brain-JEPA (ROI, default) / SwiFT (NewE96 + 변종) / NeuroSTORM = SQ1 / SQ2 의 encoder swap 축. BrainLM 은 490 timepoint × A424 atlas 고정이라 Horikawa 비호환으로 scope 제외.
 
 
 ## 6. 자원 분배

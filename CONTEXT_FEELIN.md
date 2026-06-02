@@ -13,9 +13,9 @@ Naturalistic fMRI 로부터 학습한 multi-dimensional emotion brain representa
 
 이 프로젝트는 emotion theory paper 가 아니라 **model-development project**. contribution 은 "brain 이 video 를 이기나" 가 아니라 representation 의 **transfer / generalization / data-efficiency / universality** 다.
 
-## 두 개의 다른 질문 (v3 → v4 핵심)
+## Scope: 두 질문의 분리
 
-| | 질문 A (v3, 측정 완료) | 질문 B (v4, 본 plan) |
+| | 질문 A (측정 완료) | 질문 B (본 plan) |
 |---|---|---|
 | 묻는 것 | 같은 stimulus 에서 brain 이 video feature 를 이기나? | brain emotion representation 이 새 subject / dataset / taxonomy 로 transfer 되나? |
 | video | 경쟁자 (brain 패배 = trivial) | teacher / oracle (새 fMRI 엔 적용 불가, 경쟁자 아님) |

@@ -52,5 +52,5 @@ FEELIN 은 emotion theory paper 가 아니라 **model-development 프로젝트**
 
 - **Phase 1** (W1-6) 완료: frozen probe benchmark + padding ablation + 6 SwiFT variants. `reports/phase1_wrapup/main.pdf` (15p) + supplementary (11p). 측정값은 `docs/masterplan_v2.md` 7.0 에 보존.
 - **Phase 2** (W7-12) 진행 중: 4 fusion arch joint inference 완료 (video saturate, 질문 A 종료). brain-only 4 method 학습 중.
-- **v4 pivot (2026-06-02)**: 질문을 transfer 로 이동. target 을 Cat34 / Dim14 / OV-text-embedding 으로 승격. cross-dataset zero-shot / few-shot 평가 프로토콜 도입. OV-MER / AffectGPT 를 label-poor target dataset 의 harmonization 도구로.
+- **현재 framing (v4)**: 질문 축 = transfer. target = Cat34 / Dim14 / OV-text-embedding (V/A 는 reference). cross-dataset zero-shot / few-shot 평가, OV-MER / AffectGPT 는 label-poor target dataset 의 harmonization 도구. 변경 경위는 `notes/project_decisions.md` 2026-06-02.
 - **대기 (next)**: AffectGPT Horikawa sanity check, brain → emotion-text projector prototype, Horikawa per-subject rating 존재 확인.

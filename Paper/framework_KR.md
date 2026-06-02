@@ -12,9 +12,9 @@ FEELIN는 **emotion-aware brain representation learning을 위한 모델 개발 
 
 > FEELIN는 처음부터 완성형 emotion foundation model을 주장하지 않겠습니다. 먼저 SwiFT, naturalistic movie/story fMRI dataset, TRIBE v2-style stimulus-to-brain model, affective LLM/VLM representation을 하나의 initial benchmark에서 비교하겠습니다. Benchmark는 어떤 정보원이 어떤 emotion target에 도움이 되는지 확인하는 단계이고, 그 결과에 따라 SwiFT emotion adaptation, naturalistic fMRI continued pretraining, TRIBE-SwiFT stimulus-brain alignment, brain-tuned affective LLM/VLM adapter 중 어떤 model-development track을 밀지 결정하겠습니다.
 
-## v4 Reframing (2026-06-02)
+## 현재 scope (v4)
 
-위 canonical 방향은 유지된다. 다만 Big Question 의 축을 v3 의 "fMRI + video fusion 이 video-only baseline 을 넘는가" 에서 **transfer** 로 옮긴다. 측정 결과는 전부 보존된다 (`reports/phase1_wrapup/`, `docs/masterplan_v2.md` 7.0 측정 완료 결과 블록).
+FEELIN 의 Big Question 축은 **transfer** 다. 측정 결과는 전부 보존된다 (`reports/phase1_wrapup/`, `docs/masterplan_v2.md` 7.0 측정 완료 결과 블록). v3 → v4 변경 경위는 `notes/project_decisions.md` 2026-06-02 항목.
 
 **두 개의 다른 질문 분리.** 질문 A (brain 이 같은 stimulus 에서 video feature 를 이기나) 는 Phase 1 frozen probe + Phase 2 joint inference 가 "못 넘는다" 로 답했다. crowd-sourced V/A label 이 stimulus (영상) 속성이라 CLIP 같은 video encoder 가 이기는 게 trivial 하기 때문이다. 질문 B (Horikawa 로 학습한 brain emotion representation 이 새 subject / dataset / taxonomy 로 transfer 되나) 가 foundation model 의 본 질문이다. video 는 질문 B 에서 경쟁자가 아니라 supervision oracle 이다. 새 fMRI dataset 의 brain data 엔 video 를 적용할 수 없기 때문이다.
 
