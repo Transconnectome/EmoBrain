@@ -1,6 +1,6 @@
 # Reference Folder
 
-This folder contains the literature, dataset, and code-resource map for FEELIN.
+This folder contains the literature, dataset, and code-resource map for FEEL.
 
 ## Files
 
@@ -32,7 +32,7 @@ When adding a new paper or codebase, record:
 
 - what it is,
 - what it claims,
-- how it matters for FEELIN,
+- how it matters for FEEL,
 - source URL or DOI,
 - next action.
 

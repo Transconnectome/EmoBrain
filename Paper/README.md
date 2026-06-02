@@ -1,6 +1,6 @@
 # Paper Folder
 
-This folder contains the scientific framing and manuscript/proposal material for FEELIN.
+This folder contains the scientific framing and manuscript/proposal material for FEEL.
 
 ## Files
 
@@ -14,4 +14,4 @@ This folder contains the scientific framing and manuscript/proposal material for
 - Keep detailed experimental design in `methodology.md`.
 - Do not create separate `brief`, `narrative`, or `proposal_outline` files unless explicitly requested.
 - Keep confirmed facts, hypotheses, planned analyses, and actual results clearly separated.
-- FEELIN is primarily a model-development project. Emotion theory should be concise and only serve model/dataset/evaluation design.
+- FEEL is primarily a model-development project. Emotion theory should be concise and only serve model/dataset/evaluation design.

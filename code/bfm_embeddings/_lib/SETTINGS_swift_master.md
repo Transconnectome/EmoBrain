@@ -1,6 +1,6 @@
-# SwiFT — Embedding Extraction Settings
+# SwiFT. Embedding Extraction Settings
 
-> FEELIN Phase 1, SwiFT 5 lab pretrained models + scratch init
+> FEEL Phase 1, SwiFT 5 lab pretrained models + scratch init
 
 ---
 
@@ -41,7 +41,7 @@ Pretrained source: UKB / ABCD resting-state, SimMIM (masked image modeling) obje
 ## 3. Input format
 
 - 4D volumetric fMRI
-- Shape: `(B, 1, 96, 96, 96, 20)` — batch × channel × D × H × W × T
+- Shape: `(B, 1, 96, 96, 96, 20)`. batch × channel × D × H × W × T
 - Spatial: (74,91,81) → (96,96,96) F.pad with background-zero (NeuroSTORM과 동일 방식)
 - Temporal: T → 20 via padding mode
 

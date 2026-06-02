@@ -1,4 +1,4 @@
-# FEELIN Benchmark Design (v3)
+# FEEL Benchmark Design (v3)
 
 Last updated: 2026-05-17
 
@@ -94,8 +94,8 @@ Horikawa 71.6% T=5 자극 → 입력 75% padding. DL fMRI 분야 padding 표준 
 
 | Mode | 의미 |
 |---|---|
-| Pooled | 1 model, 5 subjects 통합 (8,740 train samples) — universal emotion code |
-| Per-subject | 5 models, 각 subject 1,748 samples — personalized |
+| Pooled | 1 model, 5 subjects 통합 (8,740 train samples). universal emotion code |
+| Per-subject | 5 models, 각 subject 1,748 samples. personalized |
 
 ---
 
@@ -162,15 +162,15 @@ Floor model input은 dataset별로 정의된 표준 parcellation 사용 (Horikaw
 ```
 
 분류 라벨:
-- `WIN` — 세 조건 모두 만족
-- `MARGINAL` — 1 또는 2만 만족
-- `PAR` — BFM ≈ floor
-- `LOSE` — BFM < floor
-- `FAIL` — 학습 자체 실패 (NaN, divergence)
+- `WIN`. 세 조건 모두 만족
+- `MARGINAL`. 1 또는 2만 만족
+- `PAR`. BFM ≈ floor
+- `LOSE`. BFM < floor
+- `FAIL`. 학습 자체 실패 (NaN, divergence)
 
 추가 비교 (BFM 간):
-- 같은 architecture의 resting vs scratch 비교 — Δ > 2 × SE이면 resting pretraining이 도움
-- BFM 간 비교 — 같은 (dataset, task)에서 가장 높은 BFM 식별
+- 같은 architecture의 resting vs scratch 비교. Δ > 2 × SE이면 resting pretraining이 도움
+- BFM 간 비교. 같은 (dataset, task)에서 가장 높은 BFM 식별
 
 ---
 
@@ -280,7 +280,7 @@ Week 8: Writeup
 - Adapter, LoRA, fine-tuning variants (frozen probe만)
 - Stimulus-brain alignment
 - Affective LLM/VLM brain-tuning
-- Window length sweep (SL5/10/20/40) — single window only
+- Window length sweep (SL5/10/20/40). single window only
 
 이것들은 Phase 1 결과 따라 Phase 2에서 선택적으로 활성화.
 

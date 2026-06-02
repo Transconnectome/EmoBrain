@@ -1,15 +1,15 @@
-FEELIN 프로젝트 상태를 점검하라.
+FEEL 프로젝트 상태를 점검하라.
 
 ## 읽을 파일
 
-1. `/pscratch/sd/s/sjmoon/FEELIN/README.md`
-2. `/pscratch/sd/s/sjmoon/FEELIN/ONBOARDING.md`
-3. `/pscratch/sd/s/sjmoon/FEELIN/CONTEXT_FEELIN.md`
-4. `/pscratch/sd/s/sjmoon/FEELIN/CLAUDE.md`
-5. `/pscratch/sd/s/sjmoon/FEELIN/notes/project_decisions.md`
-6. `/pscratch/sd/s/sjmoon/FEELIN/notes/two_month_plan.md`
-7. `/pscratch/sd/s/sjmoon/FEELIN/reference/papers.md`
-8. `/pscratch/sd/s/sjmoon/FEELIN/reports/status/PROJECT_STATUS.md`
+1. `/pscratch/sd/s/sjmoon/FEEL/README.md`
+2. `/pscratch/sd/s/sjmoon/FEEL/ONBOARDING.md`
+3. `/pscratch/sd/s/sjmoon/FEEL/CONTEXT_FEEL.md`
+4. `/pscratch/sd/s/sjmoon/FEEL/CLAUDE.md`
+5. `/pscratch/sd/s/sjmoon/FEEL/notes/project_decisions.md`
+6. `/pscratch/sd/s/sjmoon/FEEL/notes/two_month_plan.md`
+7. `/pscratch/sd/s/sjmoon/FEEL/reference/papers.md`
+8. `/pscratch/sd/s/sjmoon/FEEL/reports/status/PROJECT_STATUS.md`
 9. `study*/results/` 안의 최신 결과 파일
 
 ## 실행할 점검

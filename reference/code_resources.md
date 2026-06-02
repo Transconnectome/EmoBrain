@@ -1,4 +1,4 @@
-# FEELIN Code Resource Index
+# FEEL Code Resource Index
 
 This is the canonical place for model/code details. For paper-level claims and
 citations, see `reference/papers.md`. For dataset details, see
@@ -186,7 +186,7 @@ benchmark matrix.
 
 ## Local Code Policy
 
-All FEELIN scripts should follow:
+All FEEL scripts should follow:
 
 ```text
 studyN/code/script_name.py

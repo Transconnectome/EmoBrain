@@ -1,4 +1,4 @@
-# FEELIN PPT Slides (7 슬라이드)
+# FEEL PPT Slides (7 슬라이드)
 
 스타일은 첨부 스크린샷의 1) Data / 2) Task / 3) 모델 / 4) ablation 형식.
 각 슬라이드 = 텍스트 압축 + figure 1 ~ 2 장.

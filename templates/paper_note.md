@@ -21,7 +21,7 @@
 
 -
 
-## Relevance To FEELIN
+## Relevance To FEEL
 
 - SwiFT:
 - TRIBE v2 / stimulus:

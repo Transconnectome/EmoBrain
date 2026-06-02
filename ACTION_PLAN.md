@@ -1,4 +1,4 @@
-# FEELIN Action Plan (v4 final, 2026-06-02)
+# FEEL Action Plan (v4 final, 2026-06-02)
 
 Branch `v4_20260602_perlmutter`. Big Q = universal emotion code 의 존재 검증.
 
@@ -16,10 +16,10 @@ Track A (BFM SSL pretrain + LoRA) + Track B (Brain+Video framework reuse + task 
 | Perlmutter GPU | NERSC m4641 cpu/gpu queue | Track A SSL pretrain, Track B 학습, Track C parsing |
 | Python env | `/pscratch/sd/s/sjmoon/tribev2/.venv` | Track A/B/C |
 | BrainVLM env | `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` | Track C only |
-| Data | `/pscratch/sd/s/sjmoon/FEELIN/data/` | Splits, stim features |
-| BFM embeddings | `/pscratch/sd/s/sjmoon/FEELIN/output/embeddings/` | Brain-JEPA / SwiFT / NeuroSTORM (proper mean) |
-| Results | `/pscratch/sd/s/sjmoon/FEELIN/results/` | CSV / figure |
-| Independent datasets | `/pscratch/sd/s/sjmoon/FEELIN/data/independent/` (NEW) | Emo-FilM / StudyForrest / NNDb / Affective Videos |
+| Data | `/pscratch/sd/s/sjmoon/FEEL/data/` | Splits, stim features |
+| BFM embeddings | `/pscratch/sd/s/sjmoon/FEEL/output/embeddings/` | Brain-JEPA / SwiFT / NeuroSTORM (proper mean) |
+| Results | `/pscratch/sd/s/sjmoon/FEEL/results/` | CSV / figure |
+| Independent datasets | `/pscratch/sd/s/sjmoon/FEEL/data/independent/` (NEW) | Emo-FilM / StudyForrest / NNDb / Affective Videos |
 
 모든 .py 는 .sh 동반 (NERSC SLURM submission, [[feedback_always_make_sh]]).
 
@@ -278,7 +278,7 @@ W15-20. 6 주.
 **자원**. CPU 1-2 일
 
 **Action 26. EmoViS branch 결과 통합 검토**
-- [ ] EmoViS 의 cortical gradient + cross-modal alignment 결과와 FEELIN 의 universal code evidence 의 cross-reference
+- [ ] EmoViS 의 cortical gradient + cross-modal alignment 결과와 FEEL 의 universal code evidence 의 cross-reference
 **Deliverable**. `reports/phase4_integration/feelin_emovis_alignment.md`
 **자원**. CPU 며칠
 

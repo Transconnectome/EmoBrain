@@ -1,4 +1,4 @@
-# FEELIN Weekly Report — 2026-06-01
+# FEEL Weekly Report. 2026-06-01
 
 > Phase 1 완료 + Phase 2 진행 중. Brain-only paradigm 학습 단계.
 
@@ -24,7 +24,7 @@
 | Sartzetaki et al. ICLR 2025 citation 통합 (temporal modeling 관련) | `reference/papers.md`, `Paper/methodology.md`, `main.tex` |
 | Phase 1 unified analysis pipeline (Nature-style figures, brain/video category split) | `code/analysis/phase1_*.py`, `figures/phase1/*.png` |
 
-### Phase 2 v1 — Joint inference (✅)
+### Phase 2 v1. Joint inference (✅)
 
 4 architecture (D late fusion / A token transformer / B cross-attention / C contrastive) × 4 V/A task
 
@@ -45,7 +45,7 @@
 3. **Phase 2 joint inference 도 video baseline saturation**: brain 추가 효과 0. **Crowd-sourced V/A label 의 video-attributable 성질**이 framing 의 핵심 (user-driven insight)
 4. **Off-by-one bug 발견 + fix**: `stim_idx.npy` 0-indexed vs `stimulus_num` 1-indexed 의 misalignment. Phase 1 video probe 의 convention 으로 통일
 
-### Phase 2 v2 — Brain-only paradigm (🔄 진행 중)
+### Phase 2 v2. Brain-only paradigm (🔄 진행 중)
 
 Reframe (user-driven): "CLIP 단독 넘는 게 목적이 아닌, brain 의 emotion 예측력 향상이 목적". Test 때 brain 만 보는 4 method 학습 중.
 
@@ -105,7 +105,7 @@ Full benchmark (5 fold × 3 seed × 4 task × 4 method = 240 fit) launch 단계.
 2. **Phase 2 wrap-up paper draft 시작** (Phase 1 PDF format 재활용 가능)
 3. **BrainVLM training loop 작성 + fold 1 smoke run** (1 epoch, train loss 떨어지는지, generation 형식 따르는지)
 4. **BrainVLM full train (fold 1, 3 epoch)** + emotion VQA inference + Phase 2 결과와 비교
-5. (시간 여유 시) **Subject-conditioned variability 분석** — Phase 2 의 trained model 위에서 같은 stim 의 5 subj output variance 측정
+5. (시간 여유 시) **Subject-conditioned variability 분석**. Phase 2 의 trained model 위에서 같은 stim 의 5 subj output variance 측정
 
 ---
 

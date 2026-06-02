@@ -1,8 +1,8 @@
-# FEELIN Framework (v4 final, 2026-06-02)
+# FEEL Framework (v4 final, 2026-06-02)
 
 ## v4 final Framing (2026-06-02, universal emotion code)
 
-FEELIN is a **model-development project that asks whether a universal emotion code exists in the brain across paradigm, label taxonomy, and subject surface variation, and tests this through multi-source naturalistic emotion fMRI SSL pretrain + adaptation**. It is not an emotion theory paper but a model-development + scientific evidence combination. The internal project name "Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data" is kept for repo and lab identity, but the paper title uses "Universal Emotion Code in Naturalistic Brain Data" or "Transferable Emotion Brain Foundation Model" because the Bommasani 2021 FM definition (scale + emergence + adaptability) is not met at 5 subjects × 2185 stimuli.
+FEEL is a **model-development project that asks whether a universal emotion code exists in the brain across paradigm, label taxonomy, and subject surface variation, and tests this through multi-source naturalistic emotion fMRI SSL pretrain + adaptation**. It is not an emotion theory paper but a model-development + scientific evidence combination. The internal project name "Foundation Model for Emotion Embedding Learning" is kept for repo and lab identity, but the paper title uses "Universal Emotion Code in Naturalistic Brain Data" or "Transferable Emotion Brain Foundation Model" because the Bommasani 2021 FM definition (scale + emergence + adaptability) is not met at 5 subjects × 2185 stimuli.
 
 ### Big Question
 
@@ -77,7 +77,7 @@ fMRI ─► 450-ROI parcel (Schaefer-400 + Tian-50)
             Track C BrainVLM parsing fix (supplementary)
 ```
 
-Source of "foundation". brain backbone (pretrained on tens of thousands of subjects) × emotion-text space (geometry over thousands of emotion concepts) × multi-source SSL pretrain. FEELIN's contribution = measurement methodology for the universal code.
+Source of "foundation". brain backbone (pretrained on tens of thousands of subjects) × emotion-text space (geometry over thousands of emotion concepts) × multi-source SSL pretrain. FEEL's contribution = measurement methodology for the universal code.
 
 ### Cross-dataset evaluation, 4 strategies
 
@@ -130,11 +130,11 @@ Detailed phase tasks, go/no-go gates, and agent review schedule are in [`docs/ma
 
 > The sections below (Canonical Direction through Key References) were written under v3. The v4 Big Question, SQ1-5, and build recipe take precedence, but the deep literature landscape and model development tracks remain valid supporting context for v4.
 
-FEELIN is a **model-development project for emotion-aware brain representation learning**. It is not an emotion theory paper. Emotion theory should appear only as a short constraint on target design: emotion labels are noisy, dynamic, stimulus-dependent, and multi-component, so the model should be evaluated on arousal, valence, discrete categories, and high-dimensional emotion vectors rather than on one fixed label.
+FEEL is a **model-development project for emotion-aware brain representation learning**. It is not an emotion theory paper. Emotion theory should appear only as a short constraint on target design: emotion labels are noisy, dynamic, stimulus-dependent, and multi-component, so the model should be evaluated on arousal, valence, discrete categories, and high-dimensional emotion vectors rather than on one fixed label.
 
 One-line framing (v3):
 
-**FEELIN treats emotion representation as a model-development problem over brain dynamics, naturalistic stimulus dynamics, and affective annotations. Initial benchmarks decide which architecture and training objectives are worth developing.**
+**FEEL treats emotion representation as a model-development problem over brain dynamics, naturalistic stimulus dynamics, and affective annotations. Initial benchmarks decide which architecture and training objectives are worth developing.**
 
 (v4 update. The "initial benchmarks decide architecture/objective" part of this sentence was completed in Phase 1-2. The measured outcome is that fusion architectures and BrainVLM tokens add no group-level emotion value. v4 reframes from that evidence base toward "transfer and multi-dim representation".)
 
@@ -147,7 +147,7 @@ Which model architecture and learning objective produce the most transferable
 brain-based representation of emotion under small downstream fMRI datasets?
 ```
 
-FEELIN decomposes this into eight testable modeling questions.
+FEEL decomposes this into eight testable modeling questions.
 
 | Question | Modeling interpretation | First test |
 |---|---|---|
@@ -160,13 +160,13 @@ FEELIN decomposes this into eight testable modeling questions.
 | Does stimulus-brain alignment help? | Emotion depends on the shared structure between stimulus dynamics and brain dynamics. | TRIBE-style stimulus features aligned with fMRI latents. |
 | Can affective AI be brain-tuned? | LLM/VLM emotion features may improve when regularized by neural responses. | Small adapter or distillation from brain-aligned latent spaces. |
 
-The project should stay comparative. Arousal, valence, discrete emotion, and high-dimensional category vectors may prefer different architectures and brain representations. A useful result can be a pattern of failures, not only one winning model. SwiFT-first is a starting strategy, not a fixed conclusion. If SwiFT is not the right backbone, FEELIN should pivot to the neural representation or architecture that works.
+The project should stay comparative. Arousal, valence, discrete emotion, and high-dimensional category vectors may prefer different architectures and brain representations. A useful result can be a pattern of failures, not only one winning model. SwiFT-first is a starting strategy, not a fixed conclusion. If SwiFT is not the right backbone, FEEL should pivot to the neural representation or architecture that works.
 
 ## Literature Landscape for Model Development
 
 ### fMRI Brain Foundation Models
 
-SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT, and related models define the brain-side foundation-model space. FEELIN is **SwiFT-first** because SwiFT is the local lab backbone that can be modified, pretrained, and inserted into multimodal architectures. The other BFMs define comparison points.
+SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT, and related models define the brain-side foundation-model space. FEEL is **SwiFT-first** because SwiFT is the local lab backbone that can be modified, pretrained, and inserted into multimodal architectures. The other BFMs define comparison points.
 
 - **SwiFT**: direct 4D fMRI spatiotemporal window attention.
 - **BrainLM**: masked prediction over brain activity recordings.
@@ -175,13 +175,13 @@ SwiFT, BrainLM, Brain-JEPA, NeuroSTORM, Omni-fMRI, Brain-DiT, and related models
 - **Omni-fMRI / Brain-DiT**: future references for atlas-free or multi-state pretraining.
 - **SwiFUN**: resting-state to task-activation bridge, useful because emotion-related task contrasts are included in its evaluation.
 
-For FEELIN, these are not final solutions. They are screening baselines that test whether generic brain representations already carry emotion-relevant information.
+For FEEL, these are not final solutions. They are screening baselines that test whether generic brain representations already carry emotion-relevant information.
 
 ### Stimulus-to-Brain Encoding and Alignment
 
 TRIBE and TRIBE v2 are not fMRI encoders in the same native sense as SwiFT or BrainLM. They are **stimulus-to-brain encoding models**: video, audio, and language features are used to predict fMRI responses. This distinction matters, but it does not make comparison impossible.
 
-FEELIN should compare TRIBE-style and SwiFT-style models through a shared interface:
+FEEL should compare TRIBE-style and SwiFT-style models through a shared interface:
 
 | Interface | Input | Model form | Objective |
 |---|---|---|---|
@@ -190,7 +190,7 @@ FEELIN should compare TRIBE-style and SwiFT-style models through a shared interf
 | Encoding-regularized brain model | fMRI + stimulus during training | fMRI encoder + stimulus auxiliary loss | emotion + alignment |
 | Bidirectional aligned model | fMRI and/or stimulus | shared brain-stimulus latent | emotion + fMRI prediction + contrastive/JEPA loss |
 
-Thus the correct framing is not "TRIBE cannot be compared with SwiFT." The correct framing is: **their native input-output directions differ, so FEELIN compares modified variants with harmonized targets, splits, and heads.**
+Thus the correct framing is not "TRIBE cannot be compared with SwiFT." The correct framing is: **their native input-output directions differ, so FEEL compares modified variants with harmonized targets, splits, and heads.**
 
 Concrete model-surgery variants:
 
@@ -198,20 +198,20 @@ Concrete model-surgery variants:
 2. **TRIBE-emotion baseline**: video/audio/text to emotion.
 3. **TRIBE-to-SwiFT distillation**: fMRI encoder learns stimulus-derived latent structure.
 4. **SwiFT-to-TRIBE alignment**: fMRI latents align with TRIBE-style stimulus latents.
-5. **Bidirectional FEELIN**: shared latent learns stimulus-to-brain encoding and brain-to-emotion decoding together.
+5. **Bidirectional FEEL**: shared latent learns stimulus-to-brain encoding and brain-to-emotion decoding together.
 
 ### Affective Computing Foundation Models
 
 Affective computing is moving toward foundation models: LLM/VLM/MLLM emotion recognition, emotion reasoning, multimodal affective benchmarks, and affective generation. Schuller et al. describe this as a foundation-model disruption in affective computing; MMAFFBen and related work show that affective reasoning is now evaluated across text, image, video, and languages.
 
-This creates an opening for FEELIN. Affective AI has large external models but little brain grounding. fMRI BFMs have brain representations but rarely organize pretraining around emotion. FEELIN can bridge them by asking whether brain responses to emotional/naturalistic stimuli can regularize affective AI representations.
+This creates an opening for FEEL. Affective AI has large external models but little brain grounding. fMRI BFMs have brain representations but rarely organize pretraining around emotion. FEEL can bridge them by asking whether brain responses to emotional/naturalistic stimuli can regularize affective AI representations.
 
-Recent MLLM benchmarks such as MME-Emotion, EmoBench-M, Beyond Emotion Recognition, and EIBench also show that affective computing is shifting from "which emotion label?" to emotional understanding, trigger inference, and contextual reasoning. FEELIN should not simply copy these benchmarks, but they are useful for designing richer stimulus-side affective embeddings and auxiliary targets.
+Recent MLLM benchmarks such as MME-Emotion, EmoBench-M, Beyond Emotion Recognition, and EIBench also show that affective computing is shifting from "which emotion label?" to emotional understanding, trigger inference, and contextual reasoning. FEEL should not simply copy these benchmarks, but they are useful for designing richer stimulus-side affective embeddings and auxiliary targets.
 
 Affective-computing task design is therefore broader than classification versus
 regression. A useful ladder is:
 
-| Task type | Output | FEELIN use |
+| Task type | Output | FEEL use |
 |---|---|---|
 | Sentiment/valence classification | positive/neutral/negative or ordinal class | low-dimensional IAPS/Affective Videos check |
 | Discrete emotion classification | single label such as anger, fear, joy | baseline, but may over-simplify mixed affect |
@@ -221,16 +221,16 @@ regression. A useful ladder is:
 | Cue/cause/reasoning | trigger, intent, appraisal, rationale | stimulus-side auxiliary target or alignment target |
 | Affective captioning / QA | natural-language emotion description or answer | convert to embedding/retrieval targets before making brain-generation claims |
 
-Thus FEELIN should not choose only one of classification or regression. It
+Thus FEEL should not choose only one of classification or regression. It
 should start with stable arousal/valence/category targets, move toward
 multi-label/high-dimensional emotion geometry and component trajectories, and
 use reasoning/caption targets mainly to enrich stimulus-side representations.
 
-Top-conference work makes this especially clear. ICML 2025 AffectGPT reframes multimodal emotion recognition as descriptive emotion understanding with large-scale fine-grained captions and a unified benchmark. NeurIPS 2025 VidEmo uses affective-tree reasoning guidance for emotion-centric video foundation modeling. ICLR 2026 AVERE, MME-Emotion, EmotionHallucer, and HitEmotion target audiovisual cue grounding, emotion hallucination, emotional-intelligence evaluation, and Theory-of-Mind-guided multimodal emotion reasoning. The practical lesson for FEELIN is that emotion models should explain or ground affective judgments in temporal context, not only predict labels.
+Top-conference work makes this especially clear. ICML 2025 AffectGPT reframes multimodal emotion recognition as descriptive emotion understanding with large-scale fine-grained captions and a unified benchmark. NeurIPS 2025 VidEmo uses affective-tree reasoning guidance for emotion-centric video foundation modeling. ICLR 2026 AVERE, MME-Emotion, EmotionHallucer, and HitEmotion target audiovisual cue grounding, emotion hallucination, emotional-intelligence evaluation, and Theory-of-Mind-guided multimodal emotion reasoning. The practical lesson for FEEL is that emotion models should explain or ground affective judgments in temporal context, not only predict labels.
 
 ### Brain-Tuning and Brain-Aligned AI
 
-Brain-Score Vision, Brain-Score Language, EEG representational alignment, brain-tuning speech/language models, multi-participant brain-tuning, and fMRI language-encoding scaling laws show that neural data can be used not only to evaluate AI models but also to tune or regularize them. For FEELIN, this supports a cautious but concrete extension:
+Brain-Score Vision, Brain-Score Language, EEG representational alignment, brain-tuning speech/language models, multi-participant brain-tuning, and fMRI language-encoding scaling laws show that neural data can be used not only to evaluate AI models but also to tune or regularize them. For FEEL, this supports a cautious but concrete extension:
 
 ```text
 affective LLM/VLM representation + fMRI response during emotional stimuli
@@ -243,7 +243,7 @@ SED-GPT is a useful nearby precedent because it combines fMRI, long-sequence sem
 
 ### Gap Statement
 
-There is no mature fMRI emotion foundation model direction yet. Existing fMRI BFMs are usually generic; neural-signal FMs may include emotion as one downstream benchmark; affective computing FMs usually lack brain grounding; stimulus-to-brain models usually optimize fMRI encoding rather than emotion representation. FEELIN fills this gap by making **screening-benchmark-driven model development for emotion-aware brain/stimulus representation** the central objective.
+There is no mature fMRI emotion foundation model direction yet. Existing fMRI BFMs are usually generic; neural-signal FMs may include emotion as one downstream benchmark; affective computing FMs usually lack brain grounding; stimulus-to-brain models usually optimize fMRI encoding rather than emotion representation. FEEL fills this gap by making **screening-benchmark-driven model development for emotion-aware brain/stimulus representation** the central objective.
 
 ## Initial Benchmark Strategy
 
@@ -270,7 +270,7 @@ Minimum benchmark table:
 
 ## Horikawa vs. Reasoning/Context Understanding
 
-Horikawa should not be forced to carry the whole reasoning/context story. Its strength is different: it provides a high-dimensional, visually evoked emotion space with fMRI responses to many short videos. In FEELIN, Horikawa is best used as a **brain-side affect geometry probe**.
+Horikawa should not be forced to carry the whole reasoning/context story. Its strength is different: it provides a high-dimensional, visually evoked emotion space with fMRI responses to many short videos. In FEEL, Horikawa is best used as a **brain-side affect geometry probe**.
 
 Reasoning and context understanding require longer temporal context, cue grounding, narrative structure, and sometimes natural-language rationales. These should come from other sources:
 

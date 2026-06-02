@@ -1,6 +1,6 @@
 # TRIBE Horikawa Progress
 
-- Result dir: `/pscratch/sd/s/sjmoon/FEELIN/results/tribe_horikawa`
+- Result dir: `/pscratch/sd/s/sjmoon/FEEL/results/tribe_horikawa`
 - Metadata expected stimuli: 2196
 - Canonical benchmark stimuli: 2185
 - Complete expected stimuli: 1304 (59.38%)

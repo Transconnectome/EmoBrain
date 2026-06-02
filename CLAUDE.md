@@ -1,10 +1,10 @@
-# FEELIN Claude Instructions
+# FEEL Claude Instructions
 
-Read `CONTEXT_FEELIN.md` first. Active forward plan is `docs/masterplan_v2.md`.
+Read `CONTEXT_FEEL.md` first. Active forward plan is `docs/masterplan_v2.md`.
 
 ## Operating Rules
 
-- Root .md 파일 새로 만들지 않음. 7개 (README.md, README_KR.md, CONTEXT_FEELIN.md, ONBOARDING.md, CLAUDE.md, CODEX.md, ACTION_PLAN.md) 로 유지.
+- Root .md 파일 새로 만들지 않음. 7개 (README.md, README_KR.md, CONTEXT_FEEL.md, ONBOARDING.md, CLAUDE.md, CODEX.md, ACTION_PLAN.md) 로 유지.
 - Forward plan / phase report 은 `docs/` 와 `reports/` 에만 추가.
 - Narrative 는 `Paper/framework_EN.md`, `framework_KR.md`.
 - Methodology 는 `Paper/methodology.md`.
@@ -18,7 +18,7 @@ Read `CONTEXT_FEELIN.md` first. Active forward plan is `docs/masterplan_v2.md`.
 
 ## Scientific Rules
 
-- FEELIN 은 model-development project. Emotion theory paper 아님.
+- FEEL 은 model-development project. Emotion theory paper 아님.
 - 세 tier baseline 비교가 본 framing: T1 statistical floor, T2 brain foundation model ceiling, T3 multimodal + vision-language upper bound.
 - Tier 2 brain foundation model: SwiFT (NewE96 + 변종), Brain-JEPA, NeuroSTORM. (BrainLM 은 490 timepoint × A424 atlas 고정으로 Horikawa 비호환, scope 제외.)
 - Tier 1 floor 는 본 model axis 가 아닌 minimum baseline.

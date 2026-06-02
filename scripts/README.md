@@ -1,4 +1,4 @@
-# FEELIN Scripts
+# FEEL Scripts
 
 Scripts here support project operations across the repository. Initial runnable
 experiments should live under `code/`.

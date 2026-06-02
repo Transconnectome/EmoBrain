@@ -1,6 +1,6 @@
-# NeuroSTORM — Embedding Extraction Settings
+# NeuroSTORM. Embedding Extraction Settings
 
-> FEELIN Phase 1, NeuroSTORM resting-pretrained & scratch
+> FEEL Phase 1, NeuroSTORM resting-pretrained & scratch
 
 ---
 
@@ -73,7 +73,7 @@ Replicate 선택 이유: NeuroSTORM도 resting-state로 pretrained, 연속 신�
 
 | 항목 | 값 |
 |---|---|
-| Extraction point | (TBD — EmoDe 동일하게 final block output, mean pool) |
+| Extraction point | (TBD. EmoDe 동일하게 final block output, mean pool) |
 | Pooling | global mean over spatial-temporal tokens |
 | Output dim | 288 |
 | Output shape per stimulus | `(288,)` |
@@ -128,5 +128,5 @@ output/embeddings/neurostorm_scratch/sub-XX/stimulus_YYY.pt   # shape (288,)
 ## 11. 미해결
 
 - [ ] Spatial padding 시 brain mask zero-out 여부 (현재는 background-zero 그대로)
-- [ ] Window attention이 padded temporal frames를 보는지 — replicate라 큰 문제 아닐 듯
+- [ ] Window attention이 padded temporal frames를 보는지. replicate라 큰 문제 아닐 듯
 - [ ] T 길이 sweep 가능성

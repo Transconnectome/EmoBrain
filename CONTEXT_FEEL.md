@@ -1,10 +1,10 @@
-# FEELIN Compact Context
+# FEEL Compact Context
 
 Agent / 협업자가 빠르게 참조할 single source of truth. 자세한 내용은 각 reference 파일.
 
 ## 정체성
 
-**FEELIN** = Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data (내부 / repo / 연구실 정체성 이름).
+**FEEL** = Foundation Model for Emotion Embedding Learning (내부 / repo / 연구실 정체성 이름).
 **Paper title** = "Universal Emotion Code in Naturalistic Brain Data" 또는 "Transferable Emotion Brain Foundation Model" (Bommasani 2021 의 FM 정의 scale 미달 + reviewer negativity bias 회피, naming dual-track).
 
 ## Big Question (v4 final, 2026-06-02)
@@ -125,7 +125,7 @@ fMRI ─► 450-ROI parcel (Schaefer-400 + Tian-50, scanner / dataset 무관 sub
 
 - **Acquisition control**. ComBat (Fortin 2018) + phase-scrambled null + trivial ROI mean null. Transfer Δ > 2σ × max(null) 만 의미.
 - **Caption baseline (Doerig 2025 위협 대응)**. Qwen-VL caption → text embedding probe. Brain unique variance = B_joint - B_caption + paired bootstrap p.
-- **Naming retreat**. Paper title 에서 "foundation model" 명사 자제, 내부 이름 FEELIN 유지.
+- **Naming retreat**. Paper title 에서 "foundation model" 명사 자제, 내부 이름 FEEL 유지.
 
 ## Canonical Data
 

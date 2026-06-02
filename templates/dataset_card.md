@@ -21,7 +21,7 @@
 - Target resolution:
 - Timing information:
 
-## FEELIN Use
+## FEEL Use
 
 - First experiment:
 - SwiFT entry:

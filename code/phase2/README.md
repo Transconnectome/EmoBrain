@@ -1,4 +1,4 @@
-# FEELIN Phase 2 — Trained fusion benchmark
+# FEEL Phase 2. Trained fusion benchmark
 
 4 fusion architectures × 4 V/A tasks, trained on frozen brain + frozen video features.
 Same 5-fold stim-stratified CV protocol as Phase 1.
@@ -27,7 +27,7 @@ Override via `--brain_model`, `--brain_init`, `--brain_padding`, `--video` args.
 - V_binary, A_binary (logistic regression, AUROC main metric)
 - V_reg, A_reg (ridge regression, Pearson r main metric)
 
-Pooled mode (5 subjects merged) — Phase 1 default. Per-subject not used in Phase 2 v1.
+Pooled mode (5 subjects merged). Phase 1 default. Per-subject not used in Phase 2 v1.
 
 ## Critical fix: video feature alignment
 
@@ -65,7 +65,7 @@ code/phase2/
 
 ## Run order
 
-### 1. Supervised architectures (D, A, B) — parallel across tasks
+### 1. Supervised architectures (D, A, B). parallel across tasks
 
 ```bash
 # D (sklearn, ~5s/fold, 5 folds × 1 seed = 5 runs)
@@ -87,7 +87,7 @@ bash code/phase2/wrappers/B/V_reg.sh
 bash code/phase2/wrappers/B/A_reg.sh
 ```
 
-### 2. Architecture C (contrastive) — 2 stages
+### 2. Architecture C (contrastive). 2 stages
 
 ```bash
 # Stage 1: align (5 folds × 3 seeds = 15 aligner ckpts, ~8s each)
@@ -133,7 +133,7 @@ bash code/phase2/wrappers/encoding/dinov2_pretrained.sh
 | C-stage1 + joint probe | 0.9616 | (close to CLIP alone) |
 
 **Observation**: On V_binary, video signal dominates and brain adds essentially nothing
-on top (D BJ+CLIP 0.9829 vs CLIP-alone Phase 1 0.9816 — within seed noise). This is
+on top (D BJ+CLIP 0.9829 vs CLIP-alone Phase 1 0.9816. within seed noise). This is
 consistent with the Phase 1 hypothesis that crowd-sourced V/A labels are video-attributable
 and the brain's added value should be measured on subject-specific targets, not group
 labels.
@@ -142,13 +142,13 @@ Full V/A benchmark will quantify this across all 4 tasks × 4 architectures.
 
 ## Output
 
-- `results/phase2/D/<task>.csv` — D late fusion per-fold rows
-- `results/phase2/A/<task>.csv` — A token transformer
-- `results/phase2/B/<task>.csv` — B cross-attention
-- `results/phase2/C/aligner_fold<K>_seed<S>.pt` — C Stage 1 ckpts
-- `results/phase2/C/probe_brain_only_<task>.csv` — C Stage 2 (brain-only probe)
-- `results/phase2/C/probe_joint_<task>.csv` — C Stage 2 (joint probe)
-- `results/phase2/encoding/<video>__<brain>.csv` — Direction 2 encoding
+- `results/phase2/D/<task>.csv`. D late fusion per-fold rows
+- `results/phase2/A/<task>.csv`. A token transformer
+- `results/phase2/B/<task>.csv`. B cross-attention
+- `results/phase2/C/aligner_fold<K>_seed<S>.pt`. C Stage 1 ckpts
+- `results/phase2/C/probe_brain_only_<task>.csv`. C Stage 2 (brain-only probe)
+- `results/phase2/C/probe_joint_<task>.csv`. C Stage 2 (joint probe)
+- `results/phase2/encoding/<video>__<brain>.csv`. Direction 2 encoding
 
 Schema matches Phase 1 frozen probe CSV → existing `_summary_helper.py` and analysis
 scripts work directly.

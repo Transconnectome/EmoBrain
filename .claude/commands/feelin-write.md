@@ -1,16 +1,16 @@
-FEELIN 논문/프로젝트 문서를 작성하라.
+FEEL 논문/프로젝트 문서를 작성하라.
 
 작성할 섹션: $ARGUMENTS
 
 ## 사전 읽기
 
-1. `/pscratch/sd/s/sjmoon/FEELIN/CLAUDE.md`
-2. `/pscratch/sd/s/sjmoon/FEELIN/CONTEXT_FEELIN.md`
-3. `/pscratch/sd/s/sjmoon/FEELIN/workflows/README.md`
-4. `/pscratch/sd/s/sjmoon/FEELIN/Paper/framework_EN.md`
-5. `/pscratch/sd/s/sjmoon/FEELIN/Paper/methodology.md`
-6. `/pscratch/sd/s/sjmoon/FEELIN/reference/systematic_reference_map.md`
-7. `/pscratch/sd/s/sjmoon/FEELIN/reference/papers.md`
+1. `/pscratch/sd/s/sjmoon/FEEL/CLAUDE.md`
+2. `/pscratch/sd/s/sjmoon/FEEL/CONTEXT_FEEL.md`
+3. `/pscratch/sd/s/sjmoon/FEEL/workflows/README.md`
+4. `/pscratch/sd/s/sjmoon/FEEL/Paper/framework_EN.md`
+5. `/pscratch/sd/s/sjmoon/FEEL/Paper/methodology.md`
+6. `/pscratch/sd/s/sjmoon/FEEL/reference/systematic_reference_map.md`
+7. `/pscratch/sd/s/sjmoon/FEEL/reference/papers.md`
 
 ## 글쓰기 원칙
 
@@ -21,7 +21,7 @@ FEELIN 논문/프로젝트 문서를 작성하라.
 
 ## 저장 위치
 
-- framework 수정: `/pscratch/sd/s/sjmoon/FEELIN/Paper/`
-- literature update: `/pscratch/sd/s/sjmoon/FEELIN/reference/`
-- planning memo: `/pscratch/sd/s/sjmoon/FEELIN/notes/`
-- structured cards: use `/pscratch/sd/s/sjmoon/FEELIN/templates/` and save durable reports under `/pscratch/sd/s/sjmoon/FEELIN/reports/`
+- framework 수정: `/pscratch/sd/s/sjmoon/FEEL/Paper/`
+- literature update: `/pscratch/sd/s/sjmoon/FEEL/reference/`
+- planning memo: `/pscratch/sd/s/sjmoon/FEEL/notes/`
+- structured cards: use `/pscratch/sd/s/sjmoon/FEEL/templates/` and save durable reports under `/pscratch/sd/s/sjmoon/FEEL/reports/`

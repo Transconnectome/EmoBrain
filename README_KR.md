@@ -1,8 +1,8 @@
-# FEELIN 한국어 가이드
+# FEEL 한국어 가이드
 
 **Universal Emotion Code in Naturalistic Brain Data**
 
-(내부 / repo / 연구실 정체성 이름은 Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data 로 유지. Paper title 에서는 "Universal Emotion Code in Naturalistic Brain Data" 또는 "Transferable Emotion Brain Foundation Model" 로 표현. 2026-06-02 naming dual-track.)
+(내부 / repo / 연구실 정체성 이름은 Foundation Model for Emotion Embedding Learning 로 유지. Paper title 에서는 "Universal Emotion Code in Naturalistic Brain Data" 또는 "Transferable Emotion Brain Foundation Model" 로 표현. 2026-06-02 naming dual-track.)
 
 
 ## 한 줄

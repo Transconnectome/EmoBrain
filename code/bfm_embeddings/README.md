@@ -1,6 +1,6 @@
 # BFM Embedding Extraction
 
-FEELIN Phase 1 — Horikawa에서 7 BFM × 2 init × 3 padding 추출.
+FEEL Phase 1. Horikawa에서 7 BFM × 2 init × 3 padding 추출.
 
 > 구조 참조: SwiFT_v2 `sample_scripts_phase4/{extract_embedding, new}/` 와 동일 패턴.
 
@@ -59,7 +59,7 @@ bash code/bfm_embeddings/run_full/swift_NewE96_SL20.sh
 ```bash
 salloc -A m4641 -C gpu -q regular -t 8:00:00 --gpus=4 --nodes=1
 conda activate /pscratch/sd/s/sjmoon/swift_PTL2
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/FEEL
 
 CUDA_VISIBLE_DEVICES=0 bash code/bfm_embeddings/run_full/swift_UAH_51M_SL20.sh   > /tmp/g0.log 2>&1 &
 CUDA_VISIBLE_DEVICES=1 bash code/bfm_embeddings/run_full/swift_NewE36_SL20.sh    > /tmp/g1.log 2>&1 &
@@ -74,8 +74,8 @@ wait
 
 | extract & run script (`.sh`) | Internal model | Output prefix | Env |
 |---|---|---|---|
-| `brain_jepa.sh` | — | `brain_jepa_` | brain-jepa-env |
-| `neurostorm.sh` | — | `neurostorm_` | neurostorm_env + gcc-12 |
+| `brain_jepa.sh` |. | `brain_jepa_` | brain-jepa-env |
+| `neurostorm.sh` |. | `neurostorm_` | neurostorm_env + gcc-12 |
 | `swift_UAH_51M_SL20.sh` | `UAH_P2_51M` | `swift_UAH_51M_SL20_` | swift_PTL2 |
 | `swift_UAH_806M_SL20.sh` | `UAH_P3_806M` | `swift_UAH_806M_SL20_` | swift_PTL2 |
 | `swift_NewE36_SL20.sh` | `NewUAH_newE36` | `swift_NewE36_SL20_` | swift_PTL2 |
@@ -96,7 +96,7 @@ wait
 
 ---
 
-## 공통 정책 (FEELIN Phase 1)
+## 공통 정책 (FEEL Phase 1)
 
 | 항목 | 결정 |
 |---|---|

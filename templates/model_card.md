@@ -19,7 +19,7 @@
 - Native space:
 - Temporal handling:
 
-## FEELIN Use
+## FEEL Use
 
 - Role:
 - First test:

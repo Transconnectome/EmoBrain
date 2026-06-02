@@ -1,6 +1,6 @@
-# FEELIN Dataset Inventory
+# FEEL Dataset Inventory
 
-This is the canonical dataset document for FEELIN. Datasets are grouped by
+This is the canonical dataset document for FEEL. Datasets are grouped by
 their **experimental function**, not by an abstract priority ranking. The
 central question is always:
 
@@ -18,7 +18,7 @@ The practical distinction is:
 
 ## Dataset Function Map
 
-| Function | Dataset | Direct fMRI? | Direct emotion/affect target? | Primary FEELIN use |
+| Function | Dataset | Direct fMRI? | Direct emotion/affect target? | Primary FEEL use |
 |---|---|---:|---:|---|
 | Emotion-labeled fMRI | Horikawa/Cowen emotional videos | yes | yes | high-dimensional affect geometry from brain activity |
 | Emotion-labeled fMRI | Emo-FilM | yes | yes | naturalistic emotion/appraisal/component prediction |
@@ -69,7 +69,7 @@ what must be checked before a BFM cell is marked runnable.
 
 ## Immediate Dataset Logic
 
-FEELIN should not choose datasets by popularity. It should choose datasets by
+FEEL should not choose datasets by popularity. It should choose datasets by
 which model question they answer.
 
 | Model question | Best dataset(s) | Reason |
@@ -89,7 +89,7 @@ stimulus or trial has an emotion/affect target.
 
 ### Horikawa / Cowen Emotional Video fMRI
 
-**Role in FEELIN**
+**Role in FEEL**
 
 Horikawa is the core **high-dimensional affect geometry** dataset. It should not
 be framed as a reasoning dataset. Its value is that emotion labels are richer
@@ -121,7 +121,7 @@ naturalistic videos.
 - First checks: BIDS path, exact run volumes, event timing, video duration,
   HRF-delay policy, and whether all 2,185 stimulus targets are covered.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Primary task: predict high-dimensional emotion vectors from fMRI.
 - Secondary task: compare category/vector prediction against valence/arousal
@@ -162,11 +162,11 @@ naturalistic videos.
 
 ### Emo-FilM
 
-**Role in FEELIN**
+**Role in FEEL**
 
 Emo-FilM is the strongest current fit for **naturalistic emotion dynamics**. It
 contains fMRI, physiology, and detailed annotations during short film viewing.
-This is where FEELIN can move beyond category prediction toward appraisal,
+This is where FEEL can move beyond category prediction toward appraisal,
 component, physiological, and context-sensitive targets.
 
 **Dataset content**
@@ -201,7 +201,7 @@ component, physiological, and context-sensitive targets.
   stimulus onset/offset files, physiological files, annotation smoothing and
   downsampling to TR/window level.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Multi-task emotion/component prediction from fMRI.
 - Arousal/valence-like reduced targets for sanity checks.
@@ -244,7 +244,7 @@ component, physiological, and context-sensitive targets.
 
 ### Affective Videos / OpenfMRI ds000205
 
-**Role in FEELIN**
+**Role in FEEL**
 
 Affective Videos is shorthand for the OpenfMRI `ds000205` release of:
 
@@ -297,7 +297,7 @@ stimuli, beyond static-image emotion paradigms?
   reproduce the original two-volume HRF-offset PSC extraction or run a BFM
   window sweep.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Arousal regression/classification.
 - Valence regression/classification.
@@ -334,7 +334,7 @@ stimuli, beyond static-image emotion paradigms?
 
 ### IAPS fMRI NeuroVault
 
-**Role in FEELIN**
+**Role in FEEL**
 
 IAPS fMRI is a fast **static image valence-category** test. It is useful because
 it gives preprocessed single-subject beta maps for positive, neutral, and
@@ -360,14 +360,14 @@ negative conditions. It is not useful for temporal dynamics.
 - Timing: each scene 2.5 s; each emotional block 15 s; blocks alternate with
   fixation.
 - Original acquisition: Philips Intera Achieva 3T, TR 2.5 s, TE 35 ms.
-- Available FEELIN input: condition beta maps, not native 4D time series.
+- Available FEEL input: condition beta maps, not native 4D time series.
 - Practical volume count: not applicable for the current NeuroVault entry; use
   beta-map count instead, typically positive/neutral/negative maps per subject.
 - First checks: map list, subject coverage, MNI/native space, orientation,
   condition naming, and whether beta-map adaptation is worth including in BFM
   comparison.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Positive vs neutral vs negative classification from beta maps.
 - Pairwise contrasts: negative-neutral, positive-neutral, positive-negative.
@@ -402,11 +402,11 @@ negative conditions. It is not useful for temporal dynamics.
 
 ### NeuroEmo / OpenNeuro ds005700
 
-**Role in FEELIN**
+**Role in FEEL**
 
 NeuroEmo is a cross-cultural emotion-recognition dataset using Indian Bollywood
 movie clips. It is useful as a downstream generalization test and as a check
-that FEELIN is not overfitting to Western stimulus sets.
+that FEEL is not overfitting to Western stimulus sets.
 
 **Dataset content**
 
@@ -435,7 +435,7 @@ that FEELIN is not overfitting to Western stimulus sets.
   are baseline/negative examples or excluded, and whether rest is used only as a
   secondary transfer/control branch.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Multi-class emotion recognition.
 - Rest-to-task transfer: compare resting-state SwiFT features with task fMRI
@@ -468,7 +468,7 @@ that FEELIN is not overfitting to Western stimulus sets.
 
 ### Koide-Majima / Nishimoto Emotional Movie fMRI
 
-**Role in FEELIN**
+**Role in FEEL**
 
 This is a strong secondary candidate for high-dimensional emotional movie fMRI,
 but it should be treated as access-dependent until the data path is confirmed.
@@ -500,7 +500,7 @@ but it should be treated as access-dependent until the data path is confirmed.
 - First checks: data access, exact released file format, whether raw/processed
   fMRI is obtainable, stimulus timing, and target resampling to TR/window level.
 
-**FEELIN task design**
+**FEEL task design**
 
 - High-dimensional emotional movie decoding.
 - Compare short-video affect geometry from Horikawa with longer movie dynamics.
@@ -564,7 +564,7 @@ Sources for the additional naturalistic candidates:
 
 ### HCP Young Adult 7T Movie Watching
 
-**Role in FEELIN**
+**Role in FEEL**
 
 HCP 7T movie is the first **continued pretraining** candidate for SwiFT, not
 because it is an emotion dataset, but because it is a standardized large-subject
@@ -580,7 +580,7 @@ emotion targets.
 - Movie-watching runs are part of the 7T protocol.
 - High-resolution 7T fMRI with naturalistic movie excerpts.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Masked fMRI segment modeling.
 - Temporal contrastive learning.
@@ -628,7 +628,7 @@ emotion targets.
 
 ### CNeuroMod / Algonauts 2025
 
-**Role in FEELIN**
+**Role in FEEL**
 
 CNeuroMod and Algonauts 2025 are not emotion datasets, but they are highly
 relevant for **stimulus-to-brain encoding and multimodal alignment**. They are
@@ -644,7 +644,7 @@ the most practical reference for TRIBE-style engineering.
 - Training distribution includes Friends seasons 1-6 and Movie10-style stimuli;
   evaluation includes held-out Friends and OOD movies.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Stimulus-to-fMRI encoding benchmark.
 - TRIBE v2 reproduction/reference comparison.
@@ -678,10 +678,10 @@ the most practical reference for TRIBE-style engineering.
 
 ### StudyForrest
 
-**Role in FEELIN**
+**Role in FEEL**
 
 StudyForrest is a naturalistic film dataset family centered on Forrest Gump. It
-is useful when FEELIN needs to test whether coherent long-film structure
+is useful when FEEL needs to test whether coherent long-film structure
 helps fMRI temporal representation beyond short emotional clips. It should be
 treated as a secondary naturalistic pretraining/alignment source after the core
 HCP/Horikawa/Emo-FilM path is running.
@@ -697,7 +697,7 @@ HCP/Horikawa/Emo-FilM path is running.
 - Exact modality, preprocessing level, and stimulus access depend on the
   specific studyforrest release being used.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Long-window vs short-window representation learning.
 - JEPA/future-latent objective over coherent story segments.
@@ -740,7 +740,7 @@ HCP/Horikawa/Emo-FilM path is running.
 
 ### Narratives
 
-**Role in FEELIN**
+**Role in FEEL**
 
 Narratives is not a movie-vision dataset and not an emotion dataset. Its value
 is isolating language and story context. It can test whether affective context
@@ -756,7 +756,7 @@ can regularize fMRI representations.
   transcripts.
 - OpenNeuro entry: `ds002345`.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Auxiliary context representation learning.
 - Align fMRI windows with transcript/LLM embeddings.
@@ -794,7 +794,7 @@ can regularize fMRI representations.
 
 ### 101 Dalmatians
 
-**Role in FEELIN**
+**Role in FEEL**
 
 101 Dalmatians is useful for multimodal movie generalization and modality
 control, especially if we want to test how visual-only, auditory-only, and
@@ -806,7 +806,7 @@ audiovisual conditions affect fMRI representations.
 - Includes audiovisual, auditory, and visual conditions.
 - Naturalistic movie structure is useful for multimodal encoding questions.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Modality ablation for movie fMRI.
 - Test whether SwiFT representations differ by sensory access.
@@ -837,7 +837,7 @@ but they should not replace direct fMRI emotion benchmarks.
 
 ### REELMO
 
-**Role in FEELIN**
+**Role in FEEL**
 
 REELMO (REal-time EmotionaL responses to MOvies) is used in the first benchmark
 through its fMRI experiment: 20 participants watched **Jojo Rabbit** while fMRI
@@ -889,7 +889,7 @@ whether dummy volumes/8-second overlaps are already handled in derivatives, and
 alignment between Jojo Rabbit fMRI timepoints and the 20-category affect
 trajectory.
 
-**FEELIN task design**
+**FEEL task design**
 
 - First BFM-compatible use: Jojo Rabbit fMRI -> group-level/retrospective
   affect trajectory prediction, with careful temporal alignment.
@@ -934,9 +934,9 @@ trajectory.
 
 ### Spacetop
 
-**Role in FEELIN**
+**Role in FEEL**
 
-Spacetop is a broad multimodal fMRI dataset. Its value for FEELIN is not
+Spacetop is a broad multimodal fMRI dataset. Its value for FEEL is not
 first-pass emotion decoding, but physiology-aware and interoceptive/affective
 model expansion.
 
@@ -949,7 +949,7 @@ model expansion.
 - Naturalistic video task includes ratings across affective domains such as
   happy, sad, afraid, disgusted, warm/tender, engaged, and personal relevance.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Physiology-aware representation learning.
 - Cross-task transfer between movie, social affect, pain/interoception, and
@@ -969,7 +969,7 @@ model expansion.
 **Risks**
 
 - Very broad scope.
-- Can easily distract from the main two-month FEELIN goal.
+- Can easily distract from the main two-month FEEL goal.
 - Target harmonization is nontrivial.
 
 **Source**
@@ -983,10 +983,10 @@ image affect transfer becomes strategically important.
 
 ### Natural Scenes Dataset
 
-**Role in FEELIN**
+**Role in FEEL**
 
 NSD is not an emotion dataset. Its value is scale: it is a large, high-quality
-7T fMRI dataset for natural image perception. FEELIN can use it for
+7T fMRI dataset for natural image perception. FEEL can use it for
 static-image brain representation learning and then attach affective pseudo-
 targets from OASIS, CLIP/VLM affect scoring, or image emotion models.
 
@@ -1001,7 +1001,7 @@ targets from OASIS, CLIP/VLM affect scoring, or image emotion models.
 - Additional resting-state, retinotopy, localizer, anatomical, physiological,
   eye-tracking, and behavioral data.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Static-image fMRI representation learning.
 - Image affect pseudo-label prediction.
@@ -1033,7 +1033,7 @@ targets from OASIS, CLIP/VLM affect scoring, or image emotion models.
 
 ### OASIS
 
-**Role in FEELIN**
+**Role in FEEL**
 
 OASIS is not an fMRI dataset. It is an open affective image stimulus set that
 can calibrate or validate image affect labels for NSD-like static image work.
@@ -1046,7 +1046,7 @@ can calibrate or validate image affect labels for NSD-like static image work.
 - Images cover humans, animals, objects, and scenes.
 - Useful because it avoids some copyright restrictions associated with IAPS.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Calibrate image affect scoring models.
 - Create affect pseudo-labels for NSD images or other image fMRI datasets.
@@ -1073,7 +1073,7 @@ can calibrate or validate image affect labels for NSD-like static image work.
 
 ### BOLD Moments
 
-**Role in FEELIN**
+**Role in FEEL**
 
 BOLD Moments is useful for dynamic visual-event representation, not primary
 emotion learning. It can help test short-video fMRI encoding and stimulus
@@ -1085,7 +1085,7 @@ feature extraction.
 - 1,102 naturalistic 3-second videos.
 - Videos include object, scene, action, sentence, and memorability annotations.
 
-**FEELIN task design**
+**FEEL task design**
 
 - Short-video stimulus-to-fMRI encoding.
 - Compare event/action semantics with affective labels in Horikawa.

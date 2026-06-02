@@ -1,4 +1,4 @@
-# FEELIN Masterplan v4 final (Universal Emotion Code)
+# FEEL Masterplan v4 final (Universal Emotion Code)
 
 작성. 2026-06-02 v4 final.
 Branch `v4_20260602_perlmutter`. Driver = 교수님 면담 + emovi-method-critic 적대적 검토 + labserver branch framing 통합 + 사용자의 "video baseline 넘는 게 big Q 가 아니다, dataset-specific SQ 가 잘못" 지적 + 사용자의 "FM 과 연결되는 깊은 science question" 요구.
@@ -9,7 +9,7 @@ Branch `v4_20260602_perlmutter`. Driver = 교수님 면담 + emovi-method-critic
 
 Brain 에 paradigm, label, subject 의 surface variation 을 가로지르는 universal emotion code 가 존재하는지를 multi-source naturalistic emotion fMRI 의 SSL pretrain + adaptation 으로 학습하고 검증한다.
 
-Naming dual-track. 내부 / repo / 연구실 = FEELIN = Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data. Paper title = "Universal Emotion Code in Naturalistic Brain Data" 또는 "Transferable Emotion Brain Foundation Model" (Bommasani 2021 FM 정의 scale 미달 reviewer bias 회피).
+Naming dual-track. 내부 / repo / 연구실 = FEEL = Foundation Model for Emotion Embedding Learning. Paper title = "Universal Emotion Code in Naturalistic Brain Data" 또는 "Transferable Emotion Brain Foundation Model" (Bommasani 2021 FM 정의 scale 미달 reviewer bias 회피).
 
 ---
 
@@ -230,7 +230,7 @@ Step 1. Horikawa 2185 video 각각에 local LLM 으로 CLUE-Multi 생성
 Step 2. 같은 local LLM 으로 CLUE-Multi → open-vocab label set (평균 3-5 개)
 Step 3. Frozen artifact 로 release (Hugging Face dataset, hash 명시)
 Step 4. 동일 pipeline 을 Emo-FilM / StudyForrest / NNDb 의 video 에 적용
-Step 5. FEELIN prediction 을 OV label 로 보조 supervision
+Step 5. FEEL prediction 을 OV label 로 보조 supervision
 Step 6. 평가는 set-based F-score (Appendix only)
 ```
 
@@ -389,7 +389,7 @@ Paper title 후보 (naming retreat).
 | 1. Q2 (decomposability) 는 tautological | SQ3 W refit 폐기. Universal code 는 W 와 무관, invariance metric 으로 직접 측정 |
 | 2. Cross-dataset transfer 의 acquisition confound (Sripada 2020) | Track A 의 acquisition control + Track B 의 ComBat 의무화 |
 | 3. 5 subj power 부족 | Open-vocab generalization 강등 (Appendix). Universal code 자체는 multi-source 로 사실상 subject pool 확장 |
-| 4. FM naming bias (Bommasani 2021) | Paper title 에서 "foundation model" 명사 자제. Internal FEELIN 유지 |
+| 4. FM naming bias (Bommasani 2021) | Paper title 에서 "foundation model" 명사 자제. Internal FEEL 유지 |
 | 5. Caption baseline 부재 (Doerig 2025) | Track A/B 모두 caption baseline 의무화. Brain unique variance 측정 |
 | 6. OV-MER GPT-3.5 dependency | 전략 3 local LLM frozen artifact |
 | 7. Cowen 34-cat transmodal 한정 | Track A 의 ROI-wise transfer matrix + Sub-claim 2 의 ROI localization |
@@ -516,7 +516,7 @@ Phase 4 (W24)
 | BrainVLM 추가 학습 risk | (Realized) | Low | Track C supplementary 로 demote, parsing fix 만 |
 | 6 month 안에 Track A SSL pretrain 자원 부족 | Med | High | Priority 1 (subject-invariant + multi-source masked) 우선. Priority 2-3 시간 남으면 |
 | Cowen 34-cat transmodal 한정 (Cowen 2020) | Med | Med | Track A ROI-wise transfer matrix + Sub-claim 2 의 ROI localization |
-| "Foundation Model" naming bias | Med | Med | Paper retreat ("Universal Emotion Code" / "Transferable Emotion Brain Foundation Model"), internal FEELIN 유지 |
+| "Foundation Model" naming bias | Med | Med | Paper retreat ("Universal Emotion Code" / "Transferable Emotion Brain Foundation Model"), internal FEEL 유지 |
 
 ---
 

@@ -1,6 +1,6 @@
-# FEELIN BrainVLM integration
+# FEEL BrainVLM integration
 
-Two parallel integration paths under FEELIN Phase 2 for combining Horikawa naturalistic
+Two parallel integration paths under FEEL Phase 2 for combining Horikawa naturalistic
 emotion fMRI with video into a Qwen3-VL-2B-Instruct backbone via the BrainVLM
 (UMBRELLA_qwen) `PatchEmbedQwen` fMRI patchifier.
 
@@ -49,7 +49,7 @@ generated emotion-aware caption + V/A
 ```
 
 Strengths: video extraction cost is zero (EmoViS features already extracted and symlinked
-into FEELIN). Injector is small (~24M params with V-JEPA2 dim=1408). Trainable parts are
+into FEEL). Injector is small (~24M params with V-JEPA2 dim=1408). Trainable parts are
 minimal. LLM input length is short (no video patch tokens in context).
 
 Limitation: video representation depends on EmoViS feature quality. Loses spatial
@@ -77,13 +77,13 @@ code/brainvlm/
 
 ### 1. Environment verification (~1-2 min, no GPU)
 ```bash
-bash /pscratch/sd/s/sjmoon/FEELIN/code/brainvlm/verify_env.sh
+bash /pscratch/sd/s/sjmoon/FEEL/code/brainvlm/verify_env.sh
 ```
 Confirms torch / transformers / peft / Qwen3-VL processor / BrainVLM module imports work.
 
 ### 2. Smoke test (~30s, no GPU)
 ```bash
-bash /pscratch/sd/s/sjmoon/FEELIN/code/brainvlm/smoke_test_forward.sh
+bash /pscratch/sd/s/sjmoon/FEEL/code/brainvlm/smoke_test_forward.sh
 ```
 End-to-end Horikawa fMRI → BrainVLM PatchEmbedQwen.fMRI → vision tokens shape check.
 Also loads EmoViS video features (Path C side) and confirms shape alignment.
@@ -91,13 +91,13 @@ Also loads EmoViS video features (Path C side) and confirms shape alignment.
 ### 3. Path C injector forward (no GPU)
 ```bash
 /pscratch/sd/s/sjmoon/brainvlm_qwen_env/bin/python \
-    /pscratch/sd/s/sjmoon/FEELIN/code/brainvlm/path_C/video_feature_injection.py
+    /pscratch/sd/s/sjmoon/FEEL/code/brainvlm/path_C/video_feature_injection.py
 ```
 Confirms `VideoFeatureInjector` forward shape, gate-residual behaviour.
 
 ### 4. Convert Horikawa fMRI into BrainVLM input format (~30-60 min CPU)
 ```bash
-bash /pscratch/sd/s/sjmoon/FEELIN/code/brainvlm/convert_horikawa_fmri.sh
+bash /pscratch/sd/s/sjmoon/FEEL/code/brainvlm/convert_horikawa_fmri.sh
 ```
 Produces `output/brainvlm_fmri/pad-zero/sub-XX/stimulus_N.pt` for 5 subj × 2185 stim.
 Each `.pt` is a `(1, 1, 96, 96, 96, 20)` tensor ready for BrainVLM `PatchEmbedQwen.fMRI`.
@@ -105,7 +105,7 @@ Resume-safe (existing files skipped).
 
 ### 5. Build emotion VQA conversation JSONL (~30s CPU)
 ```bash
-bash /pscratch/sd/s/sjmoon/FEELIN/code/brainvlm/build_horikawa_conversations.sh
+bash /pscratch/sd/s/sjmoon/FEEL/code/brainvlm/build_horikawa_conversations.sh
 ```
 Produces 5-fold splits of conversation JSONL files under
 `output/brainvlm_conversations/pad-zero_VA/foldK/{train,val,test}/sub-XX_conversations.jsonl`.

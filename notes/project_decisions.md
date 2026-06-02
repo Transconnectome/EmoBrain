@@ -1,10 +1,10 @@
-# FEELIN Project Decisions
+# FEEL Project Decisions
 
 ## 2026-05-08
 
 ### Project Name
 
-Confirmed working name: **FEELIN**.
+Confirmed working name: **FEEL**.
 
 Formal subtitle:
 
@@ -12,7 +12,7 @@ Formal subtitle:
 
 ### Core Direction
 
-FEELIN will compare:
+FEEL will compare:
 
 1. SwiFT-first emotion adaptation.
 2. HCP movie-watching pretraining.
@@ -208,7 +208,7 @@ Video 는 옵션 teacher (contrastive partner, caption baseline, RSA reference) 
 | 1. Q2 tautological | SQ3 W refit + mediator regression |
 | 2. Acquisition confound (Sripada 2020) | SQ1 ComBat + acquisition null baseline + 2σ prespecify |
 | 3. 5 subj power | Open-vocab 강등 (case study). Subject-level bootstrap CI 명시 |
-| 4. FM naming bias (Bommasani 2021) | Paper retreat ("Transferable Emotion Brain Foundation Model" / "Cross-dataset Emotion Brain Encoder"), internal FEELIN 유지 |
+| 4. FM naming bias (Bommasani 2021) | Paper retreat ("Transferable Emotion Brain Foundation Model" / "Cross-dataset Emotion Brain Encoder"), internal FEEL 유지 |
 | 5. Caption baseline 부재 (Doerig 2025) | SQ5 variance partitioning |
 | 6. OV-MER GPT-3.5 dependency | 전략 3 local LLM (Qwen2.5-72B / Llama-3.3-70B) frozen artifact |
 | 7. Cowen 34-cat transmodal 한정 (Cowen 2020) | SQ1 ROI-wise transfer matrix |
@@ -221,7 +221,7 @@ Video 는 옵션 teacher (contrastive partner, caption baseline, RSA reference) 
 
 ### Naming dual-track (final)
 
-- **내부 / project / repo / slack** = "FEELIN" 유지 (Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data, 교수님과 연구실 정체성)
+- **내부 / project / repo / slack** = "FEEL" 유지 (Foundation Model for Emotion Embedding Learning, 교수님과 연구실 정체성)
 - **Paper title / abstract** = "foundation model" 명사 직접 사용 자제. 후보.
   - "Transferable Emotion Brain Foundation Model from Naturalistic fMRI"
   - "Cross-dataset Emotion-aware Brain Encoder via Emotion-Text Alignment"
@@ -231,7 +231,7 @@ Video 는 옵션 teacher (contrastive partner, caption baseline, RSA reference) 
 
 - ✅ `docs/masterplan_v2.md` v4 final 전면 재작성 완료 (Big Q + 5 SQ + build recipe + 4 cross-dataset 전략 + go-no-go + agent review + risk register + critic 7-hit self-check)
 - ✅ `Paper/framework_KR.md` / `framework_EN.md` v4 final framing prepend 완료
-- ✅ `CONTEXT_FEELIN.md` / `README.md` / `README_KR.md` v4 final 동기화 완료
+- ✅ `CONTEXT_FEEL.md` / `README.md` / `README_KR.md` v4 final 동기화 완료
 - ✅ `notes/project_decisions.md` 이 entry 가 final 결정
 - ⏳ 다음 step (사용자 결정 필요).
   - (a) `code/cross_dataset/` 의 Brain-JEPA + LoRA adaptation 학습 코드 작성
@@ -307,7 +307,7 @@ fMRI → 450-ROI parcel
      → 평가
 ```
 
-Foundation 의 출처 = brain backbone (수만 subject pretrained) × emotion-text space (수천 emotion 개념) × multi-source SSL pretrain. FEELIN 기여 = universal code 의 measurement methodology.
+Foundation 의 출처 = brain backbone (수만 subject pretrained) × emotion-text space (수천 emotion 개념) × multi-source SSL pretrain. FEEL 기여 = universal code 의 measurement methodology.
 
 ### Cross-dataset evaluation 4 전략
 
@@ -335,7 +335,7 @@ Foundation 의 출처 = brain backbone (수만 subject pretrained) × emotion-te
 
 ### Naming dual-track (final)
 
-- 내부 / repo / 연구실 = FEELIN (Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data)
+- 내부 / repo / 연구실 = FEEL (Foundation Model for Emotion Embedding Learning)
 - Paper title 후보. "Universal Emotion Code in Naturalistic Brain Data via Multi-source Self-supervised Adaptation" / "Transferable Multi-dimensional Emotion Representation from Naturalistic fMRI" / "Cross-dataset Emotion-aware Brain Encoder via Emotion-Text Alignment"
 
 ### v4-revised (2026-06-01 오후) → v4 final (2026-06-02) 비교
@@ -354,7 +354,7 @@ Foundation 의 출처 = brain backbone (수만 subject pretrained) × emotion-te
 
 - ✅ `docs/masterplan_v2.md` v4 final 전면 재작성
 - ✅ `Paper/framework_KR.md` / `framework_EN.md` v4 final framing prepend
-- ✅ `CONTEXT_FEELIN.md` / `README.md` / `README_KR.md` v4 final 동기화
+- ✅ `CONTEXT_FEEL.md` / `README.md` / `README_KR.md` v4 final 동기화
 - ✅ Branch `v4_20260602_perlmutter` 생성
 - ⏳ 다음 step.
   - (a) Phase 3b Track A 의 `code/ssl_pretrain/` 구현 시작 (subject_invariant.py + multi_source_masked.py)

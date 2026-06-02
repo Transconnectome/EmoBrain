@@ -1,4 +1,4 @@
-FEELIN 연구 관련 문헌과 코드를 탐색하고 reference에 저장하라.
+FEEL 연구 관련 문헌과 코드를 탐색하고 reference에 저장하라.
 
 검색 토픽: $ARGUMENTS
 
@@ -8,13 +8,13 @@ FEELIN 연구 관련 문헌과 코드를 탐색하고 reference에 저장하라.
 
 먼저 아래 파일을 읽는다.
 
-1. `/pscratch/sd/s/sjmoon/FEELIN/CLAUDE.md`
-2. `/pscratch/sd/s/sjmoon/FEELIN/CONTEXT_FEELIN.md`
-3. `/pscratch/sd/s/sjmoon/FEELIN/workflows/literature_sota_workflow.md`
-4. `/pscratch/sd/s/sjmoon/FEELIN/reference/papers.md`
-5. `/pscratch/sd/s/sjmoon/FEELIN/reference/systematic_reference_map.md`
-6. `/pscratch/sd/s/sjmoon/FEELIN/reference/code_resources.md`
-7. `/pscratch/sd/s/sjmoon/FEELIN/reference/datasets.md`
+1. `/pscratch/sd/s/sjmoon/FEEL/CLAUDE.md`
+2. `/pscratch/sd/s/sjmoon/FEEL/CONTEXT_FEEL.md`
+3. `/pscratch/sd/s/sjmoon/FEEL/workflows/literature_sota_workflow.md`
+4. `/pscratch/sd/s/sjmoon/FEEL/reference/papers.md`
+5. `/pscratch/sd/s/sjmoon/FEEL/reference/systematic_reference_map.md`
+6. `/pscratch/sd/s/sjmoon/FEEL/reference/code_resources.md`
+7. `/pscratch/sd/s/sjmoon/FEEL/reference/datasets.md`
 
 이미 충분히 정리된 내용이면 외부 검색을 생략하고 업데이트만 수행한다.
 
@@ -41,7 +41,7 @@ FEELIN 연구 관련 문헌과 코드를 탐색하고 reference에 저장하라.
 - **Type**:
 - **Venue/date**:
 - **Summary**:
-- **FEELIN relevance**:
+- **FEEL relevance**:
 - **URL/DOI**:
 - **Action**:
 ```

@@ -1,6 +1,6 @@
-# Brain-JEPA — Embedding Extraction Settings
+# Brain-JEPA. Embedding Extraction Settings
 
-> FEELIN Phase 1, Brain-JEPA resting-pretrained & scratch
+> FEEL Phase 1, Brain-JEPA resting-pretrained & scratch
 
 ---
 
@@ -29,7 +29,7 @@
 | 항목 | 값 | 비고 |
 |---|---|---|
 | Input type | ROI time series | 4D volumetric 아님 |
-| Atlas | Schaefer 400 17-network + Tian S3 50 = **450 ROIs** | FEELIN canonical atlas |
+| Atlas | Schaefer 400 17-network + Tian S3 50 = **450 ROIs** | FEEL canonical atlas |
 | Source data | `/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_preprocess_JEPA_ROI/time_series/sub-XX/stimulus_YYY/` | EmoDe에서 이미 parcellation 완료 |
 | File format | `fMRI.Schaefer17n400p.csv.gz` (cortex) + `fMRI.Tian_Subcortex_S3_3T.csv.gz` (subcortex) | 두 파일 concat |
 | Shape per stimulus | `(450 ROIs, T frames)` where T ∈ {5, ..., 47} | variable duration |
@@ -67,7 +67,7 @@ Replicate 선택 이유:
 
 | 항목 | 값 |
 |---|---|
-| Layer | (TBD — EmoDe와 동일하게 last block 또는 CLS token) |
+| Layer | (TBD. EmoDe와 동일하게 last block 또는 CLS token) |
 | Pooling | mean over tokens (EmoDe와 동일) |
 | Output dim | 768 |
 | Output shape per stimulus | `(768,)` |
@@ -121,4 +121,4 @@ output/embeddings/brain_jepa_scratch/sub-XX/stimulus_YYY.pt   # shape (768,)
 ## 11. 미해결
 
 - [ ] Padding 전략 최종 (replicate vs raw 재추출 vs T=5 모델 사용)
-- [ ] T 길이 sweep (T=5/10/20) 가능성 — pretrained pos_embed interpolation 검증 필요
+- [ ] T 길이 sweep (T=5/10/20) 가능성. pretrained pos_embed interpolation 검증 필요

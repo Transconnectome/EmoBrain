@@ -1,4 +1,4 @@
-# FEELIN
+# FEEL
 
 **Transferable Emotion Brain Foundation Model from Naturalistic fMRI**
 
@@ -12,7 +12,7 @@ Horikawa naturalistic fMRI 로 transfer 가능한 multi-dimensional emotion brai
 
 > Naturalistic fMRI 로부터 학습한 multi-dimensional emotion brain representation 이, 단일 dataset 과 label taxonomy 에 종속되지 않고 새로운 subject, 자극, emotion 어휘로 transfer 되는 emotion brain foundation model 이 될 수 있는가?
 
-<sub>운영 정의 (operationalization, FEELIN testbed): Horikawa naturalistic fMRI 로 학습한 multi-dimensional emotion brain representation 이, metadata 가 풍부하지 않은 independent dataset / 새 subject / 다른 emotion taxonomy 로 transfer 되는 emotion brain foundation model 이 될 수 있는가? 그리고 어떤 supervision (scalar V/A vs Cowen 34-category vs 14-dimension vs open-vocabulary description) 과 어떤 brain encoder 가 가장 transferable 한 표상을 만드는가? supervision 과 encoder 비교는 SQ2 와 encoder-swap 축에서 다룬다.</sub>
+<sub>운영 정의 (operationalization, FEEL testbed): Horikawa naturalistic fMRI 로 학습한 multi-dimensional emotion brain representation 이, metadata 가 풍부하지 않은 independent dataset / 새 subject / 다른 emotion taxonomy 로 transfer 되는 emotion brain foundation model 이 될 수 있는가? 그리고 어떤 supervision (scalar V/A vs Cowen 34-category vs 14-dimension vs open-vocabulary description) 과 어떤 brain encoder 가 가장 transferable 한 표상을 만드는가? supervision 과 encoder 비교는 SQ2 와 encoder-swap 축에서 다룬다.</sub>
 
 ## 5 Sub-question (전부 representation 질문, "brain 이 video 를 이겨야" 전제 없음)
 
@@ -60,7 +60,7 @@ fMRI ─► [A] 450-ROI parcel 입력 (Schaefer-400 + Tian-50, scanner / dataset
         - few-shot scaling (SQ4) / RSA geometry (SQ3) / region-restricted (SQ5)
 ```
 
-- **foundation 의 출처**: backbone (수만 subject pretrained) + emotion-text space (수천 emotion 개념 geometry). FEELIN 기여 = 둘을 잇는 adaptation recipe.
+- **foundation 의 출처**: backbone (수만 subject pretrained) + emotion-text space (수천 emotion 개념 geometry). FEEL 기여 = 둘을 잇는 adaptation recipe.
 - **brain encoder 후보 (Block B swap 축)**: Brain-JEPA (ROI, default) / SwiFT (NewE96 + 변종) / NeuroSTORM. BrainLM 은 490 TR × A424 고정으로 Horikawa 비호환, 제외.
 - **옛 frame 탈피**: brain + video fusion, BrainVLM token, late fusion 은 main path 아님. video 는 옵션 teacher 로만. 정직한 framing = from-scratch pretrain 이 아니라 brain FM 의 emotion-specialized adaptation.
 
@@ -131,13 +131,13 @@ Frozen brain foundation model probe 어떤 변종도 video pretrained baseline �
 #    위치: /pscratch/sd/s/sjmoon/BrainVLM/UMBRELLA_qwen/
 
 # 2. BFM proper mean 재추출 (병행 진행 중, 단일 wrapper)
-bash /pscratch/sd/s/sjmoon/FEELIN/code/bfm_embeddings/run_full/proper_mean_all.sh
+bash /pscratch/sd/s/sjmoon/FEEL/code/bfm_embeddings/run_full/proper_mean_all.sh
 
 # 3. EmoViS feature 로딩 sanity check (이미 symlink 완료)
-ls /pscratch/sd/s/sjmoon/FEELIN/data/stimulus_features/
+ls /pscratch/sd/s/sjmoon/FEEL/data/stimulus_features/
 
 # 4. Phase 1 W5-6 의 unified frozen probe (Tier 1 ROI + Tier 2 BFM, optional, 이미 만들어둠)
-bash /pscratch/sd/s/sjmoon/FEELIN/code/probes/run_unified_probe.sh
+bash /pscratch/sd/s/sjmoon/FEEL/code/probes/run_unified_probe.sh
 ```
 
 
@@ -145,4 +145,4 @@ bash /pscratch/sd/s/sjmoon/FEELIN/code/probes/run_unified_probe.sh
 
 2026-06-02, v4 reframing: Big Question 축을 transfer 로 이동 (질문 A = video fusion, Phase 1 + Phase 2 joint 로 측정 완료 / 질문 B = transfer 가 본 plan). target 을 Cowen 34 / 14 / OV emotion-text embedding 으로 승격, V/A 강등. cross-dataset 평가 4 전략 + build recipe (Brain-JEPA backbone + LoRA → emotion-text space) 도입. 측정 결과 전부 보존 (`docs/masterplan_v2.md` 7.0). 상세 결정 로그는 `notes/project_decisions.md`.
 
-2026-05-19 — v3 reframing: "Emotion-aware Multimodal Foundation Model" 이 core. fMRI 통합 architecture 는 design space (LLM token / cross-attention / contrastive / late fusion 4 option). BrainVLM 은 Option A 의 baseline architecture. 이전 v2 의 "context-aware foundation model" framing 폐기. ACTION_PLAN, research_overview, 2026-05-11 시점 자료는 `_archive/` 에. Top-level .md 6개 유지.
+2026-05-19. v3 reframing: "Emotion-aware Multimodal Foundation Model" 이 core. fMRI 통합 architecture 는 design space (LLM token / cross-attention / contrastive / late fusion 4 option). BrainVLM 은 Option A 의 baseline architecture. 이전 v2 의 "context-aware foundation model" framing 폐기. ACTION_PLAN, research_overview, 2026-05-11 시점 자료는 `_archive/` 에. Top-level .md 6개 유지.

@@ -1,8 +1,8 @@
-# FEELIN Methodology Plan
+# FEEL Methodology Plan
 
 ## Overview
 
-The methodology is organized around **SwiFT-first but not SwiFT-locked, screening-benchmark-driven model development**. Before claiming a mature emotion-aware foundation model, FEELIN should build a harmonized benchmark surface across datasets, targets, brain representations, and model families. Every model should be evaluated with comparable splits, target definitions, and metrics.
+The methodology is organized around **SwiFT-first but not SwiFT-locked, screening-benchmark-driven model development**. Before claiming a mature emotion-aware foundation model, FEEL should build a harmonized benchmark surface across datasets, targets, brain representations, and model families. Every model should be evaluated with comparable splits, target definitions, and metrics.
 
 The practical goal for the first two months is:
 
@@ -32,7 +32,7 @@ Phase 0 answers what can actually be run. It should produce one table with datas
 
 Model inventory should similarly record:
 
-| Model/resource | Native direction | First FEELIN use |
+| Model/resource | Native direction | First FEEL use |
 |---|---|---|
 | SwiFT | fMRI -> representation | frozen/adapted emotion head |
 | SwiFUN | rsfMRI -> task activation | resting-to-task/emotion bridge |
