@@ -1,0 +1,59 @@
+# FEELIN BrainVLM Training Config (Horikawa fold 1, V/A regression)
+# Loaded by code/brainvlm/train_brainvlm.py which patches dataset for .pt loading.
+
+wandb:
+    API_KEY: ""  # disabled
+
+seed: 1234
+
+dataset:
+    train_size: 0.8
+    val_size: 0.1
+    test_size: 0.1
+    add_context: False
+    sMRI:
+        target: ["unused"]
+        img_size: [96, 96, 96]
+        study_sample: []
+        meta_dir: []
+        img_dir: []
+    dMRI:
+        target: ["unused"]
+        img_size: [96, 96, 96]
+        study_sample: []
+        meta_dir: []
+        img_dir: []
+    fMRI:
+        target: ["valence", "arousal"]
+        img_size: [96, 96, 96, 20]
+        study_sample: ["Horikawa"]
+        img_dir: []
+        dataset_split_num: 1
+        sequence_length: 20
+        stride_between_seq: 1
+        stride_within_seq: 1
+        shuffle_time_sequence: False
+        input_scaling_method: "none"   # FEELIN .pt files are already normalized
+        label_scaling_method: "none"
+        dtype: "float32"
+
+model:
+    hf_name: "Qwen/Qwen3-VL-2B-Instruct"
+    sMRI:
+        patch_size: [18, 18, 18]
+    fMRI:
+        patch_size: [16, 16, 16, 5]
+
+trainer:
+    max_epochs: 1                         # smoke; bump to 3 for full
+    learning_rate: 0.0003
+    warmup_steps: 50
+    weight_decay: 0.01
+    per_device_batch_size: 1
+    gradient_accumulation_steps: 8
+    gradient_checkpointing: True
+    mixed_precision: "bf16"
+    logging_steps: 5
+    ckpt_dir: "/pscratch/sd/s/sjmoon/FEELIN/output/brainvlm_ckpt/fold1_VA_smoke"
+    resume_training: False
+    max_images_per_sample: 1

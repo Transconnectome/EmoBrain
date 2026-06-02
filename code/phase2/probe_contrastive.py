@@ -54,7 +54,8 @@ def project_features(aligner_ckpt, brain_raw, video_raw, device):
 
 
 def linear_probe(data, task_type, seed):
-    """Phase 1-style ridge / logistic with HP search on val fold."""
+    """Phase 1-style ridge / logistic with HP search on val fold.
+    Supports binary, regression, multilabel, soft_dist."""
     Xtr, ytr = data["train"]["X"], data["train"]["label"]
     Xva, yva = data["val"]["X"],   data["val"]["label"]
     Xte, yte = data["test"]["X"],  data["test"]["label"]
@@ -78,16 +79,13 @@ def linear_probe(data, task_type, seed):
                 best_pred = clf_te.predict(Xte)
         res = eval_metrics(task_type, yte, best_pred, best_prob)
         res["best_hp"] = f"C={best_hp}"
-    else:
-        # Standardize y
+    elif task_type == "regression":
         y_mean = ytr.mean(); y_std = ytr.std() + 1e-8
         ytr_n = (ytr - y_mean) / y_std
-        yva_n = (yva - y_mean) / y_std
         for alpha in RIDGE_ALPHAS:
             reg = Ridge(alpha=alpha)
             reg.fit(Xtr, ytr_n)
-            pred_v_n = reg.predict(Xva)
-            pred_v = pred_v_n * y_std + y_mean
+            pred_v = reg.predict(Xva) * y_std + y_mean
             vs = val_score(task_type, yva, pred_v)
             if vs > best_val:
                 best_val = vs; best_hp = alpha
@@ -95,6 +93,50 @@ def linear_probe(data, task_type, seed):
                 best_pred = reg_te.predict(Xte) * y_std + y_mean
         res = eval_metrics(task_type, yte, best_pred)
         res["best_hp"] = f"alpha={best_hp}"
+    elif task_type == "multilabel":
+        from joblib import Parallel, delayed
+        ytr_i = ytr.astype(int)
+        yva_i = yva.astype(int)
+        yte_i = yte.astype(int)
+        n_cat = ytr.shape[1]
+        def _fit(C, d):
+            yt = ytr_i[:, d]
+            if yt.sum() == 0 or yt.sum() == len(yt): return None
+            return LogisticRegression(C=C, max_iter=500, class_weight="balanced",
+                                      random_state=seed, n_jobs=1).fit(Xtr, yt)
+        best_models = None
+        for C in [1e-2, 1.0, 100.0]:
+            mods = Parallel(n_jobs=8, backend="threading")(delayed(_fit)(C, d) for d in range(n_cat))
+            prob_va = np.zeros_like(yva, dtype=float)
+            for d, m in enumerate(mods):
+                prob_va[:, d] = ytr_i[:, d].mean() if m is None else m.predict_proba(Xva)[:, 1]
+            vs = val_score(task_type, yva_i, (prob_va >= 0.5).astype(int), prob_va)
+            if vs > best_val:
+                best_val = vs; best_hp = C; best_models = mods
+        prob_te = np.zeros_like(yte, dtype=float)
+        for d, m in enumerate(best_models):
+            prob_te[:, d] = ytr_i[:, d].mean() if m is None else m.predict_proba(Xte)[:, 1]
+        best_pred = (prob_te >= 0.5).astype(int); best_prob = prob_te
+        res = eval_metrics(task_type, yte_i, best_pred, best_prob)
+        res["best_hp"] = f"C={best_hp}"
+    elif task_type == "soft_dist":
+        from sklearn.multioutput import MultiOutputRegressor
+        for alpha in RIDGE_ALPHAS:
+            reg = MultiOutputRegressor(Ridge(alpha=alpha, random_state=seed), n_jobs=8).fit(Xtr, ytr)
+            pred_va = reg.predict(Xva)
+            pred_va = np.clip(pred_va, 0, None)
+            pred_va = pred_va / np.clip(pred_va.sum(1, keepdims=True), 1e-8, None)
+            vs = val_score(task_type, yva, pred_va)
+            if vs > best_val:
+                best_val = vs; best_hp = alpha
+                pred_te = reg.predict(Xte)
+                pred_te = np.clip(pred_te, 0, None)
+                pred_te = pred_te / np.clip(pred_te.sum(1, keepdims=True), 1e-8, None)
+                best_pred = pred_te
+        res = eval_metrics(task_type, yte, best_pred)
+        res["best_hp"] = f"alpha={best_hp}"
+    else:
+        raise ValueError(task_type)
     res["val_main"] = best_val
     return res
 
@@ -125,13 +167,13 @@ def main():
 
     brain = load_brain_embeddings(args.brain_model, args.brain_init, args.brain_padding)
     video, vstim = load_video_feature(args.video)
-    label_df, ttype = load_task_labels(args.task)
+    label_df, label_cols, ttype = load_task_labels(args.task)
 
     rows = []
     for fold in folds:
         split = get_fold_split(fold)
         # Reuse the same build_pooled_data, then project per row
-        data_raw = build_pooled_data(brain, video, vstim, label_df, split, ttype)
+        data_raw = build_pooled_data(brain, video, vstim, label_df, split, ttype, label_cols)
         for seed in seeds:
             ckpt_path = Path(args.aligner_dir) / f"aligner_fold{fold}_seed{seed}.pt"
             if not ckpt_path.exists():

@@ -9,12 +9,10 @@ import torch.nn as nn
 
 
 class TokenTransformer(nn.Module):
-    def __init__(self, brain_dim: int, video_dim: int, n_out: int,
-                 task_type: str = "binary",
+    def __init__(self, brain_dim: int, video_dim: int, out_dim: int,
                  d_model: int = 384, n_layers: int = 2, n_heads: int = 6,
                  dim_feedforward: int = 768, dropout: float = 0.1):
         super().__init__()
-        self.task_type = task_type
         self.brain_proj = nn.Linear(brain_dim, d_model)
         self.video_proj = nn.Linear(video_dim, d_model)
         self.cls = nn.Parameter(torch.zeros(1, 1, d_model))
@@ -26,7 +24,7 @@ class TokenTransformer(nn.Module):
         )
         self.transformer = nn.TransformerEncoder(layer, num_layers=n_layers)
         self.norm = nn.LayerNorm(d_model)
-        self.head = nn.Linear(d_model, n_out if task_type == "binary" else 1)
+        self.head = nn.Linear(d_model, out_dim)
 
     def forward(self, brain, video):
         B = brain.shape[0]

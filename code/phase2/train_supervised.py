@@ -27,7 +27,8 @@ sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/code/phase2/architectures")
 from _lib import (TASKS, load_brain_embeddings, load_video_feature, load_task_labels,
                   get_fold_split, build_pooled_data, eval_metrics, val_score,
                   fit_standardizer, apply_standardizer,
-                  DEFAULT_BRAIN, DEFAULT_BRAIN_INIT, DEFAULT_BRAIN_PAD, DEFAULT_VIDEO)
+                  DEFAULT_BRAIN, DEFAULT_BRAIN_INIT, DEFAULT_BRAIN_PAD, DEFAULT_VIDEO,
+                  output_dim_for, compute_loss, predict_from_logits, is_multi_target)
 
 from arch_D_late_fusion import LateFusion
 from arch_A_token_transformer import TokenTransformer
@@ -51,9 +52,7 @@ def train_one_run(arch_cls, brain_train, video_train, label_train,
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    # Build model
-    model = arch_cls(brain_dim=brain_train.shape[1], video_dim=video_train.shape[1],
-                     n_out=n_out, task_type=task_type).to(device)
+    out_dim = output_dim_for(task_type, n_out)
 
     # Standardize features (fit on train only)
     b_mu, b_std = fit_standardizer(brain_train)
@@ -71,12 +70,15 @@ def train_one_run(arch_cls, brain_train, video_train, label_train,
         y_mean = float(label_train.mean())
         y_std = float(label_train.std() + 1e-8)
         lt = (label_train - y_mean) / y_std
-        lv = (label_val - y_mean) / y_std
     else:
         lt = label_train
-        lv = label_val
 
-    tr_ds = TensorDataset(torch.from_numpy(b_tr), torch.from_numpy(v_tr), torch.from_numpy(lt))
+    if task_type == "binary":
+        lt_t = torch.from_numpy(lt.astype(np.int64))
+    else:
+        lt_t = torch.from_numpy(lt.astype(np.float32))
+
+    tr_ds = TensorDataset(torch.from_numpy(b_tr), torch.from_numpy(v_tr), lt_t)
     tr_loader = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, drop_last=False)
 
     # HP search if lr is None
@@ -86,7 +88,7 @@ def train_one_run(arch_cls, brain_train, video_train, label_train,
     for trial_lr in lr_options:
         torch.manual_seed(seed)
         model = arch_cls(brain_dim=brain_train.shape[1], video_dim=video_train.shape[1],
-                         n_out=n_out, task_type=task_type).to(device)
+                         out_dim=out_dim).to(device)
         opt = torch.optim.AdamW(model.parameters(), lr=trial_lr, weight_decay=weight_decay)
         best_val, best_state, since = -np.inf, None, 0
         diverged = False
@@ -96,10 +98,7 @@ def train_one_run(arch_cls, brain_train, video_train, label_train,
                 bb, vv, yy = bb.to(device), vv.to(device), yy.to(device)
                 opt.zero_grad()
                 logits = model(bb, vv)
-                if task_type == "binary":
-                    loss = F.cross_entropy(logits, yy)
-                else:
-                    loss = F.mse_loss(logits.squeeze(-1), yy)
+                loss = compute_loss(task_type, logits, yy, y_mean, y_std)
                 if not torch.isfinite(loss):
                     diverged = True
                     break
@@ -115,14 +114,9 @@ def train_one_run(arch_cls, brain_train, video_train, label_train,
                 if not torch.isfinite(logits_v).all():
                     diverged = True
                     break
-                if task_type == "binary":
-                    prob = F.softmax(logits_v, dim=-1)[:, 1].cpu().numpy()
-                    pred = logits_v.argmax(-1).cpu().numpy()
-                    vs = val_score(task_type, label_val, pred, prob)
-                else:
-                    pred_z = logits_v.squeeze(-1).cpu().numpy()
-                    pred = pred_z * y_std + y_mean
-                    vs = val_score(task_type, label_val, pred)
+                logits_v_np = logits_v.cpu().numpy()
+                pred_v, prob_v = predict_from_logits(task_type, logits_v_np, y_mean, y_std)
+                vs = val_score(task_type, label_val, pred_v, prob_v)
             if vs > best_val:
                 best_val = vs
                 best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
@@ -132,29 +126,22 @@ def train_one_run(arch_cls, brain_train, video_train, label_train,
                 if since >= PATIENCE:
                     break
         if diverged or best_state is None:
-            # this LR diverged; mark as unusable so next LR can win
             continue
         if best_state is not None and (best_global is None or best_val > best_global[0]):
             best_global = (best_val, trial_lr, best_state)
 
-    # Final test eval with best HP
     if best_global is None:
-        # all LR trials diverged. Report failure as NaN result.
         return {"test_main": float("nan"), "best_lr": "diverged", "best_val": float("nan")}
     _, best_lr, best_state = best_global
-    model.load_state_dict(best_state)
-    model.eval()
+    final_model = arch_cls(brain_dim=brain_train.shape[1], video_dim=video_train.shape[1],
+                           out_dim=out_dim).to(device)
+    final_model.load_state_dict(best_state)
+    final_model.eval()
     with torch.no_grad():
-        logits_t = model(torch.from_numpy(b_te).to(device),
-                          torch.from_numpy(v_te).to(device))
-        if task_type == "binary":
-            prob = F.softmax(logits_t, dim=-1)[:, 1].cpu().numpy()
-            pred = logits_t.argmax(-1).cpu().numpy()
-            res = eval_metrics(task_type, label_test, pred, prob)
-        else:
-            pred_z = logits_t.squeeze(-1).cpu().numpy()
-            pred = pred_z * y_std + y_mean
-            res = eval_metrics(task_type, label_test, pred)
+        logits_t = final_model(torch.from_numpy(b_te).to(device),
+                                torch.from_numpy(v_te).to(device)).cpu().numpy()
+        pred_t, prob_t = predict_from_logits(task_type, logits_t, y_mean, y_std)
+        res = eval_metrics(task_type, label_test, pred_t, prob_t)
     res["best_lr"] = best_lr
     res["best_val"] = best_global[0]
     return res
@@ -195,7 +182,7 @@ def train_one_run_sklearn(brain_train, video_train, label_train,
                 best_pred = clf_te.predict(Xte)
         res = eval_metrics(task_type, label_test, best_pred, best_prob)
         res["best_lr"] = f"C={best_hp}"
-    else:
+    elif task_type == "regression":
         y_mean, y_std = label_train.mean(), label_train.std() + 1e-8
         ytr_n = (label_train - y_mean) / y_std
         for alpha in RIDGE_ALPHAS:
@@ -208,6 +195,50 @@ def train_one_run_sklearn(brain_train, video_train, label_train,
                 best_pred = reg_te.predict(Xte) * y_std + y_mean
         res = eval_metrics(task_type, label_test, best_pred)
         res["best_lr"] = f"alpha={best_hp}"
+    elif task_type == "multilabel":
+        from joblib import Parallel, delayed
+        ytr_i = label_train.astype(int)
+        yva_i = label_val.astype(int)
+        yte_i = label_test.astype(int)
+        n_cat = ytr_i.shape[1]
+        def _fit(C, d):
+            yt = ytr_i[:, d]
+            if yt.sum() == 0 or yt.sum() == len(yt): return None
+            return LogisticRegression(C=C, max_iter=500, class_weight="balanced",
+                                      random_state=seed, n_jobs=1).fit(Xtr, yt)
+        best_models = None
+        for C in [1e-2, 1.0, 100.0]:
+            mods = Parallel(n_jobs=8, backend="threading")(delayed(_fit)(C, d) for d in range(n_cat))
+            prob_va = np.zeros_like(label_val, dtype=float)
+            for d, m in enumerate(mods):
+                prob_va[:, d] = ytr_i[:, d].mean() if m is None else m.predict_proba(Xva)[:, 1]
+            vs = val_score(task_type, yva_i, (prob_va >= 0.5).astype(int), prob_va)
+            if vs > best_val:
+                best_val, best_hp = vs, C; best_models = mods
+        prob_te = np.zeros_like(label_test, dtype=float)
+        for d, m in enumerate(best_models):
+            prob_te[:, d] = ytr_i[:, d].mean() if m is None else m.predict_proba(Xte)[:, 1]
+        best_pred = (prob_te >= 0.5).astype(int); best_prob = prob_te
+        res = eval_metrics(task_type, yte_i, best_pred, best_prob)
+        res["best_lr"] = f"C={best_hp}"
+    elif task_type == "soft_dist":
+        from sklearn.multioutput import MultiOutputRegressor
+        for alpha in RIDGE_ALPHAS:
+            reg = MultiOutputRegressor(Ridge(alpha=alpha, random_state=seed), n_jobs=8).fit(Xtr, label_train)
+            pred_va = reg.predict(Xva)
+            pred_va = np.clip(pred_va, 0, None)
+            pred_va = pred_va / np.clip(pred_va.sum(1, keepdims=True), 1e-8, None)
+            vs = val_score(task_type, label_val, pred_va)
+            if vs > best_val:
+                best_val, best_hp = vs, alpha
+                pred_te = reg.predict(Xte)
+                pred_te = np.clip(pred_te, 0, None)
+                pred_te = pred_te / np.clip(pred_te.sum(1, keepdims=True), 1e-8, None)
+                best_pred = pred_te
+        res = eval_metrics(task_type, label_test, best_pred)
+        res["best_lr"] = f"alpha={best_hp}"
+    else:
+        raise ValueError(task_type)
     res["best_val"] = best_val
     return res
 
@@ -245,7 +276,7 @@ def main():
     t0 = time.time()
     brain = load_brain_embeddings(args.brain_model, args.brain_init, args.brain_padding)
     video, vstim = load_video_feature(args.video)
-    label_df, ttype = load_task_labels(args.task)
+    label_df, label_cols, ttype = load_task_labels(args.task)
     n_out = TASKS[args.task]["n_out"]
     print(f"  load t={time.time()-t0:.1f}s | brain D={list(brain.values())[0][0].shape[1]} "
           f"video D={video.shape[1]} task_type={ttype}")
@@ -254,7 +285,7 @@ def main():
     rows = []
     for fold in folds:
         split = get_fold_split(fold)
-        data = build_pooled_data(brain, video, vstim, label_df, split, ttype)
+        data = build_pooled_data(brain, video, vstim, label_df, split, ttype, label_cols)
         for seed in seeds:
             t1 = time.time()
             if args.arch == "D":

@@ -5,13 +5,15 @@ Feature source spec (FEATURES 리스트):
   Tier 1: ROI mean (Schaefer 400 + Tian 50 = 450 dim)
   Tier 2: BFM embedding (SwiFT NewE96, Brain-JEPA, NeuroSTORM, resting + scratch)
 
-Tasks (6 종):
-  1. V_binary    : Valence Q4 vs Q1 (binary classification)
-  2. A_binary    : Arousal Q4 vs Q1 (binary classification)
-  3. V_reg       : Valence continuous (regression)
-  4. A_reg       : Arousal continuous (regression)
-  5. Cat34_top1  : Cowen 34-emotion category top-1 (multinomial)
-  6. Dim14_multi : 14 affective dimensions multi-output regression
+Tasks (8 종):
+  1. V_binary          : Valence Q4 vs Q1 (binary)
+  2. A_binary          : Arousal Q4 vs Q1 (binary)
+  3. V_reg             : Valence continuous (regression)
+  4. A_reg             : Arousal continuous (regression)
+  5. Cat34_top1        : Cowen 34-cat top-1 (multinomial)  ← supplementary, broken folds
+  6. Dim14_multi       : 14 affective dimensions multi-output regression
+  7. Cat34_multilabel  : Cowen 34-cat multi-label, threshold 0.15 (sigmoid BCE)
+  8. Cat34_soft        : Cowen 34-cat soft distribution (KL / MSE)
 
 Heads:
   - linear: scikit-learn (Logistic L2 / Ridge / MultinomialLogistic / MultiOutputRidge)
@@ -132,13 +134,17 @@ DIM14_COLS = ["arousal_score", "dominance_score", "valence_score", "approach_sco
 
 # Task definition (type 으로 dispatch)
 TASKS = {
-    "V_binary":   {"type": "binary",      "n_out": 2,  "main_metric": "AUROC"},
-    "A_binary":   {"type": "binary",      "n_out": 2,  "main_metric": "AUROC"},
-    "V_reg":      {"type": "regression",  "n_out": 1,  "main_metric": "pearson_r"},
-    "A_reg":      {"type": "regression",  "n_out": 1,  "main_metric": "pearson_r"},
-    "Cat34_top1": {"type": "multinomial", "n_out": 34, "main_metric": "bal_acc"},
-    "Dim14_multi":{"type": "multi_reg",   "n_out": 14, "main_metric": "mean_pearson_r"},
+    "V_binary":          {"type": "binary",      "n_out": 2,  "main_metric": "AUROC"},
+    "A_binary":          {"type": "binary",      "n_out": 2,  "main_metric": "AUROC"},
+    "V_reg":             {"type": "regression",  "n_out": 1,  "main_metric": "pearson_r"},
+    "A_reg":             {"type": "regression",  "n_out": 1,  "main_metric": "pearson_r"},
+    "Cat34_top1":        {"type": "multinomial", "n_out": 34, "main_metric": "bal_acc"},
+    "Dim14_multi":       {"type": "multi_reg",   "n_out": 14, "main_metric": "mean_pearson_r"},
+    "Cat34_multilabel":  {"type": "multilabel",  "n_out": 34, "main_metric": "macro_auroc"},
+    "Cat34_soft":        {"type": "soft_dist",   "n_out": 34, "main_metric": "mean_pearson_r"},
 }
+
+CAT34_MULTILABEL_THRESHOLD = 0.15
 
 LINEAR_CS = [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]
 RIDGE_ALPHAS = [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]
@@ -195,6 +201,24 @@ def _load_task_labels(task):
         return df[["stimulus_num", "cat34_top1"]], "cat34_top1", ttype
     if task == "Dim14_multi":
         return df[["stimulus_num"] + DIM14_COLS], DIM14_COLS, ttype
+    if task == "Cat34_multilabel":
+        score_cols = [f"score_{i}" for i in range(34)]
+        scores = df[score_cols].values
+        mask = (scores >= CAT34_MULTILABEL_THRESHOLD).astype(np.float32)
+        ml_cols = [f"cat_{i}" for i in range(34)]
+        out = df[["stimulus_num"]].copy()
+        for i, c in enumerate(ml_cols):
+            out[c] = mask[:, i]
+        return out, ml_cols, ttype
+    if task == "Cat34_soft":
+        score_cols = [f"score_{i}" for i in range(34)]
+        scores = df[score_cols].values.astype(np.float32)
+        row_sum = scores.sum(axis=1, keepdims=True)
+        scores = scores / np.clip(row_sum, 1e-8, None)
+        out = df[["stimulus_num"]].copy()
+        for i, c in enumerate(score_cols):
+            out[c] = scores[:, i]
+        return out, score_cols, ttype
     raise ValueError(f"unknown task {task}")
 
 
@@ -296,6 +320,45 @@ def eval_metrics(ttype, y_true, y_pred, y_prob=None):
         out["test_mse_mean"]           = float(mean_squared_error(y_true, y_pred))
         out["test_rmse_mean"]          = float(np.sqrt(out["test_mse_mean"]))
         out["test_main"]               = out["test_pearson_r_mean"]
+    elif ttype == "multilabel":
+        # per-cat AUROC (drop cats with no positives in test set)
+        per_cat_auroc = []
+        for d in range(y_true.shape[1]):
+            yt = y_true[:, d]
+            if yt.sum() == 0 or yt.sum() == len(yt):
+                per_cat_auroc.append(float("nan"))
+                continue
+            per_cat_auroc.append(float(roc_auc_score(yt, y_prob[:, d])))
+        valid = [a for a in per_cat_auroc if not (a != a)]  # drop nan
+        out["test_macro_auroc_per_cat"] = per_cat_auroc
+        out["test_macro_auroc"]         = float(np.mean(valid)) if valid else float("nan")
+        out["test_macro_f1"]            = float(f1_score(y_true, y_pred, average="macro", zero_division=0))
+        out["test_micro_f1"]            = float(f1_score(y_true, y_pred, average="micro", zero_division=0))
+        out["test_main"]                = out["test_macro_auroc"]
+    elif ttype == "soft_dist":
+        # mean per-cat Pearson r (same as multi_reg)
+        rs = []
+        for d in range(y_true.shape[1]):
+            yt, yp = y_true[:, d], y_pred[:, d]
+            if yt.std() < 1e-8 or yp.std() < 1e-8:
+                rs.append(float("nan")); continue
+            r, _ = pearsonr(yt, yp)
+            rs.append(float(r))
+        valid = [r for r in rs if not (r != r)]
+        out["test_pearson_r_per_cat"] = rs
+        out["test_pearson_r_mean"]    = float(np.mean(valid)) if valid else float("nan")
+        # top-1 accuracy derived from argmax of predicted soft dist
+        top1_pred = y_pred.argmax(axis=1)
+        top1_true = y_true.argmax(axis=1)
+        out["test_top1_acc"]          = float((top1_pred == top1_true).mean())
+        # KL divergence (true vs pred), pred clamped
+        eps = 1e-8
+        yp_norm = np.clip(y_pred, eps, None)
+        yp_norm = yp_norm / yp_norm.sum(axis=1, keepdims=True)
+        yt_clamped = np.clip(y_true, eps, None)
+        kl = (yt_clamped * (np.log(yt_clamped) - np.log(yp_norm))).sum(axis=1).mean()
+        out["test_kl_mean"]           = float(kl)
+        out["test_main"]              = out["test_pearson_r_mean"]
     return out
 
 
@@ -311,6 +374,23 @@ def val_score(ttype, y_true, y_pred, y_prob=None):
     if ttype == "multi_reg":
         rs = [pearsonr(y_true[:, d], y_pred[:, d])[0] for d in range(y_true.shape[1])]
         return float(np.mean(rs))
+    if ttype == "multilabel":
+        # macro-AUROC over cats with both classes present in val
+        aurocs = []
+        for d in range(y_true.shape[1]):
+            yt = y_true[:, d]
+            if yt.sum() == 0 or yt.sum() == len(yt):
+                continue
+            aurocs.append(roc_auc_score(yt, y_prob[:, d]))
+        return float(np.mean(aurocs)) if aurocs else 0.0
+    if ttype == "soft_dist":
+        rs = []
+        for d in range(y_true.shape[1]):
+            yt, yp = y_true[:, d], y_pred[:, d]
+            if yt.std() < 1e-8 or yp.std() < 1e-8:
+                continue
+            rs.append(pearsonr(yt, yp)[0])
+        return float(np.mean(rs)) if rs else 0.0
 
 
 # ============================================================
@@ -371,12 +451,70 @@ def linear_probe(data, ttype, seed):
     if ttype == "multi_reg":
         best_a, best_val, best_model = None, -np.inf, None
         for alpha in RIDGE_ALPHAS:
-            clf = MultiOutputRegressor(Ridge(alpha=alpha, random_state=seed))
+            clf = MultiOutputRegressor(Ridge(alpha=alpha, random_state=seed), n_jobs=8)
             clf.fit(Xtr, ytr)
             v = val_score(ttype, yva, clf.predict(Xva))
             if v > best_val:
                 best_val, best_a, best_model = v, alpha, clf
         pred = best_model.predict(Xte)
+        m = eval_metrics(ttype, yte, pred)
+        m["val_main"] = best_val
+        m["best_hp"] = f"alpha={best_a}"
+        return m
+
+    if ttype == "multilabel":
+        # Per-cat L2 logistic regression. Parallelize cats with joblib.
+        from joblib import Parallel, delayed
+        ytr_i = ytr.astype(int)
+        yva_i = yva.astype(int)
+        n_cat = ytr.shape[1]
+
+        def _fit_one(C, d):
+            yt = ytr_i[:, d]
+            if yt.sum() == 0 or yt.sum() == len(yt):
+                return None
+            clf = LogisticRegression(C=C, penalty="l2", solver="lbfgs", max_iter=500,
+                                     class_weight="balanced", random_state=seed, n_jobs=1)
+            clf.fit(Xtr, yt)
+            return clf
+
+        # Reduced grid for multilabel (3 instead of 6) to bound runtime.
+        ML_CS = [1e-2, 1.0, 100.0]
+        best_c, best_val, best_models = None, -np.inf, None
+        # Threading backend avoids per-worker pickling of the 6555x768 X array.
+        # LBFGS releases the GIL during heavy linear algebra, so threading scales well.
+        for C in ML_CS:
+            models = Parallel(n_jobs=8, backend="threading")(delayed(_fit_one)(C, d) for d in range(n_cat))
+            prob_va = np.zeros_like(yva, dtype=np.float64)
+            for d, clf in enumerate(models):
+                prob_va[:, d] = ytr_i[:, d].mean() if clf is None else clf.predict_proba(Xva)[:, 1]
+            v = val_score(ttype, yva_i, (prob_va >= 0.5).astype(int), prob_va)
+            if v > best_val:
+                best_val, best_c, best_models = v, C, models
+        prob_te = np.zeros_like(yte, dtype=np.float64)
+        for d, clf in enumerate(best_models):
+            prob_te[:, d] = ytr_i[:, d].mean() if clf is None else clf.predict_proba(Xte)[:, 1]
+        pred_te = (prob_te >= 0.5).astype(int)
+        m = eval_metrics(ttype, yte.astype(int), pred_te, prob_te)
+        m["val_main"] = best_val
+        m["best_hp"] = f"C={best_c}"
+        return m
+
+    if ttype == "soft_dist":
+        # Per-cat Ridge (same as multi_reg). Predictions re-normalized to sum 1.
+        best_a, best_val, best_model = None, -np.inf, None
+        for alpha in RIDGE_ALPHAS:
+            clf = MultiOutputRegressor(Ridge(alpha=alpha, random_state=seed), n_jobs=8)
+            clf.fit(Xtr, ytr)
+            pred_va = clf.predict(Xva)
+            pred_va = np.clip(pred_va, 0, None)
+            pred_va = pred_va / np.clip(pred_va.sum(axis=1, keepdims=True), 1e-8, None)
+            v = val_score(ttype, yva, pred_va)
+            if v > best_val:
+                best_val, best_a, best_model = v, alpha, clf
+        pred = best_model.predict(Xte)
+        pred = np.clip(pred, 0, None)
+        pred = pred / np.clip(pred.sum(axis=1, keepdims=True), 1e-8, None)
         m = eval_metrics(ttype, yte, pred)
         m["val_main"] = best_val
         m["best_hp"] = f"alpha={best_a}"
@@ -400,6 +538,14 @@ def _train_one_mlp(data, ttype, seed, lr, dev, n_out):
     if ttype in ("binary", "multinomial"):
         ytr = torch.from_numpy(data["y_train"]).long().to(dev)
         loss_fn = nn.CrossEntropyLoss()
+    elif ttype == "multilabel":
+        ytr = torch.from_numpy(data["y_train"].astype(np.float32)).float().to(dev)
+        loss_fn = nn.BCEWithLogitsLoss()
+    elif ttype == "soft_dist":
+        # Train against the soft target directly with KL (target as a probability
+        # distribution, prediction via log_softmax).
+        ytr = torch.from_numpy(data["y_train"].astype(np.float32)).float().to(dev)
+        loss_fn = nn.KLDivLoss(reduction="batchmean")
     else:  # regression / multi_reg
         # standardize y for stable training, un-standardize at predict
         y_mean = np.asarray(data["y_mean"], dtype=np.float32)
@@ -439,10 +585,14 @@ def _train_one_mlp(data, ttype, seed, lr, dev, n_out):
             idx = idx_all[s:s + MLP_BATCH]
             opt.zero_grad()
             out = model(Xtr[idx])
-            if ttype == "binary":
+            if ttype in ("binary", "multinomial"):
                 loss = loss_fn(out, ytr[idx])
-            elif ttype == "multinomial":
+            elif ttype == "multilabel":
                 loss = loss_fn(out, ytr[idx])
+            elif ttype == "soft_dist":
+                # KL needs log_softmax for input, target as probability distribution
+                logp = torch.log_softmax(out, dim=1)
+                loss = loss_fn(logp, ytr[idx])
             else:  # regression / multi_reg
                 loss = loss_fn(out, ytr[idx])
             loss.backward()
@@ -459,6 +609,14 @@ def _train_one_mlp(data, ttype, seed, lr, dev, n_out):
         elif ttype == "multinomial":
             pred_va = out_va.argmax(axis=1)
             v = val_score(ttype, data["y_val"], pred_va)
+        elif ttype == "multilabel":
+            prob_va = 1.0 / (1.0 + np.exp(-out_va))
+            pred_va = (prob_va >= 0.5).astype(int)
+            v = val_score(ttype, data["y_val"].astype(int), pred_va, prob_va)
+        elif ttype == "soft_dist":
+            prob_va = np.exp(out_va - out_va.max(axis=1, keepdims=True))
+            prob_va = prob_va / np.clip(prob_va.sum(axis=1, keepdims=True), 1e-8, None)
+            v = val_score(ttype, data["y_val"], prob_va)
         else:
             # un-standardize
             y_mean = np.asarray(data["y_mean"], dtype=np.float32)
@@ -487,6 +645,14 @@ def _train_one_mlp(data, ttype, seed, lr, dev, n_out):
     elif ttype == "multinomial":
         pred_te = out_te.argmax(axis=1)
         m = eval_metrics(ttype, data["y_test"], pred_te)
+    elif ttype == "multilabel":
+        prob_te = 1.0 / (1.0 + np.exp(-out_te))
+        pred_te = (prob_te >= 0.5).astype(int)
+        m = eval_metrics(ttype, data["y_test"].astype(int), pred_te, prob_te)
+    elif ttype == "soft_dist":
+        prob_te = np.exp(out_te - out_te.max(axis=1, keepdims=True))
+        prob_te = prob_te / np.clip(prob_te.sum(axis=1, keepdims=True), 1e-8, None)
+        m = eval_metrics(ttype, data["y_test"], prob_te)
     else:
         y_mean = np.asarray(data["y_mean"], dtype=np.float32)
         y_std  = np.asarray(data["y_std"],  dtype=np.float32)

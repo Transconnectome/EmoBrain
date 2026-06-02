@@ -30,7 +30,8 @@ sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/code/phase2/brain_only")
 from _lib import (TASKS, load_brain_embeddings, load_video_feature, load_task_labels,
                   get_fold_split, eval_metrics, val_score,
                   fit_standardizer, apply_standardizer,
-                  DEFAULT_BRAIN, DEFAULT_BRAIN_INIT, DEFAULT_BRAIN_PAD, DEFAULT_VIDEO)
+                  DEFAULT_BRAIN, DEFAULT_BRAIN_INIT, DEFAULT_BRAIN_PAD, DEFAULT_VIDEO,
+                  output_dim_for, compute_loss, predict_from_logits, is_multi_target)
 
 OUT_DIR = Path("/pscratch/sd/s/sjmoon/FEELIN/results/phase2/brain_only/III_multitask")
 
@@ -38,14 +39,13 @@ LAMBDA_AUX = 0.3
 
 
 class BrainMTL(nn.Module):
-    def __init__(self, brain_dim, video_dim, n_out, task_type, hidden=256, dropout=0.3):
+    def __init__(self, brain_dim, video_dim, out_dim, hidden=256, dropout=0.3):
         super().__init__()
-        self.task_type = task_type
         self.shared = nn.Sequential(
             nn.Linear(brain_dim, hidden), nn.GELU(), nn.Dropout(dropout),
             nn.Linear(hidden, hidden), nn.GELU(), nn.Dropout(dropout),
         )
-        self.va_head = nn.Linear(hidden, n_out if task_type == "binary" else 1)
+        self.va_head = nn.Linear(hidden, out_dim)
         self.video_head = nn.Linear(hidden, video_dim)
 
     def forward(self, brain):
@@ -53,23 +53,30 @@ class BrainMTL(nn.Module):
         return self.va_head(h), self.video_head(h)
 
 
-def build_brain_video_data(brain_dict, video_feat, vstim, label_df, split_df, task_type):
+def build_brain_video_data(brain_dict, video_feat, vstim, label_df, split_df, task_type,
+                           label_cols="label"):
     """Each (subj, stim) → (brain, video, label)."""
+    is_multi = isinstance(label_cols, list)
     s2v = {int(s): i for i, s in enumerate(vstim)}
     label_df = label_df.merge(split_df, on="stimulus_num", how="inner")
     out = {sp: {"brain": [], "video": [], "label": []} for sp in ["train", "val", "test"]}
     for subj, (emb, stim_arr) in brain_dict.items():
         s2b = {int(s): i for i, s in enumerate(stim_arr)}
         for _, row in label_df.iterrows():
-            stim, sp, lab = int(row["stimulus_num"]), row["split"], row["label"]
+            stim, sp = int(row["stimulus_num"]), row["split"]
             if stim not in s2b or stim not in s2v: continue
             out[sp]["brain"].append(emb[s2b[stim]])
             out[sp]["video"].append(video_feat[s2v[stim]])
-            out[sp]["label"].append(lab)
+            if is_multi:
+                out[sp]["label"].append(np.asarray([row[c] for c in label_cols], dtype=np.float32))
+            else:
+                out[sp]["label"].append(row[label_cols])
     for sp in out:
         out[sp]["brain"] = np.stack(out[sp]["brain"]).astype(np.float32)
         out[sp]["video"] = np.stack(out[sp]["video"]).astype(np.float32)
-        if task_type == "binary":
+        if is_multi:
+            out[sp]["label"] = np.stack(out[sp]["label"], axis=0).astype(np.float32)
+        elif task_type == "binary":
             out[sp]["label"] = np.asarray(out[sp]["label"], dtype=np.int64)
         else:
             out[sp]["label"] = np.asarray(out[sp]["label"], dtype=np.float32)
@@ -89,6 +96,7 @@ def train_one_mtl(brain_train, video_train, label_train,
     b_te = apply_standardizer(brain_test, b_mu, b_std)
     v_mu, v_std = fit_standardizer(video_train)
     v_tr = apply_standardizer(video_train, v_mu, v_std)
+    out_dim = output_dim_for(task_type, n_out)
     if task_type == "regression":
         y_mean = float(label_train.mean()); y_std = float(label_train.std() + 1e-8)
         lt = (label_train - y_mean) / y_std
@@ -96,13 +104,17 @@ def train_one_mtl(brain_train, video_train, label_train,
         y_mean, y_std = 0.0, 1.0
         lt = label_train
 
-    tr_ds = TensorDataset(torch.from_numpy(b_tr), torch.from_numpy(v_tr), torch.from_numpy(lt))
+    if task_type == "binary":
+        lt_t = torch.from_numpy(lt.astype(np.int64))
+    else:
+        lt_t = torch.from_numpy(lt.astype(np.float32))
+    tr_ds = TensorDataset(torch.from_numpy(b_tr), torch.from_numpy(v_tr), lt_t)
     tr_loader = DataLoader(tr_ds, batch_size=batch_size, shuffle=True)
 
     best_global = None
     for lr in lrs:
         torch.manual_seed(seed)
-        model = BrainMTL(b_tr.shape[1], v_tr.shape[1], n_out, task_type).to(device)
+        model = BrainMTL(b_tr.shape[1], v_tr.shape[1], out_dim).to(device)
         opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
         best_val, best_state, since, diverged = -np.inf, None, 0, False
         for epoch in range(epochs):
@@ -111,10 +123,7 @@ def train_one_mtl(brain_train, video_train, label_train,
                 bb, vv, yy = bb.to(device), vv.to(device), yy.to(device)
                 opt.zero_grad()
                 va_logits, vrec = model(bb)
-                if task_type == "binary":
-                    loss_va = F.cross_entropy(va_logits, yy)
-                else:
-                    loss_va = F.mse_loss(va_logits.squeeze(-1), yy)
+                loss_va = compute_loss(task_type, va_logits, yy, y_mean, y_std)
                 loss_aux = F.mse_loss(vrec, vv)
                 loss = loss_va + LAMBDA_AUX * loss_aux
                 if not torch.isfinite(loss): diverged = True; break
@@ -126,13 +135,9 @@ def train_one_mtl(brain_train, video_train, label_train,
             with torch.no_grad():
                 va_logits_v, _ = model(torch.from_numpy(b_va).to(device))
                 if not torch.isfinite(va_logits_v).all(): diverged = True; break
-                if task_type == "binary":
-                    prob = F.softmax(va_logits_v, -1)[:, 1].cpu().numpy()
-                    pred = va_logits_v.argmax(-1).cpu().numpy()
-                    vs = val_score(task_type, label_val, pred, prob)
-                else:
-                    pred = va_logits_v.squeeze(-1).cpu().numpy() * y_std + y_mean
-                    vs = val_score(task_type, label_val, pred)
+                logits_v_np = va_logits_v.cpu().numpy()
+                pred_v, prob_v = predict_from_logits(task_type, logits_v_np, y_mean, y_std)
+                vs = val_score(task_type, label_val, pred_v, prob_v)
             if vs > best_val:
                 best_val = vs
                 best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
@@ -146,18 +151,14 @@ def train_one_mtl(brain_train, video_train, label_train,
     if best_global is None:
         return {"test_main": float("nan"), "best_lr": "diverged", "best_val": float("nan")}
     _, best_lr, best_state = best_global
-    model = BrainMTL(b_tr.shape[1], v_tr.shape[1], n_out, task_type).to(device)
+    model = BrainMTL(b_tr.shape[1], v_tr.shape[1], out_dim).to(device)
     model.load_state_dict(best_state)
     model.eval()
     with torch.no_grad():
         va_logits_t, _ = model(torch.from_numpy(b_te).to(device))
-        if task_type == "binary":
-            prob = F.softmax(va_logits_t, -1)[:, 1].cpu().numpy()
-            pred = va_logits_t.argmax(-1).cpu().numpy()
-            res = eval_metrics(task_type, label_test, pred, prob)
-        else:
-            pred = va_logits_t.squeeze(-1).cpu().numpy() * y_std + y_mean
-            res = eval_metrics(task_type, label_test, pred)
+        logits_t_np = va_logits_t.cpu().numpy()
+        pred_t, prob_t = predict_from_logits(task_type, logits_t_np, y_mean, y_std)
+        res = eval_metrics(task_type, label_test, pred_t, prob_t)
     res["best_lr"] = best_lr
     res["best_val"] = best_global[0]
     return res
@@ -185,13 +186,13 @@ def main():
 
     brain = load_brain_embeddings(args.brain_model, args.brain_init, args.brain_padding)
     video, vstim = load_video_feature(args.video)
-    label_df, ttype = load_task_labels(args.task)
+    label_df, label_cols, ttype = load_task_labels(args.task)
     n_out = TASKS[args.task]["n_out"]
 
     rows = []
     for fold in folds:
         split = get_fold_split(fold)
-        data = build_brain_video_data(brain, video, vstim, label_df, split, ttype)
+        data = build_brain_video_data(brain, video, vstim, label_df, split, ttype, label_cols)
         for seed in seeds:
             t0 = time.time()
             res = train_one_mtl(

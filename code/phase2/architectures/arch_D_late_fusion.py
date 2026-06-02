@@ -10,11 +10,9 @@ import torch.nn.functional as F
 
 
 class LateFusion(nn.Module):
-    def __init__(self, brain_dim: int, video_dim: int, n_out: int,
-                 task_type: str = "binary"):
+    def __init__(self, brain_dim: int, video_dim: int, out_dim: int):
         super().__init__()
-        self.task_type = task_type
-        self.head = nn.Linear(brain_dim + video_dim, n_out if task_type == "binary" else 1)
+        self.head = nn.Linear(brain_dim + video_dim, out_dim)
 
     def forward(self, brain, video):
         x = torch.cat([brain, video], dim=-1)
