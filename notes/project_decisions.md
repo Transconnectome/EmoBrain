@@ -123,7 +123,7 @@ Subject block은 "personalized emotion decoding" 트랙으로 분리. Phase 2 �
 
 ### Scientific Question 재정의 (v4 framing, labserver-base + critic-informed)
 
-교수님 면담 후 "scientific question 이 뭐냐, multi-dim representation 학습 후 independent dataset 평가 전략은 무엇인가" 라는 질문에서 출발. Web search (Emo-FilM, OV-MER, fMRI FM survey) + emovi-method-critic 적대적 검토 + labserver branch (`README_labserver.md`) 의 더 정확한 framing 통합. 사용자가 "SQ1 의 'video baseline 을 통계적으로 넘는가' framing 이 잘못, sub-question 들이 너무 dataset-specific" 이라고 지적 → labserver framing 채택, v3 의 individual difference 방향과 v4 (initial draft) 의 SQ1-5 폐기. 새 framing 은 모두 dataset-agnostic representation question.
+교수님 면담 후 "scientific question 이 뭐냐, multi-dim representation 학습 후 independent dataset 평가 전략은 무엇인가" 라는 질문에서 출발. Web search (Emo-FilM, OV-MER, fMRI FM survey) + emovi-method-critic 적대적 검토 + labserver branch (`reference/v4_history_labserver_framing.md`) 의 더 정확한 framing 통합. 사용자가 "SQ1 의 'video baseline 을 통계적으로 넘는가' framing 이 잘못, sub-question 들이 너무 dataset-specific" 이라고 지적 → labserver framing 채택, v3 의 individual difference 방향과 v4 (initial draft) 의 SQ1-5 폐기. 새 framing 은 모두 dataset-agnostic representation question.
 
 ### Big Question (final)
 

@@ -4,7 +4,7 @@ Read `CONTEXT_FEELIN.md` first. Active forward plan is `docs/masterplan_v2.md`.
 
 ## Operating Rules
 
-- Root .md 파일 새로 만들지 않음. 7개 (README.md, README_KR.md, CONTEXT_FEELIN.md, ONBOARDING.md, CLAUDE.md, CODEX.md) 로 유지.
+- Root .md 파일 새로 만들지 않음. 7개 (README.md, README_KR.md, CONTEXT_FEELIN.md, ONBOARDING.md, CLAUDE.md, CODEX.md, ACTION_PLAN.md) 로 유지.
 - Forward plan / phase report 은 `docs/` 와 `reports/` 에만 추가.
 - Narrative 는 `Paper/framework_EN.md`, `framework_KR.md`.
 - Methodology 는 `Paper/methodology.md`.
