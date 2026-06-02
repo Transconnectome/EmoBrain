@@ -1,16 +1,135 @@
-# FEELIN 연구 프레임워크
+# FEELIN 연구 프레임워크 (v4 final, 2026-06-02)
 
-## Canonical 방향
+## v4 final Framing (2026-06-02, universal emotion code)
+
+FEELIN 는 **brain 에 paradigm, label taxonomy, subject 의 surface variation 을 가로지르는 universal emotion code 가 존재하는지를 multi-source naturalistic emotion fMRI 의 SSL pretrain + adaptation 으로 학습하고 검증하는 project** 다. Emotion theory 논문이 아니라 model-development + scientific evidence 의 결합. Naming 은 internal 에서 "Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data" 유지하되, paper title 에서는 "Universal Emotion Code in Naturalistic Brain Data" 또는 "Transferable Emotion Brain Foundation Model" 로 표현 (Bommasani 2021 정의 scale 미달 reviewer bias 회피).
+
+### Big Question
+
+> Brain 에 paradigm, label taxonomy, subject 의 surface variation 을 가로지르는 *universal emotion code* 가 존재하는가? Multi-source naturalistic emotion fMRI 의 adaptation 으로 그 universal code 를 학습하고 검증할 수 있는가?
+
+핵심 scientific bet. Wager-style universal pain signature 시도의 emotion 판. Affective neuroscience 의 미해결 질문 (universal vs idiosyncratic emotion representation) 에 falsifiable evidence.
+
+### Sub-claims (falsifiable)
+
+1. **Multi-source pretrain invariance**. Universal code 가 존재한다면 multi-source pretrain (Horikawa + Emo-FilM + StudyForrest + Affective Videos) 의 representation 이 single-source pretrain 보다 cross-dataset transfer 에서 더 invariant.
+2. **ROI localization**. Universal code 는 brain 의 특정 ROI / network 에 localize. Cowen 2020 transmodal 가설과 align 또는 disagree.
+3. **Subject-invariant alignment**. Universal code 는 subject-invariant SSL 후 같은 stim 의 다른 subject 의 representation 의 alignment.
+4. **Null**. 위 모두 acquisition floor 안 → "universal code 없음" 결론, negative result paper.
+
+### 2 Main Track + 1 Supplementary
+
+| Track | 답하는 sub-Q | Universal code 측정 |
+|---|---|---|
+| **Track A (main). BFM SSL pretrain + LoRA adaptation** | Multi-source SSL 이 emotion-relevant invariance emerge? | Cross-dataset invariance metric (subject align, paradigm align, ROI-wise) |
+| **Track B (main). Brain+Video framework + task 재설계** | Brain unique 의 universal component? | Joint - video baseline = brain unique. Cross-dataset RSA preservation |
+| **Track C (supplementary). BrainVLM generative** | Universal code 의 generative 표현? | Phase 3a parsing fix. Supplementary figure 만 |
+
+**BrainVLM 이 supplementary 인 이유**. (a) LLM visual semantic bias 가 invariance 측정 가림 (Phase 2 video saturate 와 같은 함정), (b) generation noise 가 reliability 낮춤, (c) Phase 3a inference 자체 약함 (V_reg r = NaN, MAE 2.55, scale mismatch), (d) Multi-source 확장 자원 부담 큼.
+
+Track A + Track B 의 **converging evidence** 가 paper 의 강점.
+
+### Track A SSL pretrain 후보 (priority 순)
+
+**Priority 1 (main, 반드시)**
+- (1) **Subject-invariant SSL**. 같은 video 의 5 subject 의 brain response 의 contrastive alignment. InfoNCE. Universal code 의 subject invariance evidence. 자원 GPU 며칠.
+- (2) **Multi-source SSL (masked autoencoder)**. 4 dataset 의 fMRI 의 30% ROI mask 후 MSE 예측. Paradigm invariance evidence. 자원 GPU 1-2 주.
+
+**Priority 2 (main, 가능하면)**
+- (3) **Brain-stimulus contrastive (TRIBE-style)**. Brain ↔ video (V-JEPA2 / CLIP) alignment. Universal code 의 stimulus-driven 측면. 자원 GPU 며칠.
+
+**Priority 3 (optional)**
+- (4) Curriculum (resting → naturalistic → emotion 3-stage)
+- (5) Distillation
+
+### Target hierarchy (multi-dim 승격, V/A 강등)
+
+| Tier | Target | 비고 |
+|---|---|---|
+| **Primary** | Cross-dataset emotion-text alignment + Cowen 34-cat multilabel + 14-dim + OV description retrieval | Universal code invariance 측정 |
+| **Reference (floor)** | V/A binary + regression | Phase 1-2 에서 video saturate 확정. Floor only |
+
+### Build recipe
+
+5 subj × 2185 stim 으론 from-scratch FM 불가. **Pretrained brain backbone + 소수 multi-source SSL pretrain + emotion-text space adaptation** 이 honest scope.
+
+```
+fMRI ─► 450-ROI parcel (Schaefer-400 + Tian-50)
+        ▼ Brain-JEPA backbone (pretrained ABCD resting)
+        ▼ Track A SSL pretrain
+            (1) Subject-invariant contrastive  ← priority 1
+            (2) Multi-source masked AE          ← priority 1
+            (3) Brain-stimulus alignment        ← priority 2
+        ▼ LoRA adaptation
+        ▼ projection
+        z_emo ─► frozen emotion-text embedding space (sentence-transformer / CLIP-text)
+                  target = embed(Cowen 34-cat + 14-dim or OV description)
+                  loss  = InfoNCE + 보조 regression + caption baseline delta
+        ▼ multi-source pooling
+        ▼ 평가 (freeze 후)
+            Track A invariance metric (subject align, paradigm align, ROI-wise)
+            Track B brain unique cross-dataset RSA (Brain+Video framework reuse)
+            Track C BrainVLM parsing fix (supplementary)
+```
+
+Foundation 의 출처. brain backbone (수만 subject pretrained) × emotion-text space (수천 emotion 개념 geometry) × multi-source SSL pretrain. FEELIN 기여 = universal code 의 measurement methodology.
+
+### Cross-dataset evaluation 4 전략
+
+| 전략 | 방법 | 역할 |
+|---|---|---|
+| 1. Shared text-embedding zero-shot (main) | brain → emotion-text space, native label 이름만으로 zero-shot retrieval | 어느 dataset 의 어느 label 도 학습 없이 평가 |
+| 2. Label-space intersection (안전) | target dataset 의 축만 잘라 | 가장 보수적 sanity baseline |
+| 3. MLLM universal annotator | OV-MER pipeline 의 local LLM (Qwen2.5-72B / Llama-3.3-70B) frozen artifact | norm 없는 dataset, frozen artifact release |
+| 4. Representational alignment (label-free) | RSA / ISC ceiling | NNDb 등 label-free dataset |
+
+### Phase 1-2 measurement 가 framing 의 근거
+
+- Phase 1 frozen probe. ROI mean V_binary AUROC 0.7889 > all BFM (best 0.7402) ≫ Video CLIP 0.9708.
+- Phase 2 trained integration. D late fusion 0.9718, CLIP-only 0.9708 → Δ = +0.001 (noise). 4 fusion architecture 모두 video baseline 못 넘음. Brain group-level 추가 contribution = 0.
+- Phase 3a BrainVLM. Fold 1 완료, V_reg r = NaN, MAE 2.55. Track C supplementary.
+- **의의**. Group-level V/A 는 video saturate. Brain unique signal 은 invariance / cross-dataset preservation 의 4 축. **Universal emotion code 가 그 invariance 의 scientific 표현**. v4 final 의 Track A/B 가 이 4 축 측정.
+
+### 옛 frame 명시적 탈피
+
+- ❌ "Brain + video fusion 으로 video 를 넘는다" (Phase 2 결과로 falsified)
+- ❌ BrainVLM token integration 을 main path 로 (Track C supplementary 로 demote)
+- ❌ 4 fusion architecture 비교가 main contribution
+- ❌ "Brain 이 video 를 이긴다" framing 자체
+
+대신.
+- ✅ Universal emotion code 의 존재 검증
+- ✅ Brain backbone 의 emotion-specialized adaptation
+- ✅ Multi-source SSL pretrain 의 invariance emergence
+- ✅ Caption baseline 대비 brain unique variance
+
+### Critic 7 hit 통합
+
+emovi-method-critic 의 적대적 검토에서 식별된 7 weakness 를 모두 반영.
+
+1. **Q2 (decomposability) tautological**. → universal code 는 W 와 무관, invariance metric 으로 직접 측정.
+2. **Cross-dataset acquisition confound** (Sripada 2020). → Track A 의 ComBat + 2σ null baseline 의무화.
+3. **5 subj power 부족**. → multi-source 로 subject pool 사실상 확장. Open-vocab 강등.
+4. **FM naming bias** (Bommasani 2021). → Paper retreat ("Universal Emotion Code" / "Transferable Emotion Brain Foundation Model"), internal FEELIN 유지.
+5. **Caption baseline 부재** (Doerig 2025). → Track A/B variance partitioning 의무화.
+6. **OV-MER GPT-3.5 dependency**. → 전략 3 의 local LLM frozen artifact.
+7. **Cowen 34-cat transmodal 한정** (Cowen 2020). → Track A ROI-wise transfer matrix + Sub-claim 2 의 ROI localization.
+
+자세한 phase 별 task / go-no-go / agent review schedule 은 [`docs/masterplan_v2.md`](../docs/masterplan_v2.md) (v4 final) 참고.
+
+---
+
+## Canonical 방향 (v3 narrative, v4 의 supporting context 로 보존)
+
+> 아래 sections (Canonical 방향 ~ 핵심 레퍼런스) 은 v3 framing 때 작성한 narrative. v4 의 Big Q / SQ1-5 와 build recipe 가 우선하지만, literature landscape 와 model development tracks 의 deep discussion 은 v4 에서도 supporting context 로 보존.
 
 FEELIN는 **emotion-aware brain representation learning을 위한 모델 개발 프로젝트**다. Emotion theory 논문이 아니다. Emotion theory는 target design을 위한 짧은 제약으로만 사용한다. 즉, emotion label은 noisy하고 dynamic하며 stimulus-dependent이고 multi-component이므로, 모델은 단일 고정 라벨이 아니라 arousal, valence, discrete category, high-dimensional emotion vector에서 평가되어야 한다.
 
-한 문장 프레임:
+한 문장 프레임 (v3):
 
 **FEELIN는 감정 표현을 brain dynamics, naturalistic stimulus dynamics, affective annotation이 만나는 모델 개발 문제로 보고, initial benchmark 결과를 바탕으로 개발할 architecture와 training objective를 결정한다.**
 
-외부 공유용 요약:
-
-> FEELIN는 처음부터 완성형 emotion foundation model을 주장하지 않겠습니다. 먼저 SwiFT, naturalistic movie/story fMRI dataset, TRIBE v2-style stimulus-to-brain model, affective LLM/VLM representation을 하나의 initial benchmark에서 비교하겠습니다. Benchmark는 어떤 정보원이 어떤 emotion target에 도움이 되는지 확인하는 단계이고, 그 결과에 따라 SwiFT emotion adaptation, naturalistic fMRI continued pretraining, TRIBE-SwiFT stimulus-brain alignment, brain-tuned affective LLM/VLM adapter 중 어떤 model-development track을 밀지 결정하겠습니다.
+(v4 update. 위 문장의 "benchmark 결과를 바탕으로 architecture/objective 결정" 부분은 Phase 1-2 에서 측정 완료. 결과로 fusion architecture / BrainVLM token 은 emotion 에 효과 없음이 확정. v4 는 그 evidence 위에서 "transfer 와 multi-dim representation" 으로 reframe.)
 
 ## 모델 개발 문제 정의
 

@@ -1,16 +1,142 @@
-# FEELIN Framework
+# FEELIN Framework (v4 final, 2026-06-02)
 
-## Canonical Direction
+## v4 final Framing (2026-06-02, universal emotion code)
+
+FEELIN is a **model-development project that asks whether a universal emotion code exists in the brain across paradigm, label taxonomy, and subject surface variation, and tests this through multi-source naturalistic emotion fMRI SSL pretrain + adaptation**. It is not an emotion theory paper but a model-development + scientific evidence combination. The internal project name "Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data" is kept for repo and lab identity, but the paper title uses "Universal Emotion Code in Naturalistic Brain Data" or "Transferable Emotion Brain Foundation Model" because the Bommasani 2021 FM definition (scale + emergence + adaptability) is not met at 5 subjects × 2185 stimuli.
+
+### Big Question
+
+> Does a *universal emotion code* exist in the brain across paradigm, label taxonomy, and subject surface variation? Can multi-source naturalistic emotion fMRI adaptation learn and validate that universal code?
+
+Core scientific bet. The emotion analog of Wager-style universal pain signature attempts. Provides falsifiable evidence on the unresolved affective neuroscience question (universal vs idiosyncratic emotion representation).
+
+### Sub-claims (falsifiable)
+
+1. **Multi-source pretrain invariance**. If a universal code exists, multi-source pretrain (Horikawa + Emo-FilM + StudyForrest + Affective Videos) representation should be more invariant in cross-dataset transfer than single-source pretrain.
+2. **ROI localization**. Universal code should localize to specific brain ROIs / networks. Align or disagree with Cowen 2020 transmodal hypothesis.
+3. **Subject-invariant alignment**. Universal code requires that after subject-invariant SSL, representations of the same stim across different subjects are meaningfully aligned.
+4. **Null hypothesis**. All three metrics within acquisition floor → "no universal code" conclusion, negative result paper.
+
+### 2 Main Track + 1 Supplementary
+
+| Track | Sub-Q | Universal code measurement |
+|---|---|---|
+| **Track A (main). BFM SSL pretrain + LoRA adaptation** | Does multi-source SSL emerge emotion-relevant invariance? | Cross-dataset invariance metric (subject align, paradigm align, ROI-wise) |
+| **Track B (main). Brain+Video framework + task redesign** | What is the universal component of brain-unique contribution? | Joint - video baseline = brain unique. Cross-dataset RSA preservation |
+| **Track C (supplementary). BrainVLM generative** | Generative expression of universal code? | Phase 3a parsing fix only. Supplementary figure |
+
+**Why BrainVLM is supplementary**. (a) LLM visual semantic bias obscures invariance measurement (same trap as Phase 2 video saturation), (b) generation noise lowers reliability, (c) Phase 3a inference itself weak (V_reg r = NaN, MAE 2.55, scale mismatch), (d) multi-source expansion has heavy resource cost.
+
+Track A + Track B's **converging evidence** is the paper's strength.
+
+### Track A SSL pretrain candidates (priority order)
+
+**Priority 1 (main, must run)**
+- (1) **Subject-invariant SSL**. Contrastive alignment so that the brain responses of 5 subjects viewing the same video become similar. InfoNCE. Universal code's subject-invariance evidence. Resource. GPU days.
+- (2) **Multi-source SSL (masked autoencoder, BrainLM-style)**. Mask 30% of ROIs in fMRI from 4 datasets, MSE reconstruction. Paradigm-invariance evidence. Resource. GPU 1-2 weeks.
+
+**Priority 2 (main, if possible)**
+- (3) **Brain-stimulus contrastive (TRIBE-style)**. Brain ↔ video (V-JEPA2 / CLIP) alignment. Stimulus-driven side of universal code. Resource. GPU days.
+
+**Priority 3 (optional)**
+- (4) Curriculum (resting → naturalistic movie → emotion-aware 3-stage)
+- (5) Distillation
+
+### Target hierarchy (multi-dim promoted, V/A demoted)
+
+| Tier | Target | Notes |
+|---|---|---|
+| **Primary** | Cross-dataset emotion-text alignment + Cowen 34-cat multilabel + 14-dimension + OV description retrieval | Direct measurement of universal code invariance |
+| **Reference (floor / sanity)** | V/A binary + regression | Phase 1-2 confirmed video-saturated. Floor only |
+
+### Build recipe
+
+5 subj × 2185 stim cannot pretrain an emotion brain FM from scratch. The honest scope is **pretrained brain backbone + small multi-source SSL pretrain + emotion-text space adaptation**.
+
+```
+fMRI ─► 450-ROI parcel (Schaefer-400 + Tian-50)
+        │
+        ▼ Brain-JEPA backbone (pretrained on ABCD resting)
+        │
+        ▼ Track A SSL pretrain
+            (1) Subject-invariant contrastive  ← priority 1
+            (2) Multi-source masked AE          ← priority 1
+            (3) Brain-stimulus alignment        ← priority 2
+        │
+        ▼ LoRA adaptation
+        │
+        ▼ projection
+        z_emo ─► frozen emotion-text embedding space (sentence-transformer / CLIP-text)
+                  target = embed(Cowen 34-cat + 14-dim verbalized, or OV description)
+                  loss  = contrastive InfoNCE + auxiliary regression + caption baseline delta
+        │
+        ▼ multi-source pooling
+        ▼ evaluation (after freeze)
+            Track A invariance metric (subject align, paradigm align, ROI-wise)
+            Track B brain unique cross-dataset RSA (Brain+Video framework reuse)
+            Track C BrainVLM parsing fix (supplementary)
+```
+
+Source of "foundation". brain backbone (pretrained on tens of thousands of subjects) × emotion-text space (geometry over thousands of emotion concepts) × multi-source SSL pretrain. FEELIN's contribution = measurement methodology for the universal code.
+
+### Cross-dataset evaluation, 4 strategies
+
+| Strategy | Method | Role |
+|---|---|---|
+| **1. Shared text-embedding zero-shot (main)** | brain → emotion-text space, zero-shot retrieval using native label names | evaluate any label of any dataset without training |
+| **2. Label-space intersection (safe)** | evaluate only on axes present in the target dataset | most conservative sanity baseline |
+| **3. MLLM universal annotator** | OV-MER pipeline frozen with a local LLM (Qwen2.5-72B / Llama-3.3-70B) | applies to datasets without labels, release as frozen artifact |
+| **4. Representational alignment (label-free)** | RSA / ISC ceiling | NNDb and other label-free datasets |
+
+### Phase 1-2 measurements that justify the framing
+
+- Phase 1 frozen probe. ROI mean V_binary AUROC 0.7889 > all BFM (best 0.7402) ≫ Video CLIP 0.9708.
+- Phase 2 trained integration. D late fusion V_binary 0.9718, CLIP-only 0.9708. Δ = +0.001 (noise). None of the 4 fusion architectures beats the video baseline. Brain's added contribution to group-level emotion labels = 0.
+- Phase 3a BrainVLM. Fold 1 trained, inference V_reg r = NaN, MAE 2.55. Demoted to supplementary.
+- **Implication**. Group-level V/A is saturated by video. The unique brain signal is only accessible along four axes. (i) multi-dim geometry, (ii) transmodal localization, (iii) subject-conditioned variability, (iv) cross-dataset transfer. **Universal emotion code is the scientific expression of this invariance**. v4 final Track A and Track B measure exactly these axes.
+
+### Old frames explicitly retired
+
+- ❌ "Brain + video fusion beats video" (falsified by Phase 2)
+- ❌ BrainVLM token integration as main path
+- ❌ The 4 fusion architecture comparison as the main contribution
+- ❌ The "does brain beat video" framing itself
+
+Instead.
+- ✅ Emotion-specialized adaptation of a brain backbone
+- ✅ Contrastive alignment between brain and a multi-dim emotion-text space
+- ✅ Cross-dataset / cross-taxonomy zero-shot transfer
+- ✅ Brain unique variance against a caption baseline
+
+Video is used only as an optional teacher (contrastive partner, caption baseline, RSA reference).
+
+### Critic 7-hit integration
+
+The adversarial review by emovi-method-critic identified seven weaknesses. v4 addresses all of them.
+
+1. **Q2 (decomposability) was tautological**. The Cowen W matrix is itself the 34-cat ↔ V/A behavioral correspondence, so the projection identity is algebraic. → Reframed as **SQ3 W refit + mediator regression** for a falsifiable measurement.
+2. **Cross-dataset transfer is confounded by acquisition** (Sripada 2020 NeuroImage). 60-70% of cross-dataset connectome variance is acquisition-driven without ComBat. → **SQ1 requires ComBat + acquisition null baseline**, with the 2σ rule prespecified.
+3. **5-subject power is insufficient** for open-vocab claims (subject-level bootstrap 95% CI around ±0.15). → Open-vocab generalization **demoted to a case study**.
+4. **"Foundation Model" naming bias** against the Bommasani 2021 definition. → Paper title retreat to **"Transferable Emotion Brain Foundation Model" / "Cross-dataset Emotion Brain Encoder"**, internal name kept.
+5. **Caption baseline missing** (Doerig 2025 Nat Mach Intell). → **SQ5 added** for variance partitioning + brain unique variance.
+6. **OV-MER's GPT-3.5 dependency** is a reproducibility risk. → Strategy 3 uses a **local LLM (Qwen2.5-72B / Llama-3.3-70B) frozen artifact**.
+7. **Cowen 34-cat is largely decoded in transmodal regions only** (Cowen 2020 Nat Hum Behav). → SQ1 includes a **ROI-wise transfer matrix** that reports partial transfer as a result.
+
+Detailed phase tasks, go/no-go gates, and agent review schedule are in [`docs/masterplan_v2.md`](../docs/masterplan_v2.md) (v4).
+
+---
+
+## Canonical Direction (v3 narrative, preserved as v4 supporting context)
+
+> The sections below (Canonical Direction through Key References) were written under v3. The v4 Big Question, SQ1-5, and build recipe take precedence, but the deep literature landscape and model development tracks remain valid supporting context for v4.
 
 FEELIN is a **model-development project for emotion-aware brain representation learning**. It is not an emotion theory paper. Emotion theory should appear only as a short constraint on target design: emotion labels are noisy, dynamic, stimulus-dependent, and multi-component, so the model should be evaluated on arousal, valence, discrete categories, and high-dimensional emotion vectors rather than on one fixed label.
 
-One-line framing:
+One-line framing (v3):
 
 **FEELIN treats emotion representation as a model-development problem over brain dynamics, naturalistic stimulus dynamics, and affective annotations. Initial benchmarks decide which architecture and training objectives are worth developing.**
 
-External-facing pitch:
-
-> FEELIN will not start by claiming a complete emotion foundation model. It will first build an initial benchmark around SwiFT, naturalistic movie/story fMRI datasets, TRIBE v2-style stimulus-to-brain models, and affective LLM/VLM representations. The benchmark asks which information source helps which emotion target. The model-development track is then chosen from four directions: SwiFT emotion adaptation, naturalistic fMRI continued pretraining, TRIBE-SwiFT stimulus-brain alignment, and brain-tuned affective LLM/VLM adapters.
+(v4 update. The "initial benchmarks decide architecture/objective" part of this sentence was completed in Phase 1-2. The measured outcome is that fusion architectures and BrainVLM tokens add no group-level emotion value. v4 reframes from that evidence base toward "transfer and multi-dim representation".)
 
 ## Model-Development Problem
 

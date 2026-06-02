@@ -1,149 +1,234 @@
 # FEELIN
 
-**Emotion-aware Multimodal Foundation Model from Naturalistic fMRI + Video**
+**Universal Emotion Code in Naturalistic Brain Data**
+
+(내부 / repo / 연구실 정체성 이름은 Brain Foundation Model for Emotion-aware Experience Learning In Naturalistic Data 로 유지. Paper title 에서는 "Universal Emotion Code in Naturalistic Brain Data" 또는 "Transferable Emotion Brain Foundation Model" 로 표현. 2026-06-02 naming dual-track.)
 
 
 ## 한 줄 요약
 
-fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model 을 만든다. fMRI 를 어떤 architecture × 어떤 brain encoder 로 통합해야 model 의 emotion 이해 능력이 가장 잘 형성되는지 비교한다.
+Brain 에 paradigm, label taxonomy, subject 의 surface variation 을 가로지르는 universal emotion code 가 존재하는지를 multi-source naturalistic emotion fMRI 의 SSL pretrain + adaptation 으로 학습하고 검증한다.
 
 
-## Big Question
+## Big Question (v4 final, 2026-06-02)
 
-> fMRI 와 video 를 함께 활용해 emotion-aware multimodal foundation model 을 만들 수 있는가? 그리고 fMRI 를 어떻게 인코딩 / 통합해야 (어떤 architecture × 어떤 brain encoder) model 의 emotion 이해 능력이 가장 잘 형성되는가?
+> Brain 에 paradigm, label taxonomy, subject 의 surface variation 을 가로지르는 *universal emotion code* 가 존재하는가? Multi-source naturalistic emotion fMRI 의 adaptation 으로 그 universal code 를 학습하고 검증할 수 있는가?
+
+핵심 scientific bet. Wager-style universal pain signature 시도의 emotion 판. Affective neuroscience 의 미해결 질문 (universal vs idiosyncratic emotion representation) 에 falsifiable evidence 제공.
+
+"Brain 이 video 를 이겨야" 전제 없음. Phase 1-2 의 measurement 가 group-level V/A 는 video 가 saturate 함을 확정했음 (자세히 아래 [측정 결과]). Universal code 가 존재한다면 group-level emotion attribute 가 아니라 invariance / cross-dataset preservation 의 axis 에 있어야 함.
 
 
-## 4 Sub-question
+## Sub-claims (falsifiable)
 
-1. **fMRI 통합 방법 + brain encoder 선택 (main)** — 4 architecture (LLM token / cross-attention / contrastive / late fusion) × 3 brain encoder (SwiFT / Brain-JEPA / NeuroSTORM) 중 어느 조합이 emotion task 에서 video-only baseline 을 넘는가?
-2. **Emotion 표상의 evidence** — V/A regression + 27/34-cat 분류 + 14 affective dim + caption affect 모두에서 model 이 baseline 을 넘는가?
-3. **Brain 의 causal 기여** — 같은 video × 다른 brain → output 차이가 systematic 한가? (counterfactual subject swap)
-4. **Content grounding 보존** — Caption 으로 stimulus retrieval 시 Horikawa Mind Captioning baseline 의 80% 정확도 유지?
+1. Universal code 가 존재한다면 multi-source pretrain 의 representation 이 single-source pretrain 보다 cross-dataset transfer 에서 더 invariant.
+2. Universal code 는 brain 의 특정 ROI / network 에 localize 됨 (Cowen 2020 transmodal 가설과 align 또는 disagree).
+3. Universal code 는 subject-invariant SSL 후 같은 stim 의 다른 subject representation 이 alignment.
+4. (Null) 위 세 metric 모두 acquisition floor 안 → "universal code 없음" 결론, negative result paper.
 
-### Probe pipeline 별 scientific question
 
-| Probe | Scientific question | 답하는 것 |
+## 2 Main Track + 1 Supplementary
+
+| Track | 답하는 sub-Q | Universal code 측정 |
 |---|---|---|
-| **BFM frozen probe** | 각 brain foundation model 의 frozen embedding 이 emotion 의 어떤 측면을 capture 하나? Architecture × init × subject mode 의 어느 조합이 어느 task 에 강한가? | Tier 2 ceiling 측정 (SQ1 brain side) |
-| **Video-only probe** | 자극 (영상) 자체의 feature 만으로 emotion 이 어디까지 예측되나? Brain 없이 video model 만의 ceiling 은? | "Brain 이 video 위에 추가하는 value" 의 reference. **Reviewer 의 가장 큰 challenge 에 대한 직접 답** |
-| (Phase 2) Late fusion | Brain + video 결합이 단독 대비 향상이 있는가? | Architecture D 결과, brain unique contribution evidence |
-| (Phase 2-3) Contrastive | Brain-video shared latent 학습이 emotion 표상 capture 향상? | Architecture C 결과 |
-| (Phase 3) LLM-token | fMRI 를 LLM token 으로 주입한 model 이 emotion caption 생성하나? | Architecture A 의 generative novelty |
+| **Track A (main). BFM SSL pretrain + LoRA adaptation** | Multi-source SSL 이 emotion-relevant invariance 를 emerge 시키는가? Subject-invariant / multi-source / stimulus-contrastive SSL 의 marginal contribution? | Pretrain 후 representation 의 cross-dataset invariance metric (RSA, ROI-wise transfer) |
+| **Track B (main). Brain+Video framework + task 재설계** | Brain unique contribution 의 universal component? Video 가 못 잡는 brain emotion variance 의 cross-dataset preservation? | Joint - video baseline = brain unique. 그 brain unique 의 cross-dataset RSA / alignment |
+| **Track C (supplementary). BrainVLM generative path** | Universal code 가 generative 표현 가능한가? | Phase 3a fold 1 결과 + inference parsing fix. Supplementary figure 만 |
+
+**왜 BrainVLM 이 supplementary 인가**. (a) LLM 의 visual semantic bias 가 brain invariance 측정을 가림, (b) Generation noise 가 reliability 낮춤, (c) Phase 3a inference 자체 약함 (V_reg r = NaN, MAE 2.55, scale mismatch), (d) Multi-source 확장에 자원 부담 큼. Risk 대비 evidence 약해서 supplementary.
+
+Track A + Track B 의 **converging evidence** 가 paper 의 강점.
 
 
-## Architecture — design space
+## Track A SSL pretrain 후보 (priority 순)
+
+자원 manageable. 우선순위 1 (둘 다 main, 반드시) + 우선순위 2 (main, 가능하면) + 우선순위 3 (optional).
+
+### Priority 1 (main)
+
+**(1) Subject-invariant SSL**. 같은 video 를 본 5 subject 의 brain response 가 서로 비슷해지도록 contrastive 학습.
+- Stim k 의 subject A brain (brain_Ak) ↔ subject B brain (brain_Bk) 의 cosine ↑
+- 다른 stim m 의 brain_Am ↔ brain_Ak 의 cosine ↓
+- InfoNCE contrastive
+- Universal code 연결. Subject 간 invariance = universal code 의 정의. 학습 후 representation 의 subject alignment 가 직접 evidence.
+- 자원 GPU 며칠.
+
+**(2) Multi-source SSL (masked autoencoder, BrainLM-style)**. Horikawa + Emo-FilM + StudyForrest + Affective Videos 의 fMRI 모두 사용. Brain 의 일부 ROI / time 가리고 예측.
+- 450 ROI 중 30% mask → 나머지 70% 로 가린 부분 예측. MSE loss
+- 4 dataset 같은 model. Dataset 별 헤더
+- Universal code 연결. Paradigm 간 invariance evidence. Single-source vs multi-source 의 invariance 차이가 multi-paradigm 존재 증거
+- 자원 GPU 1-2 주.
+
+### Priority 2 (main, 가능하면)
+
+**(3) Brain-stimulus contrastive (TRIBE-style)**. Brain representation 과 video representation (V-JEPA2 / CLIP) 의 alignment.
+- Brain_k encoder output ↔ Video_k V-JEPA2 feature 의 cosine ↑. 다른 stim ↓
+- Universal code 연결. Universal code 가 stimulus-driven 이면 alignment emerge. Stimulus 와 분리된 brain unique 면 alignment 안 됨. 두 경우의 분리 측정
+- 자원 GPU 며칠.
+
+### Priority 3 (optional)
+
+**(4) Curriculum pretrain**. Resting (Brain-JEPA prior) → naturalistic movie (HCP 7T) → emotion-aware (Horikawa Cowen) 의 3-stage. Stage 별 prior contribution ablation.
+
+**(5) Distillation**. 큰 BFM 의 representation 을 작은 specialized model 로. 부수적.
+
+
+## Target hierarchy (V/A 강등, multi-dim 승격)
+
+| Tier | Target | 비고 |
+|---|---|---|
+| **Primary** | Cross-dataset emotion-text alignment + Cowen 34-cat multilabel + 14-dim regression + OV description retrieval | Universal code 의 invariance 측정 |
+| **Reference (floor)** | V/A binary + regression | Phase 1-2 에서 video saturate 확정. Floor only |
+
+
+## Cross-dataset evaluation 4 전략
+
+1. **Shared text-embedding zero-shot (main)**. brain → emotion-text space, native label 이름만으로 zero-shot retrieval
+2. **Label-space intersection (안전)**. target dataset 의 축만 잘라
+3. **MLLM universal annotator**. OV-MER pipeline 의 local LLM (Qwen2.5-72B / Llama-3.3-70B) frozen artifact
+4. **Representational alignment (label-free)**. RSA / ISC ceiling
+
+
+## Build recipe
+
+5 subj × 2185 stim 으론 from-scratch FM 불가. **Pretrained brain backbone + 소수 multi-source SSL pretrain + emotion-text space adaptation** 이 honest scope.
 
 ```
-fMRI ─► brain encoder (4 종 swap-in) ─► z_brain
-                                            │
-                ▼ 4 통합 option (SQ1) ◄── video features (EmoViS 추출본 reuse)
-                  A: LLM token (BrainVLM)
-                  B: Cross-attention
-                  C: Contrastive alignment
-                  D: Late fusion
-                                            │
-                                            ▼
-                          Foundation model (LLM / transformer)
-                                            │
-                                            ▼
-                  Multi-channel output:
-                  - V/A continuous regression
-                  - 27-cat classification
-                  - Free-form emotion caption (retrieval evaluation)
-                  - Latent embedding (counterfactual swap)
+fMRI ─► 450-ROI parcel (Schaefer-400 + Tian-50)
+        │
+        ▼ Brain-JEPA backbone (pretrained on ABCD resting)
+        │
+        ▼ Track A SSL pretrain
+            (1) subject-invariant contrastive
+            (2) multi-source masked AE
+            (3) brain-stimulus alignment (optional)
+        │
+        ▼ LoRA adaptation
+        │
+        ▼ projection
+        z_emo ─► frozen emotion-text embedding space (sentence-transformer / CLIP-text)
+                  target = embed(Cowen 34-cat + 14-dim or OV description)
+                  loss  = contrastive InfoNCE + 보조 regression + caption baseline delta
+        │
+        ▼ multi-source pooling
+        ▼ 평가 (freeze 후)
+            Track A invariance metric (subject align, paradigm align)
+            Track B brain unique cross-dataset RSA (Brain+Video framework reuse)
+            Track C BrainVLM parsing fix (supplementary)
 ```
 
-Option A (LLM token, BrainVLM) 안에서 vision tower swap depth 3 수준:
-- L1: Frozen embedding → linear projection 으로 주입
-- L2: Vision tower 교체 + freeze
-- L3: LoRA fine-tune
 
-Option B/C/D 는 Phase 2 의 A 결과 보고 결정.
+## Brain encoder 후보
 
-
-## Brain encoder 4 종의 역할
-
-SwiFT (NewE96 + 변종) / Brain-JEPA / NeuroSTORM = **fMRI 를 model 입력으로 변환하는 인코더 후보**. SQ1 의 핵심 비교 축. 우리가 한 BFM padding ablation / extraction / probe 작업이 이 비교의 build-up. BrainLM 은 490 timepoint × A424 atlas 가 고정이라 Horikawa 비호환으로 scope 제외.
+| Backbone | 역할 | 상태 |
+|---|---|---|
+| Brain-JEPA | ROI default | 추출 완료 |
+| SwiFT (NewE96 + 5 변종) | 4D volume | NewE96 완료, 변종 진행 중 |
+| NeuroSTORM | 4D volume | 추출 완료 |
+| BrainLM | 제외 | 490 TR × A424 atlas 고정 → Horikawa 비호환 |
 
 
-## Evaluation protocol (모든 probe 공통)
+## Independent dataset
 
-- **5-fold stim-stratified CV** (`data/horikawa_5fold.csv`, V × A quartile joint stratification)
-- 각 outer fold k 마다: test = fold k, val = (k%5)+1, train = 나머지 3 fold
-- 6 task: V_binary, A_binary, V_reg, A_reg, Cat34_top1, Dim14_multi
-- Head 2 종: Linear (deterministic, 1 seed) + MLP (default 1 seed screening, final paper 시 3 seed)
-- BFM probe 는 추가로 `pooled` vs `per_subject` 2 mode
-- 모든 결과: per-fold per-seed row → CSV (`results/phase1/`)
+| Dataset | Subj × Stim | Label | Role |
+|---|---|---|---|
+| Horikawa | 5 × 2185 (1 min clips) | Cowen 34-cat behavioral consensus | Base, Track A pretrain, Track B testbed |
+| Emo-FilM (Cordoni 2025) | 30 × 14 films | 13 discrete + 42 CPM, 1 Hz | Track A multi-source + cross-dataset test |
+| StudyForrest | 20 × Forrest Gump 2h | 8 portrayed + V/A | Track A multi-source + cross-dataset test |
+| NNDb (Aliko 2020) | 86 × 10 movies | 없음 | 전략 4 RSA (Appendix) |
+| Affective Videos (ds000205) | 11 × 32×4 | V/A | Track A multi-source |
+
+
+## 측정 결과 (Phase 1 + Phase 2, evidence 보존)
+
+### Phase 1 (frozen probe)
+
+- ROI Schaefer400+Tian50 mean (linear, pooled). V_binary AUROC 0.7889 ± 0.0119
+- Best BFM (Brain-JEPA resting zero). V_binary 0.7402 ± 0.0365
+- Best video (CLIP_pretrained). V_binary 0.9708
+- 결론. ROI mean > all BFM. Brain 정교화가 group-level emotion 에 effect 없음.
+
+### Phase 2 (trained integration)
+
+V_binary AUROC.
+- D late fusion 0.9718, A token transformer 0.9670, B cross-attention 0.9663, C contrastive joint 0.9606
+- Phase 1 CLIP 0.9708 → D joint Δ vs CLIP = +0.001 (noise)
+- Brain-only best (multitask) 0.7235
+
+V_reg Pearson r. A token transformer 0.7628 → CLIP 0.7645 = -0.002.
+A_binary AUROC. D late fusion 0.8025 → CLIP 0.8003 = +0.002.
+
+**결론**. 4 fusion architecture 모두 video baseline 위 향상 없음. Brain group-level emotion label 추가 contribution = 0.
+
+### Phase 3a (BrainVLM)
+
+Fold 1 학습 완료 (loss 0.151). Inference V_reg r = NaN, MAE 2.55. Scale mismatch. Track C supplementary 로 demote.
+
+### 의의 (왜 universal code framing 으로 갔는가)
+
+Group-level V/A 는 video 가 saturate. Brain unique signal 은 (a) multi-dim geometry, (b) transmodal localization, (c) subject-conditioned variability, (d) cross-dataset transfer 의 4 축에서만 가능. 그 중 (a)(b)(d) 의 공통 motif = invariance. **Universal emotion code 가 그 invariance 의 scientific 표현.**
+
+
+## Evaluation protocol
+
+- 5-fold stim-stratified CV (`data/horikawa_5fold.csv`)
+- 각 fold k: test=k, val=(k%5)+1, train=나머지 3
+- 6 task × 2 head × (BFM 2 mode) × 1 seed (screening) / 3 seed (final)
+- Cross-dataset probe 는 ComBat harmonization (Fortin 2018) + acquisition null baseline 필수
+- Track A SSL pretrain 의 invariance metric (subject alignment + paradigm alignment) 도 같은 fold 위에
+
+### Critic-informed control
+
+- Acquisition control. ComBat + phase-scrambled null + trivial ROI mean null. Transfer Δ > 2σ × max(null) 만 의미.
+- Caption baseline (Doerig 2025 위협 대응). Qwen-VL caption → text embedding probe. Brain unique variance = B_joint - B_caption + paired bootstrap p.
+- Naming retreat. Paper title 에서 "foundation model" 명사 자제, 내부 이름 FEELIN 유지.
 
 
 ## Phase Status (6 month plan)
 
-| Phase | Week | 다루는 sub-Q | 상태 |
+| Phase | Week | Track | 상태 |
 |---|---|---|---|
-| Phase 1: Foundation (frozen probe benchmark + SwiFT padding ablation + 6 SwiFT variants) | W1-6 | (사전 검증) | **✅ 완료** (15p main + 11p supplementary PDF report) |
-| Phase 2: 통합 학습 (4 architecture A/B/C/D + brain-only 4 methods I/II/III/IV) | W7-12 | SQ1, SQ2 | **🔄 진행 중** (D/A/B/C joint 끝, brain-only 학습 중) |
-| Phase 3: Deep integration + subject-conditioned variability | W13-18 | SQ2, SQ3, SQ4 | 대기 |
-| Phase 4: Synthesis + submission | W19-24 | (통합) | 대기 |
+| Phase 1 Foundation (frozen probe + padding ablation + SwiFT variants) | W1-6 | (사전 검증) | **✅ 완료** |
+| Phase 2 통합 학습 (4 architecture A/B/C/D + brain-only 4 method) + Cat34 | W7-12 | (사전 검증) | **✅ 측정 완료**. joint 가 video saturate, brain added value 0. Universal code framing 으로 pivot |
+| Phase 3a BrainVLM (Option A L1/L2/L3) | W13-15 | Track C supplementary | **🔄 Fold 1 완료, parsing fix 만 추가** |
+| Phase 3b Track A (SSL pretrain 1+2+3 + LoRA adaptation) | W15-20 | Track A main | **🆕 v4 main path** |
+| Phase 3c Track B (Brain+Video framework + task 재설계, cross-dataset transfer) | W15-18 | Track B main | **🆕 v4 main path** (병행) |
+| Phase 4 Synthesis + submission | W19-24 | (통합) | 대기 |
 
 자세한 phase 별 task / go-no-go / agent review 는 [`docs/masterplan_v2.md`](docs/masterplan_v2.md).
-Phase 1 결과 정리: [`reports/phase1_wrapup/main.pdf`](reports/phase1_wrapup/main.pdf).
-Phase 2 진행 상황: [`code/phase2/README.md`](code/phase2/README.md).
+Phase 1 보고서. [`reports/phase1_wrapup/main.pdf`](reports/phase1_wrapup/main.pdf).
+Phase 2 보고서. [`reports/phase2_wrapup/main.pdf`](reports/phase2_wrapup/main.pdf).
+Decision log. [`notes/project_decisions.md`](notes/project_decisions.md) 2026-06-02.
 
-### Phase 1 핵심 finding (한 줄)
 
-Frozen brain foundation model probe 어떤 변종도 video pretrained baseline 을 못 넘음
-(CLIP V_binary 0.97 ≫ best frozen BFM 0.74). Crowd-sourced V/A label 이 video attribute
-라 video 가 우세한 게 trivial. SwiFT 5M~264M size 효과 무. 시간 정보도 frozen probe 에선
-거의 사용 안 됨 (padding ablation 4 mode 비슷). Phase 2 trained integration 으로 진행.
+## Git workflow
 
-### Phase 2 진행 중 finding
-
-- 4 fusion arch (D/A/B/C joint inference) 결과 V_binary AUROC ~0.97 (= CLIP 단독)
-- Joint 가 video baseline 위로 추가 향상 만들지 못함 → "brain 의 unique value 는 group 의
-  V/A label 이 아닌 subject-specific response" 가설 강화
-- 진행 중: brain-only 4 method (supervised MLP / CLIP distill / multitask / subject-aware) 로
-  "brain encoder 학습 paradigm 이 frozen probe 보다 brain emotion-prediction 향상시키나" 측정
+- Branch `v4_20260602_perlmutter` (active)
+- 새 framing 으로 pivot 필요하면 새 branch
+- Paper 단계에서 main 으로 merge
 
 
 ## Repository Map
 
 | 경로 | 내용 |
 |---|---|
-| `docs/masterplan_v2.md` | Forward plan (Big Q, 3 sub-Q, phase, go-no-go) |
-| `reports/phase1_foundation.md` | Phase 1 progress |
-| `data/stimulus_features/` | EmoViS symlinks (V-JEPA2, CLIP, DINOv2, VideoMAE, Qwen-VL caption) |
-| `data/{horikawa_split, *_binary_subset, feelin_canonical_stimuli}.csv` | Splits + V/A binary subset + 2185 canonical stim |
-| `code/bfm_embeddings/{_lib, extract_embedding, run_full}/` | BFM extraction (SwiFT / Brain-JEPA / NeuroSTORM lib + leaf scripts + per-subject wrappers) |
+| `docs/masterplan_v2.md` | Forward plan v4 final |
+| `reports/phase{1,2}_wrapup/`, `reports/phase1_foundation.md` | Phase 1/2 progress + PDF |
+| `data/stimulus_features/` | EmoViS symlinks |
+| `data/independent/` (NEW, Phase 3b) | Emo-FilM / StudyForrest / NNDb / Affective Videos (OpenNeuro) |
+| `data/{horikawa_split, *_binary_subset, feelin_canonical_stimuli}.csv` | Splits + V/A binary + canonical stim |
+| `code/bfm_embeddings/` | BFM extraction |
 | `code/probes/` | Tier 1 ROI feature + unified frozen probe |
-| `code/analysis/` | Padding ablation, multi-BFM probe, figure 생성 |
-| `code/brainvlm/` (Phase 1 에 생성 예정) | BrainVLM loader, transfer test, training |
-| `output/embeddings/` | 추출된 BFM .pt features (proper mean padding) |
-| `results/{padding_ablation, main_grid_3bfm, phase1}/` | Probe 결과 CSV + figure |
+| `code/phase2/` | Phase 2 4 architecture + 4 brain-only method (Track B framework reuse) |
+| `code/brainvlm/` | Phase 3a BrainVLM (Track C supplementary) |
+| `code/ssl_pretrain/` (NEW, Phase 3b Track A) | Subject-invariant SSL + multi-source masked AE + brain-stimulus contrastive |
+| `code/cross_dataset/` (NEW, Phase 3b/3c) | LoRA adaptation, emotion-text space, ComBat, W refit, caption baseline, OV-MER local LLM, 4 evaluators |
+| `code/analysis/` | Padding ablation, multi-BFM probe, figure |
+| `output/embeddings/` | BFM .pt (proper mean) |
+| `results/{padding_ablation, main_grid_3bfm, phase1, phase2, brainvlm}/` | Probe / training 결과 |
+| `results/phase3_universal_code/` (NEW) | Track A invariance + Track B cross-dataset 결과 |
 | `baseline/` | BFM checkpoints |
 | `external/Brain-JEPA/`, `external/NeuroSTORM/` | Vendored model code |
-| `Paper/framework_*.md`, `Paper/methodology.md` | Canonical narrative + methodology |
+| `Paper/framework_*.md`, `methodology.md` | Canonical narrative + methodology |
 | `notes/{benchmark_design, project_decisions}.md` | Dataset matrix + decision log |
-| `reference/{datasets, task, papers, code_resources, training_strategy}.md` | Reference docs |
-
-
-## Phase 1 즉시 실행
-
-```bash
-# 1. BrainVLM env setup (Phase 1 W1, critical path)
-#    UMBRELLA_qwen env 활성화 + ABCD checkpoint 확보
-#    위치: /pscratch/sd/s/sjmoon/BrainVLM/UMBRELLA_qwen/
-
-# 2. BFM proper mean 재추출 (병행 진행 중, 단일 wrapper)
-bash /pscratch/sd/s/sjmoon/FEELIN/code/bfm_embeddings/run_full/proper_mean_all.sh
-
-# 3. EmoViS feature 로딩 sanity check (이미 symlink 완료)
-ls /pscratch/sd/s/sjmoon/FEELIN/data/stimulus_features/
-
-# 4. Phase 1 W5-6 의 unified frozen probe (Tier 1 ROI + Tier 2 BFM, optional, 이미 만들어둠)
-bash /pscratch/sd/s/sjmoon/FEELIN/code/probes/run_unified_probe.sh
-```
-
-
-## Cleanup history
-
-2026-05-19 — v3 reframing: "Emotion-aware Multimodal Foundation Model" 이 core. fMRI 통합 architecture 는 design space (LLM token / cross-attention / contrastive / late fusion 4 option). BrainVLM 은 Option A 의 baseline architecture. 이전 v2 의 "context-aware foundation model" framing 폐기. ACTION_PLAN, research_overview, 2026-05-11 시점 자료는 `_archive/` 에. Top-level .md 6개 유지.
+| `reference/{datasets, task, papers, code_resources, training_strategy}.md` | Reference |
