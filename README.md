@@ -380,6 +380,7 @@ Group-level V/A 는 video 가 saturate. Brain unique signal 은 다음 4 축에�
 | **Phase 3b Track A (SSL pretrain 1+2+3 + LoRA adaptation)** | W15-20 | A main | 🆕 v4 main path |
 | **Phase 3c Track B (Brain+Video framework + task 재설계, cross-dataset)** | W15-18 | B main | 🆕 v4 main path (병행) |
 | Phase 4 Synthesis + submission | W19-24 | (통합) | 대기 |
+| Phase 5 **Future Extensions** (Context-aware text modulation + Individual differences via subject embedding / residual analysis) | post-submission | v5 candidates | 🔮 추후 |
 
 자세한 phase 별 weekly action 은 [`ACTION_PLAN.md`](ACTION_PLAN.md).
 Forward plan + go-no-go + agent review = [`docs/masterplan_v2.md`](docs/masterplan_v2.md).

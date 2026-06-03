@@ -127,6 +127,23 @@ fMRI ─► 450-ROI parcel (Schaefer-400 + Tian-50, scanner / dataset 무관 sub
 - **Caption baseline (Doerig 2025 위협 대응)**. Qwen-VL caption → text embedding probe. Brain unique variance = B_joint - B_caption + paired bootstrap p.
 - **Naming retreat**. Paper title 에서 "foundation model" 명사 자제, 내부 이름 FEEL 유지.
 
+## Future Extensions (post-submission, v5 candidates)
+
+v4 main 의 universal code 가 first (foundation model 의 generalization 본질). 그 위에 추후 2 extension 으로 brain emotion 의 완전 분해.
+
+```
+Brain emotion representation =
+    Universal code              (v4 main, Track A priority 1)
+  + Context-conditional         (Extension 1, text-based modulation)
+  + Individual differences      (Extension 2, subject embedding + residual)
+  + Acquisition noise           (control, ComBat)
+```
+
+- **Extension 1. Context-aware emotion (text 형식)**. 영화 subtitle / scene caption 의 text embedding 으로 stimulus 의 context modulation 표현. Brain emotion = universal code × context-text modulation. StudyForrest narrative, Emo-FilM 1 Hz continuous rating 으로 측정.
+- **Extension 2. Individual differences (subject embedding + residual analysis)**. (a) Subject embedding (TRIBE v2 / Défossez 2023 style) 추가 학습. (b) Track A 의 subject-invariant SSL 의 *non-aligned residual* PCA + subject 별 행동 metric correlation.
+
+Priority. v4 main (6 month 안) = universal code. v5 (post-submission) = Extension 1 + 2. 자세히 `docs/masterplan_v2.md` Section 14.
+
 ## Canonical Data
 
 - Horikawa / Cowen stimulus 수 = **2185** (resting 0 제외)

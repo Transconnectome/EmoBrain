@@ -362,3 +362,47 @@ Foundation 의 출처 = brain backbone (수만 subject pretrained) × emotion-te
   - (c) Independent dataset 다운로드 (Emo-FilM, StudyForrest, NNDb, Affective Videos)
   - (d) ComBat wrapper + acquisition null baseline (`code/cross_dataset/`)
   - (e) `Paper/methodology.md` 도 v4 build recipe 에 맞춰 update
+
+---
+
+## 2026-06-02 (extension priority)
+
+### v4 main 의 priority 명시
+
+사용자 요청. v4 main 의 universal code 가 first (foundation model 의 generalization 본질). 그 위에 context-aware + individual differences 는 post-submission v5 로.
+
+**v4 main (W1-24)**.
+- Universal emotion code 검증
+- Track A (BFM SSL pretrain + LoRA) + Track B (Brain+Video framework reuse + task 재설계) main
+- Track C (BrainVLM) supplementary
+
+**v5 extensions (post-submission)**.
+- Extension 1. Context-aware emotion (text 형식)
+  - Subtitle / scene caption 의 text embedding 으로 stimulus 의 context modulation 표현
+  - StudyForrest narrative, Emo-FilM 1 Hz continuous rating 으로 측정
+  - Brain emotion = universal code × context-text modulation
+- Extension 2. Individual differences
+  - (a) Subject embedding (TRIBE v2 / Défossez 2023 style) 추가 학습
+  - (b) Track A 의 subject-invariant SSL 의 *non-aligned residual* PCA + subject 별 행동 metric correlation
+
+**4 component 분해 schema**.
+
+```
+Brain emotion representation =
+    Universal code              (v4 main, Track A priority 1)
+  + Context-conditional         (v5 Extension 1, text-based modulation)
+  + Individual differences      (v5 Extension 2, subject embedding + residual)
+  + Acquisition noise           (control, ComBat)
+```
+
+### 명시 위치
+
+- `docs/masterplan_v2.md` Section 14 (Future Extensions)
+- `ACTION_PLAN.md` Phase 5 (Future Extensions, Action 31-35)
+- `CONTEXT_FEEL.md` Future Extensions section
+- `README.md` / `README_KR.md` Phase Status table 의 Phase 5 row
+
+### 이유
+
+Foundation model 의 본질 = generalization. Universal code 가 generalization 의 핵심 evidence. Context-aware 와 individual differences 는 *universal code 가 분리된 후* 의 modulation / residual 로 자연스럽게 정의됨. v4 의 universal code 가 strong / partial / negative 어느 시나리오로 가든 v5 의 extension 은 그 위에서 자연스럽게 진행 가능.
+

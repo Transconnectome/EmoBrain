@@ -545,3 +545,73 @@ Phase 4 (W24)
 - ✅ BrainVLM feasibility 정직 평가 → Track C supplementary 로 demote
 - ✅ 3 측면 모두 진행 → Track A (main) + Track B (main) + Track C (supplementary)
 - ✅ Git workflow branch-based → `v4_20260602_perlmutter` branch
+
+---
+
+## 14. Future Extensions (post-submission, v5 candidates)
+
+v4 final 의 main 은 **universal emotion code** (foundation model 의 본질 = generalization). 그 위에 추후 추가할 2 extension. 6 month 안에는 Appendix / future work 로만 명시, post-submission 의 v5 cycle 에서 본격 진행.
+
+### Extension 1. Context-aware emotion (text 형식)
+
+**왜 추가**. Universal code 는 "context-invariant" 측면. 그러나 실제 emotion 은 context-conditioned (같은 stimulus, 다른 narrative position 에서 다른 felt emotion). 이 modulation 을 brain 에서 어떻게 capture 하는지가 다음 단계.
+
+**Form**. Text-based context.
+- 영화의 subtitle / narrative description / scene caption 을 text 로 표현
+- Qwen-VL 또는 BLIP-2 로 video → caption 생성 (이미 EmoViS 추출본 있음)
+- Context text → sentence-transformer embedding (Universal code 의 emotion-text space 와 같은 space)
+- Brain emotion = Universal code (Track A SSL 학습) × Context-text modulation (영화의 surrounding narrative)
+
+**측정 방법**.
+- StudyForrest 의 2h Forrest Gump narrative. Same character 의 다른 narrative time 의 brain representation 분해 = Universal code (character emotion identity) + Context-conditional (narrative position)
+- Emo-FilM 의 1 Hz continuous rating + scene caption. 시간별 brain trajectory 분해
+- Brain RDM = α × Universal code RDM + β × Context-text RDM 의 partial RSA
+
+**연결**. v2 (2026-05) 의 "context-aware emotion FM" framing 의 정직한 후속.
+
+### Extension 2. Individual differences (subject embedding + residual analysis)
+
+**왜 추가**. Universal code 는 "subject-invariant" 측면. 그러나 실제 emotion 은 individual mapping 의 변이 (subject 마다 같은 stimulus 의 다른 felt experience). v3 (2026-05-27) 의 individual difference 방향의 정직한 후속.
+
+**Form 두 가지**.
+
+(a) **Subject embedding (TRIBE v2 / Défossez 2023 style)**.
+- 각 subject 마다 learnable vector
+- Brain encoder 의 input/output 에 concat 또는 modulation
+- Universal code × subject embedding 으로 subject-conditioned emotion 표현
+- BrainVLM (Track C) 의 caption generation 에서 subject-conditioned caption 으로 활용 가능
+
+(b) **Residual analysis (Track A 의 byproduct, low cost)**.
+- Subject-invariant SSL (Track A priority 1, Action 5) 학습 후 *align 안 된 residual* 을 PCA
+- Residual axis 의 subject 별 분포 = individual differences 의 brain evidence
+- Subject 별 행동 metric (Cowen 34-cat rating 분포의 subject 별 차이) 와 residual axis 의 correlation 으로 validate
+
+**측정 방법**.
+- (a) Subject embedding 추가 학습. Track A 의 LoRA adaptation 단계에서 subject embedding 추가
+- (b) Track A Action 6 (subject alignment metric) 의 extension. 이미 학습된 SSL representation 의 *non-aligned* component 의 PCA + 행동 correlation
+
+**Brain emotion 의 완전 분해 schema**.
+
+```
+Brain emotion representation =
+    Universal code              (v4 main, Track A priority 1)
+  + Context-conditional         (Extension 1, text-based modulation)
+  + Individual differences      (Extension 2, subject embedding + residual)
+  + Acquisition noise           (control, ComBat)
+```
+
+### Priority
+
+- v4 main (6 month 안). Universal code 만 (foundation model 의 generalization 본질)
+- v5 (post-submission). Extension 1 + 2 의 정직한 추가
+- v6 (next cycle). 4 component 의 통합 paper (universal + context + individual + control)
+
+### Action items (post-submission)
+
+- Action 31. Context-text embedding 추출 pipeline (`code/context_aware/text_extraction.py`)
+- Action 32. Subject embedding 추가 학습 (`code/individual_diff/subject_embedding.py`)
+- Action 33. Residual analysis pipeline (`code/individual_diff/residual_pca.py`)
+- Action 34. Brain RDM 의 partial RSA decomposition (`code/decomposition/partial_rsa.py`)
+- Action 35. Extension paper (v5) draft
+
+이 4 extension actions 는 v4 main paper 의 submission (W24) 후 시작. 본 masterplan v2.md 는 v4 main 중심.

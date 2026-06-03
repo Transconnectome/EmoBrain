@@ -176,6 +176,7 @@ Group-level V/A 는 video saturate. Brain unique signal 은 invariance / cross-d
 | Phase 3b Track A (SSL pretrain 1+2+3 + LoRA adaptation) | W15-20 | Track A main | **🆕 main path** |
 | Phase 3c Track B (Brain+Video framework + task 재설계, cross-dataset) | W15-18 | Track B main | **🆕 main path** (병행) |
 | Phase 4 Synthesis + submission | W19-24 | (통합) | 대기 |
+| Phase 5 **Future Extensions** (Context-aware text modulation + Individual differences) | post-submission | v5 candidates | 🔮 추후 |
 
 
 ## Git workflow

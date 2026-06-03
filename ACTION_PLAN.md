@@ -351,3 +351,67 @@ W15-20. 6 주.
 - 진행 상황은 `reports/weekly/{YYYY-MM-DD}.md` 에 weekly 기록
 - 매주 끝 `[weekly status]` trigger 로 update
 - `notes/project_decisions.md` 에 framing pivot 결정 발생 시 entry 추가
+
+---
+
+## Phase 5 (Future Extensions, post-submission)
+
+v4 main paper submission (W24) 후 시작. 자세히 `docs/masterplan_v2.md` Section 14.
+
+### Extension 1. Context-aware emotion (text 형식)
+
+**Action 31. Context-text embedding 추출 pipeline**
+- [ ] StudyForrest narrative description / subtitle 추출
+- [ ] Emo-FilM scene caption (Qwen-VL 또는 BLIP-2 로 video → text)
+- [ ] 추출된 text 를 sentence-transformer 로 embedding (emotion-text space 와 같은 space)
+**파일**. `code/context_aware/text_extraction.py`, `code/context_aware/text_embedding.py`
+**Deliverable**. `data/context/{dataset}/text_embeddings.npz`
+**자원**. GPU 1 주 (Qwen-VL caption 생성)
+
+**Action 32. Universal × Context decomposition**
+- [ ] Brain RDM 의 partial RSA. Universal code RDM 과 Context-text RDM 의 partial contribution
+- [ ] Same-stimulus 의 narrative position 별 brain trajectory 분해
+**파일**. `code/decomposition/partial_rsa.py`
+**Deliverable**. `results/phase5_context/partial_rsa.csv`, figure
+**자원**. CPU 1 주
+
+### Extension 2. Individual differences
+
+**Action 33. Subject embedding 추가 학습**
+- [ ] TRIBE v2 / Défossez 2023 style. 각 subject 별 learnable vector
+- [ ] Brain encoder 의 input/output 에 concat 또는 modulation
+- [ ] Universal code × subject embedding 으로 subject-conditioned emotion
+**파일**. `code/individual_diff/subject_embedding.py`
+**Deliverable**. `output/individual_diff/subject_embedding_checkpoint.pt`
+**자원**. GPU 1 주
+
+**Action 34. Residual analysis pipeline**
+- [ ] Track A 의 subject-invariant SSL representation 의 *non-aligned residual*
+- [ ] Residual axis 의 subject 별 PCA
+- [ ] Subject 별 행동 metric (Cowen 34-cat rating 분포의 차이) 와 residual axis correlation
+**파일**. `code/individual_diff/residual_pca.py`
+**Deliverable**. `results/phase5_individual_diff/residual_analysis.csv`, figure
+**자원**. CPU 며칠
+
+### Action 35. Extension paper (v5) draft
+
+- [ ] v5 paper draft. Universal code + Context-aware + Individual differences 의 통합
+- [ ] 4 component 분해 schema 의 evidence
+**파일**. `Paper_v5/main.tex`
+**Deliverable**. `Paper_v5/main.pdf`
+**자원**. CPU + 사용자 작업
+
+---
+
+## Phase priority summary
+
+| Phase | Time | Tracks | Status |
+|---|---|---|---|
+| Phase 1 | W1-6 | Foundation (frozen probe) | ✅ 완료 |
+| Phase 2 | W7-12 | 통합 학습 (4 architecture + brain-only) | ✅ 측정 완료 |
+| Phase 3a | W13-15 | BrainVLM (Track C supp) | 🔄 parsing fix |
+| Phase 3b | W15-20 | Track A SSL pretrain + LoRA | 🆕 v4 main |
+| Phase 3c | W15-18 | Track B Brain+Video framework | 🆕 v4 main |
+| Phase 4 | W19-24 | Synthesis + submission | 대기 |
+| Phase 5 | post-submission | Context-aware + Individual differences | 🔮 v5 |
+
