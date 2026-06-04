@@ -371,7 +371,7 @@ Foundation 의 출처 = brain backbone (수만 subject pretrained) × emotion-te
 
 사용자 요청. v4 main 의 universal code 가 first (foundation model 의 generalization 본질). 그 위에 context-aware + individual differences 는 post-submission v5 로.
 
-**v4 main (W1-24)**.
+**v4 main **.
 - Universal emotion code 검증
 - Track A (BFM SSL pretrain + LoRA) + Track B (Brain+Video framework reuse + task 재설계) main
 - Track C (BrainVLM) supplementary

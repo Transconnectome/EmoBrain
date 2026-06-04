@@ -253,13 +253,13 @@ Stimulus 매칭만 있으면 label 없이 가능. NNDb 같은 label-free dataset
 | **Affective Videos** (ds000205) | 11 × 32×4 trials | V/A | Yes | Track A multi-source pretrain |
 | **Koide-Majima** | 옵션 | 80 emotion labels | 접근 의존 | Track A multi-source pretrain (가능 시) |
 
-다운로드 위치 = `data/independent/{emo_film, study_forrest, nndb, affective_videos}/`. Phase 3b W15 에 BIDS 검증 + preprocessing pipeline.
+다운로드 위치 = `data/independent/{emo_film, study_forrest, nndb, affective_videos}/`. Phase 3b 에 BIDS 검증 + preprocessing pipeline.
 
 ---
 
 ## 7. Phase plan (6 month, 4 phase)
 
-### Phase 1. Foundation (Week 1-6) ✅ 완료
+### Phase 1. Foundation () ✅ 완료
 
 3 트랙 병행. 결과 `reports/phase1_wrapup/main.pdf` + `results/phase1/`.
 
@@ -269,7 +269,7 @@ Stimulus 매칭만 있으면 label 없이 가능. NNDb 같은 label-free dataset
 - Best video (CLIP_pretrained) 0.9708
 - 결론. ROI mean > all BFM. Brain 정교화 (SwiFT 5M~264M, padding 4 mode) 가 group-level emotion 에 effect 없음.
 
-### Phase 2. 통합 학습 (Week 7-12) ✅ 측정 완료
+### Phase 2. 통합 학습 () ✅ 측정 완료
 
 L1 frozen embedding 주입 으로 3 BFM × 4 architecture 학습 + brain-only 4 method 비교.
 
@@ -282,7 +282,7 @@ L1 frozen embedding 주입 으로 3 BFM × 4 architecture 학습 + brain-only 4 
 
 **Pivot decision**. "Brain + video fusion 으로 group-level emotion 잡는다" framing 폐기. Universal emotion code 의 invariance / cross-dataset preservation 으로 reframe.
 
-### Phase 3a. BrainVLM (Week 13-15) 🔄 Track C supplementary
+### Phase 3a. BrainVLM () 🔄 Track C supplementary
 
 Fold 1 학습 완료 (loss 1.94 → 0.151). Inference V_reg r = NaN (parsing), MAE 2.55, scale mismatch.
 
@@ -294,38 +294,38 @@ Fold 1 학습 완료 (loss 1.94 → 0.151). Inference V_reg r = NaN (parsing), M
 
 추가 학습 없음. Main path 아님.
 
-### Phase 3b. Track A SSL pretrain + adaptation (Week 15-20) 🆕 v4 main
+### Phase 3b. Track A SSL pretrain + adaptation () 🆕 v4 main
 
-**Track 1 (W15). Foundation prep**
+**Track 1 . Foundation prep**
 - [ ] Independent dataset 다운로드 + BIDS 검증 (Emo-FilM, StudyForrest, NNDb, Affective Videos)
 - [ ] 같은 preprocessing pipeline 적용 (Schaefer-400 + Tian-50 parcel)
 - [ ] ComBat harmonization (Fortin 2018) wrapper (`code/cross_dataset/combat_wrapper.py`)
 - [ ] Acquisition null baseline generator (phase-scrambled + trivial ROI mean)
 - [ ] Emotion-text space loader (sentence-transformer mpnet-base + CLIP-text ViT-L/14)
 
-**Track 2 (W16-17). SSL pretrain (1) Subject-invariant**
+**Track 2 . SSL pretrain (1) Subject-invariant**
 - [ ] `code/ssl_pretrain/subject_invariant.py` 작성
 - [ ] Horikawa 5 subj × 2185 stim 으로 학습
 - [ ] InfoNCE loss, brain_Ak ↔ brain_Bk positive
 - [ ] 학습 후 subject alignment metric 측정
 
-**Track 3 (W16-18). SSL pretrain (2) Multi-source masked AE**
+**Track 3 . SSL pretrain (2) Multi-source masked AE**
 - [ ] `code/ssl_pretrain/multi_source_masked.py` 작성
 - [ ] 4 dataset 통합 dataloader, dataset 헤더 token
 - [ ] 30% ROI mask + MSE reconstruction
 - [ ] 학습 후 paradigm alignment metric 측정 (Horikawa vs Emo-FilM vs StudyForrest 의 same-emotion RDM)
 
-**Track 4 (W18). SSL pretrain (3) Brain-stimulus contrastive (optional)**
+**Track 4 . SSL pretrain (3) Brain-stimulus contrastive (optional)**
 - [ ] `code/ssl_pretrain/brain_stimulus_contrastive.py` 작성
 - [ ] V-JEPA2 / CLIP feature 와 brain encoder output 의 contrastive
 - [ ] Universal code 가 stimulus-driven 인지의 측정
 
-**Track 5 (W18-19). LoRA adaptation + emotion-text space**
+**Track 5 . LoRA adaptation + emotion-text space**
 - [ ] `code/cross_dataset/adapt_lora.py`
 - [ ] Pretrained backbone + LoRA + emotion-text contrastive
 - [ ] 4 supervision target 동시 학습 (V/A + 34-cat + 14-dim + OV)
 
-**Track 6 (W19-20). Universal code 측정**
+**Track 6 . Universal code 측정**
 - [ ] 전략 1 shared text-embedding zero-shot retrieval
 - [ ] 전략 2 label-space intersection probe
 - [ ] 전략 3 MLLM universal annotator (local LLM frozen artifact)
@@ -333,7 +333,7 @@ Fold 1 학습 완료 (loss 1.94 → 0.151). Inference V_reg r = NaN (parsing), M
 - [ ] ROI-wise transfer matrix (Schaefer-400 17-network)
 - [ ] Acquisition null baseline 2σ 검증
 
-**W20 Phase 3b task list (Track A)**
+** Phase 3b task list (Track A)**
 - [ ] 4 dataset preprocessing + ComBat 완료
 - [ ] SSL pretrain (1) + (2) 학습 완료, invariance metric 측정
 - [ ] (3) brain-stimulus 학습 (가능 시)
@@ -341,9 +341,9 @@ Fold 1 학습 완료 (loss 1.94 → 0.151). Inference V_reg r = NaN (parsing), M
 - [ ] 4 cross-dataset 전략 결과
 - [ ] Phase 3b 보고서 (`reports/phase3b_track_a.md`)
 
-### Phase 3c. Track B Brain+Video framework + task 재설계 (Week 15-18) 🆕 v4 main (병행)
+### Phase 3c. Track B Brain+Video framework + task 재설계 () 🆕 v4 main (병행)
 
-**Track 1 (W15-16). Task 재설계**
+**Track 1 . Task 재설계**
 - [ ] Phase 2 의 4 architecture (A/B/C/D) framework 그대로 reuse
 - [ ] Task 가 V/A 가 아니라 universal code probe 로 변경
   - Cross-dataset emotion-text alignment task
@@ -351,23 +351,23 @@ Fold 1 학습 완료 (loss 1.94 → 0.151). Inference V_reg r = NaN (parsing), M
   - ROI-wise universal map task
 - [ ] `code/phase2/task_universal_code.py` 신설 (기존 _lib.py 확장)
 
-**Track 2 (W16-18). Brain unique cross-dataset preservation**
+**Track 2 . Brain unique cross-dataset preservation**
 - [ ] Brain-only vs Brain+Video joint 의 차이 측정 (universal code probe task 에서)
 - [ ] 그 차이의 cross-dataset RSA preservation
 - [ ] Caption baseline 비교 (Doerig 2025 control)
 
-**W18 Phase 3c task list (Track B)**
+** Phase 3c task list (Track B)**
 - [ ] Universal code probe task 학습 완료
 - [ ] Brain unique 의 cross-dataset preservation 결과
 - [ ] Caption baseline variance partitioning
 - [ ] Phase 3c 보고서 (`reports/phase3c_track_b.md`)
 
-### Phase 4. Synthesis + submission (Week 19-24)
+### Phase 4. Synthesis + submission ()
 
-- W19-20. Cross-evaluation. Track A + Track B 통합 표. EmoViS branch 결과 통합 검토
-- W21-22. Paper draft. Skill `scientific-writing` + `peer-review`
-- W23. Infographic, README, code release v1.0
-- W24. Submission target 결정
+- . Cross-evaluation. Track A + Track B 통합 표. EmoViS branch 결과 통합 검토
+- . Paper draft. Skill `scientific-writing` + `peer-review`
+- . Infographic, README, code release v1.0
+- . Submission target 결정
 
 **Submission target 후보**.
 - Nat Hum Behav, Nat Commun (universal code evidence 강하면)
@@ -399,7 +399,7 @@ Paper title 후보 (naming retreat).
 ## 9. Go/No-Go Decision Tree
 
 ```
-Phase 3b (W20 Track A gate)
+Phase 3b ( Track A gate)
 ├── Multi-source SSL invariance metric > single-source SSL 의미 있게
 │   AND Subject-invariant SSL 후 subject alignment positive
 │   AND Transmodal ROI 에서 universal code emerge
@@ -411,7 +411,7 @@ Phase 3b (W20 Track A gate)
     → Subject-specific representation, universal subject code 없음
     → Sub-claim 3 false
 
-Phase 3c (W18 Track B gate)
+Phase 3c ( Track B gate)
 ├── New task (universal code probe) 에서 Brain+Video joint > video-only baseline
 │   AND 그 차이가 cross-dataset preserved
 │   → Track B strong positive
@@ -421,7 +421,7 @@ Phase 3c (W18 Track B gate)
 └── Joint > video but cross-dataset 안 preserve
     → Horikawa-specific brain unique. Universal 아님
 
-Phase 4 (W24)
+Phase 4 
 ├── Track A + Track B 둘 다 strong positive → Nat Hum Behav / Nat Commun (universal code 존재의 강한 evidence)
 ├── 하나만 positive → NeurIPS main track / Imaging Neuroscience (partial evidence)
 ├── 둘 다 weak but methodologically novel → NeurIPS dataset/benchmark track (multi-source SSL recipe + 4 cross-dataset 전략 + frozen MLLM artifact 자체가 contribution)
@@ -434,15 +434,15 @@ Phase 4 (W24)
 
 | Week | Phase | Agent | Focus |
 |---|---|---|---|
-| W15 | P3b kickoff | emovi-method-critic | Build recipe + SSL pretrain 1+2+3 의 design choice + ComBat 적정성 |
-| W17 | P3b | scientific-critical-thinking | Multi-source SSL 의 invariance metric 의 statistical 적절성 |
-| W18 | P3b | emovi-method-critic | Subject-invariant SSL 의 contrastive loss design 의 confound 검토 |
-| W18 | P3c | emovi-method-critic | Track B new task 의 brain-only vs joint 의 measurement equivalence |
-| W19 | P3b/3c | chavis-antisyc | 결과의 over-claim 방지, transmodal-한정 결과 정직성 |
-| W20 | P3b/3c gate | peer-review + chavis-antisyc | Track A/B 결과 종합 over-claim 방지 |
-| W21 | P4 | scientific-writing | Draft writing |
-| W23 | P4 | peer-review + emovi-review | Manuscript review |
-| W24 | P4 | scholar-evaluation | Venue 결정 |
+| | P3b kickoff | emovi-method-critic | Build recipe + SSL pretrain 1+2+3 의 design choice + ComBat 적정성 |
+| | P3b | scientific-critical-thinking | Multi-source SSL 의 invariance metric 의 statistical 적절성 |
+| | P3b | emovi-method-critic | Subject-invariant SSL 의 contrastive loss design 의 confound 검토 |
+| | P3c | emovi-method-critic | Track B new task 의 brain-only vs joint 의 measurement equivalence |
+| | P3b/3c | chavis-antisyc | 결과의 over-claim 방지, transmodal-한정 결과 정직성 |
+| | P3b/3c gate | peer-review + chavis-antisyc | Track A/B 결과 종합 over-claim 방지 |
+| | P4 | scientific-writing | Draft writing |
+| | P4 | peer-review + emovi-review | Manuscript review |
+| | P4 | scholar-evaluation | Venue 결정 |
 
 ---
 
@@ -508,7 +508,7 @@ Phase 4 (W24)
 | Risk | Probability | Impact | Mitigation |
 |---|---|---|---|
 | Phase 1-2 의 brain group-level emotion 효과 없음 (이미 확인) | (Realized) | (반영됨) | Universal code framing 으로 pivot. Group-level 가 아닌 invariance / cross-dataset preservation 축 |
-| Multi-source SSL pretrain 의 dataset preprocessing 부담 | High | High | Phase 3b W15 에서 BIDS 검증 + ComBat 우선. Emo-FilM 우선, Affective Videos 다음 |
+| Multi-source SSL pretrain 의 dataset preprocessing 부담 | High | High | Phase 3b 에서 BIDS 검증 + ComBat 우선. Emo-FilM 우선, Affective Videos 다음 |
 | Subject-invariant SSL 의 contrastive loss collapse | Med | Med | LoRA rank ablation. Hard negative sampling. Temperature tuning |
 | Cross-dataset transfer 의 acquisition confound (Sripada 2020) | High | Critical | Track A 의 ComBat + 2σ null baseline 의무화 |
 | Caption baseline 이 brain-only 와 equivalent (Doerig 2025) | Med-High | Critical | Track A/B 모두 variance partitioning. Negative result 도 정직 reporting |
@@ -614,4 +614,4 @@ Brain emotion representation =
 - Action 34. Brain RDM 의 partial RSA decomposition (`code/decomposition/partial_rsa.py`)
 - Action 35. Extension paper (v5) draft
 
-이 4 extension actions 는 v4 main paper 의 submission (W24) 후 시작. 본 masterplan v2.md 는 v4 main 중심.
+이 4 extension actions 는 v4 main paper 의 submission  후 시작. 본 masterplan v2.md 는 v4 main 중심.

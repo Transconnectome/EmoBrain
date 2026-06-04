@@ -7,7 +7,7 @@ High-level (Big Q, sub-claim, tracks, go-no-go) 는 [`docs/masterplan_v2.md`](do
 
 ## 한 줄 요약
 
-Track A (BFM SSL pretrain + LoRA) + Track B (Brain+Video framework reuse + task 재설계) 를 main, Track C (BrainVLM parsing fix) 를 supplementary 로 W15-20 병행. W19-24 paper + submission.
+Track A (BFM SSL pretrain + LoRA) + Track B (Brain+Video framework reuse + task 재설계) 를 main, Track C (BrainVLM parsing fix) 를 supplementary 로 병행. paper + submission.
 
 ## 자원 환경
 
@@ -27,7 +27,7 @@ Track A (BFM SSL pretrain + LoRA) + Track B (Brain+Video framework reuse + task 
 
 ## Phase 3a (Track C supplementary). BrainVLM parsing fix only
 
-W15 1 일 작업. 추가 학습 없음.
+추가 학습 없음. Phase 3a fold 1 inference parsing fix 만.
 
 ### Action 1. Inference parsing fix
 
@@ -39,15 +39,13 @@ W15 1 일 작업. 추가 학습 없음.
 - [ ] Re-inference on fold 1 test set
 - [ ] V_reg r, A_reg r, MAE 결과 reporting
 **Deliverable**. `results/brainvlm/fold1_test_preds_metrics_fixed.csv`, Supplementary figure (Appendix only).
-**자원**. GPU 1 일 (re-inference 2-3 시간 + figure).
+**자원**. GPU (low) (re-inference 2-3 시간 + figure).
 
 ---
 
 ## Phase 3b (Track A main). BFM SSL pretrain + LoRA adaptation
 
-W15-20. 6 주.
-
-### Week 15. Foundation prep
+### Foundation prep
 
 **Action 1. Independent dataset 다운로드**
 - [ ] Emo-FilM (OpenNeuro `ds004982`). 30 subj × 14 films
@@ -65,7 +63,7 @@ W15-20. 6 주.
 - [ ] Robust scaling (Brain-JEPA preprocessing 과 동일)
 **파일**. `code/cross_dataset/preprocess_independent.py` + .sh
 **Deliverable**. `data/independent/{dataset}/parcels.npz`
-**자원**. CPU 2-3 일 (parallel 가능)
+**자원**. CPU (medium) (parallel 가능)
 
 **Action 3. ComBat harmonization wrapper**
 - [ ] Fortin 2018 ComBat 구현 (또는 `neuroCombat` 사용)
@@ -73,16 +71,16 @@ W15-20. 6 주.
 - [ ] Multi-site 적용 후 effect plot
 **파일**. `code/cross_dataset/combat_wrapper.py` + .sh
 **Deliverable**. `data/independent/{dataset}/parcels_combat.npz`
-**자원**. CPU 1 일
+**자원**. CPU (low)
 
 **Action 4. Acquisition null baseline generator**
 - [ ] Phase-scrambled brain signal (spectral 유지, emotion 구조 제거)
 - [ ] Trivial ROI mean encoder (acquisition mismatch 만 통과)
 **파일**. `code/cross_dataset/null_baseline.py`
 **Deliverable**. `data/independent/{dataset}/null_phase_scrambled.npz`, `null_roi_mean.npz`
-**자원**. CPU 1 일
+**자원**. CPU (low)
 
-### Week 16. SSL pretrain (1) Subject-invariant
+### SSL pretrain (1) Subject-invariant
 
 **Action 5. Subject-invariant SSL 학습 코드**
 - [ ] InfoNCE loss. positive = same stim 의 다른 subject, negative = 다른 stim
@@ -91,7 +89,7 @@ W15-20. 6 주.
 - [ ] Temperature, hard negative sampling ablation
 **파일**. `code/ssl_pretrain/subject_invariant.py` + .sh
 **Deliverable**. `output/ssl_pretrain/subject_invariant_checkpoint.pt`
-**자원**. GPU 3-4 일
+**자원**. GPU (medium)
 
 **Action 6. Subject alignment metric 측정**
 - [ ] 학습 후 같은 stim 의 subject 간 representation 의 cosine similarity
@@ -99,9 +97,9 @@ W15-20. 6 주.
 - [ ] ROI-wise alignment map
 **파일**. `code/ssl_pretrain/eval_subject_alignment.py` + .sh
 **Deliverable**. `results/phase3_universal_code/track_a/subject_alignment.csv`, figure
-**자원**. GPU 1 일
+**자원**. GPU (low)
 
-### Week 16-18. SSL pretrain (2) Multi-source masked AE (병행)
+### SSL pretrain (2) Multi-source masked AE (병행)
 
 **Action 7. Multi-source dataloader**
 - [ ] 4 dataset (Horikawa + Emo-FilM + StudyForrest + Affective Videos) 통합 dataloader
@@ -109,7 +107,7 @@ W15-20. 6 주.
 - [ ] Per-batch dataset mixing
 **파일**. `code/ssl_pretrain/_lib_dataloader.py`
 **Deliverable**. Dataloader test passing
-**자원**. CPU 1-2 일
+**자원**. CPU (low)
 
 **Action 8. Multi-source masked AE 학습 코드**
 - [ ] 450 ROI 중 30% mask
@@ -118,45 +116,60 @@ W15-20. 6 주.
 - [ ] Single-source (Horikawa only) vs multi-source 비교
 **파일**. `code/ssl_pretrain/multi_source_masked.py` + .sh
 **Deliverable**. `output/ssl_pretrain/multi_source_masked_checkpoint.pt`, `output/ssl_pretrain/single_source_masked_checkpoint.pt`
-**자원**. GPU 1-2 주
+**자원**. GPU (high)
 
 **Action 9. Paradigm alignment metric 측정**
 - [ ] Horikawa vs Emo-FilM vs StudyForrest 의 같은 emotion category 의 RDM
 - [ ] Multi-source vs single-source 의 cross-dataset RDM correlation 차이
 **파일**. `code/ssl_pretrain/eval_paradigm_alignment.py` + .sh
 **Deliverable**. `results/phase3_universal_code/track_a/paradigm_alignment.csv`, figure
-**자원**. GPU 1 일
+**자원**. GPU (low)
 
-### Week 18. SSL pretrain (3) Brain-stimulus contrastive (optional)
+### SSL pretrain (3) Brain-stimulus contrastive (optional)
 
 **Action 10. Brain-stimulus contrastive 학습 코드 (가능하면)**
 - [ ] Brain encoder output ↔ V-JEPA2 feature 의 contrastive
 - [ ] EmoViS 의 V-JEPA2 추출본 reuse
 **파일**. `code/ssl_pretrain/brain_stimulus_contrastive.py` + .sh
 **Deliverable**. `output/ssl_pretrain/brain_stimulus_checkpoint.pt`
-**자원**. GPU 며칠
+**자원**. GPU (low)
 
-### Week 18-19. LoRA adaptation + emotion-text space
+### LoRA adaptation + emotion-text space
 
-**Action 11. Emotion-text space loader**
-- [ ] Sentence-transformer (mpnet-base) frozen
-- [ ] CLIP-text (ViT-L/14) frozen
+**Action 11. Emotion-text space loader (3 후보 ablation)**
+
+3 emotion-text encoder 를 모두 추출해서 ablation 으로 비교. Default 는 mpnet-base.
+
+| 후보 | 모델 | 특징 |
+|---|---|---|
+| **Default** | sentence-transformers/all-mpnet-base-v2 | Generic semantic, 768-d. 표준 |
+| **Vision-language** | CLIP-text ViT-L/14 (openai/clip-vit-large-patch14) | Video-text joint pretrain. Cowen evoked-emotion paradigm 과 자연 match |
+| **Emotion-specialized** | LEIA/LEIA-LM-base (Aroyehun et al. 2023 EPJ Data Science) | BERTweet 기반, 6.3M Vent post 로 emotion-aware masked pretrain |
+
+- [ ] 3 encoder 각각 frozen 로딩
 - [ ] Cowen 34-cat 의 문장화 (e.g. "a video that evokes admiration")
 - [ ] Cowen 14-dim 의 문장화
 - [ ] OV description (전략 3 의 출력)
+- [ ] 3 encoder × 3 target (34cat / 14dim / OV) = 9 embedding 셋트
 **파일**. `code/cross_dataset/emotion_text_space.py`
-**Deliverable**. `data/emotion_text_space/{34cat, 14dim, ov}_embeddings.npz`
-**자원**. GPU 며칠 (embedding 생성)
+**Deliverable**. `data/emotion_text_space/{mpnet, clip, leia}_{34cat, 14dim, ov}_embeddings.npz`
+**자원**. GPU (medium, embedding 생성)
 
-**Action 12. LoRA adaptation 학습**
-- [ ] SSL pretrained backbone + LoRA (rank 8-16)
-- [ ] Loss = InfoNCE (brain ↔ emotion-text) + V/A regression + 34-cat regression + soft KL
-- [ ] Caption baseline confound control (Doerig 2025)
+**Action 12. LoRA adaptation 학습 (Linear + MLP 둘 다 ablation)**
+
+Phase 1 finding 에서 frozen probe 의 표준 = Linear > MLP. 우리 setup 은 LoRA + contrastive 라 다를 수 있어 ablation.
+
+- [ ] SSL pretrained backbone + LoRA (rank 8 default, ablation 16)
+- [ ] **Projection head ablation**. (a) Linear (768 → 256) = default. (b) MLP (2-layer, hidden 512, ReLU, dropout 0.1)
+- [ ] Loss = α InfoNCE (brain ↔ emotion-text) + β V/A regression + γ 34-cat regression + δ soft KL + ε caption baseline Δ
+- [ ] Default α=1.0, β=0.1, γ=0.5, δ=0.3, ε=0.0
+- [ ] Caption baseline confound control. ε=0.1 ablation (Doerig 2025)
+- [ ] 3 emotion-text encoder × 2 projection head = 6 condition × backbone (BFM)
 **파일**. `code/cross_dataset/adapt_lora.py` + .sh
-**Deliverable**. `output/cross_dataset/lora_adapted_checkpoint.pt`
-**자원**. GPU 1-2 주
+**Deliverable**. `output/cross_dataset/lora_{encoder}_{head}_checkpoint.pt` × 6
+**자원**. GPU (high, multiple ablation condition)
 
-### Week 19-20. Universal code 평가 (4 cross-dataset 전략)
+### Universal code 평가 (4 cross-dataset 전략)
 
 **Action 13. 전략 1. Shared text-embedding zero-shot**
 - [ ] Brain → emotion-text space 사영
@@ -173,7 +186,7 @@ W15-20. 6 주.
 - [ ] Within-dataset Pearson r
 **파일**. `code/cross_dataset/eval_strategy2_intersection.py` + .sh
 **Deliverable**. `results/phase3_universal_code/track_a/strategy2_intersection.csv`
-**자원**. GPU 1 일
+**자원**. GPU (low)
 
 **Action 15. 전략 3. MLLM universal annotator (OV-MER local LLM)**
 - [ ] Qwen2.5-72B-VL 또는 Llama-3.3-70B-VL setup
@@ -183,7 +196,7 @@ W15-20. 6 주.
 - [ ] Frozen artifact 로 release
 **파일**. `code/cross_dataset/ov_mer_pipeline.py` + `eval_strategy3_mllm.py` + .sh
 **Deliverable**. `results/phase3_universal_code/track_a/ov_labels_{dataset}.jsonl`, `strategy3_mllm.csv`
-**자원**. GPU 2-3 일 (LLM forward)
+**자원**. GPU (low) (LLM forward)
 
 **Action 16. 전략 4. RSA / ISC ceiling (label-free)**
 - [ ] Brain RDM (Schaefer-400 ROI-wise) per dataset
@@ -192,21 +205,21 @@ W15-20. 6 주.
 - [ ] ISC ceiling (subject 간 brain signal correlation)
 **파일**. `code/cross_dataset/eval_strategy4_rsa.py` + .sh
 **Deliverable**. `results/phase3_universal_code/track_a/strategy4_rsa.csv`, figure
-**자원**. CPU 1-2 일
+**자원**. CPU (low)
 
 **Action 17. ROI-wise transfer matrix**
 - [ ] Schaefer-400 17-network 별 transfer 성능
 - [ ] Transmodal vs sensory 비교
 **파일**. `code/cross_dataset/eval_roi_wise.py` + .sh
 **Deliverable**. `results/phase3_universal_code/track_a/roi_wise_transfer.csv`, heatmap
-**자원**. CPU 1 일
+**자원**. CPU (low)
 
 **Action 18. Acquisition null 2σ 검증**
 - [ ] 모든 transfer 결과를 acquisition null 의 2σ 와 비교
 - [ ] Prespecified 한 threshold 위만 의미 있다고 reporting
 **파일**. `code/cross_dataset/eval_null_check.py`
 **Deliverable**. `results/phase3_universal_code/track_a/null_check.csv`
-**자원**. CPU 1 일
+**자원**. CPU (low)
 
 **Action 19. Caption baseline variance partitioning**
 - [ ] Qwen-VL caption → text embedding probe → B_caption
@@ -224,13 +237,13 @@ W15-20. 6 주.
 - [ ] All figures + tables
 **파일**. `reports/phase3b_track_a/main.tex`, `figs/`
 **Deliverable**. `reports/phase3b_track_a/main.pdf`
-**자원**. CPU 며칠
+**자원**. CPU (low)
 
 ---
 
-## Phase 3c (Track B main). Brain+Video framework + task 재설계 (W15-18 병행)
+## Phase 3c (Track B main). Brain+Video framework + task 재설계 ( 병행)
 
-### Week 15-16. Task 재설계
+### Task 재설계
 
 **Action 21. Universal code probe task design**
 - [ ] Task 1. Cross-dataset emotion-text alignment. Brain → emotion-text space 의 사영
@@ -239,9 +252,9 @@ W15-20. 6 주.
 - [ ] Phase 2 의 _lib.py 의 task type 확장
 **파일**. `code/phase2/task_universal_code.py`
 **Deliverable**. Task loader test passing
-**자원**. CPU 며칠
+**자원**. CPU (low)
 
-### Week 16-18. Brain unique cross-dataset preservation
+### Brain unique cross-dataset preservation
 
 **Action 22. Universal code probe task 학습 (Phase 2 framework reuse)**
 - [ ] 4 architecture (A/B/C/D) × universal code probe task
@@ -249,40 +262,40 @@ W15-20. 6 주.
 - [ ] Acquisition control 적용
 **파일**. `code/phase2/train_universal_code_joint.py` + .sh
 **Deliverable**. `results/phase3_universal_code/track_b/joint_vs_brainonly.csv`
-**자원**. GPU 1 주
+**자원**. GPU (medium)
 
 **Action 23. Cross-dataset preservation 측정**
 - [ ] Brain unique (joint - video) 의 cross-dataset RSA
 - [ ] Track A 의 invariance metric 과 cross-reference
 **파일**. `code/phase2/eval_cross_dataset_preservation.py` + .sh
 **Deliverable**. `results/phase3_universal_code/track_b/cross_dataset_rsa.csv`, figure
-**자원**. CPU 1 일
+**자원**. CPU (low)
 
 **Action 24. Phase 3c 보고서 (Track B)**
 - [ ] LaTeX `reports/phase3c_track_b/main.tex`
 - [ ] Brain unique cross-dataset preservation evidence
 **파일**. `reports/phase3c_track_b/main.tex`, `figs/`
 **Deliverable**. `reports/phase3c_track_b/main.pdf`
-**자원**. CPU 며칠
+**자원**. CPU (low)
 
 ---
 
-## Phase 4 (Synthesis + submission, W19-24)
+## Phase 4 (Synthesis + submission, )
 
-### Week 19-20. Cross-evaluation + integration
+### Cross-evaluation + integration
 
 **Action 25. Track A + Track B 통합 표**
 - [ ] Universal code evidence 통합 (Track A invariance metric + Track B cross-dataset preservation)
 - [ ] Sub-claim 1-4 별 verdict
 **Deliverable**. `reports/phase4_integration/integration_table.csv`, summary figure
-**자원**. CPU 1-2 일
+**자원**. CPU (low)
 
 **Action 26. EmoViS branch 결과 통합 검토**
 - [ ] EmoViS 의 cortical gradient + cross-modal alignment 결과와 FEEL 의 universal code evidence 의 cross-reference
 **Deliverable**. `reports/phase4_integration/feelin_emovis_alignment.md`
-**자원**. CPU 며칠
+**자원**. CPU (low)
 
-### Week 21-22. Paper draft
+### Paper draft
 
 **Action 27. Paper draft**
 - [ ] LaTeX `Paper/main.tex`
@@ -291,7 +304,7 @@ W15-20. 6 주.
 **Deliverable**. `Paper/main.pdf` v1.0
 **자원**. CPU + 사용자 작업
 
-### Week 23. Infographic + README + code release
+### Infographic + README + code release
 
 **Action 28. Infographic**
 - [ ] Skill `infographics` 사용
@@ -301,9 +314,9 @@ W15-20. 6 주.
 **Action 29. README + code release v1.0**
 - [ ] README.md final
 - [ ] Code release tag `v1.0-submission`
-**자원**. CPU 며칠
+**자원**. CPU (low)
 
-### Week 24. Submission
+### Submission
 
 **Action 30. Submission target 결정**
 - [ ] Skill `scholar-evaluation` 사용
@@ -314,16 +327,16 @@ W15-20. 6 주.
 
 ## Agent review schedule (masterplan 의 Section 10)
 
-| Week | Agent | Focus |
+| Phase | Agent | Focus |
 |---|---|---|
-| W15 | emovi-method-critic | Build recipe + SSL pretrain 1+2+3 + ComBat 적정성 |
-| W17 | scientific-critical-thinking | Multi-source SSL invariance metric statistical 적절성 |
-| W18 | emovi-method-critic | Subject-invariant SSL contrastive loss confound + Track B task equivalence |
-| W19 | chavis-antisyc | 결과 over-claim 방지 |
-| W20 | peer-review + chavis-antisyc | Track A/B 종합 over-claim |
-| W21 | scientific-writing | Draft writing |
-| W23 | peer-review + emovi-review | Manuscript review |
-| W24 | scholar-evaluation | Venue 결정 |
+| | emovi-method-critic | Build recipe + SSL pretrain 1+2+3 + ComBat 적정성 |
+| | scientific-critical-thinking | Multi-source SSL invariance metric statistical 적절성 |
+| | emovi-method-critic | Subject-invariant SSL contrastive loss confound + Track B task equivalence |
+| | chavis-antisyc | 결과 over-claim 방지 |
+| | peer-review + chavis-antisyc | Track A/B 종합 over-claim |
+| | scientific-writing | Draft writing |
+| | peer-review + emovi-review | Manuscript review |
+| | scholar-evaluation | Venue 결정 |
 
 ---
 
@@ -356,7 +369,7 @@ W15-20. 6 주.
 
 ## Phase 5 (Future Extensions, post-submission)
 
-v4 main paper submission (W24) 후 시작. 자세히 `docs/masterplan_v2.md` Section 14.
+v4 main paper submission  후 시작. 자세히 `docs/masterplan_v2.md` Section 14.
 
 ### Extension 1. Context-aware emotion (text 형식)
 
@@ -366,14 +379,14 @@ v4 main paper submission (W24) 후 시작. 자세히 `docs/masterplan_v2.md` Sec
 - [ ] 추출된 text 를 sentence-transformer 로 embedding (emotion-text space 와 같은 space)
 **파일**. `code/context_aware/text_extraction.py`, `code/context_aware/text_embedding.py`
 **Deliverable**. `data/context/{dataset}/text_embeddings.npz`
-**자원**. GPU 1 주 (Qwen-VL caption 생성)
+**자원**. GPU (medium) (Qwen-VL caption 생성)
 
 **Action 32. Universal × Context decomposition**
 - [ ] Brain RDM 의 partial RSA. Universal code RDM 과 Context-text RDM 의 partial contribution
 - [ ] Same-stimulus 의 narrative position 별 brain trajectory 분해
 **파일**. `code/decomposition/partial_rsa.py`
 **Deliverable**. `results/phase5_context/partial_rsa.csv`, figure
-**자원**. CPU 1 주
+**자원**. CPU (medium)
 
 ### Extension 2. Individual differences
 
@@ -383,7 +396,7 @@ v4 main paper submission (W24) 후 시작. 자세히 `docs/masterplan_v2.md` Sec
 - [ ] Universal code × subject embedding 으로 subject-conditioned emotion
 **파일**. `code/individual_diff/subject_embedding.py`
 **Deliverable**. `output/individual_diff/subject_embedding_checkpoint.pt`
-**자원**. GPU 1 주
+**자원**. GPU (medium)
 
 **Action 34. Residual analysis pipeline**
 - [ ] Track A 의 subject-invariant SSL representation 의 *non-aligned residual*
@@ -391,7 +404,7 @@ v4 main paper submission (W24) 후 시작. 자세히 `docs/masterplan_v2.md` Sec
 - [ ] Subject 별 행동 metric (Cowen 34-cat rating 분포의 차이) 와 residual axis correlation
 **파일**. `code/individual_diff/residual_pca.py`
 **Deliverable**. `results/phase5_individual_diff/residual_analysis.csv`, figure
-**자원**. CPU 며칠
+**자원**. CPU (low)
 
 ### Action 35. Extension paper (v5) draft
 
@@ -407,11 +420,11 @@ v4 main paper submission (W24) 후 시작. 자세히 `docs/masterplan_v2.md` Sec
 
 | Phase | Time | Tracks | Status |
 |---|---|---|---|
-| Phase 1 | W1-6 | Foundation (frozen probe) | ✅ 완료 |
-| Phase 2 | W7-12 | 통합 학습 (4 architecture + brain-only) | ✅ 측정 완료 |
-| Phase 3a | W13-15 | BrainVLM (Track C supp) | 🔄 parsing fix |
-| Phase 3b | W15-20 | Track A SSL pretrain + LoRA | 🆕 v4 main |
-| Phase 3c | W15-18 | Track B Brain+Video framework | 🆕 v4 main |
-| Phase 4 | W19-24 | Synthesis + submission | 대기 |
+| Phase 1 | | Foundation (frozen probe) | ✅ 완료 |
+| Phase 2 | | 통합 학습 (4 architecture + brain-only) | ✅ 측정 완료 |
+| Phase 3a | | BrainVLM (Track C supp) | 🔄 parsing fix |
+| Phase 3b | | Track A SSL pretrain + LoRA | 🆕 v4 main |
+| Phase 3c | | Track B Brain+Video framework | 🆕 v4 main |
+| Phase 4 | | Synthesis + submission | 대기 |
 | Phase 5 | post-submission | Context-aware + Individual differences | 🔮 v5 |
 

@@ -56,7 +56,7 @@ Track A + Track B's **converging evidence** is the paper's strength.
 ```
 fMRI ─► 450-ROI parcel (Schaefer-400 + Tian-50)
         │
-        ▼ Brain-JEPA backbone (pretrained on ABCD resting)
+        ▼ BFM backbone, default Brain-JEPA (pretrained on ABCD resting)
         │
         ▼ Track A SSL pretrain
             (1) Subject-invariant contrastive  ← priority 1

@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>FEEL Architecture</title>
+<style>
+  body {
+    font-family: -apple-system, "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+    background: #ffffff;
+    margin: 0;
+    padding: 48px 32px;
+    color: #1a1a1a;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 {
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    letter-spacing: -0.3px;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 40px;
+  }
+  .figure-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 56px 0 4px 0;
+    color: #111827;
+  }
+  .figure-caption {
+    font-size: 12px;
+    color: #6b7280;
+    margin-bottom: 20px;
+    max-width: 900px;
+    line-height: 1.5;
+  }
+  svg { display: block; margin: 0 auto; }
+  .legend-row {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-top: 12px;
+    font-size: 12px;
+    color: #4b5563;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-swatch {
+    width: 14px; height: 14px; border-radius: 3px;
+  }
+  details { margin-top: 32px; }
+  summary {
+    cursor: pointer; font-size: 13px; color: #4b5563;
+    padding: 8px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 12px;
+  }
+  th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  th { background: #f9fafb; font-weight: 600; color: #374151; }
+  td .frozen-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #dbeafe;
+    color: #1e40af;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  td .train-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>FEEL: Foundation model for Emotion Embedding Learning</h1>
+<p class="subtitle">Track A architecture. v4 final (2026-06-02), branch v4_20260602_perlmutter.</p>
+
+<!-- ============== Figure 1: Main architecture ============== -->
+<div class="figure-title">Figure 1. Track A main architecture (Phase 3b-1.B). LoRA adaptation of a pretrained brain backbone to a frozen emotion-text embedding space.</div>
+<p class="figure-caption">fMRI parcel time-series는 frozen BFM backbone을 통과한 뒤 trainable LoRA adapter와 projection head를 거쳐 256-d brain emotion latent z<sub>emo</sub>로 사영된다. 동시에 emotion text (e.g. "a video that evokes admiration")는 frozen sentence-transformer를 통과해 t<sub>emo</sub>가 된다. 두 representation은 InfoNCE contrastive loss로 정렬되며, V/A regression과 34-category regression head가 보조 supervision을 제공한다.</p>
+
+<svg width="1000" height="440" viewBox="0 0 1000 440" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#374151"/>
+    </marker>
+    <marker id="arrowdash" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- ===== Top branch: fMRI ===== -->
+  <!-- Input fMRI -->
+  <g filter="url(#shadow)">
+    <rect x="20" y="60" width="120" height="56" rx="6" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/>
+  </g>
+  <text x="80" y="84" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">fMRI input</text>
+  <text x="80" y="102" text-anchor="middle" font-size="10" fill="#6b7280">Schaefer-400 + Tian-50</text>
+  <text x="80" y="113" text-anchor="middle" font-size="10" fill="#6b7280">(450 ROI × T)</text>
+
+  <line x1="140" y1="88" x2="180" y2="88" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- BFM backbone encoder block (with LoRA inset) -->
+  <g filter="url(#shadow)">
+    <rect x="180" y="20" width="240" height="136" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  </g>
+  <text x="300" y="42" text-anchor="middle" font-size="13" font-weight="700" fill="#1e3a8a">BFM backbone</text>
+  <text x="300" y="56" text-anchor="middle" font-size="10" fill="#1e40af">default Brain-JEPA, frozen (swap: SwiFT, NeuroSTORM)</text>
+
+  <!-- Internal transformer layer stack -->
+  <g>
+    <rect x="200" y="68" width="200" height="18" rx="3" fill="#bfdbfe" stroke="#60a5fa" stroke-width="0.8"/>
+    <text x="300" y="80" text-anchor="middle" font-size="10" fill="#1e3a8a">Transformer Layer 1</text>
+  </g>
+  <g>
+    <rect x="200" y="89" width="200" height="18" rx="3" fill="#bfdbfe" stroke="#60a5fa" stroke-width="0.8"/>
+    <text x="300" y="101" text-anchor="middle" font-size="10" fill="#1e3a8a">⋮ (12 layers)</text>
+  </g>
+  <g>
+    <rect x="200" y="110" width="200" height="18" rx="3" fill="#bfdbfe" stroke="#60a5fa" stroke-width="0.8"/>
+    <text x="300" y="122" text-anchor="middle" font-size="10" fill="#1e3a8a">Transformer Layer 12</text>
+  </g>
+
+  <!-- LoRA inset (overlay on right side of encoder) -->
+  <g filter="url(#shadow)">
+    <rect x="320" y="134" width="80" height="16" rx="3" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
+  </g>
+  <text x="360" y="145" text-anchor="middle" font-size="10" font-weight="600" fill="#991b1b">LoRA (rank 8)</text>
+
+  <line x1="420" y1="88" x2="460" y2="88" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- Projection head -->
+  <g filter="url(#shadow)">
+    <rect x="460" y="60" width="100" height="56" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+  </g>
+  <text x="510" y="82" text-anchor="middle" font-size="12" font-weight="600" fill="#991b1b">Projection</text>
+  <text x="510" y="96" text-anchor="middle" font-size="10" fill="#7f1d1d">Linear / MLP</text>
+  <text x="510" y="108" text-anchor="middle" font-size="10" fill="#7f1d1d">768→256, ablation</text>
+
+  <line x1="560" y1="88" x2="600" y2="88" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- z_emo -->
+  <g filter="url(#shadow)">
+    <rect x="600" y="60" width="100" height="56" rx="6" fill="#f3f4f6" stroke="#374151" stroke-width="1"/>
+  </g>
+  <text x="650" y="82" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">z<tspan font-size="10" baseline-shift="sub">emo</tspan></text>
+  <text x="650" y="103" text-anchor="middle" font-size="10" fill="#6b7280">brain emotion latent (256-d)</text>
+
+  <!-- ===== Bottom branch: text ===== -->
+  <!-- emotion text input -->
+  <g filter="url(#shadow)">
+    <rect x="20" y="320" width="120" height="56" rx="6" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/>
+  </g>
+  <text x="80" y="342" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">Emotion text</text>
+  <text x="80" y="358" text-anchor="middle" font-size="10" fill="#6b7280">"a video that</text>
+  <text x="80" y="370" text-anchor="middle" font-size="10" fill="#6b7280">evokes admiration"</text>
+
+  <line x1="140" y1="348" x2="180" y2="348" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- Sentence-transformer -->
+  <g filter="url(#shadow)">
+    <rect x="180" y="320" width="240" height="56" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  </g>
+  <text x="300" y="338" text-anchor="middle" font-size="13" font-weight="700" fill="#1e3a8a">Text encoder (frozen)</text>
+  <text x="300" y="354" text-anchor="middle" font-size="10" fill="#1e40af">mpnet-base / CLIP-text / LEIA</text>
+  <text x="300" y="368" text-anchor="middle" font-size="10" fill="#1e40af">3 encoder ablation</text>
+
+  <line x1="420" y1="348" x2="600" y2="348" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- t_emo -->
+  <g filter="url(#shadow)">
+    <rect x="600" y="320" width="100" height="56" rx="6" fill="#f3f4f6" stroke="#374151" stroke-width="1"/>
+  </g>
+  <text x="650" y="342" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">t<tspan font-size="10" baseline-shift="sub">emo</tspan></text>
+  <text x="650" y="363" text-anchor="middle" font-size="10" fill="#6b7280">emotion-text vector (768-d)</text>
+
+  <!-- ===== InfoNCE alignment ===== -->
+  <line x1="650" y1="116" x2="650" y2="320" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowdash)" marker-start="url(#arrowdash)"/>
+
+  <g filter="url(#shadow)">
+    <rect x="730" y="180" width="240" height="80" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+  </g>
+  <text x="850" y="204" text-anchor="middle" font-size="13" font-weight="700" fill="#78350f">Loss</text>
+  <text x="850" y="222" text-anchor="middle" font-size="11" fill="#78350f">α · InfoNCE(z<tspan font-size="9" baseline-shift="sub">emo</tspan>, t<tspan font-size="9" baseline-shift="sub">emo</tspan>)</text>
+  <text x="850" y="238" text-anchor="middle" font-size="11" fill="#78350f">+ β · MSE(V/A) + γ · MSE(34-cat)</text>
+  <text x="850" y="252" text-anchor="middle" font-size="11" fill="#78350f">+ ε · caption baseline Δ</text>
+
+  <line x1="700" y1="88" x2="730" y2="200" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="4,3" fill="none"/>
+  <line x1="700" y1="348" x2="730" y2="240" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="4,3" fill="none"/>
+
+  <!-- Legend at bottom -->
+  <g transform="translate(20, 410)">
+    <rect x="0" y="0" width="14" height="14" rx="3" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+    <text x="22" y="11" font-size="11" fill="#374151">Frozen (안 학습)</text>
+
+    <rect x="160" y="0" width="14" height="14" rx="3" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
+    <text x="182" y="11" font-size="11" fill="#374151">Trainable (학습)</text>
+
+    <rect x="320" y="0" width="14" height="14" rx="3" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+    <text x="342" y="11" font-size="11" fill="#374151">Loss</text>
+
+    <rect x="430" y="0" width="14" height="14" rx="3" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/>
+    <text x="452" y="11" font-size="11" fill="#374151">Data / Tensor</text>
+  </g>
+</svg>
+
+
+<!-- ============== Figure 2: Subject-invariant SSL ============== -->
+<div class="figure-title">Figure 2. Phase 3b-1.A. Subject-invariant SSL pretrain (Horikawa only).</div>
+<p class="figure-caption">같은 video를 본 5명 subject의 brain response를 같은 latent로 정렬하는 contrastive pretraining. BFM backbone은 frozen이며 projection head만 학습된다. 학습 후 subject 간 representation의 cosine alignment를 측정하여 universal code의 subject-invariance evidence로 사용한다.</p>
+
+<svg width="1000" height="280" viewBox="0 0 1000 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#374151"/>
+    </marker>
+  </defs>
+
+  <!-- Subject A pathway -->
+  <g filter="url(#shadow)"><rect x="20" y="50" width="110" height="48" rx="6" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/></g>
+  <text x="75" y="72" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">Subject A</text>
+  <text x="75" y="88" text-anchor="middle" font-size="10" fill="#6b7280">brain (stim k)</text>
+
+  <line x1="130" y1="74" x2="170" y2="74" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow2)"/>
+
+  <g filter="url(#shadow)"><rect x="170" y="50" width="180" height="48" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/></g>
+  <text x="260" y="70" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a8a">BFM backbone</text>
+  <text x="260" y="86" text-anchor="middle" font-size="10" fill="#1e40af">shared, frozen</text>
+
+  <line x1="350" y1="74" x2="390" y2="74" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow2)"/>
+
+  <g filter="url(#shadow)"><rect x="390" y="50" width="120" height="48" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/></g>
+  <text x="450" y="70" text-anchor="middle" font-size="12" font-weight="600" fill="#991b1b">Projection</text>
+  <text x="450" y="86" text-anchor="middle" font-size="10" fill="#7f1d1d">shared, trainable</text>
+
+  <line x1="510" y1="74" x2="550" y2="74" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow2)"/>
+
+  <g filter="url(#shadow)"><rect x="550" y="50" width="80" height="48" rx="6" fill="#f3f4f6" stroke="#374151" stroke-width="1"/></g>
+  <text x="590" y="80" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">z<tspan font-size="10" baseline-shift="sub">A,k</tspan></text>
+
+  <!-- Subject B pathway -->
+  <g filter="url(#shadow)"><rect x="20" y="180" width="110" height="48" rx="6" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/></g>
+  <text x="75" y="202" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2937">Subject B</text>
+  <text x="75" y="218" text-anchor="middle" font-size="10" fill="#6b7280">brain (stim k)</text>
+
+  <line x1="130" y1="204" x2="170" y2="204" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow2)"/>
+
+  <g filter="url(#shadow)"><rect x="170" y="180" width="180" height="48" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/></g>
+  <text x="260" y="200" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a8a">BFM backbone</text>
+  <text x="260" y="216" text-anchor="middle" font-size="10" fill="#1e40af">(weight shared)</text>
+
+  <line x1="350" y1="204" x2="390" y2="204" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow2)"/>
+
+  <g filter="url(#shadow)"><rect x="390" y="180" width="120" height="48" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/></g>
+  <text x="450" y="200" text-anchor="middle" font-size="12" font-weight="600" fill="#991b1b">Projection</text>
+  <text x="450" y="216" text-anchor="middle" font-size="10" fill="#7f1d1d">(weight shared)</text>
+
+  <line x1="510" y1="204" x2="550" y2="204" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow2)"/>
+
+  <g filter="url(#shadow)"><rect x="550" y="180" width="80" height="48" rx="6" fill="#f3f4f6" stroke="#374151" stroke-width="1"/></g>
+  <text x="590" y="210" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2937">z<tspan font-size="10" baseline-shift="sub">B,k</tspan></text>
+
+  <!-- InfoNCE alignment -->
+  <line x1="630" y1="74" x2="710" y2="130" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3" fill="none"/>
+  <line x1="630" y1="204" x2="710" y2="150" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4,3" fill="none"/>
+
+  <g filter="url(#shadow)"><rect x="710" y="100" width="270" height="76" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/></g>
+  <text x="845" y="124" text-anchor="middle" font-size="13" font-weight="700" fill="#78350f">InfoNCE</text>
+  <text x="845" y="143" text-anchor="middle" font-size="11" fill="#78350f">cos(z<tspan font-size="9" baseline-shift="sub">A,k</tspan>, z<tspan font-size="9" baseline-shift="sub">B,k</tspan>) ↑</text>
+  <text x="845" y="159" text-anchor="middle" font-size="11" fill="#78350f">cos(z<tspan font-size="9" baseline-shift="sub">A,k</tspan>, z<tspan font-size="9" baseline-shift="sub">·,m</tspan>) ↓ (m ≠ k)</text>
+</svg>
+
+
+<!-- ============== Figure 3: Multi-source SSL ============== -->
+<div class="figure-title">Figure 3. Phase 3b-2. Multi-source masked SSL pretrain.</div>
+<p class="figure-caption">4개 dataset (Horikawa, Emo-FilM, StudyForrest, Affective Videos)을 ComBat harmonization 후 같은 backbone에 통합한다. Dataset 별 learnable token이 dataset identity를 표현하고, 30% ROI를 random mask한 뒤 masked autoencoder decoder가 가린 부분을 reconstruct하도록 학습한다.</p>
+
+<svg width="1000" height="320" viewBox="0 0 1000 320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#374151"/>
+    </marker>
+  </defs>
+
+  <!-- 4 dataset inputs -->
+  <g filter="url(#shadow)"><rect x="20" y="30" width="140" height="36" rx="5" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/></g>
+  <text x="90" y="52" text-anchor="middle" font-size="11" fill="#1f2937">Horikawa</text>
+  <g filter="url(#shadow)"><rect x="20" y="75" width="140" height="36" rx="5" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/></g>
+  <text x="90" y="97" text-anchor="middle" font-size="11" fill="#1f2937">Emo-FilM</text>
+  <g filter="url(#shadow)"><rect x="20" y="120" width="140" height="36" rx="5" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/></g>
+  <text x="90" y="142" text-anchor="middle" font-size="11" fill="#1f2937">StudyForrest</text>
+  <g filter="url(#shadow)"><rect x="20" y="165" width="140" height="36" rx="5" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1"/></g>
+  <text x="90" y="187" text-anchor="middle" font-size="11" fill="#1f2937">Affective Videos</text>
+
+  <line x1="160" y1="115" x2="220" y2="115" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow3)"/>
+
+  <!-- ComBat + masking -->
+  <g filter="url(#shadow)"><rect x="220" y="80" width="160" height="70" rx="6" fill="#e0e7ff" stroke="#6366f1" stroke-width="1.2"/></g>
+  <text x="300" y="100" text-anchor="middle" font-size="12" font-weight="600" fill="#312e81">ComBat harmonize</text>
+  <text x="300" y="116" text-anchor="middle" font-size="10" fill="#3730a3">+ dataset token (trainable)</text>
+  <text x="300" y="132" text-anchor="middle" font-size="10" fill="#3730a3">+ random 30% mask</text>
+
+  <line x1="380" y1="115" x2="420" y2="115" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow3)"/>
+
+  <!-- BFM backbone -->
+  <g filter="url(#shadow)"><rect x="420" y="60" width="180" height="110" rx="8" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/></g>
+  <text x="510" y="82" text-anchor="middle" font-size="13" font-weight="700" fill="#1e3a8a">BFM backbone</text>
+  <text x="510" y="98" text-anchor="middle" font-size="10" fill="#1e40af">frozen</text>
+  <rect x="440" y="115" width="140" height="20" rx="3" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
+  <text x="510" y="129" text-anchor="middle" font-size="10" font-weight="600" fill="#991b1b">LoRA (rank 8)</text>
+  <text x="510" y="153" text-anchor="middle" font-size="10" fill="#1e40af">attention layers</text>
+
+  <line x1="600" y1="115" x2="640" y2="115" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow3)"/>
+
+  <!-- Decoder -->
+  <g filter="url(#shadow)"><rect x="640" y="85" width="140" height="60" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/></g>
+  <text x="710" y="108" text-anchor="middle" font-size="12" font-weight="600" fill="#991b1b">Masked AE</text>
+  <text x="710" y="124" text-anchor="middle" font-size="11" fill="#7f1d1d">decoder</text>
+  <text x="710" y="138" text-anchor="middle" font-size="10" fill="#7f1d1d">trainable</text>
+
+  <line x1="780" y1="115" x2="820" y2="115" stroke="#374151" stroke-width="1.2" marker-end="url(#arrow3)"/>
+
+  <g filter="url(#shadow)"><rect x="820" y="85" width="160" height="60" rx="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/></g>
+  <text x="900" y="108" text-anchor="middle" font-size="12" font-weight="700" fill="#78350f">MSE loss</text>
+  <text x="900" y="124" text-anchor="middle" font-size="10" fill="#78350f">predicted ROI</text>
+  <text x="900" y="138" text-anchor="middle" font-size="10" fill="#78350f">vs ground truth</text>
+
+  <!-- Eval text below -->
+  <text x="500" y="240" text-anchor="middle" font-size="12" font-weight="600" fill="#374151">학습 후 → frozen backbone 으로 cross-dataset invariance metric 측정</text>
+  <text x="500" y="258" text-anchor="middle" font-size="11" fill="#6b7280">Single-source (Horikawa only) baseline 과 비교 → universal code 의 multi-paradigm evidence</text>
+</svg>
+
+
+<!-- ============== Trainable summary table ============== -->
+<details open>
+  <summary><strong>Trainable vs Frozen 분담 (parameter 수)</strong></summary>
+<table>
+  <thead>
+    <tr><th>Component</th><th>상태</th><th>Parameter (~)</th><th>이유</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>BFM backbone</td>
+      <td><span class="frozen-tag">Frozen</span></td>
+      <td>~100M</td>
+      <td>ABCD resting prior 보존. 5 subj data 로 full fine-tune = overfitting</td>
+    </tr>
+    <tr>
+      <td>LoRA (rank 8, attention)</td>
+      <td><span class="train-tag">Trainable</span></td>
+      <td>~500K</td>
+      <td>Backbone 의 200× 적은 parameter 로 emotion-specific 적응</td>
+    </tr>
+    <tr>
+      <td>Projection head (Linear / MLP ablation, 768→256)</td>
+      <td><span class="train-tag">Trainable</span></td>
+      <td>Linear ~200K / MLP ~500K</td>
+      <td>Linear (default, Phase 1 finding 기반) vs MLP (2-layer hidden 512, ReLU, dropout 0.1) ablation</td>
+    </tr>
+    <tr>
+      <td>Masked AE decoder (Phase 3b-2)</td>
+      <td><span class="train-tag">Trainable</span></td>
+      <td>~5M</td>
+      <td>Multi-source masked SSL 의 reconstruction</td>
+    </tr>
+    <tr>
+      <td>Dataset token (Phase 3b-2)</td>
+      <td><span class="train-tag">Trainable</span></td>
+      <td>~3K</td>
+      <td>4 dataset 별 learnable embedding</td>
+    </tr>
+    <tr>
+      <td>Text encoder (3 ablation)</td>
+      <td><span class="frozen-tag">Frozen</span></td>
+      <td>~110M each</td>
+      <td>mpnet-base (default, generic semantic) / CLIP-text ViT-L/14 (vision-language, Cowen evoked-emotion paradigm 과 match) / LEIA-LM-base (emotion-specialized, BERTweet + 6.3M Vent post pretrain)</td>
+    </tr>
+  </tbody>
+</table>
+</details>
+
+</div>
+</body>
+</html>

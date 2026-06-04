@@ -370,17 +370,17 @@ Group-level V/A 는 video 가 saturate. Brain unique signal 은 다음 4 축에�
 이 4 축의 공통 motif = **invariance**. Universal emotion code 가 그 invariance 의 scientific 표현. v4 final 의 Track A + Track B 가 이 4 축을 측정.
 
 
-## Phase Status (6 month plan)
+## Phase Status
 
-| Phase | Week | Track | 상태 |
-|---|---|---|---|
-| Phase 1 Foundation (frozen probe + SwiFT padding ablation + 6 SwiFT variants) | W1-6 | (사전 검증) | ✅ 완료 |
-| Phase 2 통합 학습 (4 architecture A/B/C/D + brain-only 4 method) + Cat34 task | W7-12 | (사전 검증) | ✅ 측정 완료. Universal code framing 으로 pivot |
-| Phase 3a BrainVLM (Option A L1/L2/L3) | W13-15 | C supp | 🔄 Fold 1 완료, parsing fix 추가 |
-| **Phase 3b Track A (SSL pretrain 1+2+3 + LoRA adaptation)** | W15-20 | A main | 🆕 v4 main path |
-| **Phase 3c Track B (Brain+Video framework + task 재설계, cross-dataset)** | W15-18 | B main | 🆕 v4 main path (병행) |
-| Phase 4 Synthesis + submission | W19-24 | (통합) | 대기 |
-| Phase 5 **Future Extensions** (Context-aware text modulation + Individual differences via subject embedding / residual analysis) | post-submission | v5 candidates | 🔮 추후 |
+| Phase | Track | 상태 |
+|---|---|---|
+| Phase 1 Foundation (frozen probe + SwiFT padding ablation + 6 SwiFT variants) | (사전 검증) | ✅ 완료 |
+| Phase 2 통합 학습 (4 architecture A/B/C/D + brain-only 4 method + Cat34 task) | (사전 검증) | ✅ 측정 완료. Universal code framing 으로 pivot |
+| Phase 3a BrainVLM | Track C supp | 🔄 Fold 1 완료, parsing fix 추가 |
+| **Phase 3b** Track A (SSL pretrain + LoRA adaptation) | Track A main | 🆕 v4 main path |
+| **Phase 3c** Track B (Brain+Video framework + task 재설계) | Track B main | 🆕 v4 main path (병행) |
+| Phase 4 Synthesis + submission | (통합) | 대기 |
+| Phase 5 **Future Extensions** (Context-aware text modulation + Individual differences) | v5 candidates | 🔮 추후 |
 
 자세한 phase 별 weekly action 은 [`ACTION_PLAN.md`](ACTION_PLAN.md).
 Forward plan + go-no-go + agent review = [`docs/masterplan_v2.md`](docs/masterplan_v2.md).

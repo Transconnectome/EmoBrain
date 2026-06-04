@@ -55,7 +55,7 @@ Track A + Track B 의 **converging evidence** 가 paper 의 강점.
 
 ```
 fMRI ─► 450-ROI parcel (Schaefer-400 + Tian-50)
-        ▼ Brain-JEPA backbone (pretrained ABCD resting)
+        ▼ BFM backbone, default Brain-JEPA (pretrained ABCD resting)
         ▼ Track A SSL pretrain
             (1) Subject-invariant contrastive  ← priority 1
             (2) Multi-source masked AE          ← priority 1

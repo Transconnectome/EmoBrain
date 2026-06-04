@@ -96,7 +96,7 @@ Task / supervision 은 V/A 특화 아님. New task design 가능 (universal code
 ```
 fMRI ─► 450-ROI parcel (Schaefer-400 + Tian-50, scanner / dataset 무관 substrate)
         │
-        ▼ Brain-JEPA backbone (pretrained on ABCD resting)
+        ▼ BFM backbone, default Brain-JEPA (pretrained on ABCD resting)
         │
         ▼ Track A SSL pretrain (multi-source masked + subject-invariant contrastive
                                  + optional brain-stimulus alignment)
@@ -149,7 +149,7 @@ Priority. v4 main (6 month 안) = universal code. v5 (post-submission) = Extensi
 - Horikawa / Cowen stimulus 수 = **2185** (resting 0 제외)
 - Horikawa subject = **5명 (sub-01..05)**, 모두 동일 자극 본 fMRI
 - Split = stimulus-stratified (V × A quartile) 80/10/10, 같은 자극 → 모든 subject 동일 split
-- Independent dataset 다운로드 + sanity check 는 Phase 3b W15
+- Independent dataset 다운로드 + sanity check 는 Phase 3b 
 
 ## Canonical 파일
 
