@@ -25,6 +25,7 @@ Read `CONTEXT_FEEL.md` first. Active forward plan is `docs/masterplan_v2.md`.
 - Horikawa stimulus 수 = 2185 canonical.
 - Claim 과 measured result 분리. Over-claim 금지.
 - 약어 (BFM, VLM, RSA, CKA) 첫 등장 시 풀어쓰기.
+- **Baseline 의무**. 모든 task 결과는 standard baseline suite (chance / class proportion / ROI mean + linear / ROI mean + RF / Phase 1 best BFM frozen / Video baseline) 와 함께 reporting. Baseline 없는 result 는 unreliable. 자세히 `docs/masterplan_v2.md` Section 6 + `ACTION_PLAN.md` Action 0.
 
 ## Required Checks
 

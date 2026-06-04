@@ -47,6 +47,38 @@ Track A (BFM SSL pretrain + LoRA) + Track B (Brain+Video framework reuse + task 
 
 ### Foundation prep
 
+**Action 0. Standard baseline suite (모든 task 의 의무)**
+
+새 task 학습 결과의 *맥락* 을 만들기 위한 표준 baseline. 모든 main result 와 *반드시 함께* 보고. Phase 1 의 일부 baseline 은 이미 측정 (CSV 보존).
+
+| Baseline | 목적 | Pipeline |
+|---|---|---|
+| **Chance / Label permutation** | Null distribution, p-value 계산 | Label shuffle → same training → empirical null (100 permutation) |
+| **Class proportion (majority)** | 최소 floor | Most-frequent-class predictor (classification) / mean predictor (regression) |
+| **ROI mean + Ridge** | Linear regression baseline | 450 ROI mean time-series → L2 ridge regression |
+| **ROI mean + Logistic** | Binary classification baseline | 450 ROI mean → L2 logistic regression |
+| **ROI mean + Multinomial logistic** | Multi-class baseline (34-cat top-1) | 450 ROI mean → multinomial logistic |
+| **ROI mean + Multi-output Ridge** | Multi-target baseline (14-dim, 34-cat soft) | 450 ROI mean → multi-output ridge |
+| **Random Forest on ROI** | Nonlinear baseline | 450 ROI mean → 500-tree RF |
+| **Phase 1 best BFM frozen** | BFM baseline (no SSL pretrain) | Brain-JEPA resting zero linear (V_binary 0.7402, 이미 측정) |
+| **Video baseline (CLIP)** | Group-level emotion ceiling | CLIP_pretrained frozen + linear head (V_binary 0.9708, 이미 측정) |
+
+Optional advanced baseline (시간 되면).
+- SVM on ROI mean (RBF kernel)
+- Network-restricted (Schaefer 17-network 별) + ridge
+- Voxel-wise ridge with stability selection
+
+**작업**.
+- [ ] `code/baselines/baseline_suite.py`. 9 baseline 일괄 학습 pipeline
+- [ ] `code/baselines/baseline_suite.sh`. SLURM submission
+- [ ] Standardized output format. `results/baselines/{task}_{baseline}_{dataset}.csv` (metric, fold, seed 별)
+- [ ] Permutation test 의 null distribution generator
+- [ ] Standardized report template. 모든 main result 옆에 baseline column
+
+**파일**. `code/baselines/baseline_suite.py` + `.sh`, `code/baselines/_lib_baselines.py`
+**Deliverable**. `results/baselines/` 의 standardized CSV + `reports/baseline_reference.md` (Phase 1 result 와 통합 표)
+**자원**. CPU (medium, 모든 baseline 학습. parallel 가능)
+
 **Action 1. Independent dataset 다운로드**
 - [ ] Emo-FilM (OpenNeuro `ds004982`). 30 subj × 14 films
 - [ ] StudyForrest (OpenNeuro `ds000113`). 20 subj × Forrest Gump 2h

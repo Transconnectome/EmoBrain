@@ -242,7 +242,38 @@ Stimulus 매칭만 있으면 label 없이 가능. NNDb 같은 label-free dataset
 
 ---
 
-## 6. Independent dataset
+## 6. Standard baseline suite (모든 task 의 의무 reporting)
+
+새 task 학습 결과의 *맥락* 을 만들기 위한 표준 baseline. 모든 main result 와 *반드시 함께* 보고. Phase 1 의 일부 baseline 은 이미 측정 (CSV 보존).
+
+| Baseline | 목적 | Pipeline |
+|---|---|---|
+| **Chance / Label permutation** | Null distribution, p-value 계산 | 100 permutation 의 label shuffle → same training pipeline → empirical null |
+| **Class proportion** | 최소 floor | Most-frequent-class (classification) / mean (regression) predictor |
+| **ROI mean + Ridge** | Linear regression baseline | 450 ROI mean → L2 ridge |
+| **ROI mean + Logistic** | Binary classification baseline | 450 ROI mean → L2 logistic |
+| **ROI mean + Multinomial logistic** | Multi-class baseline (34-cat top-1) | 450 ROI mean → multinomial logistic |
+| **ROI mean + Multi-output Ridge** | Multi-target baseline (14-dim, 34-cat soft) | 450 ROI mean → multi-output ridge |
+| **Random Forest on ROI** | Nonlinear baseline | 450 ROI mean → 500-tree RF |
+| **Phase 1 best BFM frozen** | BFM baseline (no SSL pretrain) | Brain-JEPA resting zero linear (V_binary 0.7402, 이미 측정) |
+| **Video baseline (CLIP)** | Group-level emotion ceiling | CLIP_pretrained frozen + linear head (V_binary 0.9708, 이미 측정) |
+
+Optional advanced (시간 되면).
+- SVM on ROI mean (RBF kernel)
+- Network-restricted (Schaefer 17-network 별) + ridge
+- Voxel-wise ridge with stability selection
+
+### 운영 규칙
+
+- 모든 main result 의 figure / table 옆에 baseline column 또는 reference line **의무**
+- Baseline 학습은 ACTION_PLAN Action 0 (`code/baselines/baseline_suite.py`) 로 일괄 수행
+- Standardized output. `results/baselines/{task}_{baseline}_{dataset}.csv`
+- 새 task 추가 시 자동으로 baseline 도 동시 학습 (script 의 task config 만 추가)
+- "baseline 없는 result 는 unreliable" 의 원칙
+
+---
+
+## 7. Independent dataset
 
 | Dataset | Subj × Stim | Label | OpenNeuro | 역할 |
 |---|---|---|---|---|
@@ -257,7 +288,7 @@ Stimulus 매칭만 있으면 label 없이 가능. NNDb 같은 label-free dataset
 
 ---
 
-## 7. Phase plan (6 month, 4 phase)
+## 8. Phase plan (6 month, 4 phase)
 
 ### Phase 1. Foundation () ✅ 완료
 
@@ -382,7 +413,7 @@ Paper title 후보 (naming retreat).
 
 ---
 
-## 8. Critic 7 hit 통합 self-check
+## 9. Critic 7 hit 통합 self-check
 
 | Critic hit | v4 final 의 대응 위치 |
 |---|---|
@@ -396,7 +427,7 @@ Paper title 후보 (naming retreat).
 
 ---
 
-## 9. Go/No-Go Decision Tree
+## 10. Go/No-Go Decision Tree
 
 ```
 Phase 3b ( Track A gate)
@@ -430,7 +461,7 @@ Phase 4
 
 ---
 
-## 10. Agent review schedule
+## 11. Agent review schedule
 
 | Week | Phase | Agent | Focus |
 |---|---|---|---|
@@ -446,7 +477,7 @@ Phase 4
 
 ---
 
-## 11. Critical files
+## 12. Critical files
 
 ### 기존 작업 재사용 (보존)
 
@@ -503,7 +534,7 @@ Phase 4
 
 ---
 
-## 12. Risk register
+## 13. Risk register
 
 | Risk | Probability | Impact | Mitigation |
 |---|---|---|---|
@@ -520,7 +551,7 @@ Phase 4
 
 ---
 
-## 13. 교수님 피드백 + critic 7 hit + 사용자 push back self-check
+## 14. 교수님 피드백 + critic 7 hit + 사용자 push back self-check
 
 ### 교수님 피드백
 - **F1 scientific question**. Big Q = "universal emotion code 존재 여부" 가 scientific question. Sub-claim 1-4 가 falsifiable.
@@ -548,7 +579,7 @@ Phase 4
 
 ---
 
-## 14. Future Extensions (post-submission, v5 candidates)
+## 15. Future Extensions (post-submission, v5 candidates)
 
 v4 final 의 main 은 **universal emotion code** (foundation model 의 본질 = generalization). 그 위에 추후 추가할 2 extension. 6 month 안에는 Appendix / future work 로만 명시, post-submission 의 v5 cycle 에서 본격 진행.
 

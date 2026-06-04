@@ -180,6 +180,7 @@ Priority. v4 main (6 month 안) = universal code. v5 (post-submission) = Extensi
 - "Brain 이 video 를 이긴다" framing 금지. v4 는 universal emotion code question.
 - Paper-side naming 은 "foundation model" 명사 직접 사용 자제.
 - Track A + Track B 의 converging evidence 가 paper 의 강점. 한 track 의 negative result 도 정직 reporting.
+- **Baseline 의무**. 모든 task 결과는 standard baseline suite (chance / class proportion / ROI mean + Ridge|Logistic|RF / Phase 1 best BFM frozen / Video baseline) 와 함께 reporting. Baseline 없는 result 는 unreliable. 자세히 `docs/masterplan_v2.md` Section 6 + `ACTION_PLAN.md` Action 0.
 
 ## Workflow trigger
 
