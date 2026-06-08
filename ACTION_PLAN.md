@@ -50,8 +50,8 @@ EmoBrain framing 의 evidence base. Frozen BFM 의 한계를 측정으로 확정
 ### Action 1.1. BrainVLM env + fMRI patchify
 
 - [ ] `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` 환경 verify.
-- [ ] UMBRELLA_qwen ABCD-pretrained checkpoint loader (`code/brainvlm/load_brainvlm.py`).
-- [ ] Horikawa fMRI 의 2D ROI-based representation 설계 (Schaefer parcellation 의 2D grid layout, 또는 ROI × time matrix). 코드 `code/brainvlm/fmri_patchify.py`.
+- [ ] UMBRELLA_qwen ABCD-pretrained checkpoint loader (`code/dir1_brainvlm/load_brainvlm.py`).
+- [ ] Horikawa fMRI 의 2D ROI-based representation 설계 (Schaefer parcellation 의 2D grid layout, 또는 ROI × time matrix). 코드 `code/dir1_brainvlm/fmri_patchify.py`.
 - [ ] Token distribution 분석 (ABCD pretrained 와 Horikawa 의 KL divergence). `results/brainvlm/token_kl.csv`.
 
 ### Action 1.2. Emotion VQA prompt + multi-task head
@@ -62,7 +62,7 @@ EmoBrain framing 의 evidence base. Frozen BFM 의 한계를 측정으로 확정
 
 ### Action 1.3. Pilot 학습 + 평가
 
-- [ ] Horikawa fold 1 만 pilot 학습. 5 subj pooled. 코드 `code/brainvlm/train_pilot.py`.
+- [ ] Horikawa fold 1 만 pilot 학습. 5 subj pooled. 코드 `code/dir1_brainvlm/train_pilot.py`.
 - [ ] V/A regression / Cat34 multilabel / Cat34 soft 평가, Phase 1 ROI baseline 과 비교.
 - [ ] Free-form emotion caption 생성 sample 확인. `results/brainvlm/pilot_metrics.csv` + sample notebook.
 

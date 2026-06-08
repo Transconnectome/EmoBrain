@@ -69,7 +69,9 @@ ROI mean + Ridge 가 모든 task 에서 BFM 보다 일관되게 높음. 원인 (
 - `code/probes/` - Frozen feature probe (Phase 1 의 main pipeline). BFM, ROI, video probe + chance baseline.
 - `code/bfm_embeddings/` - 3 BFM (Brain-JEPA, NeuroSTORM, SwiFT 6 변종) 의 zero-padding embedding 추출. 결과 `output/embeddings/`.
 - `code/brainvlm/` - Direction 1 의 main scope. UMBRELLA_qwen 기반 BrainVLM pilot. fMRI patchifier, LoRA fine-tune, multi-task head.
-- `code/phase2/` - Direction 2 의 main scope. Brain encoder + Video encoder alignment (TRIBE-style). variance partitioning.
+- `code/dir1_brainvlm/` - Direction 1 의 main scope (BrainVLM scaffolding 예정).
+- `code/dir2_multimodal/` - Direction 2 의 main scope (alignment + variance partitioning scaffolding 예정).
+- `code/dir2_multimodal/legacy_phase2/` - v4 Brain+Video framework 코드. Direction 2 재활용 base.
 - `code/ssl_pretrain/` - Future SSL pretrain (Direction 2 의 brain encoder 학습 옵션).
 - `code/analysis/` - 결과 analysis + figure.
 
