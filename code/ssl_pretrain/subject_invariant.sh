@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus=1
 #SBATCH --time=01:00:00
-#SBATCH --account=m4750_g
+#SBATCH --account=m5187_g
 #SBATCH --qos=regular
 #SBATCH --constraint=gpu
 #
