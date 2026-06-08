@@ -144,7 +144,11 @@ TASKS = {
     "Cat34_soft":        {"type": "soft_dist",   "n_out": 34, "main_metric": "mean_pearson_r"},
 }
 
-CAT34_MULTILABEL_THRESHOLD = 0.15
+CAT34_MULTILABEL_THRESHOLD = 0.10  # 2026-06-07: was 0.15 (arbitrary).
+# Analysis (reports/phase1_audit_20260604) shows 0.10 = 1/10 raters is natural unit,
+# satisfies zero-label stim = 0, min category positive rate 0.007 (~15 stim, 3/fold safe),
+# avg 4.93 positives per stim. 0.15 has no natural rater-fraction meaning and shrinks
+# minority categories to ~8 stim (fragile under 5-fold CV).
 
 LINEAR_CS = [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]
 RIDGE_ALPHAS = [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]

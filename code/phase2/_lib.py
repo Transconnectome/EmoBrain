@@ -38,7 +38,7 @@ TASKS = {
     "Cat34_soft":       {"type": "soft_dist",  "n_out": 34, "main_metric": "mean_pearson_r"},
 }
 
-CAT34_MULTILABEL_THRESHOLD = 0.15
+CAT34_MULTILABEL_THRESHOLD = 0.10  # 2026-06-07: was 0.15. See run_unified_probe.py.
 SCORE_COLS = [f"score_{i}" for i in range(34)]
 MULTILABEL_COLS = [f"cat_{i}" for i in range(34)]
 
