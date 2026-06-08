@@ -43,14 +43,14 @@ ROI mean + Ridge 가 모든 task 에서 BFM 보다 일관되게 높음. 원인 (
 - **Multimodal brain alignment 의 standard evaluation**. Variance partitioning (multimodal vs unimodal). Algonauts 2025 winner 들이 공통으로 사용. Brain unique contribution 의 quantification 이 contribution 의 강점.
 - **Emotion specific gap**. 위 trend 의 main paper 들은 image / text reconstruction 중심. **Emotion 의 fine structure (Cat34 multilabel, mixed valence) 를 active VLM / multimodal 로 학습한 사례는 비어있음**. EmoBrain 의 novelty.
 
-## Tasks (Phase 1 + Phase 2 계획)
+## Tasks
 
 | Task | Phase | Metric |
 |------|-------|--------|
 | V/A Binary | 측정 완료 | AUROC + balanced accuracy |
 | V/A Regression | 측정 완료 | Pearson r + MAE + MSE |
-| Cat34 Multilabel | threshold 0.10 재측정 (진행 중) | macro AUROC + macro F1 |
-| Cat34 Soft Distribution | threshold 0.10 재측정 (진행 중) | mean Pearson r + top1 accuracy |
+| Cat34 Multilabel (threshold 0.10) | 측정 완료 | macro AUROC + macro F1 |
+| Cat34 Soft Distribution | 측정 완료 | mean Pearson r + top1 accuracy |
 | Mixed Valence (Vaccaro 2024) | 미측정, Direction 1 + 2 둘 다 적용 | 3-way classification balanced accuracy |
 | Caption Embedding Regression | 미측정, Direction 1 specific | Pearson r averaged over caption dim |
 | Emotion VQA | 미측정, Direction 1 specific | Free-form caption emotion accuracy |

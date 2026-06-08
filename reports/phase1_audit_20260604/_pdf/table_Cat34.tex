@@ -1,5 +1,5 @@
 \begin{table}[H]\centering
-\caption{Task Cat34\_multilabel and Cat34\_soft. Pooled mode, linear probe only (Cat34 launched with --skip\_mlp). multilabel: macro AUROC over 34 categories + macro F1. soft: per-category Pearson r averaged over 34 categories + top1 accuracy (argmax of predicted distribution vs true argmax). ROI and chance baselines launched separately (2026-06-06). mean $\pm$ std over 5 folds. Best value per column \textbf{among BFM rows} in bold (ROI baseline and chance excluded from comparison).}
+\caption{Task Cat34\_multilabel (threshold 0.10 = 1/10 raters, natural unit) and Cat34\_soft. Pooled mode, linear probe only (Cat34 launched with --skip\_mlp). multilabel: macro AUROC over 34 categories + macro F1. soft: per-category Pearson r averaged over 34 categories + top1 accuracy (argmax of predicted distribution vs true argmax). mean $\pm$ std over 5 folds. Best value per column \textbf{among BFM rows} in bold (ROI baseline and chance excluded from comparison).}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{llcccc}
 \toprule
@@ -11,12 +11,12 @@ Model & Init / Head & macro AUROC & macro F1 & Pearson r & top1 acc \\
 ROI (Schaefer400+Tian50) & linear & -- & -- & -- & -- \\
 \midrule
 \multicolumn{6}{l}{\textit{Tier 2 BFM (frozen)}} \\
-Brain-JEPA & resting & \textbf{0.679 $\pm$ 0.012} & \textbf{0.274 $\pm$ 0.004} & \textbf{0.237 $\pm$ 0.005} & \textbf{0.309 $\pm$ 0.015} \\
- & scratch & 0.645 $\pm$ 0.009 & 0.250 $\pm$ 0.005 & 0.198 $\pm$ 0.006 & 0.290 $\pm$ 0.015 \\
-NeuroSTORM & resting & 0.669 $\pm$ 0.009 & 0.264 $\pm$ 0.004 & 0.214 $\pm$ 0.006 & 0.294 $\pm$ 0.022 \\
- & scratch & 0.596 $\pm$ 0.011 & 0.225 $\pm$ 0.006 & 0.126 $\pm$ 0.006 & 0.250 $\pm$ 0.019 \\
-SwiFT NewE96 & resting & 0.629 $\pm$ 0.008 & 0.242 $\pm$ 0.006 & 0.171 $\pm$ 0.003 & 0.265 $\pm$ 0.020 \\
- & scratch & 0.584 $\pm$ 0.008 & 0.216 $\pm$ 0.005 & 0.109 $\pm$ 0.005 & 0.234 $\pm$ 0.018 \\
+Brain-JEPA & resting & \textbf{0.669 $\pm$ 0.006} & \textbf{0.298 $\pm$ 0.005} & \textbf{0.237 $\pm$ 0.005} & \textbf{0.309 $\pm$ 0.015} \\
+ & scratch & 0.638 $\pm$ 0.007 & 0.275 $\pm$ 0.005 & 0.198 $\pm$ 0.006 & 0.290 $\pm$ 0.015 \\
+NeuroSTORM & resting & 0.658 $\pm$ 0.004 & 0.289 $\pm$ 0.004 & 0.214 $\pm$ 0.006 & 0.294 $\pm$ 0.022 \\
+ & scratch & 0.596 $\pm$ 0.009 & 0.250 $\pm$ 0.006 & 0.126 $\pm$ 0.006 & 0.250 $\pm$ 0.019 \\
+SwiFT NewE96 & resting & 0.624 $\pm$ 0.005 & 0.268 $\pm$ 0.003 & 0.171 $\pm$ 0.003 & 0.265 $\pm$ 0.020 \\
+ & scratch & 0.582 $\pm$ 0.005 & 0.239 $\pm$ 0.004 & 0.109 $\pm$ 0.005 & 0.234 $\pm$ 0.018 \\
 \midrule
 \multicolumn{6}{l}{\textit{Chance}} \\
 Chance & stratified & -- & -- & -- & -- \\

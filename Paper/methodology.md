@@ -133,7 +133,7 @@
 
 - Chance. DummyClassifier (stratified, most_frequent) + DummyRegressor (mean, median).
 - Tier 1 ROI. Schaefer400 + Tian50 mean BOLD + Ridge / Logistic.
-- Tier 2 frozen BFM. Phase 1 의 best (Brain-JEPA resting). Phase 5 paper 단계에서는 BFM 자체는 main scope 가 아니므로 reference baseline 으로만 인용.
+- Tier 2 frozen BFM. Phase 1 benchmark 의 best (Brain-JEPA resting). EmoBrain 의 두 direction 결과 reporting 시 reference baseline 으로만 인용 (main scope 아님).
 - Tier 3 video baseline. CLIP / DINOv2 / VideoMAE / V-JEPA2 pretrained embedding + Ridge / Logistic.
 
 ## 6. Statistical Procedures

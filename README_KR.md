@@ -39,6 +39,6 @@ BFM 은 Direction 1 의 vision modality 후보가 아니지만 Direction 2 의 b
 
 ## Status (2026-06-08)
 
-Phase 1 (frozen BFM 측정) 완료 + audit 완료. 다음 step 은 Direction 1 BrainVLM pilot + Direction 2 Brain-Video alignment pilot 병행.
+Background benchmark (Phase 1 frozen BFM 측정 + Cat34 threshold 0.10 재측정 + audit) 모두 완료. 다음 step 은 Direction 1 BrainVLM pilot + Direction 2 Multimodal Alignment pilot 의 병행 launch (Hackathon 5 일).
 
 자세한 forward plan 은 `docs/masterplan_v3_emobrain.md` 와 `ACTION_PLAN.md` 참조.

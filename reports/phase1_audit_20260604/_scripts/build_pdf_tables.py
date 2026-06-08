@@ -242,11 +242,12 @@ def build_regression(task):
 
 
 def build_cat34():
-    df_bfm = pd.read_csv(P / "cat34_probe_linear.csv")
+    # threshold 0.10 results (re-measured 2026-06-07; was 0.15)
+    df_bfm = pd.read_csv(P / "cat34_probe_linear_t010.csv")
     df_bfm = df_bfm[(df_bfm["padding"] == "zero") & (df_bfm["mode"] == "pooled")]
-    df_roi = pd.read_csv(P / "cat34_probe_ROI_linear.csv")
+    df_roi = pd.read_csv(P / "cat34_probe_ROI_linear_t010.csv")
     df_roi = df_roi[df_roi["mode"] == "pooled"]
-    df_ch = pd.read_csv(P / "chance_cat34.csv")
+    df_ch = pd.read_csv(P / "chance_cat34_t010.csv")
     all_df = pd.concat([df_bfm, df_roi, df_ch], ignore_index=True)
 
     rows = []
@@ -303,7 +304,7 @@ def build_cat34():
 
     L = []
     L.append(r"\begin{table}[H]\centering")
-    L.append(r"\caption{Task Cat34\_multilabel and Cat34\_soft. Pooled mode, linear probe only (Cat34 launched with --skip\_mlp). multilabel: macro AUROC over 34 categories + macro F1. soft: per-category Pearson r averaged over 34 categories + top1 accuracy (argmax of predicted distribution vs true argmax). ROI and chance baselines launched separately (2026-06-06). mean $\pm$ std over 5 folds. Best value per column \textbf{among BFM rows} in bold (ROI baseline and chance excluded from comparison).}")
+    L.append(r"\caption{Task Cat34\_multilabel (threshold 0.10 = 1/10 raters, natural unit) and Cat34\_soft. Pooled mode, linear probe only (Cat34 launched with --skip\_mlp). multilabel: macro AUROC over 34 categories + macro F1. soft: per-category Pearson r averaged over 34 categories + top1 accuracy (argmax of predicted distribution vs true argmax). mean $\pm$ std over 5 folds. Best value per column \textbf{among BFM rows} in bold (ROI baseline and chance excluded from comparison).}")
     L.append(r"\resizebox{\textwidth}{!}{%")
     L.append(r"\begin{tabular}{llcccc}")
     L.append(r"\toprule")

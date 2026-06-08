@@ -62,6 +62,6 @@ Phase 1 측정 완료. 1-4. 계획. 5-7.
 
 ## Status (2026-06-08)
 
-Branch `sj_NEW_20260608_perlmutter` 의 EmoBrain framing 이 active. Phase 1 (frozen BFM 측정) 완료 + audit 완료 + Cat34 threshold 0.10 재측정 진행 중. 다음 step 은 Direction 1 BrainVLM pilot + Direction 2 Brain-Video alignment pilot 의 병행 launch.
+Branch `sj_NEW_20260608_perlmutter` 의 EmoBrain framing 이 active. Background benchmark (Phase 1 frozen BFM 측정 + audit + Cat34 threshold 0.10 재측정) 모두 완료. 다음 step 은 Direction 1 BrainVLM pilot + Direction 2 Multimodal Alignment pilot 의 병행 launch (Hackathon 5 일 단위).
 
 상세 forward plan 은 `docs/masterplan_v3_emobrain.md`, ground-level weekly action 은 `ACTION_PLAN.md` 참조.

@@ -182,7 +182,7 @@ Phase 1 의 question 이 group-level brain representation 이라 pooled 가 main
   \item \texttt{A\_binary}. \texttt{a\_quartile}$\in\{0,3\}$ 자극 1107 개. label 0 = Q1 (A $\in$ 2.00--5.11), label 1 = Q4 (A $\in$ 6.44--8.67). main metric AUROC.
   \item \texttt{V\_reg}. 전체 2185 자극의 continuous valence score (1--9) regression. Ridge. main metric Pearson r.
   \item \texttt{A\_reg}. 전체 2185 자극의 continuous arousal score (2--8.67) regression. Ridge. main metric Pearson r.
-  \item \texttt{Cat34\_multilabel}. 각 자극의 34 category score 가 threshold 0.15 이상이면 양성. 평균 자극당 4.19 category 가 양성. per-category L2 logistic $\times$ 34. main metric category-wise AUROC 의 macro 평균.
+  \item \texttt{Cat34\_multilabel}. 각 자극의 34 category score 가 threshold 0.10 (= 1/10 raters, 자연 단위) 이상이면 양성. 평균 자극당 4.93 category 가 양성, zero-label 자극 없음, minority category 도 약 15 자극 (3 / fold) 안정. 이전 threshold 0.15 는 임의 round number 였고 2026-06-07 sensitivity analysis 후 0.10 으로 결정. per-category L2 logistic $\times$ 34. main metric category-wise AUROC 의 macro 평균.
   \item \texttt{Cat34\_soft}. 각 자극의 34 score 를 합 1 로 normalize 한 distribution 을 target. MultiOutputRegressor(Ridge) + 예측 후 normalize. main metric category-wise Pearson r 의 평균.
 \end{itemize}
 
