@@ -35,7 +35,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
 FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
 DATA = FEELIN / "data"
-OUT_DIR = FEELIN / "results/phase1"
+OUT_DIR = FEELIN / "results/background/phase1"
 
 DIM14_COLS = [
     "arousal_score", "dominance_score", "valence_score", "approach_score",

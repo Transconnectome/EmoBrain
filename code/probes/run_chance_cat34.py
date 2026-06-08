@@ -36,7 +36,7 @@ warnings.filterwarnings("ignore")
 
 FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
 DATA = FEELIN / "data"
-OUT_DIR = FEELIN / "results/phase1"
+OUT_DIR = FEELIN / "results/background/phase1"
 
 CAT34_MULTILABEL_THRESHOLD = 0.10  # 2026-06-07: was 0.15. See run_unified_probe.py.
 

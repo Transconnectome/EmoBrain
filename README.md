@@ -12,7 +12,7 @@ Naturalistic video fMRI 에서 emotion 표상을 학습하기 위해 두 axis �
 
 지금 방향이 active brain VLM / multimodal 로 정리된 근거.
 
-- **Frozen brain foundation model (BFM) 의 한계**. 본 프로젝트의 Phase 1 측정에서 frozen BFM (Brain-JEPA, NeuroSTORM, SwiFT 6 종) 의 모든 emotion task (V/A binary, V/A regression, Cat34 multilabel, Cat34 soft) 가 단순 ROI mean BOLD + Ridge regression baseline 을 넘지 못함. Phase 1 audit 결과 `reports/phase1_audit_20260604/` 참조.
+- **Frozen brain foundation model (BFM) 의 한계**. 본 프로젝트의 Phase 1 측정에서 frozen BFM (Brain-JEPA, NeuroSTORM, SwiFT 6 종) 의 모든 emotion task (V/A binary, V/A regression, Cat34 multilabel, Cat34 soft) 가 단순 ROI mean BOLD + Ridge regression baseline 을 넘지 못함. Phase 1 audit 결과 `docs/reports/phase1_audit_20260604/` 참조.
 - **VLM / LLM 기반 brain decoding 의 부상**. MindLLM (2025), UMBRAE (ECCV 2024), Mind Captioning (Horikawa, Science Advances 2025) 등이 BFM 의 frozen embedding 단독 결과보다 일관되게 우수. 표상의 semantic manifold 를 LLM / VLM 으로 가져온 뒤 brain-side adapter 만 학습하는 paradigm 이 표준화.
 - **Multimodal brain alignment 의 성숙**. TRIBE (Meta FAIR, Algonauts 2025 1 위, V-JEPA2 + Wav2Vec2-BERT + Llama 통합), Doerig 2024 (NSD 에서 vision DNN 이 LLM caption embedding 보다 고차 시각피질을 더 잘 잡음), CineBrain (audiovisual + fMRI) 등이 brain 의 added value 를 video baseline 위에서 정량화하는 framework 를 확립.
 
@@ -50,15 +50,16 @@ Phase 1 측정 완료. 1-4. 계획. 5-7.
 
 ## Repository Layout
 
-- `code/` - 실험 코드 (`bfm_embeddings/`, `probes/`, `analysis/`, `ssl_pretrain/`, `brainvlm/`, `phase2/`)
-- `data/` - 입력 데이터 (splits, target matrix, stimulus features)
-- `output/` - 추출된 features, model checkpoint, logs
-- `results/` - 분석 결과 CSV, figure, slide text
-- `Paper/` - narrative + methodology
-- `docs/` - forward plan
-- `reports/` - phase report (Phase 1 audit 포함)
-- `notes/` - decision log + benchmark design
-- `archive/v4_20260602/` - 이전 framing (universal emotion code + Track A SSL pretrain + Track B Multimodal + Track C BrainVLM supplementary) 보존
+- `project/dir1_brainvlm/{code,data,output,results}/` - Direction 1 self-contained mini-project
+- `project/dir2_multimodal/{code,data,output,results}/` - Direction 2 (포함 `code/legacy_phase2/` = v4 Brain+Video framework reuse base)
+- `code/` - shared (probes, bfm_embeddings, ssl_pretrain, analysis, tools)
+- `data/` - shared input (Horikawa splits, target matrix, stim feature)
+- `output/` - shared raw extraction (embeddings, logs, slurm)
+- `results/background/` - Phase 1 benchmark 결과
+- `external/` - vendored repos + `checkpoints/` (pretrained model weight, 이전 `baseline/`)
+- `docs/` - forward plan + `notes/` + `reports/` + `reference/` 통합
+- `Paper/` - paper draft 작업 공간 (framework, methodology)
+- `archive/` - v4 framing 보존 + `legacy_archive/` + `weekly/` + `v4_results/`
 
 ## Status (2026-06-08)
 

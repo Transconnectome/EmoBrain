@@ -24,7 +24,7 @@ Brain 에서 mixed / complex emotion 의 구조는 어떻게 나타나는가? �
 
 ## 2. Background. Phase 1 Benchmark (Completed)
 
-세부는 `archive/v4_20260602/docs/masterplan_v2.md` 의 Phase 1 과 동일. 결과 + audit 은 `reports/phase1_audit_20260604/`.
+세부는 `archive/v4_20260602/docs/masterplan_v2.md` 의 Phase 1 과 동일. 결과 + audit 은 `docs/reports/phase1_audit_20260604/`.
 
 **결론**. Frozen BFM 이 simple ROI baseline 을 못 넘음. EmoBrain framing 의 motivation.
 
@@ -115,4 +115,4 @@ Action 상세는 `ACTION_PLAN.md` Direction 2 (Action 2.1 ~ 2.3).
 
 ## 10. Reference Decisions
 
-세부 결정은 `notes/project_decisions.md` 의 시간순 log.
+세부 결정은 `docs/notes/project_decisions.md` 의 시간순 log.

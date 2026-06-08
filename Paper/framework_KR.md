@@ -14,7 +14,7 @@ Brain 에서 mixed / complex emotion 의 구조를 효과적으로 잡기 위한
 
 세 근거가 본 framework 를 active brain VLM + multimodal direction 으로 이끈다.
 
-1. **Frozen BFM 의 한계가 측정으로 확정됨**. 본 프로젝트의 Phase 1 (`reports/phase1_audit_20260604/`) 에서 Brain-JEPA, NeuroSTORM, SwiFT 6 종의 frozen embedding 위의 linear / MLP probe 가 단순 ROI mean BOLD + Ridge / Logistic regression baseline 을 V/A binary, V/A regression, Cat34 multilabel, Cat34 soft distribution 4 task 에서 모두 넘지 못함. 원인은 Horikawa 자극의 짧은 시계열 (T 중앙값 5 TR) 과 BFM 입력의 평균 63 ~ 70% zero padding.
+1. **Frozen BFM 의 한계가 측정으로 확정됨**. 본 프로젝트의 Phase 1 (`docs/reports/phase1_audit_20260604/`) 에서 Brain-JEPA, NeuroSTORM, SwiFT 6 종의 frozen embedding 위의 linear / MLP probe 가 단순 ROI mean BOLD + Ridge / Logistic regression baseline 을 V/A binary, V/A regression, Cat34 multilabel, Cat34 soft distribution 4 task 에서 모두 넘지 못함. 원인은 Horikawa 자극의 짧은 시계열 (T 중앙값 5 TR) 과 BFM 입력의 평균 63 ~ 70% zero padding.
 2. **VLM / LLM 기반 brain decoding 의 부상**. MindLLM, UMBRAE, Mind Captioning, MedBLIP, BLIP-2, LLaVA 등이 frozen LLM / VLM 을 prior 로 활용하고 brain-side adapter 만 학습하는 paradigm 으로 brain-to-text / brain-to-image SOTA 를 달성.
 3. **Multimodal brain alignment 의 standard 정립**. TRIBE (Algonauts 2025 1 위), VIBE, Multi-modal brain encoding, CineBrain, Doerig, BraVL 등이 brain unique contribution 을 video baseline 위에서 variance partitioning 으로 정량화하는 framework 를 확립.
 

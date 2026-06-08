@@ -10,8 +10,8 @@ set -e
 cd /pscratch/sd/s/sjmoon/FEELIN
 
 MODE=${1:-full}
-CKPT=/pscratch/sd/s/sjmoon/FEELIN/output/brainvlm_ckpt/fold1_VA_full/final_model
-OUT_DIR=/pscratch/sd/s/sjmoon/FEELIN/results/brainvlm
+CKPT=/pscratch/sd/s/sjmoon/FEELIN/project/dir1_brainvlm/output/brainvlm_ckpt/fold1_VA_full/final_model
+OUT_DIR=/pscratch/sd/s/sjmoon/FEELIN/project/dir1_brainvlm/results/brainvlm
 mkdir -p $OUT_DIR $OUT_DIR/logs
 
 PY=/pscratch/sd/s/sjmoon/brainvlm_qwen_env/bin/python

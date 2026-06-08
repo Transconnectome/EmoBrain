@@ -12,7 +12,7 @@ Naturalistic video fMRI 에서 emotion 표상을 학습하기 위해 두 axis �
 
 지금 방향이 active brain VLM / multimodal 로 정리된 근거.
 
-- **Frozen brain foundation model (BFM) 의 한계**. 본 프로젝트 Phase 1 측정에서 frozen BFM (Brain-JEPA, NeuroSTORM, SwiFT 6 종) 의 모든 emotion task (V/A binary, V/A regression, Cat34 multilabel, Cat34 soft) 가 단순 ROI mean BOLD + Ridge regression baseline 을 넘지 못함. 상세는 `reports/phase1_audit_20260604/` 참조.
+- **Frozen brain foundation model (BFM) 의 한계**. 본 프로젝트 Phase 1 측정에서 frozen BFM (Brain-JEPA, NeuroSTORM, SwiFT 6 종) 의 모든 emotion task (V/A binary, V/A regression, Cat34 multilabel, Cat34 soft) 가 단순 ROI mean BOLD + Ridge regression baseline 을 넘지 못함. 상세는 `docs/reports/phase1_audit_20260604/` 참조.
 - **VLM / LLM 기반 brain decoding 의 부상**. MindLLM (2025), UMBRAE (ECCV 2024), Mind Captioning (Horikawa, Science Advances 2025) 등이 BFM 의 frozen embedding 단독 결과보다 일관되게 우수.
 - **Multimodal brain alignment 의 성숙**. TRIBE (Meta FAIR, Algonauts 2025 1 위), Doerig 2024, CineBrain 등이 brain unique contribution 을 video baseline 위에서 정량화하는 framework 를 확립.
 

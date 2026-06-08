@@ -22,5 +22,5 @@ cd /pscratch/sd/s/sjmoon/FEELIN
     --folds 1,2,3,4,5 \
     --seeds 0 \
     --skip_mlp \
-    --out_csv /pscratch/sd/s/sjmoon/FEELIN/results/phase1/cat34_probe_ROI_linear.csv \
-    --summary_csv /pscratch/sd/s/sjmoon/FEELIN/results/phase1/cat34_probe_ROI_linear_summary.csv
+    --out_csv /pscratch/sd/s/sjmoon/FEELIN/results/background/phase1/cat34_probe_ROI_linear.csv \
+    --summary_csv /pscratch/sd/s/sjmoon/FEELIN/results/background/phase1/cat34_probe_ROI_linear_summary.csv

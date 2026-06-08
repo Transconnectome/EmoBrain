@@ -1,0 +1,128 @@
+FEELIN Phase 1 — 진행 현황
+
+
+[Data]
+Horikawa 5 subjects (sub-01 ~ sub-05), 2,185 stimuli per subject.
+
+
+[Task — Level 1, V/A Binary Classification]
+V binary : Valence Q4 (top 25%) vs Q1 (bottom 25%), 중간 50% 제외, 1,131 stim
+A binary : Arousal Q4 vs Q1, 1,107 stim
+Split    : stimulus-stratified (V quartile x A quartile), 80 / 10 / 10
+           같은 stimulus 는 5 명 모두 동일 split.
+
+
+[Model (frozen feature extractor)]
+1단계: SwiFT v2 의 기본 모델 SwiFT NewE96 (ver11, embed_dim 768).
+       두 init 비교: resting-pretrained vs scratch.
+
+
+[Ablation 4 축]
+1. Padding (SL=20 입력)        : replicate / zero / mean
+2. Probe head                   : Linear (L2 logistic) / MLP (SwiFT vendored, 9.4M)
+3. Pre-training 효과            : Resting / Scratch
+4. Subject mode (공통 vs 개인)  : Single / Pooled / Per-subject
+
+
+========================================================
+[수행한 실험]
+========================================================
+
+A. SwiFT NewE96 ablation, 4 runs (총 576 probe runs)
+
+   R1  Sub-01, Swift MLP head (9.4M)        n_train = 905
+   R2  Sub-01, Small MLP head (0.7M)         n_train = 905
+   R3  Pooled, 5 subj 통합                   n_train = 4,525
+   R4  Per-subject, 5 subj 따로               n_train = 905 x 5
+
+B. 3-BFM 비교 (SwiFT NewE96, Brain-JEPA, NeuroSTORM)
+   - Brain-JEPA + NeuroSTORM 추가 추출 (resting / scratch x 5 subj x mean padding)
+   - Pooled + Per-subject 두 mode 모두 학습
+
+
+========================================================
+[주요 결과 및 결정]
+========================================================
+
+1. Padding
+   현재 데이터로는 mean 이 4/4 run 모두 winner (+5pt vs replicate).
+   단, mean 구현이 사실 spatial-only 였음. 20 frame 모두 평균값으로 채워
+   시간 정보가 0 인 상태. 따라서 진짜 mean padding (실제 T frame +
+   나머지 N-T 를 mean 으로 채움) 으로 재추출 중.
+
+2. Probe Head
+   Linear 가 MLP 보다 일관되게 4-5pt 우위. Pooled (n=4525) 로 train
+   확장해도 MLP 회복 못 함. Linear 를 primary, MLP 는 secondary.
+
+3. Pre-training
+   Resting > Scratch, 차이 +6.5pt (Pooled Linear 에서 가장 명확).
+   Sub-01 single 에선 noise 에 묻혀 안 보였음.
+
+4. Subject mode
+   Pooled 는 subject identity 가 학습에 활용될 수 있어 subject-level
+   confound 존재. Per-subject 가 representation 의 순수 측정.
+   주 보고는 Per-subject 로, Pooled 는 보조 자료.
+
+
+========================================================
+[3-BFM 결과 — Per-subject Resting Linear 기준]
+========================================================
+
+BFM              Task   AUROC                AUPRC
+SwiFT_NewE96     V      0.6751 ± 0.0487      0.6772 ± 0.0516
+SwiFT_NewE96     A      0.6549 ± 0.0379      0.7027 ± 0.0396
+Brain-JEPA       V      0.6900 ± 0.0470      0.7054 ± 0.0601
+Brain-JEPA       A      0.6494 ± 0.0345      0.6864 ± 0.0320
+NeuroSTORM       V      0.7128 ± 0.0427      0.7222 ± 0.0386
+NeuroSTORM       A      0.6295 ± 0.0513      0.6841 ± 0.0578
+
+Best Valence : NeuroSTORM 0.713
+Best Arousal : SwiFT_NewE96 0.655, Brain-JEPA 0.649 (비슷)
+
+
+========================================================
+[Action Items]
+========================================================
+
+(1) 즉시 진행 — Padding 재검증
+  - Proper mean padding 으로 30 cell 재추출
+    (SwiFT NewE96 + Brain-JEPA + NeuroSTORM, 5 subj x 2 init)
+  - Multi-BFM probe 재실행, 기존 spatial-only 결과와 비교
+  - 진짜 padding winner 확정
+
+(2) 본 Main Grid 완성 (L1, V/A binary)
+  - SwiFT 나머지 4 모델 추출 (NewE36, NewE192, UAH 51M, UAH 806M)
+  - 7 BFM x 2 init x 5 subj 전체 grid
+  - Per-subject (primary) + Pooled (secondary) 둘 다 보고
+
+(3) Task 확장 — L2 ~ L5
+  현재까지: L1 = V/A binary (Q4 vs Q1)
+
+  L2  V/A continuous regression
+       Output  : 연속 valence, arousal
+       Metric  : Pearson r, MAE
+       Head    : Ridge regression (linear), MLP regression
+       비고    : binary 보다 raw signal 활용. 같은 1131/1107 stim 또는 전체 2185.
+
+  L3  Top-1 emotion classification
+       Output  : 34 Horikawa emotion category 중 1개
+       Metric  : balanced accuracy, macro F1
+       Head    : Multinomial logistic, MLP
+       비고    : 자극 metadata 에 dominant emotion label 필요.
+
+  L4  Multi-label emotion prediction
+       Output  : 34 emotion 의 확률 vector (또는 binary multi-label)
+       Metric  : macro F1, AUROC per class
+       Head    : Per-class logistic, multi-output MLP
+       비고    : 더 풍부한 affective structure 측정.
+
+  L5  Continuous affect dynamics (later)
+       Output  : 시간 window 별 affect trajectory
+       Metric  : CCC, time-lagged correlation
+       비고    : Phase 2 / 다른 movie-watching dataset 으로 확장.
+
+(4) Methodology 강화 (Phase 2)
+  - Leave-one-subject-out CV (진짜 subject-level generalization)
+  - Optuna HP search (cross-BFM 비교 reviewer-proof)
+  - MLP 재검토 (multi-dataset 으로 train n 확장 후)
+  - Multi-dataset 확장 (Affective Videos, Emo-FilM 등)

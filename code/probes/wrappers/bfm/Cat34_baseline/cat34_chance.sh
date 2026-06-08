@@ -17,5 +17,5 @@ set -e
 cd /pscratch/sd/s/sjmoon/FEELIN
 
 /pscratch/sd/s/sjmoon/swift_PTL2/bin/python /pscratch/sd/s/sjmoon/FEELIN/code/probes/run_chance_cat34.py \
-    --out_csv /pscratch/sd/s/sjmoon/FEELIN/results/phase1/chance_cat34.csv \
-    --summary_csv /pscratch/sd/s/sjmoon/FEELIN/results/phase1/chance_cat34_summary.csv
+    --out_csv /pscratch/sd/s/sjmoon/FEELIN/results/background/phase1/chance_cat34.csv \
+    --summary_csv /pscratch/sd/s/sjmoon/FEELIN/results/background/phase1/chance_cat34_summary.csv

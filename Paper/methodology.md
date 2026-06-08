@@ -2,7 +2,7 @@
 
 (Branch `sj_NEW_20260608_perlmutter` 의 EmoBrain framing. 이전 v4 methodology 는 `archive/v4_20260602/Paper/methodology.md`.)
 
-본 문서는 EmoBrain 의 두 axis (BrainVLM + Brain-Video Multimodal) 의 method 를 정리. Phase 1 의 frozen BFM probe method 는 `reports/phase1_audit_20260604/_pdf/main.pdf` 에 상세.
+본 문서는 EmoBrain 의 두 axis (BrainVLM + Brain-Video Multimodal) 의 method 를 정리. Phase 1 의 frozen BFM probe method 는 `docs/reports/phase1_audit_20260604/_pdf/main.pdf` 에 상세.
 
 ## 1. Data
 

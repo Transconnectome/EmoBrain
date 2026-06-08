@@ -8,5 +8,5 @@ set -e
 cd /pscratch/sd/s/sjmoon/FEELIN
 
 /pscratch/sd/s/sjmoon/swift_PTL2/bin/python code/analysis/multi_bfm_probe.py \
-    --out_csv /pscratch/sd/s/sjmoon/FEELIN/results/main_grid_3bfm/probe_full.csv \
-    --summary_csv /pscratch/sd/s/sjmoon/FEELIN/results/main_grid_3bfm/probe_summary.csv
+    --out_csv /pscratch/sd/s/sjmoon/FEELIN/results/background/main_grid_3bfm/probe_full.csv \
+    --summary_csv /pscratch/sd/s/sjmoon/FEELIN/results/background/main_grid_3bfm/probe_summary.csv

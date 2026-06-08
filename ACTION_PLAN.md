@@ -33,9 +33,9 @@ EmoBrain framing 의 evidence base. Frozen BFM 의 한계를 측정으로 확정
 - [x] Brain-JEPA / NeuroSTORM / SwiFT 6 변종 의 zero padding embedding 추출 (5 subj × 2185 stim).
 - [x] Linear (sklearn) + MLP (SwiftMLP) probe 의 V/A binary + V/A reg + Cat34 multilabel + Cat34 soft 측정.
 - [x] ROI baseline (Schaefer400 + Tian S3 50, time-mean) + chance baseline.
-- [x] Phase 1 audit (`reports/phase1_audit_20260604/` 1A-1D).
+- [x] Phase 1 audit (`docs/reports/phase1_audit_20260604/` 1A-1D).
 - [x] Cat34 multilabel threshold 0.10 (= 1/10 raters, 자연 단위) 재측정 + ROI + chance baseline 보강.
-- [x] Phase 1 method + result PDF (`reports/phase1_audit_20260604/_pdf/main.pdf`, 10 page).
+- [x] Phase 1 method + result PDF (`docs/reports/phase1_audit_20260604/_pdf/main.pdf`, 10 page).
 
 **핵심 발견**. Frozen BFM (BJ resting 0.738 V_binary AUROC) 이 simple ROI mean baseline (0.789) 을 못 넘음. V/A binary, V/A reg, Cat34 multilabel, Cat34 soft 4 task 모두 일관. 원인은 Horikawa 자극의 짧은 T 분포 (median 5 TR, 71.6% T=5) + BFM input 의 평균 63 ~ 70% zero padding.
 
@@ -50,8 +50,8 @@ EmoBrain framing 의 evidence base. Frozen BFM 의 한계를 측정으로 확정
 ### Action 1.1. BrainVLM env + fMRI patchify
 
 - [ ] `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` 환경 verify.
-- [ ] UMBRELLA_qwen ABCD-pretrained checkpoint loader (`code/dir1_brainvlm/load_brainvlm.py`).
-- [ ] Horikawa fMRI 의 2D ROI-based representation 설계 (Schaefer parcellation 의 2D grid layout, 또는 ROI × time matrix). 코드 `code/dir1_brainvlm/fmri_patchify.py`.
+- [ ] UMBRELLA_qwen ABCD-pretrained checkpoint loader (`project/dir1_brainvlm/code/load_brainvlm.py`).
+- [ ] Horikawa fMRI 의 2D ROI-based representation 설계 (Schaefer parcellation 의 2D grid layout, 또는 ROI × time matrix). 코드 `project/dir1_brainvlm/code/fmri_patchify.py`.
 - [ ] Token distribution 분석 (ABCD pretrained 와 Horikawa 의 KL divergence). `results/brainvlm/token_kl.csv`.
 
 ### Action 1.2. Emotion VQA prompt + multi-task head
@@ -62,7 +62,7 @@ EmoBrain framing 의 evidence base. Frozen BFM 의 한계를 측정으로 확정
 
 ### Action 1.3. Pilot 학습 + 평가
 
-- [ ] Horikawa fold 1 만 pilot 학습. 5 subj pooled. 코드 `code/dir1_brainvlm/train_pilot.py`.
+- [ ] Horikawa fold 1 만 pilot 학습. 5 subj pooled. 코드 `project/dir1_brainvlm/code/train_pilot.py`.
 - [ ] V/A regression / Cat34 multilabel / Cat34 soft 평가, Phase 1 ROI baseline 과 비교.
 - [ ] Free-form emotion caption 생성 sample 확인. `results/brainvlm/pilot_metrics.csv` + sample notebook.
 

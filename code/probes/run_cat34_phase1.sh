@@ -16,5 +16,5 @@ mkdir -p $(dirname $LOG)
     --folds 1,2,3,4,5 \
     --seeds 0 \
     --skip_mlp \
-    --out_csv /pscratch/sd/s/sjmoon/FEELIN/results/phase1/cat34_probe_linear.csv \
+    --out_csv /pscratch/sd/s/sjmoon/FEELIN/results/background/phase1/cat34_probe_linear.csv \
     2>&1 | tee $LOG

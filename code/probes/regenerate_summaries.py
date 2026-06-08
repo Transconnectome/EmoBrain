@@ -1,5 +1,5 @@
 """
-이미 완성된 per-row CSV (results/phase1/*.csv) 들에 대해 풍부한 summary CSV 를
+이미 완성된 per-row CSV (results/background/phase1/*.csv) 들에 대해 풍부한 summary CSV 를
 다시 생성한다. 기존 *_summary.csv 는 덮어쓰기.
 
 새 schema (모든 test_* metric 의 mean + std + count):
@@ -20,7 +20,7 @@ from pathlib import Path
 
 from _summary_helper import summarize_probe_csv
 
-RESULTS = Path("/pscratch/sd/s/sjmoon/FEELIN/results/phase1")
+RESULTS = Path("/pscratch/sd/s/sjmoon/FEELIN/results/background/phase1")
 
 
 def main():

@@ -6,8 +6,8 @@ parses <Valence>/<Arousal> XML, computes Pearson r vs ground truth V/A.
 
 Usage:
     python inference_brainvlm.py --fold 1 \
-        --ckpt /pscratch/sd/s/sjmoon/FEELIN/output/brainvlm_ckpt/fold1_VA_full/final_model \
-        --out_csv /pscratch/sd/s/sjmoon/FEELIN/results/brainvlm/fold1_test_preds.csv
+        --ckpt /pscratch/sd/s/sjmoon/FEELIN/project/dir1_brainvlm/output/brainvlm_ckpt/fold1_VA_full/final_model \
+        --out_csv /pscratch/sd/s/sjmoon/FEELIN/project/dir1_brainvlm/results/brainvlm/fold1_test_preds.csv
 """
 import argparse
 import json

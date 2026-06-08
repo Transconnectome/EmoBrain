@@ -1,6 +1,6 @@
 """
 Generate 3 slide-ready figures for padding ablation results.
-Outputs PNG (300 DPI) to /pscratch/sd/s/sjmoon/FEELIN/results/padding_ablation/figures/
+Outputs PNG (300 DPI) to /pscratch/sd/s/sjmoon/FEELIN/results/background/padding_ablation/figures/
 """
 from pathlib import Path
 
@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN/results/padding_ablation")
+ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN/results/background/padding_ablation")
 OUT = ROOT / "figures"
 OUT.mkdir(parents=True, exist_ok=True)
 

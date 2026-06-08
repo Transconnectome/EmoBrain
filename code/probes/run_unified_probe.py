@@ -25,8 +25,8 @@ Protocol:
   Per-task 적절한 metric 측정
 
 Output:
-  results/phase1/unified_probe.csv (per-seed row, NaN-filled metric columns)
-  results/phase1/unified_probe_summary.csv
+  results/background/phase1/unified_probe.csv (per-seed row, NaN-filled metric columns)
+  results/background/phase1/unified_probe_summary.csv
 
 Note:
   - Binary task 는 horikawa_L0_{V,A}_binary_subset.csv 사용 (Q4 vs Q1 subset)
@@ -63,7 +63,7 @@ from _lib.heads import SwiftMLP
 FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
 EMB_ROOT = FEELIN / "output/embeddings"
 DATA = FEELIN / "data"
-OUT_DIR = FEELIN / "results/phase1"
+OUT_DIR = FEELIN / "results/background/phase1"
 
 # Feature source 정의
 FEATURES = [
@@ -145,7 +145,7 @@ TASKS = {
 }
 
 CAT34_MULTILABEL_THRESHOLD = 0.10  # 2026-06-07: was 0.15 (arbitrary).
-# Analysis (reports/phase1_audit_20260604) shows 0.10 = 1/10 raters is natural unit,
+# Analysis (docs/reports/phase1_audit_20260604) shows 0.10 = 1/10 raters is natural unit,
 # satisfies zero-label stim = 0, min category positive rate 0.007 (~15 stim, 3/fold safe),
 # avg 4.93 positives per stim. 0.15 has no natural rater-fraction meaning and shrinks
 # minority categories to ~8 stim (fragile under 5-fold CV).

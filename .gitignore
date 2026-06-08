@@ -70,3 +70,6 @@ data/stimulus_features/
 *.synctex.gz
 *.fls
 *.fdb_latexmk
+
+# archive 의 큰 binary 들
+archive/legacy_archive/

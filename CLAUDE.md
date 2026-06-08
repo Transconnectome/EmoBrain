@@ -7,15 +7,15 @@ Project name = EmoBrain (since 2026-06-08). Repo path `/pscratch/sd/s/sjmoon/FEE
 ## Operating Rules
 
 - Root .md 파일 새로 만들지 않음. 7개 (README.md, README_KR.md, CONTEXT_FEEL.md, ONBOARDING.md, CLAUDE.md, CODEX.md, ACTION_PLAN.md) 로 유지.
-- Forward plan / phase report 은 `docs/` 와 `reports/` 에만 추가.
+- Forward plan / phase report 은 `docs/` 와 `docs/reports/` 에만 추가.
 - Narrative 는 `Paper/framework_EN.md`, `framework_KR.md`.
 - Methodology 는 `Paper/methodology.md`.
-- Decision log 는 `notes/project_decisions.md`.
+- Decision log 는 `docs/notes/project_decisions.md`.
 - 실험 코드는 `code/` 아래 (`probes/`, `bfm_embeddings/`, `dir1_brainvlm/` (Direction 1), `dir2_multimodal/` (Direction 2, `legacy_phase2/` 포함), `ssl_pretrain/`, `analysis/`, `tools/`).
 - 입력 데이터 (splits, target matrices) 는 `data/`.
 - 추출된 features / logs 는 `output/`.
 - 분석 결과 (CSV, figure, slide text) 는 `results/`.
-- 모델 checkpoints 는 `baseline/`.
+- 모델 checkpoints 는 `external/checkpoints/`.
 - 추출된 raw data / checkpoint / output 덮어쓰지 않음.
 
 ## Scientific Rules

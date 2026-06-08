@@ -36,7 +36,7 @@ rcParams.update({
     "pdf.fonttype": 42,
 })
 
-OUT = Path("/pscratch/sd/s/sjmoon/FEELIN/reports/ppt_slides_figs")
+OUT = Path("/pscratch/sd/s/sjmoon/FEELIN/docs/reports/ppt_slides_figs")
 OUT.mkdir(parents=True, exist_ok=True)
 
 FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")

@@ -64,16 +64,36 @@ ROI mean + Ridge 가 모든 task 에서 BFM 보다 일관되게 높음. 원인 (
 | Video features (CLIP, DINOv2, VideoMAE, V-JEPA2) | n/a | 2185 | n/a | 추출 완료 (EmoViS symlink) |
 | Emo-FilM, StudyForrest, CineBrain, Affective Videos | future | future | future | cross-dataset 확장 후보 |
 
-## Code structure (relevant for EmoBrain)
+## Repository layout (2026-06-08 reorganized)
 
-- `code/probes/` - Frozen feature probe (Phase 1 의 main pipeline). BFM, ROI, video probe + chance baseline.
-- `code/bfm_embeddings/` - 3 BFM (Brain-JEPA, NeuroSTORM, SwiFT 6 변종) 의 zero-padding embedding 추출. 결과 `output/embeddings/`.
-- `code/brainvlm/` - Direction 1 의 main scope. UMBRELLA_qwen 기반 BrainVLM pilot. fMRI patchifier, LoRA fine-tune, multi-task head.
-- `code/dir1_brainvlm/` - Direction 1 의 main scope (BrainVLM scaffolding 예정).
-- `code/dir2_multimodal/` - Direction 2 의 main scope (alignment + variance partitioning scaffolding 예정).
-- `code/dir2_multimodal/legacy_phase2/` - v4 Brain+Video framework 코드. Direction 2 재활용 base.
-- `code/ssl_pretrain/` - Future SSL pretrain (Direction 2 의 brain encoder 학습 옵션).
-- `code/analysis/` - 결과 analysis + figure.
+```
+FEELIN/
+├── project/                      ← per-direction self-contained
+│   ├── dir1_brainvlm/{code,data,output,results}/
+│   └── dir2_multimodal/{code,data,output,results}/
+│       └── code/legacy_phase2/   (v4 Brain+Video framework 코드, Direction 2 재활용 base)
+├── code/                         ← shared (probes, bfm_embeddings, ssl_pretrain, analysis, tools)
+├── data/                         ← shared input (Horikawa splits, target matrix, stim feature)
+├── output/                       ← shared raw extraction (embeddings/, logs/, slurm/)
+├── results/background/           ← Phase 1 benchmark (phase1 + main_grid_3bfm + padding_ablation)
+├── external/
+│   ├── (vendored repos: Brain-JEPA, NeuroSTORM 등)
+│   └── checkpoints/              ← pretrained model weight (brain_jepa.pth 등, 이전 baseline/)
+├── docs/                         ← 문서 통합
+│   ├── masterplan_v3_emobrain.md
+│   ├── notes/ (decision log)
+│   ├── reports/ (phase audit, Phase 1 PDF)
+│   └── reference/ (외부 paper PDF)
+├── Paper/                        ← paper draft 작업 공간 (framework, methodology)
+├── archive/                      ← v4 framing + legacy_archive + weekly + v4_results 통합
+└── 7 root .md
+```
+
+### Code 위치 quick reference
+
+- 두 direction 공유. `code/probes/` (frozen feature probe), `code/bfm_embeddings/` (BFM 추출), `code/ssl_pretrain/`, `code/analysis/`, `code/tools/`.
+- Direction 1 specific. `project/dir1_brainvlm/code/` (BrainVLM scaffolding 예정).
+- Direction 2 specific. `project/dir2_multimodal/code/` (alignment + variance partitioning scaffolding 예정) + `legacy_phase2/` (v4 reference).
 
 ## 환경
 
@@ -84,17 +104,18 @@ ROI mean + Ridge 가 모든 task 에서 BFM 보다 일관되게 높음. 원인 (
 ## Operating Rules (CLAUDE.md 와 일관)
 
 - Root .md 파일은 7 개 유지 (README, README_KR, CONTEXT_FEEL, ONBOARDING, CLAUDE, CODEX, ACTION_PLAN).
-- Forward plan / phase report 는 `docs/`, `reports/` 에만 추가.
-- Narrative 는 `Paper/framework_EN.md`, `framework_KR.md` (재작성 예정).
-- Methodology 는 `Paper/methodology.md` (재작성 예정).
-- Decision log 는 `notes/project_decisions.md`.
+- Forward plan / phase report 는 `docs/` 와 `docs/reports/` 에만 추가.
+- Narrative 는 `Paper/framework_EN.md`, `framework_KR.md`.
+- Methodology 는 `Paper/methodology.md`.
+- Decision log 는 `docs/notes/project_decisions.md`.
 - Sbatch 명령은 사용자 사전 승인 후 실행 ([[feedback-slurm-submit-permission]]).
 - 모든 .py 는 .sh 동반 ([[feedback-always-make-sh]]).
 - Bash 명령은 절대경로 ([[feedback-bash-absolute-path]]).
 
 ## Go-to docs
 
-- 결과 정합성 + Phase 1 audit. `reports/phase1_audit_20260604/`
-- Phase 1 method + result PDF. `reports/phase1_audit_20260604/_pdf/main.pdf`
-- Forward plan (작성 예정). `docs/masterplan_v3_emobrain.md`
-- Decision log. `notes/project_decisions.md`
+- 결과 정합성 + Phase 1 audit. `docs/reports/phase1_audit_20260604/`
+- Phase 1 method + result PDF. `docs/reports/phase1_audit_20260604/_pdf/main.pdf`
+- Forward plan. `docs/masterplan_v3_emobrain.md`
+- Decision log. `docs/notes/project_decisions.md`
+- Action plan. `ACTION_PLAN.md` (root)
