@@ -5,9 +5,9 @@ __pycache__/
 *.py[cod]
 
 # Generated artifacts
-output/
-results/
-reports/status/PROJECT_STATUS.md
+project/shared/output/
+project/shared/results/
+docs/reports/status/PROJECT_STATUS.md
 
 # Large scientific/model artifacts: never commit embeddings, checkpoints, or raw neuroimaging files.
 *.pt

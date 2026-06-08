@@ -17,7 +17,7 @@ import torch
 warnings.filterwarnings("ignore")
 
 FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-EMB_ROOT = FEELIN / "output/embeddings"
+EMB_ROOT = FEELIN / "project/shared/output/embeddings"
 DATA = FEELIN / "data"
 VIDEO_DIR = DATA / "stimulus_features"
 

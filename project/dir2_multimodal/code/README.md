@@ -29,4 +29,4 @@ v4 framing 의 Brain+Video framework 코드. Direction 2 의 재활용 base.
 
 ## 결과 저장
 
-`results/multimodal/`.
+`project/shared/results/multimodal/`.

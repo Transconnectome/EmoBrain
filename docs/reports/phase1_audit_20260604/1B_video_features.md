@@ -2,7 +2,7 @@
 
 Date: 2026-06-04
 Auditor: Claude (Opus 4.7)
-Scope: `/pscratch/sd/s/sjmoon/FEELIN/data/stimulus_features/` (Track 3 video probe 의 base material). EmoViS 의 추출 코드는 audit 대상 외 (사용자 결정: video side 는 black-box input).
+Scope: `/pscratch/sd/s/sjmoon/FEELIN/project/shared/data/stimulus_features/` (Track 3 video probe 의 base material). EmoViS 의 추출 코드는 audit 대상 외 (사용자 결정: video side 는 black-box input).
 Inventory CSV: `1B_video_alignment.csv` (10 row)
 
 ---
@@ -48,7 +48,7 @@ NaN / Inf 0 in 모든 file. `finite_all = True`.
 
 ### P_B3. FEEL stim_idx == EmoViS stim_idx (완전 일치)
 
-- FEEL `data/stimulus_features/stim_idx.npy`: shape (2185,), dtype int32, 0..2184 sequential, `np.array_equal(np.arange(2185))` True
+- FEEL `project/shared/data/stimulus_features/stim_idx.npy`: shape (2185,), dtype int32, 0..2184 sequential, `np.array_equal(np.arange(2185))` True
 - EmoViS `study1/results/00_embeddings/caption/stim_idx.npy`: 위와 완전 일치 (`np.array_equal` True)
 - 즉 FEEL row i 의 video feature = EmoViS row i = stim_idx i. canonical_stimuli.csv 의 stim_idx i 와 동일 매핑.
 
@@ -71,7 +71,7 @@ NaN / Inf 0 in 모든 file. `finite_all = True`.
 
 ### P_B6. Captions.json 무결
 
-- `data/stimulus_features/captions.json`: 2185 entries, key = stim_idx str (0~2184)
+- `project/shared/data/stimulus_features/captions.json`: 2185 entries, key = stim_idx str (0~2184)
 - 모든 row 가 string caption (sample row 0: "The video shows a cityscape at dusk or early evening...")
 - key range 와 video feature index 모두 일치
 

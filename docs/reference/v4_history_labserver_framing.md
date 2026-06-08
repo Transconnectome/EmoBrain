@@ -67,12 +67,12 @@ fMRI ─► [A] 450-ROI parcel 입력 (Schaefer-400 + Tian-50, scanner / dataset
 
 ## Evaluation protocol (모든 probe 공통)
 
-- **5-fold stim-stratified CV** (`data/horikawa_5fold.csv`, V × A quartile joint stratification)
+- **5-fold stim-stratified CV** (`project/shared/data/horikawa_5fold.csv`, V × A quartile joint stratification)
 - 각 outer fold k 마다: test = fold k, val = (k%5)+1, train = 나머지 3 fold
 - 6 task: V_binary, A_binary, V_reg, A_reg, Cat34_top1, Dim14_multi
 - Head 2 종: Linear (deterministic, 1 seed) + MLP (default 1 seed screening, final paper 시 3 seed)
 - BFM probe 는 추가로 `pooled` vs `per_subject` 2 mode
-- 모든 결과: per-fold per-seed row → CSV (`results/phase1/`)
+- 모든 결과: per-fold per-seed row → CSV (`project/shared/results/phase1/`)
 
 
 ## Phase Status (6 month plan)
@@ -86,7 +86,7 @@ fMRI ─► [A] 450-ROI parcel 입력 (Schaefer-400 + Tian-50, scanner / dataset
 
 자세한 phase 별 task / go-no-go / agent review 는 [`docs/masterplan_v2.md`](docs/masterplan_v2.md).
 Phase 1 결과 정리: [`reports/phase1_wrapup/main.pdf`](reports/phase1_wrapup/main.pdf).
-Phase 2 진행 상황: [`code/phase2/README.md`](code/phase2/README.md).
+Phase 2 진행 상황: [`project/shared/code/phase2/README.md`](code/phase2/README.md).
 
 ### Phase 1 핵심 finding (한 줄)
 
@@ -108,14 +108,14 @@ Frozen brain foundation model probe 어떤 변종도 video pretrained baseline �
 |---|---|
 | `docs/masterplan_v2.md` | Forward plan (Big Q, 3 sub-Q, phase, go-no-go) |
 | `reports/phase1_foundation.md` | Phase 1 progress |
-| `data/stimulus_features/` | EmoViS symlinks (V-JEPA2, CLIP, DINOv2, VideoMAE, Qwen-VL caption) |
-| `data/{horikawa_split, *_binary_subset, feelin_canonical_stimuli}.csv` | Splits + V/A binary subset + 2185 canonical stim |
-| `code/bfm_embeddings/{_lib, extract_embedding, run_full}/` | BFM extraction (SwiFT / Brain-JEPA / NeuroSTORM lib + leaf scripts + per-subject wrappers) |
-| `code/probes/` | Tier 1 ROI feature + unified frozen probe |
-| `code/analysis/` | Padding ablation, multi-BFM probe, figure 생성 |
-| `code/brainvlm/` (Phase 1 에 생성 예정) | BrainVLM loader, transfer test, training |
-| `output/embeddings/` | 추출된 BFM .pt features (proper mean padding) |
-| `results/{padding_ablation, main_grid_3bfm, phase1}/` | Probe 결과 CSV + figure |
+| `project/shared/data/stimulus_features/` | EmoViS symlinks (V-JEPA2, CLIP, DINOv2, VideoMAE, Qwen-VL caption) |
+| `project/shared/data/{horikawa_split, *_binary_subset, feelin_canonical_stimuli}.csv` | Splits + V/A binary subset + 2185 canonical stim |
+| `project/shared/code/bfm_embeddings/{_lib, extract_embedding, run_full}/` | BFM extraction (SwiFT / Brain-JEPA / NeuroSTORM lib + leaf scripts + per-subject wrappers) |
+| `project/shared/code/probes/` | Tier 1 ROI feature + unified frozen probe |
+| `project/shared/code/analysis/` | Padding ablation, multi-BFM probe, figure 생성 |
+| `project/shared/code/brainvlm/` (Phase 1 에 생성 예정) | BrainVLM loader, transfer test, training |
+| `project/shared/output/embeddings/` | 추출된 BFM .pt features (proper mean padding) |
+| `project/shared/results/{padding_ablation, main_grid_3bfm, phase1}/` | Probe 결과 CSV + figure |
 | `baseline/` | BFM checkpoints |
 | `external/Brain-JEPA/`, `external/NeuroSTORM/` | Vendored model code |
 | `Paper/framework_*.md`, `Paper/methodology.md` | Canonical narrative + methodology |

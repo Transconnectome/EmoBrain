@@ -4,10 +4,10 @@ Date: 2026-06-04
 Auditor: Claude (Opus 4.7)
 Scope: Zero padding only (사용자 결정, 2026-06-04).
 Files audited:
-- `code/bfm_embeddings/_lib/brain_jepa.py` (329 line)
-- `code/bfm_embeddings/_lib/neurostorm.py` (268 line)
-- `code/bfm_embeddings/_lib/swift.py` (424 line)
-- `code/probes/extract_roi_features.py` (110 line, Tier 1 ROI)
+- `project/shared/code/bfm_embeddings/_lib/brain_jepa.py` (329 line)
+- `project/shared/code/bfm_embeddings/_lib/neurostorm.py` (268 line)
+- `project/shared/code/bfm_embeddings/_lib/swift.py` (424 line)
+- `project/shared/code/probes/extract_roi_features.py` (110 line, Tier 1 ROI)
 - 모든 zero padding .pt 파일의 내부 payload (175 → zero scope 16 variant × 5 subj = 80 file)
 Inventory CSV: `1A_embeddings_inventory.csv`
 

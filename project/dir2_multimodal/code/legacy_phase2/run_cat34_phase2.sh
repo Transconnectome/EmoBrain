@@ -23,7 +23,7 @@ PY_BRAIN=/pscratch/sd/s/sjmoon/brainvlm_qwen_env/bin/python           # brain-on
 TASKS=(Cat34_multilabel Cat34_soft)
 TARGET=${1:-all}                                                       # all / brain_only / joint
 
-mkdir -p /pscratch/sd/s/sjmoon/FEELIN/output/slurm
+mkdir -p /pscratch/sd/s/sjmoon/FEELIN/project/shared/output/slurm
 
 run_brain_only() {
   for task in "${TASKS[@]}"; do

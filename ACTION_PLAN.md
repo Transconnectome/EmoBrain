@@ -18,9 +18,9 @@ Direction 1 (BrainVLM) + Direction 2 (Multimodal Alignment) 의 두 axis 를 병
 | Perlmutter CPU | NERSC m4641 (cpu queue) | Probe, chance baseline, ROI baseline |
 | Python env (general) | `/pscratch/sd/s/sjmoon/tribev2/.venv` | Probe, 분석, Direction 2 |
 | Python env (BrainVLM) | `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` | Direction 1 only |
-| Data | `/pscratch/sd/s/sjmoon/FEELIN/data/` | Splits, target matrix, stim feature |
-| BFM embeddings | `/pscratch/sd/s/sjmoon/FEELIN/output/embeddings/` | Direction 2 의 brain encoder 후보 (Brain-JEPA / SwiFT NewE96 / NeuroSTORM, zero padding) |
-| Results | `/pscratch/sd/s/sjmoon/FEELIN/results/` | CSV, figure |
+| Data | `/pscratch/sd/s/sjmoon/FEELIN/project/shared/data/` | Splits, target matrix, stim feature |
+| BFM embeddings | `/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings/` | Direction 2 의 brain encoder 후보 (Brain-JEPA / SwiFT NewE96 / NeuroSTORM, zero padding) |
+| Results | `/pscratch/sd/s/sjmoon/FEELIN/project/shared/results/` | CSV, figure |
 
 모든 .py 는 .sh 동반 (NERSC SLURM submission).
 
@@ -52,7 +52,7 @@ EmoBrain framing 의 evidence base. Frozen BFM 의 한계를 측정으로 확정
 - [ ] `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` 환경 verify.
 - [ ] UMBRELLA_qwen ABCD-pretrained checkpoint loader (`project/dir1_brainvlm/code/load_brainvlm.py`).
 - [ ] Horikawa fMRI 의 2D ROI-based representation 설계 (Schaefer parcellation 의 2D grid layout, 또는 ROI × time matrix). 코드 `project/dir1_brainvlm/code/fmri_patchify.py`.
-- [ ] Token distribution 분석 (ABCD pretrained 와 Horikawa 의 KL divergence). `results/brainvlm/token_kl.csv`.
+- [ ] Token distribution 분석 (ABCD pretrained 와 Horikawa 의 KL divergence). `project/shared/results/brainvlm/token_kl.csv`.
 
 ### Action 1.2. Emotion VQA prompt + multi-task head
 
@@ -64,7 +64,7 @@ EmoBrain framing 의 evidence base. Frozen BFM 의 한계를 측정으로 확정
 
 - [ ] Horikawa fold 1 만 pilot 학습. 5 subj pooled. 코드 `project/dir1_brainvlm/code/train_pilot.py`.
 - [ ] V/A regression / Cat34 multilabel / Cat34 soft 평가, Phase 1 ROI baseline 과 비교.
-- [ ] Free-form emotion caption 생성 sample 확인. `results/brainvlm/pilot_metrics.csv` + sample notebook.
+- [ ] Free-form emotion caption 생성 sample 확인. `project/shared/results/brainvlm/pilot_metrics.csv` + sample notebook.
 
 ### Gate (Direction 1)
 
@@ -96,7 +96,7 @@ EmoBrain framing 의 evidence base. Frozen BFM 의 한계를 측정으로 확정
 - [ ] Brain 만 / Video 만 / Joint 의 emotion task 결과 측정 (V/A regression, Cat34 multilabel).
 - [ ] Brain unique variance = Joint − Video-only. Paired bootstrap 으로 p-value.
 - [ ] Cross-subject generalization (held-out subject) 도 같은 protocol.
-- [ ] `results/multimodal/pilot_metrics.csv`.
+- [ ] `project/shared/results/multimodal/pilot_metrics.csv`.
 
 ### Gate (Direction 2)
 

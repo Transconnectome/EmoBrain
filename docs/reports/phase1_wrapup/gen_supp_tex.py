@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 REPORT_DIR = Path("/pscratch/sd/s/sjmoon/FEELIN/docs/reports/phase1_wrapup")
-RESULTS = Path("/pscratch/sd/s/sjmoon/FEELIN/results/phase1")
+RESULTS = Path("/pscratch/sd/s/sjmoon/FEELIN/project/shared/results/phase1")
 
 TASKS = ["V_binary", "A_binary", "V_reg", "A_reg"]
 TASK_TITLE = {

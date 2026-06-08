@@ -36,7 +36,7 @@ from arch_A_token_transformer import TokenTransformer
 from arch_B_cross_attention import CrossAttention
 
 FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-OUT_DIR = FEELIN / "results/phase2/subject_variability"
+OUT_DIR = FEELIN / "project/shared/results/phase2/subject_variability"
 
 
 def collect_predictions(model, brain_dict, video_feat, vstim, label_df, test_stim,

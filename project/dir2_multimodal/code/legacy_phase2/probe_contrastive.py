@@ -29,8 +29,8 @@ from _lib import (TASKS, load_brain_embeddings, load_video_feature, load_task_la
 from arch_C_contrastive import ContrastiveAligner
 
 FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-ALIGNER_DIR = FEELIN / "results/phase2/C"
-OUT_DIR = FEELIN / "results/phase2/C"
+ALIGNER_DIR = FEELIN / "project/shared/results/phase2/C"
+OUT_DIR = FEELIN / "project/shared/results/phase2/C"
 
 LINEAR_CS = [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]
 RIDGE_ALPHAS = [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]

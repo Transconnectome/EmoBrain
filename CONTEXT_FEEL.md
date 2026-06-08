@@ -29,7 +29,7 @@ Agent / 협업자가 빠르게 참조할 single source of truth. 자세한 내�
 | Cat34_multilabel macro AUROC | 0.679 | **0.711** | 0.500 |
 | Cat34_soft mean Pearson r | 0.237 | **0.280** | -0.004 |
 
-ROI mean + Ridge 가 모든 task 에서 BFM 보다 일관되게 높음. 원인 (Phase 1 audit `reports/phase1_audit_20260604/` 참조).
+ROI mean + Ridge 가 모든 task 에서 BFM 보다 일관되게 높음. 원인 (Phase 1 audit `docs/reports/phase1_audit_20260604/` 참조).
 1. Horikawa 자극의 시간 길이 T 중앙값 5 TR, 71.6% 가 T=5. BFM input (BJ 16, NS/SwiFT 20 TR) 의 평균 63-70% 가 zero padding.
 2. BFM 의 spatial-temporal joint dynamics 강점이 짧은 input regime 에서 활용 못 됨.
 3. ROI 의 시간축 평균 (450,) 은 padding 영향 없는 깨끗한 baseline.
@@ -68,32 +68,31 @@ ROI mean + Ridge 가 모든 task 에서 BFM 보다 일관되게 높음. 원인 (
 
 ```
 FEELIN/
-├── project/                      ← per-direction self-contained
-│   ├── dir1_brainvlm/{code,data,output,results}/
-│   └── dir2_multimodal/{code,data,output,results}/
-│       └── code/legacy_phase2/   (v4 Brain+Video framework 코드, Direction 2 재활용 base)
-├── code/                         ← shared (probes, bfm_embeddings, ssl_pretrain, analysis, tools)
-├── data/                         ← shared input (Horikawa splits, target matrix, stim feature)
-├── output/                       ← shared raw extraction (embeddings/, logs/, slurm/)
-├── results/background/           ← Phase 1 benchmark (phase1 + main_grid_3bfm + padding_ablation)
-├── external/
-│   ├── (vendored repos: Brain-JEPA, NeuroSTORM 등)
-│   └── checkpoints/              ← pretrained model weight (brain_jepa.pth 등, 이전 baseline/)
-├── docs/                         ← 문서 통합
-│   ├── masterplan_v3_emobrain.md
-│   ├── notes/ (decision log)
-│   ├── reports/ (phase audit, Phase 1 PDF)
-│   └── reference/ (외부 paper PDF)
-├── Paper/                        ← paper draft 작업 공간 (framework, methodology)
-├── archive/                      ← v4 framing + legacy_archive + weekly + v4_results 통합
+├── project/                ← 모든 분석 활동
+│   ├── dir1_brainvlm/{code,data,output,results}/   ← Direction 1 self-contained
+│   ├── dir2_multimodal/{code,data,output,results}/ ← Direction 2 self-contained
+│   │   └── code/legacy_phase2/   (v4 Brain+Video framework, Direction 2 reuse base)
+│   └── shared/{code,data,output,results}/   ← 두 direction 공유 (BFM embedding, Horikawa splits, background 결과 등)
+├── external/               ← vendored repos + checkpoints/ (pretrained model weight, 이전 baseline/)
+├── docs/
+│   ├── masterplan_v3_emobrain.md  (forward plan)
+│   ├── notes/                     (decision log)
+│   ├── reports/                   (Phase 1 audit PDF)
+│   ├── reference/                 (외부 paper PDF)
+│   ├── templates/                 (.md 작성 템플릿)
+│   ├── workflows/                 (작업 가이드)
+│   └── figures/                   (architecture 그림 등)
+├── Paper/                  ← paper draft workspace (framework_EN/KR, methodology)
+├── archive/                ← v4 framing + legacy_archive + weekly + v4_results 통합
+├── tools/                  ← project-wide maintenance utility (build_status, check_md, scientist_ai)
 └── 7 root .md
 ```
 
 ### Code 위치 quick reference
 
-- 두 direction 공유. `code/probes/` (frozen feature probe), `code/bfm_embeddings/` (BFM 추출), `code/ssl_pretrain/`, `code/analysis/`, `code/tools/`.
+- 두 direction 공유. `project/shared/code/probes/` (frozen feature probe), `project/shared/code/bfm_embeddings/` (BFM 추출), `project/shared/code/ssl_pretrain/`, `project/shared/code/analysis/`, `project/shared/code/tools/`.
 - Direction 1 specific. `project/dir1_brainvlm/code/` (BrainVLM scaffolding 예정).
-- Direction 2 specific. `project/dir2_multimodal/code/` (alignment + variance partitioning scaffolding 예정) + `legacy_phase2/` (v4 reference).
+- Direction 2 specific. `project/dir2_multimodal/code/` (alignment + variance partitioning scaffolding 예정) + `code/legacy_phase2/` (v4 reference).
 
 ## 환경
 

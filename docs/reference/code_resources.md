@@ -197,4 +197,4 @@ studyN/data/
 studyN/results/
 ```
 
-Use `code/README.md` for shared utility plans, not for experiment output.
+Use `project/shared/code/README.md` for shared utility plans, not for experiment output.

@@ -3,14 +3,14 @@
 Date: 2026-06-04
 Auditor: Claude (Opus 4.7)
 Scope:
-- `code/probes/run_unified_probe.py` (814 line, BFM probe)
-- `code/probes/run_video_probe.py` (464 line, video probe)
-- `code/probes/build_5fold_split.py` (46 line, CV split)
-- `code/probes/run_chance_baseline.py` (258 line)
-- `code/probes/extract_roi_features.py` (110 line, Tier 1 ROI)
-- `code/probes/_summary_helper.py` (68 line, aggregation)
-- `code/analysis/_lib/heads.py` (132 line, SwiftMLP + SmallMLP)
-- `code/probes/wrappers/` (모든 SLURM wrapper)
+- `project/shared/code/probes/run_unified_probe.py` (814 line, BFM probe)
+- `project/shared/code/probes/run_video_probe.py` (464 line, video probe)
+- `project/shared/code/probes/build_5fold_split.py` (46 line, CV split)
+- `project/shared/code/probes/run_chance_baseline.py` (258 line)
+- `project/shared/code/probes/extract_roi_features.py` (110 line, Tier 1 ROI)
+- `project/shared/code/probes/_summary_helper.py` (68 line, aggregation)
+- `project/shared/code/analysis/_lib/heads.py` (132 line, SwiftMLP + SmallMLP)
+- `project/shared/code/probes/wrappers/` (모든 SLURM wrapper)
 
 ---
 
@@ -70,7 +70,7 @@ HP 선택: val_main 으로 best HP → test 평가. 정상.
 
 ### P_C5. MLP head (SwiftMLP) 구조 정확
 
-`code/analysis/_lib/heads.py:16-89` 라인 단위 확인.
+`project/shared/code/analysis/_lib/heads.py:16-89` 라인 단위 확인.
 
 ```
 SwiftMLP(num_classes, num_blocks=2, hidden_dim=in_dim,
@@ -163,12 +163,12 @@ SwiftMLP(num_classes, num_blocks=2, hidden_dim=in_dim,
 - Schaefer 17n400p (400) + Tian S3 50 = 450 ROI
 - 각 stim 의 (450, T) ROI time-series 를 **시간축 mean** → (450,)
 - 모든 2185 stim stack → (2185, 450)
-- 출력: `output/embeddings/roi_schaefer400tian50_mean/sub-XX.pt`, BFM payload 와 동일 schema (probe pipeline 그대로 사용 가능)
+- 출력: `project/shared/output/embeddings/roi_schaefer400tian50_mean/sub-XX.pt`, BFM payload 와 동일 schema (probe pipeline 그대로 사용 가능)
 - padding 영향 없음 (시간 mean 이라 T 가 5 든 47 이든 같은 차원)
 
 ### P_C14. Wrapper SLURM 구조 명확
 
-`code/probes/wrappers/` 디렉토리:
+`project/shared/code/probes/wrappers/` 디렉토리:
 
 **BFM wrappers** (`wrappers/bfm/`):
 | Wrapper | Tasks | Note |

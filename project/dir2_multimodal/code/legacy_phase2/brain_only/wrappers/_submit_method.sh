@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=p2_brainonly
-#SBATCH --output=/pscratch/sd/s/sjmoon/FEELIN/output/slurm/p2_brainonly_%x_%j.out
-#SBATCH --error=/pscratch/sd/s/sjmoon/FEELIN/output/slurm/p2_brainonly_%x_%j.err
+#SBATCH --output=/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/slurm/p2_brainonly_%x_%j.out
+#SBATCH --error=/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/slurm/p2_brainonly_%x_%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
@@ -21,7 +21,7 @@ set -e
 METHOD=${1:?"method name required (I_supervised, II_distillation, III_multitask, IV_subject_aware)"}
 WRAP_DIR=/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2/brain_only/wrappers/${METHOD}
 
-mkdir -p /pscratch/sd/s/sjmoon/FEELIN/output/slurm
+mkdir -p /pscratch/sd/s/sjmoon/FEELIN/project/shared/output/slurm
 
 for task in V_binary A_binary V_reg A_reg; do
     echo "===== ${METHOD} / ${task} ====="

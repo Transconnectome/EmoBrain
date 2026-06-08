@@ -28,11 +28,11 @@ Reference: [`docs/masterplan_v2.md`](../docs/masterplan_v2.md) Phase 1.
 - W5-6: Token-level emotion linear probe (token → V/A regression). Brain-VLM 의 ABCD-learned representation 이 emotion-relevant 한지 정량화
 
 **산출물**:
-- `code/brainvlm/load_brainvlm.py`. checkpoint loader
-- `code/brainvlm/zero_shot_transfer.py`. fMRI → token + distribution analysis
-- `output/brainvlm_tokens/sub-XX.pt`. 추출된 token
-- `results/phase1/brainvlm_zeroshot_stats.json`. KL + token shape stats
-- `results/phase1/brainvlm_zeroshot_probe.csv`. token-level V/A probe metrics
+- `project/shared/code/brainvlm/load_brainvlm.py`. checkpoint loader
+- `project/shared/code/brainvlm/zero_shot_transfer.py`. fMRI → token + distribution analysis
+- `project/shared/output/brainvlm_tokens/sub-XX.pt`. 추출된 token
+- `project/shared/results/phase1/brainvlm_zeroshot_stats.json`. KL + token shape stats
+- `project/shared/results/phase1/brainvlm_zeroshot_probe.csv`. token-level V/A probe metrics
 
 **Gate (W6)**:
 - Token-level V/A linear probe r ≥ 0.3 → Option A main path 로 Phase 2 진입 (L1 frozen embedding 주입)
@@ -49,8 +49,8 @@ Reference: [`docs/masterplan_v2.md`](../docs/masterplan_v2.md) Phase 1.
 - ⏳ SwiFT 5 변종 (NewE36, NewE192, UAH 5M, UAH 51M, UAH 202M) × 5 subj × 2 init: padding ablation 결과의 best padding 으로 W3-4 시작 예정. 명령: `bash code/bfm_embeddings/run_full/extract_swift_variants_with_padding.sh <best_padding>`
 
 **산출물**:
-- `output/embeddings/<model>_<init>_pad-mean/sub-XX.pt` × 7 model × 2 init × 5 subj
-- `output/embeddings/roi_schaefer400tian50_mean/sub-XX.pt` (Tier 1 floor 후보, 이미 추출 완료)
+- `project/shared/output/embeddings/<model>_<init>_pad-mean/sub-XX.pt` × 7 model × 2 init × 5 subj
+- `project/shared/output/embeddings/roi_schaefer400tian50_mean/sub-XX.pt` (Tier 1 floor 후보, 이미 추출 완료)
 
 **Gate (W6)**:
 - 3 BFM × 5 subj × 2 init × main padding = 최소 30 cell 추출 완료
@@ -61,19 +61,19 @@ Reference: [`docs/masterplan_v2.md`](../docs/masterplan_v2.md) Phase 1.
 **Goal**: EmoViS 의 stimulus feature 를 FEEL 에서 즉시 사용 가능하도록 통합. FEEL 에서는 추출 안 함.
 
 **작업**:
-- W1: `data/stimulus_features/` 에 EmoViS symlink (이미 완료):
+- W1: `project/shared/data/stimulus_features/` 에 EmoViS symlink (이미 완료):
   - `caption_embed.npy` (2185, 768) Qwen-VL caption embedding
   - `captions.json` (2185 free-form caption)
   - `vjepa2_pretrained.npy`, `vjepa2_scratch.npy` (2185, 1408)
   - `clip_pretrained.npy`, `clip_scratch.npy`
   - `dinov2_pretrained.npy`, `dinov2_scratch.npy`
   - `videomae_pretrained.npy`, `videomae_scratch.npy`
-- W2-3: FEEL 용 unified feature loader 작성 (`code/brainvlm/data_loader.py`). stim_idx 와 brain stimulus_num align (0-indexed vs 1-indexed) 처리
+- W2-3: FEEL 용 unified feature loader 작성 (`project/shared/code/brainvlm/data_loader.py`). stim_idx 와 brain stimulus_num align (0-indexed vs 1-indexed) 처리
 - W4-5: Reference caption 분석 (Qwen-VL caption 의 emotion 분포, length, vocabulary)
 
 **산출물**:
-- `code/brainvlm/data_loader.py`. fMRI + video feature + caption 통합 dataset
-- `results/phase1/caption_reference_analysis.md`. Qwen-VL caption 의 affect distribution
+- `project/shared/code/brainvlm/data_loader.py`. fMRI + video feature + caption 통합 dataset
+- `project/shared/results/phase1/caption_reference_analysis.md`. Qwen-VL caption 의 affect distribution
 
 
 ## W6. Phase 1 종료 task list

@@ -50,16 +50,21 @@ Phase 1 측정 완료. 1-4. 계획. 5-7.
 
 ## Repository Layout
 
-- `project/dir1_brainvlm/{code,data,output,results}/` - Direction 1 self-contained mini-project
-- `project/dir2_multimodal/{code,data,output,results}/` - Direction 2 (포함 `code/legacy_phase2/` = v4 Brain+Video framework reuse base)
-- `code/` - shared (probes, bfm_embeddings, ssl_pretrain, analysis, tools)
-- `data/` - shared input (Horikawa splits, target matrix, stim feature)
-- `output/` - shared raw extraction (embeddings, logs, slurm)
-- `results/background/` - Phase 1 benchmark 결과
-- `external/` - vendored repos + `checkpoints/` (pretrained model weight, 이전 `baseline/`)
-- `docs/` - forward plan + `notes/` + `reports/` + `reference/` 통합
-- `Paper/` - paper draft 작업 공간 (framework, methodology)
-- `archive/` - v4 framing 보존 + `legacy_archive/` + `weekly/` + `v4_results/`
+```
+FEELIN/
+├── project/                ← 모든 분석 활동 (self-contained per-direction + shared)
+│   ├── dir1_brainvlm/{code,data,output,results}/
+│   ├── dir2_multimodal/{code,data,output,results}/
+│   │   └── code/legacy_phase2/   (v4 Brain+Video framework, Direction 2 reuse base)
+│   └── shared/{code,data,output,results}/   (두 direction 이 공유)
+│       └── results/background/    (Phase 1 benchmark)
+├── external/                ← vendored repos + checkpoints/ (pretrained, 이전 baseline/)
+├── docs/                    ← masterplan + notes + reports + reference + templates + workflows + figures
+├── Paper/                   ← paper draft workspace
+├── archive/                 ← v4 framing 보존 + legacy + weekly + v4_results
+├── tools/                   ← project-wide maintenance utility
+└── 7 root .md (README, README_KR, CONTEXT_FEEL, ACTION_PLAN, CLAUDE, CODEX, ONBOARDING)
+```
 
 ## Status (2026-06-08)
 

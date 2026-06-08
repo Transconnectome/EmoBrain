@@ -27,7 +27,7 @@ from _lib import (load_brain_embeddings, load_video_feature, get_fold_split,
 from arch_C_contrastive import ContrastiveAligner
 
 FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-OUT_DIR = FEELIN / "results/phase2/C"
+OUT_DIR = FEELIN / "project/shared/results/phase2/C"
 
 
 def build_pairs(brain_dict, video_feat, vstim, stim_set):

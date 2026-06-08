@@ -30,7 +30,7 @@ from _lib import (load_brain_embeddings, load_video_feature, get_fold_split,
                   ALL_SUBJECTS)
 
 FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-OUT_DIR = FEELIN / "results/phase2/encoding"
+OUT_DIR = FEELIN / "project/shared/results/phase2/encoding"
 
 RIDGE_ALPHAS = [1e-2, 1e-1, 1.0, 10.0, 100.0, 1e3]
 

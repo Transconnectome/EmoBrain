@@ -35,7 +35,7 @@ from arch_A_token_transformer import TokenTransformer
 from arch_B_cross_attention import CrossAttention
 
 FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-OUT_DIR = FEELIN / "results/phase2"
+OUT_DIR = FEELIN / "project/shared/results/phase2"
 
 ARCHS = {"D": LateFusion, "A": TokenTransformer, "B": CrossAttention}
 

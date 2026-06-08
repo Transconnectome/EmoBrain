@@ -3,10 +3,10 @@
 Date: 2026-06-04
 Auditor: Claude (Opus 4.7)
 Scope:
-- `data/feelin_canonical_stimuli.csv`
-- `data/cowen_horikawa_labels.csv`
-- `data/horikawa_L0_V_binary_subset.csv` / `horikawa_L0_A_binary_subset.csv`
-- `data/horikawa_5fold.csv`
+- `project/shared/data/feelin_canonical_stimuli.csv`
+- `project/shared/data/cowen_horikawa_labels.csv`
+- `project/shared/data/horikawa_L0_V_binary_subset.csv` / `horikawa_L0_A_binary_subset.csv`
+- `project/shared/data/horikawa_5fold.csv`
 
 ---
 

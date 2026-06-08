@@ -24,4 +24,4 @@ Qwen3-VL backbone (UMBRELLA_qwen ABCD-pretrained) 위에 Horikawa fMRI 를 token
 
 ## 결과 저장
 
-`results/brainvlm/`.
+`project/shared/results/brainvlm/`.

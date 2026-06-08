@@ -27,7 +27,7 @@ FEEL 은 emotion theory paper 도, 단순 benchmark paper 도 아니다. **세 �
 ## 새 파일 추가 전 체크
 
 1. 기존 canonical 문서 (Paper/, notes/, reference/, docs/masterplan_v2.md) 에 들어갈 내용 아닌지 확인
-2. `templates/` 의 카드 사용 (paper, dataset, model, experiment, review, decision)
+2. `docs/templates/` 의 카드 사용 (paper, dataset, model, experiment, review, decision)
 3. 검증:
    ```bash
    python3 scripts/check_md_completeness.py
@@ -41,10 +41,10 @@ FEEL 은 emotion theory paper 도, 단순 benchmark paper 도 아니다. **세 �
 
 | 의도 | Workflow |
 |---|---|
-| 새 논문 / 데이터셋 찾기 | `workflows/literature_sota_workflow.md` |
-| 아이디어를 실험으로 | `workflows/experiment_planning_workflow.md` |
-| 전략/모델 주장 stress-test | `workflows/red_blue_team_review.md` |
-| 진척도 정리 | `workflows/weekly_update_workflow.md` |
+| 새 논문 / 데이터셋 찾기 | `docs/workflows/literature_sota_workflow.md` |
+| 아이디어를 실험으로 | `docs/workflows/experiment_planning_workflow.md` |
+| 전략/모델 주장 stress-test | `docs/workflows/red_blue_team_review.md` |
+| 진척도 정리 | `docs/workflows/weekly_update_workflow.md` |
 
 ## 현재 진행 상황 (2026-05-19 기준)
 

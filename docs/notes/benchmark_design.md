@@ -48,7 +48,7 @@ Last updated: 2026-05-17
 | SwiFT NewUAH_newE96 | ver11 | 96 | Lab pretrained, ~66M params |
 | SwiFT NewUAH_newE192 | ver11 | 192 | Lab pretrained, ~264M params |
 
-각 base model checkpoint 경로 → `code/bfm_embeddings/{model}/SETTINGS.md`.
+각 base model checkpoint 경로 → `project/shared/code/bfm_embeddings/{model}/SETTINGS.md`.
 
 #### B.2 Init (2개)
 

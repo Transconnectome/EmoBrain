@@ -11,10 +11,10 @@ Project name = EmoBrain (since 2026-06-08). Repo path `/pscratch/sd/s/sjmoon/FEE
 - Narrative 는 `Paper/framework_EN.md`, `framework_KR.md`.
 - Methodology 는 `Paper/methodology.md`.
 - Decision log 는 `docs/notes/project_decisions.md`.
-- 실험 코드는 `code/` 아래 (`probes/`, `bfm_embeddings/`, `dir1_brainvlm/` (Direction 1), `dir2_multimodal/` (Direction 2, `legacy_phase2/` 포함), `ssl_pretrain/`, `analysis/`, `tools/`).
-- 입력 데이터 (splits, target matrices) 는 `data/`.
-- 추출된 features / logs 는 `output/`.
-- 분석 결과 (CSV, figure, slide text) 는 `results/`.
+- 실험 코드는 `project/shared/code/` 아래 (`probes/`, `bfm_embeddings/`, `dir1_brainvlm/` (Direction 1), `dir2_multimodal/` (Direction 2, `legacy_phase2/` 포함), `ssl_pretrain/`, `analysis/`, `tools/`).
+- 입력 데이터 (splits, target matrices) 는 `project/shared/data/`.
+- 추출된 features / logs 는 `project/shared/output/`.
+- 분석 결과 (CSV, figure, slide text) 는 `project/shared/results/`.
 - 모델 checkpoints 는 `external/checkpoints/`.
 - 추출된 raw data / checkpoint / output 덮어쓰지 않음.
 

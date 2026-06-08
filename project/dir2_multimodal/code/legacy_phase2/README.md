@@ -31,7 +31,7 @@ Pooled mode (5 subjects merged). Phase 1 default. Per-subject not used in Phase 
 
 ## Critical fix: video feature alignment
 
-The original `data/stimulus_features/stim_idx.npy` is **0-indexed (0..2184)**, but label CSVs
+The original `project/shared/data/stimulus_features/stim_idx.npy` is **0-indexed (0..2184)**, but label CSVs
 use stimulus_num **1-indexed (1..2185)**. Phase 2 `_lib.load_video_feature` IGNORES stim_idx.npy
 and uses `np.arange(1, N+1)` to match Phase 1 video probe convention (off-by-one fix applied
 2026-05-30).
@@ -142,13 +142,13 @@ Full V/A benchmark will quantify this across all 4 tasks × 4 architectures.
 
 ## Output
 
-- `results/phase2/D/<task>.csv`. D late fusion per-fold rows
-- `results/phase2/A/<task>.csv`. A token transformer
-- `results/phase2/B/<task>.csv`. B cross-attention
-- `results/phase2/C/aligner_fold<K>_seed<S>.pt`. C Stage 1 ckpts
-- `results/phase2/C/probe_brain_only_<task>.csv`. C Stage 2 (brain-only probe)
-- `results/phase2/C/probe_joint_<task>.csv`. C Stage 2 (joint probe)
-- `results/phase2/encoding/<video>__<brain>.csv`. Direction 2 encoding
+- `project/shared/results/phase2/D/<task>.csv`. D late fusion per-fold rows
+- `project/shared/results/phase2/A/<task>.csv`. A token transformer
+- `project/shared/results/phase2/B/<task>.csv`. B cross-attention
+- `project/shared/results/phase2/C/aligner_fold<K>_seed<S>.pt`. C Stage 1 ckpts
+- `project/shared/results/phase2/C/probe_brain_only_<task>.csv`. C Stage 2 (brain-only probe)
+- `project/shared/results/phase2/C/probe_joint_<task>.csv`. C Stage 2 (joint probe)
+- `project/shared/results/phase2/encoding/<video>__<brain>.csv`. Direction 2 encoding
 
 Schema matches Phase 1 frozen probe CSV → existing `_summary_helper.py` and analysis
 scripts work directly.
