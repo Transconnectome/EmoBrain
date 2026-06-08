@@ -1,0 +1,254 @@
+\documentclass[a4paper,11pt]{article}
+% PDF compat: downgrade to 1.4 for wider viewer support, force full font embedding.
+\special{dvipdfmx:config V 4}
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+\usepackage[hangul]{kotex}
+\setmainhangulfont{UnBatang}[
+  Path = /global/common/software/nersc9/texlive/2024-17c650b50c05ee823c6093081103ed0ab76a21df/texmf-dist/fonts/truetype/public/unfonts-core/ ,
+  Extension = .ttf ,
+  UprightFont = * ,
+  BoldFont = UnBatangBold
+]
+\setsanshangulfont{UnDotum}[
+  Path = /global/common/software/nersc9/texlive/2024-17c650b50c05ee823c6093081103ed0ab76a21df/texmf-dist/fonts/truetype/public/unfonts-core/ ,
+  Extension = .ttf ,
+  UprightFont = * ,
+  BoldFont = UnDotumBold
+]
+\setmonohangulfont{UnDotum}[
+  Path = /global/common/software/nersc9/texlive/2024-17c650b50c05ee823c6093081103ed0ab76a21df/texmf-dist/fonts/truetype/public/unfonts-core/ ,
+  Extension = .ttf ,
+  UprightFont = * ,
+  BoldFont = UnDotumBold
+]
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{geometry}
+\geometry{margin=2cm}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage[unicode,bookmarks=true,bookmarksnumbered=true]{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,urlcolor=blue!60!black,
+            pdfencoding=auto,psdextra=true}
+
+\title{FEEL Phase 1 — Method and Results}
+\author{FEEL project}
+\date{2026-06-04}
+
+\begin{document}
+\maketitle
+
+\section{개요}
+
+FEEL Phase 1 은 세 종류의 brain foundation model (BFM, Brain-JEPA, NeuroSTORM, SwiFT)
+의 frozen encoder 에서 추출한 embedding 이 Horikawa 의 naturalistic video fMRI 데이터
+위에서 emotion 관련 task 를 얼마나 잘 capture 하는지 측정하는 것이 목적이다.
+모든 BFM 은 weight 가 고정 (frozen) 된 상태로 inference 만 수행하며, 그 위에
+linear probe (sklearn 의 Ridge / Logistic regression) 와 MLP probe (SwiFT 의 downstream MLP head 를 vendored)
+를 학습시켜 각 task 의 점수를 측정한다.
+
+비교 reference 로 (a) feature 무관 chance baseline, (b) ROI mean BOLD (Schaefer 400 cortical + Tian S3 50 subcortical) 의
+Tier 1 floor, (c) video stimulus 의 vision encoder (CLIP, DINOv2, VideoMAE, V-JEPA2)
+와 caption embedding (Qwen-VL) 의 Tier 3 baseline 을 함께 측정했다.
+
+본 문서는 Phase 1 의 방법 (method) 과 측정된 결과 (result) 만을 정리한다.
+Audit 단계에서 발견된 정합성 caveat 은 마지막 section 에 짧게 명기한다.
+
+\section{Methods}
+
+\subsection{Data}
+
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item Stimulus pool. Horikawa naturalistic video fMRI 의 canonical 2185 자극.
+    Resting fMRI 와 11 개 반복 자극 (\texttt{stimulus\_2186}--\texttt{stimulus\_2196}) 은 제외.
+  \item Subjects. 5 명 (\texttt{sub-01} -- \texttt{sub-05}).
+  \item Per-stim 시계열 길이 (T). 자극마다 서로 다른 비디오 길이. 중앙값 5, 평균 6.08, 최대 47, 99 percentile 19.
+    전체 자극의 71.6\% (1565 / 2185) 가 $T=5$.
+  \item Ratings. Cowen 의 34 emotion category score (자극당 0--1 사이의 float 점수 34 개) 와
+    14 dimensional affective rating (arousal, dominance, valence, approach, attention,
+    certainty, commitment, control, effort, fairness, identity, obstruction, safety, upswing),
+    그리고 valence (1--9) 와 arousal (2--8.67) continuous score.
+  \item Quartile labels. 2185 자극의 valence score 를 4 quartile 로 나눠 \texttt{v\_quartile}$\in\{0,1,2,3\}$ 라벨,
+    arousal 도 동일하게 \texttt{a\_quartile} 라벨 부여. quartile 0 이 lowest, quartile 3 이 highest.
+\end{itemize}
+
+\subsection{Split}
+
+5-fold cross-validation 의 fold 정의는 \texttt{data/horikawa\_5fold.csv}.
+\texttt{v\_quartile} $\times$ \texttt{a\_quartile} 의 joint label (16 cell) 에 대해
+\texttt{sklearn.StratifiedKFold(n\_splits=5, shuffle=True, random\_state=0)} 적용.
+같은 자극은 모든 5 subject 에서 같은 fold 에 들어가도록 한다 (stim-level leakage 없음).
+
+각 fold $k\in\{1,2,3,4,5\}$ 에 대해
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item test = fold $k$
+  \item val = fold $(k \bmod 5) + 1$
+  \item train = 나머지 세 fold
+\end{itemize}
+즉 자극 단위로 train 60\% / val 20\% / test 20\% 가 fold 별로 회전.
+
+\subsection{Brain foundation model embedding 추출}
+
+세 BFM 모두 동일한 protocol 을 따른다.
+
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item Frozen encoder. 사전학습된 (또는 random init 된 scratch baseline 의) 모델 weight 를 그대로
+    \texttt{model.eval()} 로 inference 모드 전환 후 \texttt{torch.no\_grad()} 안에서 forward.
+    학습 가능한 parameter 는 없다.
+  \item Temporal padding. 모든 BFM 에 zero padding 적용. 자극의 실제 시계열 길이가 모델의
+    input 길이보다 짧으면 부족한 frame 을 zero 로 채움.
+  \item 모델별 input 길이.
+    \begin{itemize}
+      \item Brain-JEPA. 16 TR (ViT-Base, patch\_size=16). $T \geq 16$ 자극은 중앙 16 TR 만 사용 (center crop), $T < 16$ 은 zero padding.
+      \item NeuroSTORM. 20 TR (4D Swin transformer). $T > 20$ 자극은 앞 20 TR 만 사용 (truncate), $T < 20$ 은 zero padding.
+      \item SwiFT. 20 TR (Swin transformer 4D, depths $(2,2,18,2)$, num\_heads $(6,12,24,48)$). NeuroSTORM 과 동일한 truncate / pad 정책.
+    \end{itemize}
+  \item Per-stim embedding. 각 자극의 brain feature 를 한 벡터로 pooled.
+    Brain-JEPA 는 ViT 의 global average pooled CLS feature (768-dim).
+    NeuroSTORM 과 SwiFT 는 마지막 stage 의 spatial+temporal mean pooled feature (모델 크기에 따라 288 / 768 / 1536).
+  \item Output. \texttt{output/embeddings/\{model\}\_\{init\}\_pad-\{padding\}/sub-XX.pt} 에 저장.
+    payload 는 \texttt{embeddings (N, D)}, \texttt{stim\_num (N,)}, \texttt{padding\_ratio (N,)}, \texttt{original\_T (N,)}.
+\end{itemize}
+
+\paragraph{Variants 측정 대상} 본 phase 1 에서 측정한 BFM variants
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item Brain-JEPA (resting-pretrained, scratch). embed\_dim=768.
+  \item NeuroSTORM (resting-pretrained, scratch). embed\_dim=288.
+  \item SwiFT 변종 7 종.
+    \begin{itemize}
+      \item NewE36 (embed\_dim=288), NewE96 (768), NewE192 (1536). 모두 ver11 RoPE 4D Swin, MR=0.8.
+      \item UAH-5M (288), UAH-51M (768), UAH-202M (1536). 모두 ver9 4D Swin, MR=0.6.
+    \end{itemize}
+  \item 각 SwiFT variant 에 resting + scratch init 두 가지.
+\end{itemize}
+
+\paragraph{Pretrained checkpoint loading caveat} NeuroSTORM 과 SwiFT 의 pretrained checkpoint 는
+우리 input shape 와 정확히 일치하므로 prefix strip 후 \texttt{strict=False} 로 그대로 load.
+Brain-JEPA 의 pretrained checkpoint 만 원본 input 의 시간 patch 수 (10 patch) 와
+우리 input (1 patch) 이 달라서 두 가지 adaptation 적용.
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item \texttt{pos\_embed\_proj.emb\_h} 의 10 time patch 분량을 단순 평균하여 1 patch 로 collapse.
+  \item \texttt{patch\_embed.proj.weight} kernel 을 \texttt{F.interpolate(mode="linear")} 로 우리 size 에 맞춤.
+\end{itemize}
+따라서 본 결과의 ``Brain-JEPA'' 는 origin BJ paper 의 reference 가 아니라 ``BJ adapted variant'' 임을 명기.
+
+\subsection{Probing protocol}
+
+추출된 frozen embedding 위에서 두 가지 head 학습.
+
+\paragraph{Input normalization} 모든 head 학습 전 \texttt{StandardScaler} 로 train fold 의 mean / std 로 정규화한 후 train / val / test 동일 transform.
+
+\paragraph{Linear probe (sklearn dispatch)}
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item Binary. \texttt{LogisticRegression} (L2 penalty, \texttt{class\_weight=balanced}, lbfgs, \texttt{max\_iter=5000}). HP grid C $\in \{10^{-3}, 10^{-2}, 10^{-1}, 1, 10, 100\}$.
+  \item Regression. \texttt{Ridge}. HP grid $\alpha$ 동일 6 점.
+  \item Multinomial. \texttt{LogisticRegression} 동일 setting.
+  \item Multi-output regression. \texttt{MultiOutputRegressor(Ridge)}.
+  \item Multi-label. per-category L2 logistic regression $\times$ 34, joblib threading. HP grid C $\in \{10^{-2}, 1, 100\}$ (runtime 축소).
+  \item Soft distribution. \texttt{MultiOutputRegressor(Ridge)} + 예측 후 합 1 로 normalize.
+\end{itemize}
+각 HP grid 안에서 train fold 로 학습 후 val fold 의 main metric 으로 최적 HP 선택, 그 모델로 test fold 평가.
+
+\paragraph{MLP probe (SwiftMLP head)}
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item 구조. 2 개의 sequential block. 각 block 은 \texttt{MLPBlock} (monai. Linear $(d \to 4d)$ $\to$ GELU $\to$ Dropout(0.3) $\to$ Linear $(4d \to d)$ $\to$ Dropout(0.3)) 와 \texttt{LayerNorm} 의 sequential. 마지막에 \texttt{Linear}$(d \to \text{num\_classes})$ head. weight 는 \texttt{trunc\_normal\_(std=0.02)} init.
+  \item Hidden dim. \texttt{hidden\_dim = in\_dim}. 즉 input 차원이 클수록 head params 도 커진다 (288-dim $\to$ 0.83M params, 768-dim $\to$ 5.9M, 1536-dim $\to$ 23.7M).
+  \item Optimizer. Adam, weight\_decay $10^{-4}$.
+  \item Hyper-parameters (모든 BFM, video, ROI, 모든 task 공통).
+    \begin{itemize}
+      \item \texttt{MLP\_LRS} $= \{10^{-4}, 3{\times}10^{-4}, 10^{-3}, 3{\times}10^{-3}, 10^{-2}\}$
+      \item Batch size 8, max epoch 40, early stop patience 10 (val metric 기준).
+      \item Loss. CrossEntropy (binary / multinomial), BCEWithLogits (multilabel), KLDivLoss (soft distribution), MSE (regression).
+      \item Class imbalance 대응. binary / multinomial 에서 inverse frequency 로 sample weight (\texttt{class\_weight} 대응).
+    \end{itemize}
+  \item y normalization. regression / multi-output regression task 의 경우 학습 안정성을 위해 train fold 의 y 를 평균 / 표준편차로 normalize 후 학습, 예측 시 다시 원래 scale 로 복원. linear (Ridge) 은 closed-form 이라 불필요.
+  \item Seed. \texttt{torch.manual\_seed(0)} + \texttt{np.random.seed(0)}. 본 phase 1 은 1 seed 만 측정 (final paper 단계에 0, 1, 2 로 확장 예정).
+\end{itemize}
+
+\paragraph{Subject mode} Pooled 와 per-subject 두 mode 가 모두 측정되었다. 본 문서의 결과표는 \textbf{pooled mode 만} 표시한다.
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item Pooled. 5 subject 의 같은 split embedding 을 모두 합쳐서 한 head 로 학습 (train sample $\approx$ 1311 자극 $\times$ 5 = 6555).
+  \item Per-subject (supplementary). subject 별로 따로 학습. 5 subject 의 점수를 평균. train sample $\approx$ 1311.
+\end{itemize}
+Phase 1 의 question 이 group-level brain representation 이라 pooled 가 main 으로 적합 (sample 크기 약 5 배, individual difference noise 가 평균으로 흡수). 두 mode 모두 stim-level split 공유로 leakage 없다.
+
+\subsection{Tasks}
+
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item \texttt{V\_binary}. \texttt{v\_quartile}$\in\{0,3\}$ (= Q1 vs Q4) 자극 1131 개만 사용. label 0 = Q1 (V $\in$ 1.00--3.56), label 1 = Q4 (V $\in$ 6.78--9.00). Logistic L2. main metric AUROC.
+  \item \texttt{A\_binary}. \texttt{a\_quartile}$\in\{0,3\}$ 자극 1107 개. label 0 = Q1 (A $\in$ 2.00--5.11), label 1 = Q4 (A $\in$ 6.44--8.67). main metric AUROC.
+  \item \texttt{V\_reg}. 전체 2185 자극의 continuous valence score (1--9) regression. Ridge. main metric Pearson r.
+  \item \texttt{A\_reg}. 전체 2185 자극의 continuous arousal score (2--8.67) regression. Ridge. main metric Pearson r.
+  \item \texttt{Cat34\_multilabel}. 각 자극의 34 category score 가 threshold 0.15 이상이면 양성. 평균 자극당 4.19 category 가 양성. per-category L2 logistic $\times$ 34. main metric category-wise AUROC 의 macro 평균.
+  \item \texttt{Cat34\_soft}. 각 자극의 34 score 를 합 1 로 normalize 한 distribution 을 target. MultiOutputRegressor(Ridge) + 예측 후 normalize. main metric category-wise Pearson r 의 평균.
+\end{itemize}
+
+\paragraph{측정되지 않은 task} 코드에는 다음 두 task 도 정의되어 있으나 본 phase 1 의 launch 에서는 결과 CSV 가 생성되지 않음.
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item \texttt{Cat34\_top1}. 34 score 의 argmax 를 정답 class 로 한 multinomial. 자극 분포가 극단적으로 imbalanced (4 category 는 top1 0 회 등장, 최저 class 는 2 자극만) 이라서 일부 fold 의 train 에 일부 class 가 부재 (``broken folds''). 코드 docstring 에 supplementary, broken folds 로 명시.
+  \item \texttt{Dim14\_multi}. 14 차원 affective rating 의 동시 regression. Phase 1 결과 디렉토리에 해당 CSV 가 없어서 본 문서에서는 제외.
+\end{itemize}
+
+\subsection{Baselines}
+
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item Chance (절대 floor). feature 무관 \texttt{sklearn.dummy} predictor.
+    \begin{itemize}
+      \item Binary / Multinomial. \texttt{DummyClassifier(strategy="stratified")} (train fold 의 class 비율대로 random, seed 영향) 와 \texttt{strategy="most\_frequent"} (다수 class 만 출력, deterministic).
+      \item Regression. \texttt{DummyRegressor(strategy="mean")} 과 \texttt{"median"}.
+      \item Multi-output regression. \texttt{"mean"}.
+    \end{itemize}
+    Stratified 는 seed $\in\{0,1,2\}$ 평균, deterministic 은 1 seed.
+  \item Tier 1 ROI floor. Schaefer 17n400p (cortical 400) + Tian S3 50 (subcortical) = 450 ROI 의 BOLD time series 를 시간축 평균 $\to$ (450,) feature vector. 시간축 평균이라 $T$ 가 5 든 47 이든 같은 차원으로 나와 padding 의 영향이 없다. 그 위에 위와 동일한 linear / MLP probe.
+  \item Tier 3 video baseline. CLIP (1024-dim), DINOv2 (1536), VideoMAE (1280), V-JEPA2 (1408) 각각의 pretrained 와 random-init scratch, 그리고 Qwen-VL caption embedding (768-dim). 모두 자극당 1 벡터로 stim-level probe.
+\end{itemize}
+
+\section{Results}
+
+표의 cell 은 \texttt{mean $\pm$ std} 형식. 5 fold 의 sample standard deviation (1 seed). 모든 BFM 결과는 zero padding scope (사용자 결정). 단 NeuroSTORM 만 결과 benchmark CSV 에 zero padding row 가 없고 mean padding 결과만 surface 되어 있어 (NS 의 별도 split CSV 는 1E 단계에서 cross-check 예정) 본 표에서는 reported padding 을 그대로 사용. ROI 는 시간축 평균 (time\_mean) 이라 padding 영향 없음.
+
+Binary task 는 main metric 인 AUROC 와 함께 balanced accuracy (bAcc) 를 보조 metric 으로 표시. Regression task 는 Pearson r 외에 MAE (mean absolute error) 와 MSE (mean squared error) 를 함께 표시. Video feature (Tier 3) 의 결과는 본 표에서 생략 (별도 문서로 분리).
+
+\input{table_V_binary.tex}
+
+\input{table_A_binary.tex}
+
+\input{table_V_reg.tex}
+
+\input{table_A_reg.tex}
+
+\input{table_Cat34.tex}
+
+\section{ROI baseline 의 강한 성능에 대한 해석}
+
+표에서 확인되듯 단순한 \textbf{ROI mean BOLD + Ridge / Logistic regression} 의 점수가 사전학습된 BFM frozen embedding 보다 일관되게 높다. 이는 모델 구조 자체가 약한 것이 아니라 본 실험 setting 의 특수한 조건이 결합된 결과로 보인다.
+
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item \textbf{Padding 의 confound}. 자극의 시간 길이 중앙값이 5 TR 이라서 BFM 의 input 중 평균 63--70\% 가 zero. BFM 은 padding pattern 위에서 emotion-relevant 정보를 분리해야 한다. 반면 ROI 의 시간축 평균은 $T$ 값에 무관하게 항상 동일한 (450,) 벡터를 산출하므로 padding artifact 의 영향이 없다.
+  \item \textbf{BOLD amplitude 의 정보량}. emotion 관련 정보가 평균 BOLD amplitude 자체에 상당히 들어있다는 점은 fMRI decoding 문헌의 일반적 결론. 짧은 자극에서 추가로 추출 가능한 temporal dynamics 정보는 본질적으로 한계가 있다.
+  \item \textbf{BFM 강점의 비활성화}. BFM 은 spatial $\times$ temporal joint dynamics 의 학습이 핵심 자원인데 우리 setting 에서는 활용할 temporal 정보 자체가 부족. 즉 BFM 의 architecture 자원이 본 실험에서 적절히 평가되지 못한다.
+\end{itemize}
+
+본 결과는 ``frozen BFM 이 짧은 자극의 brain decoding 에는 부적합하다'' 라는 phase 1 의 핵심 결론으로 정리되며, FEEL v4 framework 의 SSL 재학습 / LoRA fine-tune / subject-invariant 표상 학습 방향 전환의 직접 근거가 된다.
+
+\section{Notes (audit 단계에서 확인된 정합성 caveat)}
+
+본 문서의 결과 해석 시 참고해야 할 사항.
+
+\begin{itemize}[leftmargin=*, itemsep=2pt]
+  \item Padding 비율. 자극의 $T$ 분포가 매우 짧아 모델 입력의 평균 63\% (BJ) -- 70\% (NS / SwiFT) 가 zero. 가장 흔한 $T=5$ 자극의 경우 NS / SwiFT 입력의 75\% 가 zero.
+  \item Brain-JEPA 의 ``adapted'' 라벨. 위 \S2.3 의 pretrained checkpoint adaptation 참조.
+  \item Frame window 차이. BJ 는 $T \geq 16$ 자극을 중앙 16 TR, NS / SwiFT 는 앞 20 TR 만 사용. BFM 간 직접 비교는 같은 brain signal 위가 아니다.
+  \item Single seed. MLP 결과는 seed 0 한 번. cross-seed variance 없음. paper 단계에서 seed 0, 1, 2 로 재추출 예정.
+  \item Multilabel HP grid. linear multilabel 의 C grid 가 6 점이 아닌 3 점 (runtime). best C 가 grid 경계에 붙어 있을 가능성은 별도 확인 권고.
+  \item NeuroSTORM padding. NS 의 main grid 가 zero 가 아닌 mean padding 으로 surface 된 점은 1E 단계 results consistency audit 에서 cross-check 예정.
+  \item Cat34\_multilabel 과 Cat34\_soft 는 \texttt{--skip\_mlp} 로 linear only (MLP 결과 없음).
+  \item Cat34\_top1, Dim14\_multi 는 본 phase 1 result CSV 에서 발견되지 않음 (launch 누락 가능).
+  \item \textbf{Cat34 의 ROI / chance baseline 보강 완료} (2026-06-06). Cat34\_multilabel 과 Cat34\_soft 의 ROI baseline 과 chance 가 누락되어 있었음. \texttt{cat34\_roi.sh} (\texttt{run\_unified\_probe.py} ROI linear) 와 \texttt{cat34\_chance.sh} (\texttt{run\_chance\_cat34.py} 신규) 로 보강. Cat34\_soft 의 chance 는 train target distribution 을 test 자극에 random 재할당하는 shuffled dummy 로 측정 (mean / uniform dummy 는 prediction 의 per-cat std 가 0 이라서 Pearson r 정의 안 됨, top1 acc 만 정보).
+  \item \textbf{기타 ML baseline (Random Forest, SVM, KNN, GBM) 은 미측정}. Phase 1 의 핵심 비교 (frozen BFM vs simple statistical baseline) 의 정성적 결론은 ROI(Ridge/Logistic) + ROI(MLP) 까지로 이미 명확하므로 추가 baseline 의 marginal value 가 작음. Paper reviewer 요구 시 보강 가능.
+\end{itemize}
+
+\end{document}

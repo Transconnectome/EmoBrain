@@ -1,0 +1,33 @@
+\begin{table}[H]\centering
+\caption{Task V\_binary (Q1 vs Q4 binary). Pooled mode, 5-fold CV (1 seed). bAcc = balanced accuracy. Best value per column \textbf{among BFM rows} in bold (ROI baseline and chance excluded from comparison). Padding = zero for BFM, time\_mean for ROI, mean for NeuroSTORM (as launched).}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccc}
+\toprule
+ & & \multicolumn{2}{c}{Linear} & \multicolumn{2}{c}{MLP} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Model & Init & AUROC & bAcc & AUROC & bAcc \\
+\midrule
+ROI (Schaefer400+Tian50) & -- & 0.789 $\pm$ 0.012 & 0.720 $\pm$ 0.011 & 0.763 $\pm$ 0.014 & 0.700 $\pm$ 0.024 \\
+Brain-JEPA & resting & \textbf{0.738 $\pm$ 0.019} & \textbf{0.677 $\pm$ 0.018} & \textbf{0.708 $\pm$ 0.018} & \textbf{0.658 $\pm$ 0.016} \\
+ & scratch & 0.696 $\pm$ 0.018 & 0.648 $\pm$ 0.022 & 0.577 $\pm$ 0.039 & 0.559 $\pm$ 0.031 \\
+NeuroSTORM & resting & 0.702 $\pm$ 0.019 & 0.645 $\pm$ 0.015 & 0.690 $\pm$ 0.027 & 0.642 $\pm$ 0.022 \\
+ & scratch & 0.641 $\pm$ 0.026 & 0.605 $\pm$ 0.022 & 0.619 $\pm$ 0.020 & 0.584 $\pm$ 0.015 \\
+SwiFT NewE36 & resting & 0.662 $\pm$ 0.027 & 0.618 $\pm$ 0.023 & 0.615 $\pm$ 0.024 & 0.586 $\pm$ 0.012 \\
+ & scratch & 0.599 $\pm$ 0.007 & 0.571 $\pm$ 0.013 & 0.587 $\pm$ 0.007 & 0.560 $\pm$ 0.012 \\
+SwiFT NewE96 & resting & 0.688 $\pm$ 0.017 & 0.640 $\pm$ 0.011 & 0.595 $\pm$ 0.019 & 0.559 $\pm$ 0.025 \\
+ & scratch & 0.631 $\pm$ 0.016 & 0.593 $\pm$ 0.016 & 0.607 $\pm$ 0.007 & 0.573 $\pm$ 0.011 \\
+SwiFT NewE192 & resting & 0.686 $\pm$ 0.022 & 0.634 $\pm$ 0.010 & 0.616 $\pm$ 0.004 & 0.588 $\pm$ 0.011 \\
+ & scratch & 0.625 $\pm$ 0.019 & 0.590 $\pm$ 0.022 & 0.605 $\pm$ 0.015 & 0.571 $\pm$ 0.011 \\
+SwiFT UAH-5M & resting & 0.613 $\pm$ 0.025 & 0.588 $\pm$ 0.014 & 0.537 $\pm$ 0.011 & 0.516 $\pm$ 0.010 \\
+ & scratch & 0.626 $\pm$ 0.007 & 0.588 $\pm$ 0.008 & 0.602 $\pm$ 0.013 & 0.578 $\pm$ 0.012 \\
+SwiFT UAH-51M & resting & 0.659 $\pm$ 0.016 & 0.620 $\pm$ 0.009 & 0.522 $\pm$ 0.019 & 0.501 $\pm$ 0.002 \\
+ & scratch & 0.633 $\pm$ 0.022 & 0.599 $\pm$ 0.027 & 0.611 $\pm$ 0.013 & 0.579 $\pm$ 0.009 \\
+SwiFT UAH-202M & resting & 0.665 $\pm$ 0.006 & 0.623 $\pm$ 0.006 & 0.498 $\pm$ 0.050 & 0.502 $\pm$ 0.004 \\
+ & scratch & 0.663 $\pm$ 0.013 & 0.625 $\pm$ 0.012 & 0.653 $\pm$ 0.014 & 0.608 $\pm$ 0.022 \\
+\midrule
+Chance & stratified & 0.505 $\pm$ 0.033 & 0.505 $\pm$ 0.033 & -- & -- \\
+Chance & most\_frequent & 0.500 $\pm$ 0.000 & 0.500 $\pm$ 0.000 & -- & -- \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}

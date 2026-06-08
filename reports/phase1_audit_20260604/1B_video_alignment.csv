@@ -1,0 +1,11 @@
+file,shape,dtype,stim_n,feat_dim,stim_match_canonical,n_nan,n_inf,finite_all,mean,std,is_symlink,symlink_target,file_size_mb
+caption_embed.npy,"(2185, 768)",float32,2185,768,True,0,0,True,-0.0002,0.0361,True,/pscratch/sd/s/sjmoon/EmoViS/study1/results/00_embeddings/caption/caption_embed_final.npy,6.712
+clip_pretrained.npy,"(2185, 1024)",float32,2185,1024,True,0,0,True,0.153,0.9677,True,/pscratch/sd/s/sjmoon/EmoViS/study1/results/00_embeddings/clip/clip_pretrained_final.npy,8.95
+clip_scratch.npy,"(2185, 1024)",float32,2185,1024,True,0,0,True,-0.0,0.9958,True,/pscratch/sd/s/sjmoon/EmoViS/study1/results/00_embeddings/clip/clip_scratch_final.npy,8.95
+dinov2_pretrained.npy,"(2185, 1536)",float32,2185,1536,True,0,0,True,-0.0042,1.2805,True,/pscratch/sd/s/sjmoon/EmoViS/study1/results/00_embeddings/dinov2/dinov2_pretrained_final.npy,13.425
+dinov2_scratch.npy,"(2185, 1536)",float32,2185,1536,True,0,0,True,0.0,0.9223,True,/pscratch/sd/s/sjmoon/EmoViS/study1/results/00_embeddings/dinov2/dinov2_scratch_final.npy,13.425
+stim_idx.npy,"(2185,)",int32,2185,0,True,0,0,True,0.0,0.0,True,/pscratch/sd/s/sjmoon/EmoViS/study1/results/00_embeddings/caption/stim_idx.npy,0.009
+videomae_pretrained.npy,"(2185, 1280)",float32,2185,1280,True,0,0,True,0.8197,18.4579,True,/pscratch/sd/s/sjmoon/EmoViS/study1/results/00_embeddings/videomae/videomae_pretrained_final.npy,11.187
+videomae_scratch.npy,"(2185, 1280)",float32,2185,1280,True,0,0,True,0.1726,3.4462,True,/pscratch/sd/s/sjmoon/EmoViS/study1/results/00_embeddings/videomae/videomae_scratch_final.npy,11.187
+vjepa2_pretrained.npy,"(2185, 1408)",float32,2185,1408,True,0,0,True,-0.0181,1.6136,True,/pscratch/sd/s/sjmoon/EmoViS/study1/results/00_embeddings/vjepa2/vjepa2_pretrained_final.npy,12.306
+vjepa2_scratch.npy,"(2185, 1408)",float32,2185,1408,True,0,0,True,-0.0,0.8567,True,/pscratch/sd/s/sjmoon/EmoViS/study1/results/00_embeddings/vjepa2/vjepa2_scratch_final.npy,12.306
