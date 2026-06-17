@@ -71,7 +71,7 @@ EmoBrain/
 ├── Paper/                   ← paper draft workspace
 ├── archive/                 ← v4 framing 보존 + legacy + weekly + v4_results
 ├── tools/                   ← project-wide maintenance utility
-└── 7 root .md (README, README_KR, CONTEXT_FEEL, ACTION_PLAN, CLAUDE, CODEX, ONBOARDING)
+└── 7 root .md (README, README_KR, CONTEXT_EMOBRAIN, ACTION_PLAN, CLAUDE, CODEX, ONBOARDING)
 ```
 
 ## Status (2026-06-08)

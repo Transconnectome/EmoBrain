@@ -20,7 +20,7 @@ Decision 기록은 시간순. 가장 최신이 위.
 - EmoFM 이라는 name 후보가 BFM 의미와 충돌하므로 EmoBrain 으로 전환.
 
 **문서 update**.
-- `README.md`, `README_KR.md`, `CONTEXT_FEEL.md`, `ACTION_PLAN.md` 모두 EmoBrain framing 으로 재작성.
+- `README.md`, `README_KR.md`, `CONTEXT_EMOBRAIN.md`, `ACTION_PLAN.md` 모두 EmoBrain framing 으로 재작성.
 - `docs/masterplan_v3_emobrain.md` 작성 예정.
 - `Paper/framework_EN.md`, `framework_KR.md`, `methodology.md` 재작성 예정.
 - 이전 .md 는 `archive/v4_20260602/` 에 보존.

@@ -101,7 +101,7 @@ EmoBrain/
 
 ## Operating Rules
 
-- Root .md 파일은 7 개 유지 (README, README_KR, CONTEXT_FEEL, ONBOARDING, CLAUDE, CODEX, ACTION_PLAN).
+- Root .md 파일은 7 개 유지 (README, README_KR, CONTEXT_EMOBRAIN, ONBOARDING, CLAUDE, CODEX, ACTION_PLAN).
 - Forward plan / phase report 는 `docs/` 와 `docs/reports/` 에만.
 - Narrative 는 `Paper/framework_EN.md`, `framework_KR.md`. Methodology 는 `Paper/methodology.md`.
 - Decision log 는 `docs/notes/project_decisions.md`.

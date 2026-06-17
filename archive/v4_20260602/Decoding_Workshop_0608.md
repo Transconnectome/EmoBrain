@@ -534,7 +534,7 @@ A_binary AUROC. D late fusion 0.8025 vs CLIP 0.8003 = +0.002.
 /pscratch/sd/s/sjmoon/EmoBrain/         # repo path (이름 유지)
 ├── README.md                          # FEEL 한 줄 정의 + framing
 ├── ACTION_PLAN.md                     # week-level action (Phase 3a/3b/3c/4/5)
-├── CONTEXT_FEEL.md                    # agent / 협업자 reference
+├── CONTEXT_EMOBRAIN.md                    # agent / 협업자 reference
 ├── docs/masterplan_v2.md              # forward plan v4 final (Section 6 = Standard baseline suite)
 ├── data/
 │   ├── horikawa_5fold.csv             # CV split

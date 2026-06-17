@@ -1,12 +1,12 @@
 # EmoBrain Claude Instructions
 
-Read `CONTEXT_FEEL.md` first. Active forward plan is `docs/masterplan_v3_emobrain.md`.
+Read `CONTEXT_EMOBRAIN.md` first. Active forward plan is `docs/masterplan_v3_emobrain.md`.
 
 Project name = EmoBrain (since 2026-06-08). Repo path `/pscratch/sd/s/sjmoon/EmoBrain/` preserved. Previous v4 framing archived under `archive/v4_20260602/`.
 
 ## Operating Rules
 
-- Root .md 파일 새로 만들지 않음. 7개 (README.md, README_KR.md, CONTEXT_FEEL.md, ONBOARDING.md, CLAUDE.md, CODEX.md, ACTION_PLAN.md) 로 유지.
+- Root .md 파일 새로 만들지 않음. 7개 (README.md, README_KR.md, CONTEXT_EMOBRAIN.md, ONBOARDING.md, CLAUDE.md, CODEX.md, ACTION_PLAN.md) 로 유지.
 - Forward plan / phase report 은 `docs/` 와 `docs/reports/` 에만 추가.
 - Narrative 는 `Paper/framework_EN.md`, `framework_KR.md`.
 - Methodology 는 `Paper/methodology.md`.

@@ -231,7 +231,7 @@ Video 는 옵션 teacher (contrastive partner, caption baseline, RSA reference) 
 
 - ✅ `docs/masterplan_v2.md` v4 final 전면 재작성 완료 (Big Q + 5 SQ + build recipe + 4 cross-dataset 전략 + go-no-go + agent review + risk register + critic 7-hit self-check)
 - ✅ `Paper/framework_KR.md` / `framework_EN.md` v4 final framing prepend 완료
-- ✅ `CONTEXT_FEEL.md` / `README.md` / `README_KR.md` v4 final 동기화 완료
+- ✅ `CONTEXT_EMOBRAIN.md` / `README.md` / `README_KR.md` v4 final 동기화 완료
 - ✅ `notes/project_decisions.md` 이 entry 가 final 결정
 - ⏳ 다음 step (사용자 결정 필요).
   - (a) `code/cross_dataset/` 의 Brain-JEPA + LoRA adaptation 학습 코드 작성
@@ -354,7 +354,7 @@ Foundation 의 출처 = brain backbone (수만 subject pretrained) × emotion-te
 
 - ✅ `docs/masterplan_v2.md` v4 final 전면 재작성
 - ✅ `Paper/framework_KR.md` / `framework_EN.md` v4 final framing prepend
-- ✅ `CONTEXT_FEEL.md` / `README.md` / `README_KR.md` v4 final 동기화
+- ✅ `CONTEXT_EMOBRAIN.md` / `README.md` / `README_KR.md` v4 final 동기화
 - ✅ Branch `v4_20260602_perlmutter` 생성
 - ⏳ 다음 step.
   - (a) Phase 3b Track A 의 `code/ssl_pretrain/` 구현 시작 (subject_invariant.py + multi_source_masked.py)
@@ -399,7 +399,7 @@ Brain emotion representation =
 
 - `docs/masterplan_v2.md` Section 14 (Future Extensions)
 - `ACTION_PLAN.md` Phase 5 (Future Extensions, Action 31-35)
-- `CONTEXT_FEEL.md` Future Extensions section
+- `CONTEXT_EMOBRAIN.md` Future Extensions section
 - `README.md` / `README_KR.md` Phase Status table 의 Phase 5 row
 
 ### 이유

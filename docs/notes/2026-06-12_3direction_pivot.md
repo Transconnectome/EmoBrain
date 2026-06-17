@@ -36,7 +36,7 @@ EmoBrain framing 을 **2 direction (BrainVLM + Multimodal Alignment) → 3 direc
 
 ## 영향 받은 docs
 
-- `README.md`, `README_KR.md`, `CONTEXT_FEEL.md`, `ACTION_PLAN.md`, `CLAUDE.md`, `docs/masterplan_v3_emobrain.md` 의 Direction 표, layout, tasks, dataset.
+- `README.md`, `README_KR.md`, `CONTEXT_EMOBRAIN.md`, `ACTION_PLAN.md`, `CLAUDE.md`, `docs/masterplan_v3_emobrain.md` 의 Direction 표, layout, tasks, dataset.
 - Paper/framework_EN/KR.md 의 Two Axes → Three Directions (다음 commit 에).
 
 ## 진행 상태

@@ -3,7 +3,7 @@
 Branch `sj_NEW_20260608_perlmutter`. Three Directions = D1 BrainVLM + D2 fMRI-LM (main paper) + D3 CCN (workshop 발표 별도).
 
 이 문서는 ground-level weekly action.
-High-level (motivation, three directions, tasks) 는 `README.md` 와 `CONTEXT_FEEL.md`.
+High-level (motivation, three directions, tasks) 는 `README.md` 와 `CONTEXT_EMOBRAIN.md`.
 Forward plan (Direction 별 deliverable + gate) 은 `docs/masterplan_v3_emobrain.md`.
 
 ## 한 줄 요약

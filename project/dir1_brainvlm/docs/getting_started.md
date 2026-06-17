@@ -1,7 +1,7 @@
 # D1 BrainVLM Getting Started
 
 EmoBrain Direction 1. Qwen3-VL + Schaefer-450 ROI patchify + LoRA + multi-task heads.
-Forward 설계는 `design.md`, repo-wide context 는 `/pscratch/sd/s/sjmoon/EmoBrain/CONTEXT_FEEL.md`.
+Forward 설계는 `design.md`, repo-wide context 는 `/pscratch/sd/s/sjmoon/EmoBrain/CONTEXT_EMOBRAIN.md`.
 
 ## 0. TL;DR
 

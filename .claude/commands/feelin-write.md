@@ -5,7 +5,7 @@ FEEL 논문/프로젝트 문서를 작성하라.
 ## 사전 읽기
 
 1. `/pscratch/sd/s/sjmoon/FEEL/CLAUDE.md`
-2. `/pscratch/sd/s/sjmoon/FEEL/CONTEXT_FEEL.md`
+2. `/pscratch/sd/s/sjmoon/FEEL/CONTEXT_EMOBRAIN.md`
 3. `/pscratch/sd/s/sjmoon/FEEL/workflows/README.md`
 4. `/pscratch/sd/s/sjmoon/FEEL/Paper/framework_EN.md`
 5. `/pscratch/sd/s/sjmoon/FEEL/Paper/methodology.md`

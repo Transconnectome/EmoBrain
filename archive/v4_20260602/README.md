@@ -400,7 +400,7 @@ Decision log. [`notes/project_decisions.md`](notes/project_decisions.md).
 
 ```
 FEEL/
-├── 7 root .md (README, README_KR, CONTEXT_FEEL, ONBOARDING, CLAUDE, CODEX, ACTION_PLAN)
+├── 7 root .md (README, README_KR, CONTEXT_EMOBRAIN, ONBOARDING, CLAUDE, CODEX, ACTION_PLAN)
 ├── docs/masterplan_v2.md              # Forward plan v4 final (Big Q, sub-claim, tracks, go-no-go)
 ├── Paper/framework_{EN,KR}.md         # Canonical narrative
 ├── Paper/methodology.md               # Canonical experimental methods

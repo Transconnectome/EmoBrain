@@ -7,7 +7,7 @@ spreading notes across random files.
 
 - Search topic or question.
 - Current canonical docs:
-  - `CONTEXT_FEEL.md`
+  - `CONTEXT_EMOBRAIN.md`
   - `reference/papers.md`
   - `reference/datasets.md`
   - `reference/code_resources.md`

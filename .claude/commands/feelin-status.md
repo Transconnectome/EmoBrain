@@ -4,7 +4,7 @@ FEEL 프로젝트 상태를 점검하라.
 
 1. `/pscratch/sd/s/sjmoon/FEEL/README.md`
 2. `/pscratch/sd/s/sjmoon/FEEL/ONBOARDING.md`
-3. `/pscratch/sd/s/sjmoon/FEEL/CONTEXT_FEEL.md`
+3. `/pscratch/sd/s/sjmoon/FEEL/CONTEXT_EMOBRAIN.md`
 4. `/pscratch/sd/s/sjmoon/FEEL/CLAUDE.md`
 5. `/pscratch/sd/s/sjmoon/FEEL/notes/project_decisions.md`
 6. `/pscratch/sd/s/sjmoon/FEEL/notes/two_month_plan.md`

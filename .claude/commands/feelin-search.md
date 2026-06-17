@@ -9,7 +9,7 @@ FEEL 연구 관련 문헌과 코드를 탐색하고 reference에 저장하라.
 먼저 아래 파일을 읽는다.
 
 1. `/pscratch/sd/s/sjmoon/FEEL/CLAUDE.md`
-2. `/pscratch/sd/s/sjmoon/FEEL/CONTEXT_FEEL.md`
+2. `/pscratch/sd/s/sjmoon/FEEL/CONTEXT_EMOBRAIN.md`
 3. `/pscratch/sd/s/sjmoon/FEEL/workflows/literature_sota_workflow.md`
 4. `/pscratch/sd/s/sjmoon/FEEL/reference/papers.md`
 5. `/pscratch/sd/s/sjmoon/FEEL/reference/systematic_reference_map.md`
