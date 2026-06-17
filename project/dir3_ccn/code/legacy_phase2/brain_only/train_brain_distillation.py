@@ -25,8 +25,8 @@ from torch.utils.data import DataLoader, TensorDataset
 from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.preprocessing import StandardScaler
 
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2")
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2/brain_only")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2/brain_only")
 from _lib import (TASKS, load_brain_embeddings, load_video_feature, load_task_labels,
                   get_fold_split, eval_metrics, val_score,
                   fit_standardizer, apply_standardizer,
@@ -34,7 +34,7 @@ from _lib import (TASKS, load_brain_embeddings, load_video_feature, load_task_la
                   output_dim_for, compute_loss, predict_from_logits, is_multi_target)
 from train_brain_supervised import BrainMLP, build_brain_data
 
-OUT_DIR = Path("/pscratch/sd/s/sjmoon/FEELIN/archive/v4_results/phase2/brain_only/II_distillation")
+OUT_DIR = Path("/pscratch/sd/s/sjmoon/EmoBrain/archive/v4_results/phase2/brain_only/II_distillation")
 
 ALPHA_HARD = 0.5    # weight on hard label vs distillation
 TEMP = 4.0          # distillation temperature

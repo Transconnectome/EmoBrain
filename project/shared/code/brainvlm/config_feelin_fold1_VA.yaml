@@ -1,4 +1,4 @@
-# FEELIN BrainVLM Training Config (Horikawa fold 1, V/A regression)
+# EmoBrain BrainVLM Training Config (Horikawa fold 1, V/A regression)
 # Loaded by code/brainvlm/train_brainvlm.py which patches dataset for .pt loading.
 
 wandb:
@@ -33,7 +33,7 @@ dataset:
         stride_between_seq: 1
         stride_within_seq: 1
         shuffle_time_sequence: False
-        input_scaling_method: "none"   # FEELIN .pt files are already normalized
+        input_scaling_method: "none"   # EmoBrain .pt files are already normalized
         label_scaling_method: "none"
         dtype: "float32"
 
@@ -54,6 +54,6 @@ trainer:
     gradient_checkpointing: True
     mixed_precision: "bf16"
     logging_steps: 5
-    ckpt_dir: "/pscratch/sd/s/sjmoon/FEELIN/output/brainvlm_ckpt/fold1_VA_smoke"
+    ckpt_dir: "/pscratch/sd/s/sjmoon/EmoBrain/output/brainvlm_ckpt/fold1_VA_smoke"
     resume_training: False
     max_images_per_sample: 1

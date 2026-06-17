@@ -1,12 +1,12 @@
 #!/bin/bash
-# FEELIN — SwiFT NewE96 의 cyclic_replicate padding 만 추가 추출.
+# EmoBrain — SwiFT NewE96 의 cyclic_replicate padding 만 추가 추출.
 # T frames 를 SL=20 까지 cyclic 반복 (e.g. T=5 → f0..f4, f0..f4, f0..f4, f0..f4).
 # 5 subject × 2 init (resting + scratch) = 10 cells. ~1-2h on 1 GPU.
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
 PYTHON=/pscratch/sd/s/sjmoon/swift_PTL2/bin/python
-OUT_ROOT=/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings
+OUT_ROOT=/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings
 LIB=code/bfm_embeddings/_lib/swift.py
 LOG_DIR=output/logs/swift_NewE96_SL20_cyclic
 mkdir -p "${LOG_DIR}"

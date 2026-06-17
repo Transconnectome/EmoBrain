@@ -20,7 +20,7 @@ import matplotlib.patches as mpatches
 from matplotlib import rcParams
 
 # --- Paths ---------------------------------------------------------------------
-ROOT     = '/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn'
+ROOT     = '/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn'
 DATA     = os.path.join(ROOT, 'study1', 'data')
 FIGREC   = os.path.join(ROOT, 'study1', 'results', 'figures')   # archival copy
 TEMPLATE = os.path.join(ROOT, 'ccn2026_template')               # used by camera_ready.tex

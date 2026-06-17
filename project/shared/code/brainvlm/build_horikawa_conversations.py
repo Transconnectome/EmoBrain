@@ -17,12 +17,12 @@ import sys
 from pathlib import Path
 import pandas as pd
 
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/shared/code/brainvlm")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/shared/code/brainvlm")
 
-FEELIN_ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN")
-DATA = FEELIN_ROOT / "data"
-FMRI_ROOT = FEELIN_ROOT / "output/brainvlm_fmri"  # output of convert_horikawa_fmri.py
-OUT_ROOT = FEELIN_ROOT / "output/brainvlm_conversations"
+EmoBrain_ROOT = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+DATA = EmoBrain_ROOT / "data"
+FMRI_ROOT = EmoBrain_ROOT / "output/brainvlm_fmri"  # output of convert_horikawa_fmri.py
+OUT_ROOT = EmoBrain_ROOT / "output/brainvlm_conversations"
 
 
 def build_emotion_va_prompt() -> str:

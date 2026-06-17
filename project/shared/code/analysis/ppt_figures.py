@@ -36,11 +36,11 @@ rcParams.update({
     "pdf.fonttype": 42,
 })
 
-OUT = Path("/pscratch/sd/s/sjmoon/FEELIN/docs/reports/ppt_slides_figs")
+OUT = Path("/pscratch/sd/s/sjmoon/EmoBrain/docs/reports/ppt_slides_figs")
 OUT.mkdir(parents=True, exist_ok=True)
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-RANK = pd.read_csv(FEELIN / "project/shared/results/phase1/_unified_ranking_per_task.csv").fillna("-")
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+RANK = pd.read_csv(EmoBrain / "project/shared/results/phase1/_unified_ranking_per_task.csv").fillna("-")
 
 TASKS = ["V_binary", "A_binary", "V_reg", "A_reg"]
 TASK_METRIC = {"V_binary": "AUROC", "A_binary": "AUROC",
@@ -331,7 +331,7 @@ def fig_brainvlm_architecture():
 # ============================================================
 
 def fig_bfm_cat34():
-    cat34 = pd.read_csv(FEELIN / "project/shared/results/phase1/cat34_probe_linear.csv").fillna("-")
+    cat34 = pd.read_csv(EmoBrain / "project/shared/results/phase1/cat34_probe_linear.csv").fillna("-")
     cat34 = cat34[cat34["mode"].isin(["pooled", "per_subject"])]
     bfms = ["SwiFT_NewE96", "Brain-JEPA", "NeuroSTORM"]
     cat_tasks = ["Cat34_multilabel", "Cat34_soft"]
@@ -381,7 +381,7 @@ def fig_bfm_cat34():
 def fig_phase2_cat34():
     import glob
     rows = []
-    for f in glob.glob(str(FEELIN / "project/shared/results/phase2/brain_only/*/Cat34_*.csv")):
+    for f in glob.glob(str(EmoBrain / "project/shared/results/phase2/brain_only/*/Cat34_*.csv")):
         d = pd.read_csv(f)
         method = f.split("brain_only/")[1].split("/")[0]
         task = f.split("/")[-1].replace(".csv", "")
@@ -389,14 +389,14 @@ def fig_phase2_cat34():
                      "mean": d["test_main"].mean(), "kind": "brain_only"})
     for arch in ["A", "B", "D"]:
         for task in ["Cat34_multilabel", "Cat34_soft"]:
-            f = str(FEELIN / f"results/phase2/{arch}/{task}.csv")
+            f = str(EmoBrain / f"results/phase2/{arch}/{task}.csv")
             d = pd.read_csv(f)
             method = {"A": "A_token", "B": "B_cross", "D": "D_late"}[arch]
             rows.append({"method": method, "task": task,
                          "mean": d["test_main"].mean(), "kind": "joint"})
     for v in ["joint", "brain_only"]:
         for task in ["Cat34_multilabel", "Cat34_soft"]:
-            f = str(FEELIN / f"results/phase2/C/probe_{v}_{task}.csv")
+            f = str(EmoBrain / f"results/phase2/C/probe_{v}_{task}.csv")
             d = pd.read_csv(f)
             rows.append({"method": f"C_contrastive_{v}", "task": task,
                          "mean": d["test_main"].mean(),

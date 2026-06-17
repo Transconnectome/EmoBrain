@@ -1,5 +1,5 @@
 """
-FEELIN Phase 1 — benchmark table (per task, comprehensive).
+EmoBrain Phase 1 — benchmark table (per task, comprehensive).
 
 각 task 마다 모든 (feature × init × padding × head × mode) cell 의
 main metric + secondary metric (mean ± std across 5 fold × subjects) 표 생성.
@@ -17,8 +17,8 @@ import pandas as pd
 
 warnings.filterwarnings("ignore")
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-RESULTS = FEELIN / "project/shared/results/phase1"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+RESULTS = EmoBrain / "project/shared/results/phase1"
 
 TASKS = ["V_binary", "A_binary", "V_reg", "A_reg"]
 TASK_TITLE = {
@@ -220,7 +220,7 @@ def main():
     print(f"  rows after task filter: {len(df)}")
 
     all_md_lines = [
-        "# FEELIN Phase 1 — Benchmark Tables (per task)",
+        "# EmoBrain Phase 1 — Benchmark Tables (per task)",
         "",
         "**Protocol**: 5-fold stim-stratified CV × 1 seed (linear deterministic, MLP also 1 seed). "
         "Cells aggregated across fold × seed × subject (for per_subject mode 5 subj averaged).",

@@ -45,9 +45,9 @@ N_PERM = 1000
 ALPHA = 0.05
 SEED = 42
 
-EMBED_DIR = Path("/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/data/raw/video_embeddings")
-BRAIN_PATH = Path("/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/data/raw/brain_embeddings/brain_jepa_embeddings.npy")
-OUTPUT_DIR = Path("/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/study1/data")
+EMBED_DIR = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/raw/video_embeddings")
+BRAIN_PATH = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/raw/brain_embeddings/brain_jepa_embeddings.npy")
+OUTPUT_DIR = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/study1/data")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 MODEL_PATHS = {

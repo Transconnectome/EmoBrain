@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Project-level checks for FEELIN Markdown operations."""
+"""Project-level checks for EmoBrain Markdown operations."""
 
 import re
 import sys
@@ -13,7 +13,7 @@ REQUIRED_FILES = [
     "README_KR.md",
     "ACTION_PLAN.md",
     "ONBOARDING.md",
-    "CONTEXT_FEELIN.md",
+    "CONTEXT_EmoBrain.md",
     "CLAUDE.md",
     "CODEX.md",
     "Paper/framework_EN.md",
@@ -38,9 +38,9 @@ REQUIRED_FILES = [
 ]
 
 DATASET_REQUIRED_BLOCKS = [
-    "**Role in FEELIN**",
+    "**Role in EmoBrain**",
     "**Dataset content**",
-    "**FEELIN task design**",
+    "**EmoBrain task design**",
     "**SwiFT use**",
     "**TRIBE v2 / stimulus use**",
     "**Risks**",
@@ -118,7 +118,7 @@ def check_dataset_inventory(failures):
 
 
 def check_trigger_visibility(failures):
-    context = read("CONTEXT_FEELIN.md")
+    context = read("CONTEXT_EmoBrain.md")
     workflow = read("workflows/README.md")
     for trigger in ["[deep search]", "[experiment card]", "[red team]", "[weekly status]", "[verification]"]:
         if trigger not in context or trigger not in workflow:
@@ -128,8 +128,8 @@ def check_trigger_visibility(failures):
 def check_agent_memory_links(failures):
     for rel in ["CLAUDE.md", "CODEX.md"]:
         text = read(rel)
-        if "CONTEXT_FEELIN.md" not in text:
-            failures.append("%s must point to CONTEXT_FEELIN.md" % rel)
+        if "CONTEXT_EmoBrain.md" not in text:
+            failures.append("%s must point to CONTEXT_EmoBrain.md" % rel)
 
 
 def check_no_redundant_root_docs(failures):
@@ -157,12 +157,12 @@ def main():
     check_no_redundant_root_docs(failures)
 
     if failures:
-        print("FEELIN project checks failed:\n")
+        print("EmoBrain project checks failed:\n")
         for failure in failures:
             print("- " + failure)
         return 1
 
-    print("OK: FEELIN project docs and workflow scaffolding are complete.")
+    print("OK: EmoBrain project docs and workflow scaffolding are complete.")
     return 0
 
 

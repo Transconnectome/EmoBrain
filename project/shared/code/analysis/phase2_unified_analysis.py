@@ -1,5 +1,5 @@
 """
-FEELIN Phase 2 unified analysis.
+EmoBrain Phase 2 unified analysis.
 
 Inputs (all per-(fold,seed) CSVs with `task, feature, test_main`):
   - Joint A/B/C/D     results/phase2/{A,B,C,D}/{task}.csv
@@ -54,10 +54,10 @@ PALETTE = {
     "highlight":  "#D62728",
 }
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-RES1   = FEELIN / "project/shared/results/phase1"
-RES2   = FEELIN / "project/shared/results/phase2"
-FIGS   = FEELIN / "figures/phase2"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+RES1   = EmoBrain / "project/shared/results/phase1"
+RES2   = EmoBrain / "project/shared/results/phase2"
+FIGS   = EmoBrain / "figures/phase2"
 FIGS.mkdir(parents=True, exist_ok=True)
 
 TASKS = ["V_binary", "A_binary", "V_reg", "A_reg"]

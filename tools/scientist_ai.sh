@@ -8,7 +8,7 @@
 #SBATCH --mem=32G
 #SBATCH --time=00:30:00
 #SBATCH --job-name=feelin_scientist
-#SBATCH --output=/pscratch/sd/s/sjmoon/FEELIN/reports/scientist_%j.log
+#SBATCH --output=/pscratch/sd/s/sjmoon/EmoBrain/reports/scientist_%j.log
 
 # 사용법: sbatch scientist_ai.sh /path/to/model_dir [/path/to/context.md]
 
@@ -20,7 +20,7 @@ source /pscratch/sd/s/sjmoon/tribev2/.venv/bin/activate
 
 pip show anthropic > /dev/null 2>&1 || pip install anthropic -q
 
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
 if [ -n "$CONTEXT" ]; then
     python scripts/scientist_ai.py --model-dir "$MODEL_DIR" --context "$CONTEXT"

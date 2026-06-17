@@ -1,5 +1,5 @@
 """
-FEELIN Phase 2 — shared utilities.
+EmoBrain Phase 2 — shared utilities.
 
 Loads frozen brain BFM embeddings + frozen video features for joint training of 4
 fusion architectures (A/B/C/D) on V/A tasks.
@@ -16,9 +16,9 @@ import torch
 
 warnings.filterwarnings("ignore")
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-EMB_ROOT = FEELIN / "project/shared/output/embeddings"
-DATA = FEELIN / "data"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+EMB_ROOT = EmoBrain / "project/shared/output/embeddings"
+DATA = EmoBrain / "data"
 VIDEO_DIR = DATA / "stimulus_features"
 
 ALL_SUBJECTS = ["sub-01", "sub-02", "sub-03", "sub-04", "sub-05"]

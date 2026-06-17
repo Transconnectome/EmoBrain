@@ -19,8 +19,8 @@ import torch
 from sklearn.linear_model import Ridge, LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2")
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2/architectures")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2/architectures")
 
 from _lib import (TASKS, load_brain_embeddings, load_video_feature, load_task_labels,
                   get_fold_split, build_pooled_data, eval_metrics, val_score,
@@ -28,9 +28,9 @@ from _lib import (TASKS, load_brain_embeddings, load_video_feature, load_task_la
                   DEFAULT_BRAIN, DEFAULT_BRAIN_INIT, DEFAULT_BRAIN_PAD, DEFAULT_VIDEO)
 from arch_C_contrastive import ContrastiveAligner
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-ALIGNER_DIR = FEELIN / "project/shared/results/phase2/C"
-OUT_DIR = FEELIN / "project/shared/results/phase2/C"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+ALIGNER_DIR = EmoBrain / "project/shared/results/phase2/C"
+OUT_DIR = EmoBrain / "project/shared/results/phase2/C"
 
 LINEAR_CS = [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]
 RIDGE_ALPHAS = [1e-3, 1e-2, 1e-1, 1.0, 10.0, 100.0]

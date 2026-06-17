@@ -20,9 +20,9 @@ from sklearn.decomposition import PCA
 from pathlib import Path
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-BRAIN_PATH = Path("/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/data/raw/brain_embeddings/brain_jepa_embeddings.npy")
-VJEPA_PATH = Path("/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/data/raw/video_embeddings/vjepa2_embeddings.npy")
-OUTPUT_DIR = Path("/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/study1/data")
+BRAIN_PATH = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/raw/brain_embeddings/brain_jepa_embeddings.npy")
+VJEPA_PATH = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/raw/video_embeddings/vjepa2_embeddings.npy")
+OUTPUT_DIR = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/study1/data")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ── Load ──────────────────────────────────────────────────────────────────────

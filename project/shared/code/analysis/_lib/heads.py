@@ -2,7 +2,7 @@
 Probe heads vendored from SwiFT_v2 downstream_optuna pipeline.
 
 Source: /pscratch/sd/s/sjmoon/SwiFT_v2/downstream_optuna/models.py (class `mlp`)
-Vendored so FEELIN probes use the identical head used by SwiFT's downstream
+Vendored so EmoBrain probes use the identical head used by SwiFT's downstream
 benchmarking (no head-architecture confound when comparing).
 
 Requires: monai (MLPBlock, trunc_normal_).
@@ -20,7 +20,7 @@ class SwiftMLP(nn.Module):
     Default config matches SwiFT pipeline:
       num_blocks=2, mlp_ratio=4.0, dim-preserving residual MLPBlock + LayerNorm.
 
-    Use already_pooled=True when input is (B, C) embedding (FEELIN case).
+    Use already_pooled=True when input is (B, C) embedding (EmoBrain case).
     """
 
     def __init__(self,

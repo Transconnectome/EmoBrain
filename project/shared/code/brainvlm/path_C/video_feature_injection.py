@@ -27,7 +27,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/shared/code/brainvlm")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/shared/code/brainvlm")
 from _lib import load_video_feature
 
 

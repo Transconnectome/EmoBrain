@@ -7,11 +7,11 @@
 #   bash code/brainvlm/inference_brainvlm.sh             # full test fold (2,185 samples)
 #   bash code/brainvlm/inference_brainvlm.sh smoke       # 10 samples / subj (50 total)
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
 MODE=${1:-full}
-CKPT=/pscratch/sd/s/sjmoon/FEELIN/project/dir1_brainvlm/output/brainvlm_ckpt/fold1_VA_full/final_model
-OUT_DIR=/pscratch/sd/s/sjmoon/FEELIN/project/dir1_brainvlm/results/brainvlm
+CKPT=/pscratch/sd/s/sjmoon/EmoBrain/project/dir1_brainvlm/output/brainvlm_ckpt/fold1_VA_full/final_model
+OUT_DIR=/pscratch/sd/s/sjmoon/EmoBrain/project/dir1_brainvlm/results/brainvlm
 mkdir -p $OUT_DIR $OUT_DIR/logs
 
 PY=/pscratch/sd/s/sjmoon/brainvlm_qwen_env/bin/python

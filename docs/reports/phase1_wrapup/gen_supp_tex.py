@@ -5,8 +5,8 @@ plus padding ablation detail breakdowns.
 from pathlib import Path
 import pandas as pd
 
-REPORT_DIR = Path("/pscratch/sd/s/sjmoon/FEELIN/docs/reports/phase1_wrapup")
-RESULTS = Path("/pscratch/sd/s/sjmoon/FEELIN/project/shared/results/phase1")
+REPORT_DIR = Path("/pscratch/sd/s/sjmoon/EmoBrain/docs/reports/phase1_wrapup")
+RESULTS = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/shared/results/phase1")
 
 TASKS = ["V_binary", "A_binary", "V_reg", "A_reg"]
 TASK_TITLE = {
@@ -201,12 +201,12 @@ def main():
 \hypersetup{colorlinks=true, linkcolor=black, citecolor=blue!50!black, urlcolor=blue!50!black}
 \pagestyle{fancy}
 \fancyhf{}
-\rhead{\small FEELIN Phase 1 Supplementary Material}
+\rhead{\small EmoBrain Phase 1 Supplementary Material}
 \rfoot{\thepage}
 \setlength{\parskip}{4pt}
 \setlength{\parindent}{0pt}
 \title{\vspace{-2em}\textbf{Supplementary Material}\\
-       \large Full benchmark tables for FEELIN Phase 1 frozen-probe report}
+       \large Full benchmark tables for EmoBrain Phase 1 frozen-probe report}
 \author{}
 \date{2026-05-27}
 \begin{document}

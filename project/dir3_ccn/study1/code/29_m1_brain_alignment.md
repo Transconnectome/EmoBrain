@@ -64,7 +64,7 @@ Compare `q_clip` (original method) vs `q_raw` (no artifact):
 
 For V-JEPA2: original abstract claims 3 PCs (PC1, PC2, PC3). If `q_raw` gives only PC1, "3-PC subspace" becomes "PC1-only subspace".
 
-For CLIP: unknown. FEELIN data suggests CLIP > V-JEPA2 in emotion encoding, but brain alignment is a separate question.
+For CLIP: unknown. EmoBrain data suggests CLIP > V-JEPA2 in emotion encoding, but brain alignment is a separate question.
 
 ## Runtime
 

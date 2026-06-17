@@ -36,10 +36,10 @@ from sklearn.preprocessing import StandardScaler
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _lib.heads import SwiftMLP
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-EMB_ROOT = FEELIN / "project/shared/output/embeddings"
-DATA = FEELIN / "data"
-OUT_DIR = FEELIN / "project/shared/results/main_grid_3bfm"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+EMB_ROOT = EmoBrain / "project/shared/output/embeddings"
+DATA = EmoBrain / "data"
+OUT_DIR = EmoBrain / "project/shared/results/main_grid_3bfm"
 
 # (display_name, dir_prefix)
 # SwiFT_NewE96 결과는 이미 results/padding_ablation/allsubj_{pooled,persubj}_swift_probe.csv 에 있음.

@@ -16,7 +16,7 @@ import torch
 from torch.utils.data import Dataset
 
 
-SHARED = Path("/pscratch/sd/s/sjmoon/FEELIN/project/shared")
+SHARED = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/shared")
 EMB_ROOT = SHARED / "output/embeddings"
 DATA_ROOT = SHARED / "data"
 

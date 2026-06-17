@@ -23,14 +23,14 @@ from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2")
 
 from _lib import (load_brain_embeddings, load_video_feature, get_fold_split,
                   DEFAULT_BRAIN, DEFAULT_BRAIN_INIT, DEFAULT_BRAIN_PAD, DEFAULT_VIDEO,
                   ALL_SUBJECTS)
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-OUT_DIR = FEELIN / "project/shared/results/phase2/encoding"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+OUT_DIR = EmoBrain / "project/shared/results/phase2/encoding"
 
 RIDGE_ALPHAS = [1e-2, 1e-1, 1.0, 10.0, 100.0, 1e3]
 

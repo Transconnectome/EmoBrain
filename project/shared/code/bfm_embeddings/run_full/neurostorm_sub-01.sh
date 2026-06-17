@@ -1,13 +1,13 @@
 #!/bin/bash
-# FEELIN — neurostorm, sub-01 only (2 leaf: 2 init x mean padding)
+# EmoBrain — neurostorm, sub-01 only (2 leaf: 2 init x mean padding)
 # Sequential, resume-safe (skips existing .pt).
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
 MODEL_TAG="neurostorm"
 OUT_PREFIX="neurostorm"
-LEAF_DIR="/pscratch/sd/s/sjmoon/FEELIN/project/shared/code/bfm_embeddings/extract_embedding/${MODEL_TAG}"
-LOG_DIR="/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/logs/${MODEL_TAG}"
+LEAF_DIR="/pscratch/sd/s/sjmoon/EmoBrain/project/shared/code/bfm_embeddings/extract_embedding/${MODEL_TAG}"
+LOG_DIR="/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/logs/${MODEL_TAG}"
 mkdir -p "${LOG_DIR}"
 
 LEAFS=("${LEAF_DIR}"/neurostorm_*_sub-01.sh)
@@ -28,7 +28,7 @@ for leaf in "${LEAFS[@]}"; do
   pad=$(echo "$short" | cut -d_ -f2)
   sub=$(echo "$short" | cut -d_ -f3-)
   LOG="${LOG_DIR}/${name}.log"
-  OUT_PT="/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings/${OUT_PREFIX}_${init}_pad-${pad}/${sub}.pt"
+  OUT_PT="/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings/${OUT_PREFIX}_${init}_pad-${pad}/${sub}.pt"
 
   if [ -f "$OUT_PT" ]; then
     echo "[${COUNT}/${TOTAL}] SKIP ${name} (already exists)"

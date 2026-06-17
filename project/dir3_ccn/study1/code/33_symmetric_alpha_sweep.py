@@ -32,14 +32,14 @@ N_STIM = 2185
 N_PC = 100
 SEED = 42
 
-VJEPA_PATH = Path("/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/data/raw/video_embeddings/emovis_vjepa2_pretrained.npy")
+VJEPA_PATH = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/raw/video_embeddings/emovis_vjepa2_pretrained.npy")
 META_PATH = Path("/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/horikawa_meta_data_with_dimension_binary.csv")
 BRAIN_DIRS = {
-    'pretrained': Path("/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings/brain_jepa_resting_pad-mean"),
-    'scratch':    Path("/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings/brain_jepa_scratch_pad-mean"),
+    'pretrained': Path("/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings/brain_jepa_resting_pad-mean"),
+    'scratch':    Path("/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings/brain_jepa_scratch_pad-mean"),
 }
-RAW_FMRI_PATH = Path("/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/data/raw/raw_fmri/fmri_raw.npy")
-OUTPUT_DIR = Path("/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/study1/data")
+RAW_FMRI_PATH = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/raw/raw_fmri/fmri_raw.npy")
+OUTPUT_DIR = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/study1/data")
 
 ALPHAS = [1.0, 10.0, 100.0, 1000.0, 10000.0]
 cv = KFold(n_splits=5, shuffle=True, random_state=SEED)

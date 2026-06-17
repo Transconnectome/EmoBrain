@@ -1,7 +1,7 @@
 #!/bin/bash
-# FEELIN NeuroSTORM (scratch / mean / sub-02)
+# EmoBrain NeuroSTORM (scratch / mean / sub-02)
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 mkdir -p output/logs
 
 module load gcc-native/12 2>/dev/null || true
@@ -14,4 +14,4 @@ python code/bfm_embeddings/_lib/neurostorm.py \
     --seed 0 \
     --batch_size 8 \
     --num_workers 2 \
-    --out_root /pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings
+    --out_root /pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings

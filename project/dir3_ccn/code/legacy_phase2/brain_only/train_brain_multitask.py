@@ -25,15 +25,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
 
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2")
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2/brain_only")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2/brain_only")
 from _lib import (TASKS, load_brain_embeddings, load_video_feature, load_task_labels,
                   get_fold_split, eval_metrics, val_score,
                   fit_standardizer, apply_standardizer,
                   DEFAULT_BRAIN, DEFAULT_BRAIN_INIT, DEFAULT_BRAIN_PAD, DEFAULT_VIDEO,
                   output_dim_for, compute_loss, predict_from_logits, is_multi_target)
 
-OUT_DIR = Path("/pscratch/sd/s/sjmoon/FEELIN/archive/v4_results/phase2/brain_only/III_multitask")
+OUT_DIR = Path("/pscratch/sd/s/sjmoon/EmoBrain/archive/v4_results/phase2/brain_only/III_multitask")
 
 LAMBDA_AUX = 0.3
 

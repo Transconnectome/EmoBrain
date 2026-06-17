@@ -1,13 +1,13 @@
 """
-FEELIN BrainVLM inference. Test fold V/A regression evaluation.
+EmoBrain BrainVLM inference. Test fold V/A regression evaluation.
 
 Loads trained checkpoint, generates assistant turn for each test (subj, stim),
 parses <Valence>/<Arousal> XML, computes Pearson r vs ground truth V/A.
 
 Usage:
     python inference_brainvlm.py --fold 1 \
-        --ckpt /pscratch/sd/s/sjmoon/FEELIN/project/dir1_brainvlm/output/brainvlm_ckpt/fold1_VA_full/final_model \
-        --out_csv /pscratch/sd/s/sjmoon/FEELIN/project/dir1_brainvlm/results/brainvlm/fold1_test_preds.csv
+        --ckpt /pscratch/sd/s/sjmoon/EmoBrain/project/dir1_brainvlm/output/brainvlm_ckpt/fold1_VA_full/final_model \
+        --out_csv /pscratch/sd/s/sjmoon/EmoBrain/project/dir1_brainvlm/results/brainvlm/fold1_test_preds.csv
 """
 import argparse
 import json
@@ -35,7 +35,7 @@ import numpy as _np
 if not hasattr(_np, "BUFSIZE"):
     _np.BUFSIZE = 8192
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
 BRAINVLM = Path("/pscratch/sd/s/sjmoon/BrainVLM/UMBRELLA_qwen")
 for p in (BRAINVLM, BRAINVLM / "project"):
     if str(p) not in sys.path:
@@ -152,7 +152,7 @@ def main():
     ap.add_argument("--ckpt", required=True,
                     help="Path to the final_model checkpoint directory")
     ap.add_argument("--conv_root",
-                    default=str(FEELIN / "project/shared/output/brainvlm_conversations/pad-zero_VA"))
+                    default=str(EmoBrain / "project/shared/output/brainvlm_conversations/pad-zero_VA"))
     ap.add_argument("--out_csv", required=True)
     ap.add_argument("--limit", type=int, default=None,
                     help="If set, only run first N samples per subject (for quick smoke).")

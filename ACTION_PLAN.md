@@ -18,11 +18,11 @@ D1 + D2 의 2 × 2 grid (2 model × 2 dataset Horikawa + Emo-FilM) 가 main pape
 | Perlmutter CPU | NERSC m4641 (cpu queue) | Probe, baseline |
 | Python env (general) | `/pscratch/sd/s/sjmoon/tribev2/.venv` | Probe, 분석, D3 alignment pilot |
 | Python env (LLM) | `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` | D1 BrainVLM, D2 fMRI-LM 의 LLM 부분 |
-| Data (Horikawa) | `/pscratch/sd/s/sjmoon/FEELIN/project/shared/data/` | Splits, target matrix, stim feature |
+| Data (Horikawa) | `/pscratch/sd/s/sjmoon/EmoBrain/project/shared/data/` | Splits, target matrix, stim feature |
 | Data (Emo-FilM) | 다운로드 예정 | 두 번째 dataset |
-| BFM embeddings | `/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings/` | BJ resting/scratch, NS, SwiFT 6 변종 |
-| CCN dataset (D3) | `/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/data/` | 1.8G |
-| Results | `/pscratch/sd/s/sjmoon/FEELIN/project/{dir1,dir2,dir3,shared}/results/` | per-direction CSV, figure |
+| BFM embeddings | `/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings/` | BJ resting/scratch, NS, SwiFT 6 변종 |
+| CCN dataset (D3) | `/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/` | 1.8G |
+| Results | `/pscratch/sd/s/sjmoon/EmoBrain/project/{dir1,dir2,dir3,shared}/results/` | per-direction CSV, figure |
 
 모든 .py 는 .sh 동반.
 

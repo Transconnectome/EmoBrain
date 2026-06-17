@@ -39,10 +39,10 @@ from sklearn.preprocessing import StandardScaler
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _lib.heads import SwiftMLP, SmallMLP
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-EMB_ROOT = FEELIN / "project/shared/output/embeddings"
-DATA = FEELIN / "data"
-OUT_DIR = FEELIN / "project/shared/results/padding_ablation"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+EMB_ROOT = EmoBrain / "project/shared/output/embeddings"
+DATA = EmoBrain / "data"
+OUT_DIR = EmoBrain / "project/shared/results/padding_ablation"
 
 MODEL_TAG = "swift_NewE96_SL20"
 ALL_SUBJECTS = ["sub-01", "sub-02", "sub-03", "sub-04", "sub-05"]

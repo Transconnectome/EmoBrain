@@ -1,5 +1,5 @@
 #!/bin/bash
-# BrainVLM_qwen env setup for FEELIN.
+# BrainVLM_qwen env setup for EmoBrain.
 #
 # 한 번 paste 해서 실행. ~10-20 min 걸림.
 # 결과: /pscratch/sd/s/sjmoon/brainvlm_qwen_env/ conda env 생성

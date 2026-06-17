@@ -20,7 +20,7 @@ from pathlib import Path
 
 from _summary_helper import summarize_probe_csv
 
-RESULTS = Path("/pscratch/sd/s/sjmoon/FEELIN/project/shared/results/background/phase1")
+RESULTS = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/shared/results/background/phase1")
 
 
 def main():

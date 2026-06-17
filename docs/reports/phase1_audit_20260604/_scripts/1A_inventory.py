@@ -1,7 +1,7 @@
 """
 Phase 1 Audit Step 1A. Embedding inventory.
 
-Scans /pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings/ and reports for every
+Scans /pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings/ and reports for every
 .pt file: variant (model + init + padding), subject, tensor shape, stim count,
 embed dim, file size, mtime, and any structural anomalies.
 
@@ -17,9 +17,9 @@ from pathlib import Path
 
 import torch
 
-EMB_ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings")
+EMB_ROOT = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings")
 OUT_CSV = Path(
-    "/pscratch/sd/s/sjmoon/FEELIN/docs/reports/phase1_audit_20260604/1A_embeddings_inventory.csv"
+    "/pscratch/sd/s/sjmoon/EmoBrain/docs/reports/phase1_audit_20260604/1A_embeddings_inventory.csv"
 )
 CANONICAL_STIM = 2185
 

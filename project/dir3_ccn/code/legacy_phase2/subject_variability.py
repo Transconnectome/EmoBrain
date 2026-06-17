@@ -24,8 +24,8 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2")
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2/architectures")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2/architectures")
 
 from _lib import (TASKS, load_brain_embeddings, load_video_feature, load_task_labels,
                   get_fold_split, fit_standardizer, apply_standardizer,
@@ -35,8 +35,8 @@ from arch_D_late_fusion import LateFusion
 from arch_A_token_transformer import TokenTransformer
 from arch_B_cross_attention import CrossAttention
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-OUT_DIR = FEELIN / "project/shared/results/phase2/subject_variability"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+OUT_DIR = EmoBrain / "project/shared/results/phase2/subject_variability"
 
 
 def collect_predictions(model, brain_dict, video_feat, vstim, label_df, test_stim,

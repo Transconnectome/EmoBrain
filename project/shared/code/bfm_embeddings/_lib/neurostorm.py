@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FEELIN NeuroSTORM embedding extraction (resting-pretrained or scratch).
+EmoBrain NeuroSTORM embedding extraction (resting-pretrained or scratch).
 
 - Input: 4D volume per stimulus, frame_*.pt files (74, 91, 81, 1) each
 - Spatial pad: (74,91,81) → (96,96,96) with background value
@@ -22,22 +22,22 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
 # Inject EmoDe's NeuroSTORM codebase
-NEUROSTORM_REPO = "/pscratch/sd/s/sjmoon/FEELIN/external/NeuroSTORM"
+NEUROSTORM_REPO = "/pscratch/sd/s/sjmoon/EmoBrain/external/NeuroSTORM"
 sys.path.insert(0, NEUROSTORM_REPO)
 from models.neurostorm import NeuroSTORM
 
 # Paths
-FEELIN_ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN")
+EmoBrain_ROOT = Path("/pscratch/sd/s/sjmoon/EmoBrain")
 VOL_BASE = Path("/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/img")
-CHECKPOINT = FEELIN_ROOT / "baseline/neurostorm/pt_neurostorm_mae_ratio0.5.ckpt"
-CANONICAL_CSV = FEELIN_ROOT / "data/feelin_canonical_stimuli.csv"
+CHECKPOINT = EmoBrain_ROOT / "baseline/neurostorm/pt_neurostorm_mae_ratio0.5.ckpt"
+CANONICAL_CSV = EmoBrain_ROOT / "data/feelin_canonical_stimuli.csv"
 
 # Constants
 NUM_FRAMES = 20
 EMBED_DIM = 36  # NeuroSTORM base config, final output dim = 288
 
 
-class FEELINHorikawaNeuroSTORMDataset(Dataset):
+class EmoBrainHorikawaNeuroSTORMDataset(Dataset):
     """NeuroSTORM 4D volume dataset with configurable padding."""
 
     def __init__(self, subject: str, padding: str = "replicate", canonical_csv: Path = CANONICAL_CSV):
@@ -183,7 +183,7 @@ def main():
     ap.add_argument("--batch_size", type=int, default=8)
     ap.add_argument("--num_workers", type=int, default=2)
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
-    ap.add_argument("--out_root", default=str(FEELIN_ROOT / "output/embeddings"))
+    ap.add_argument("--out_root", default=str(EmoBrain_ROOT / "output/embeddings"))
     ap.add_argument("--limit_n", type=int, default=None, help="Limit to N stimuli (test run).")
     args = ap.parse_args()
 
@@ -194,14 +194,14 @@ def main():
     out_dir = Path(args.out_root) / f"neurostorm_{args.init}_pad-{args.padding}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"\n=== FEELIN NeuroSTORM extraction ===")
+    print(f"\n=== EmoBrain NeuroSTORM extraction ===")
     print(f"  init     : {args.init}")
     print(f"  padding  : {args.padding}")
     print(f"  subject  : {args.subject}")
     print(f"  device   : {args.device}")
     print(f"  output   : {out_dir}")
 
-    dataset = FEELINHorikawaNeuroSTORMDataset(args.subject, padding=args.padding)
+    dataset = EmoBrainHorikawaNeuroSTORMDataset(args.subject, padding=args.padding)
     if args.limit_n:
         dataset.stim_names = dataset.stim_names[:args.limit_n]
         dataset.stim_nums = dataset.stim_nums[:args.limit_n]

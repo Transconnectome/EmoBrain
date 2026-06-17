@@ -1,5 +1,5 @@
 """
-FEELIN Phase 1 unified analysis (Nature-style figures).
+EmoBrain Phase 1 unified analysis (Nature-style figures).
 
 모든 probe CSV (chance, ROI, BFM main, SwiFT padding ablation, video) 결합.
 Output:
@@ -60,9 +60,9 @@ NATURE_COLORS = {
     "best":    "#252525",   # near-black for highlights
 }
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-RESULTS = FEELIN / "project/shared/results/phase1"
-FIGS = FEELIN / "figures/phase1"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+RESULTS = EmoBrain / "project/shared/results/phase1"
+FIGS = EmoBrain / "figures/phase1"
 FIGS.mkdir(parents=True, exist_ok=True)
 
 TASKS = ["V_binary", "A_binary", "V_reg", "A_reg"]

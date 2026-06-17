@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FEELIN canonical stimulus list + V/A quartile multilabel stratified split.
+EmoBrain canonical stimulus list + V/A quartile multilabel stratified split.
 
 Canonical:
   - stimulus_1 ~ stimulus_2185 (2,185 total)
@@ -26,7 +26,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN")
+ROOT = Path("/pscratch/sd/s/sjmoon/EmoBrain")
 OUT_DIR = ROOT / "setup" / "data"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -107,7 +107,7 @@ def main():
     args = ap.parse_args()
 
     print("=" * 70)
-    print("FEELIN canonical stimuli + quartile multilabel stratified split")
+    print("EmoBrain canonical stimuli + quartile multilabel stratified split")
     print("=" * 70)
 
     df = load_canonical_metadata()

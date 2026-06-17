@@ -4,7 +4,7 @@
 # Usage: bash <this>.sh [padding]  (default: zero)
 set -e
 PADDING="${1:-zero}"
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 /pscratch/sd/s/sjmoon/swift_PTL2/bin/python code/probes/run_unified_probe.py \
     --config_set swift_variants \
     --swift_variants_padding "${PADDING}" \

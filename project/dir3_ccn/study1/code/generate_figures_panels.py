@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib import rcParams
 
-ROOT     = '/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn'
+ROOT     = '/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn'
 DATA     = os.path.join(ROOT, 'study1', 'data')
 FIGREC   = os.path.join(ROOT, 'study1', 'results', 'figures')
 TEMPLATE = os.path.join(ROOT, 'ccn2026_template')

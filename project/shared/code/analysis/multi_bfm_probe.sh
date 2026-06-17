@@ -5,8 +5,8 @@
 # Combine with existing allsubj_pooled_swift_probe.csv + allsubj_persubj_swift_probe.csv
 # for full 3-BFM comparison.
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
 /pscratch/sd/s/sjmoon/swift_PTL2/bin/python code/analysis/multi_bfm_probe.py \
-    --out_csv /pscratch/sd/s/sjmoon/FEELIN/project/shared/results/background/main_grid_3bfm/probe_full.csv \
-    --summary_csv /pscratch/sd/s/sjmoon/FEELIN/project/shared/results/background/main_grid_3bfm/probe_summary.csv
+    --out_csv /pscratch/sd/s/sjmoon/EmoBrain/project/shared/results/background/main_grid_3bfm/probe_full.csv \
+    --summary_csv /pscratch/sd/s/sjmoon/EmoBrain/project/shared/results/background/main_grid_3bfm/probe_summary.csv

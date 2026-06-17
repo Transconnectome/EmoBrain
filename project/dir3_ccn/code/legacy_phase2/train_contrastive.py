@@ -17,8 +17,8 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
 
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2")
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2/architectures")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2/architectures")
 
 from _lib import (load_brain_embeddings, load_video_feature, get_fold_split,
                   fit_standardizer, apply_standardizer,
@@ -26,8 +26,8 @@ from _lib import (load_brain_embeddings, load_video_feature, get_fold_split,
                   ALL_SUBJECTS)
 from arch_C_contrastive import ContrastiveAligner
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-OUT_DIR = FEELIN / "project/shared/results/phase2/C"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+OUT_DIR = EmoBrain / "project/shared/results/phase2/C"
 
 
 def build_pairs(brain_dict, video_feat, vstim, stim_set):

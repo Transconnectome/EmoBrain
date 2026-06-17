@@ -1,5 +1,5 @@
 """
-FEELIN BrainVLM helpers — shared utilities for Path B (hybrid) and Path C (decoupled).
+EmoBrain BrainVLM helpers — shared utilities for Path B (hybrid) and Path C (decoupled).
 
 - Horikawa fMRI volume loading + reshape to BrainVLM (B,C,D,H,W,T) format
 - PatchEmbedQwen instantiation with the upstream-bug workaround
@@ -25,11 +25,11 @@ import torch.nn.functional as F
 
 warnings.filterwarnings("ignore")
 
-FEELIN_ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN")
+EmoBrain_ROOT = Path("/pscratch/sd/s/sjmoon/EmoBrain")
 BRAINVLM_ROOT = Path("/pscratch/sd/s/sjmoon/BrainVLM/UMBRELLA_qwen")
 HORIKAWA_VOL_BASE = Path("/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/img")
-CANONICAL_CSV = FEELIN_ROOT / "data/feelin_canonical_stimuli.csv"
-EMOVIS_FEATURES = FEELIN_ROOT / "data/stimulus_features"
+CANONICAL_CSV = EmoBrain_ROOT / "data/feelin_canonical_stimuli.csv"
+EMOVIS_FEATURES = EmoBrain_ROOT / "data/stimulus_features"
 
 # Default BrainVLM fMRI config matching Horikawa post-spatial-pad shape (96^3 × 20)
 FMRI_IMG_SIZE = (96, 96, 96, 20)

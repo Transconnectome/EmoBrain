@@ -11,17 +11,17 @@
 # To run full:
 #   bash code/brainvlm/train_brainvlm.sh full
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
 MODE=${1:-full}
-LOG=/pscratch/sd/s/sjmoon/FEELIN/project/dir1_brainvlm/output/brainvlm_ckpt/${MODE}/train.log
+LOG=/pscratch/sd/s/sjmoon/EmoBrain/project/dir1_brainvlm/output/brainvlm_ckpt/${MODE}/train.log
 mkdir -p $(dirname $LOG)
 
 PY=/pscratch/sd/s/sjmoon/brainvlm_qwen_env/bin/python
 
 case $MODE in
   smoke)
-    OUT=/pscratch/sd/s/sjmoon/FEELIN/project/dir1_brainvlm/output/brainvlm_ckpt/fold1_VA_smoke
+    OUT=/pscratch/sd/s/sjmoon/EmoBrain/project/dir1_brainvlm/output/brainvlm_ckpt/fold1_VA_smoke
     $PY code/brainvlm/train_brainvlm.py \
         --fold 1 \
         --smoke \
@@ -30,7 +30,7 @@ case $MODE in
         2>&1 | tee $LOG
     ;;
   full)
-    OUT=/pscratch/sd/s/sjmoon/FEELIN/project/dir1_brainvlm/output/brainvlm_ckpt/fold1_VA_full
+    OUT=/pscratch/sd/s/sjmoon/EmoBrain/project/dir1_brainvlm/output/brainvlm_ckpt/fold1_VA_full
     $PY code/brainvlm/train_brainvlm.py \
         --fold 1 \
         --epochs 3 \

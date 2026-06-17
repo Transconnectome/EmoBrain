@@ -3,9 +3,9 @@
 # Best canonical setting: zero padding (matches main grid), linear + MLP heads,
 # pooled + per_subject modes, 5 folds, 3 seeds (MLP).
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
-LOG=/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/slurm/cat34_phase1.log
+LOG=/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/slurm/cat34_phase1.log
 mkdir -p $(dirname $LOG)
 
 # Linear only first (~70 min). MLP adds ~6 hr if needed.
@@ -16,5 +16,5 @@ mkdir -p $(dirname $LOG)
     --folds 1,2,3,4,5 \
     --seeds 0 \
     --skip_mlp \
-    --out_csv /pscratch/sd/s/sjmoon/FEELIN/project/shared/results/background/phase1/cat34_probe_linear.csv \
+    --out_csv /pscratch/sd/s/sjmoon/EmoBrain/project/shared/results/background/phase1/cat34_probe_linear.csv \
     2>&1 | tee $LOG

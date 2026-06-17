@@ -36,7 +36,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 
-FEEL = Path("/pscratch/sd/s/sjmoon/FEELIN")
+FEEL = Path("/pscratch/sd/s/sjmoon/EmoBrain")
 EMB_ROOT = FEEL / "output/embeddings"
 DATA = FEEL / "data"
 OUT_ROOT = FEEL / "output/ssl_pretrain"

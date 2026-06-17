@@ -1,5 +1,5 @@
 """
-Shared summary aggregation for FEELIN probe results.
+Shared summary aggregation for EmoBrain probe results.
 
 Takes a per-row CSV (one row per fold × seed × subject × condition) and writes
 a wide-format summary CSV with mean + std + count for ALL test_* numeric metrics.

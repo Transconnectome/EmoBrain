@@ -7,7 +7,7 @@ Source: /pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_preprocess_JEPA_ROI/ti
 각 stimulus 의 (450, T) ROI time-series 를 시간 axis 로 mean 해서 (450,) feature vector.
 모든 2185 canonical stimulus 를 stack → (2185, 450) embedding tensor 저장.
 
-Output: /pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings/roi_schaefer400tian50_mean/sub-XX.pt
+Output: /pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings/roi_schaefer400tian50_mean/sub-XX.pt
 
 Format: BFM extraction .pt 와 동일 (key: embeddings, stim_num, padding_ratio, ...).
 이렇게 하면 unified probe pipeline 이 BFM embedding 처럼 처리 가능.
@@ -22,7 +22,7 @@ import pandas as pd
 import torch
 
 ROI_ROOT = Path("/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_preprocess_JEPA_ROI/time_series")
-OUT_ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings")
+OUT_ROOT = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings")
 CANONICAL_N = 2185
 
 

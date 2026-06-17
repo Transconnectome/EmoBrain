@@ -1,9 +1,9 @@
 #!/bin/bash
-# FEELIN — brain_jepa full run
+# EmoBrain — brain_jepa full run
 # 10 leaf scripts 를 순차 실행. Resume 가능 (이미 있는 npz skip).
 
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
 MODEL_TAG="brain_jepa"
 OUT_PREFIX="brain_jepa"

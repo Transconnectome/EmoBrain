@@ -5,8 +5,8 @@
 # Linear probe only (matches the original Cat34 phase 1 launch with --skip_mlp).
 # Estimated ~60-90 min on CPU.
 #SBATCH --job-name=feel_cat34_bfm_t010
-#SBATCH --output=/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/slurm/cat34_baseline/cat34_bfm_t010_%j.out
-#SBATCH --error=/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/slurm/cat34_baseline/cat34_bfm_t010_%j.err
+#SBATCH --output=/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/slurm/cat34_baseline/cat34_bfm_t010_%j.out
+#SBATCH --error=/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/slurm/cat34_baseline/cat34_bfm_t010_%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
@@ -16,13 +16,13 @@
 #SBATCH --constraint=cpu
 
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
-/pscratch/sd/s/sjmoon/swift_PTL2/bin/python -u /pscratch/sd/s/sjmoon/FEELIN/project/shared/code/probes/run_unified_probe.py \
+/pscratch/sd/s/sjmoon/swift_PTL2/bin/python -u /pscratch/sd/s/sjmoon/EmoBrain/project/shared/code/probes/run_unified_probe.py \
     --tasks Cat34_multilabel,Cat34_soft \
     --features Brain-JEPA,SwiFT_NewE96,NeuroSTORM \
     --folds 1,2,3,4,5 \
     --seeds 0 \
     --skip_mlp \
-    --out_csv /pscratch/sd/s/sjmoon/FEELIN/project/shared/results/background/phase1/cat34_probe_linear_t010.csv \
-    --summary_csv /pscratch/sd/s/sjmoon/FEELIN/project/shared/results/background/phase1/cat34_probe_linear_t010_summary.csv
+    --out_csv /pscratch/sd/s/sjmoon/EmoBrain/project/shared/results/background/phase1/cat34_probe_linear_t010.csv \
+    --summary_csv /pscratch/sd/s/sjmoon/EmoBrain/project/shared/results/background/phase1/cat34_probe_linear_t010_summary.csv

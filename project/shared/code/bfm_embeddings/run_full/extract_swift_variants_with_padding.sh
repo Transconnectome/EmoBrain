@@ -1,5 +1,5 @@
 #!/bin/bash
-# FEELIN — SwiFT 5 변종 (NewE36, NewE192, UAH_5M, UAH_51M, UAH_202M) 을
+# EmoBrain — SwiFT 5 변종 (NewE36, NewE192, UAH_5M, UAH_51M, UAH_202M) 을
 # SwiFT padding ablation 결과의 best padding 으로 추출.
 # 5 subject × 2 init (resting + scratch) × 5 variant = 50 cell.
 #
@@ -23,9 +23,9 @@ case "$PADDING" in
   *) echo "ERROR: unknown padding '$PADDING'. Must be one of: mean, replicate, zero, spatial_only"; exit 1 ;;
 esac
 
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 PYTHON=/pscratch/sd/s/sjmoon/swift_PTL2/bin/python
-OUT_ROOT=/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings
+OUT_ROOT=/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings
 LIB=code/bfm_embeddings/_lib/swift.py
 
 # variant_tag : internal model_name (NewE96 = main grid 에 이미 있음, 제외)

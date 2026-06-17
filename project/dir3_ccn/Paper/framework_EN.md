@@ -51,7 +51,7 @@ This question has not been answered. CCN_Emotion addresses it directly.
 
 > **Does the emergent emotion representation that arises in self-supervised and visual-text foundation models coincide with the visual representation that the human brain uses when processing emotional video, and does this differ between learning paradigms?**
 
-We probe two primary models in parallel: V-JEPA2 (self-supervised video, no language) and CLIP (image-text contrastive). The comparison is motivated by empirical observation from the FEELIN project that CLIP outperforms V-JEPA2 in emotion prediction probes across all tasks (Valence regression Pearson r 0.683 vs 0.470, Cat34 top-1 balanced accuracy 0.383 vs 0.293). This raises the question: is the brain-aligned subspace and its overlap with emotion-encoding subspace different between these two learning paradigms, and does that difference reveal whether text supervision provides emotion-relevant structure that pure visual SSL does not?
+We probe two primary models in parallel: V-JEPA2 (self-supervised video, no language) and CLIP (image-text contrastive). The comparison is motivated by empirical observation from the EmoBrain project that CLIP outperforms V-JEPA2 in emotion prediction probes across all tasks (Valence regression Pearson r 0.683 vs 0.470, Cat34 top-1 balanced accuracy 0.383 vs 0.293). This raises the question: is the brain-aligned subspace and its overlap with emotion-encoding subspace different between these two learning paradigms, and does that difference reveal whether text supervision provides emotion-relevant structure that pure visual SSL does not?
 
 Operationally, this becomes a question about the relationship between two subspaces of a single video model.
 
@@ -111,7 +111,7 @@ All three outcomes are scientifically informative. The project is designed to be
 
 ### 5.1 Data
 
-The Horikawa et al. (2020) dataset: 5 participants, **2,185 emotionally evocative video clips** (canonical Horikawa master index after excluding 11 repeated clips at stim_idx 2185–2195), continuous emotion ratings for 34 categories and 14 affective dimensions per video. Stimulus count is consistent with EmoViS and FEELIN projects in the same group.
+The Horikawa et al. (2020) dataset: 5 participants, **2,185 emotionally evocative video clips** (canonical Horikawa master index after excluding 11 repeated clips at stim_idx 2185–2195), continuous emotion ratings for 34 categories and 14 affective dimensions per video. Stimulus count is consistent with EmoViS and EmoBrain projects in the same group.
 
 ### 5.2 Representations
 

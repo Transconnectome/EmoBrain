@@ -51,7 +51,7 @@ Bao 2024 는 model 내부를 봤다. Conwell 2025 는 행동을 봤다. 둘 다 
 
 > **자기지도 및 visual-text foundation model 에서 발달하는 emergent emotion 표상이 인간 뇌가 감정 영상을 처리할 때 사용하는 시각 표상과 일치하는가, 그리고 학습 패러다임에 따라 다른가.**
 
-두 primary model 을 병렬로 분석. **V-JEPA2** (자기지도 비디오, language 없음) + **CLIP** (image-text contrastive). 이 비교는 FEELIN 프로젝트의 경험적 관찰에 의해 motivated 됨 — CLIP 이 모든 emotion prediction probe 에서 V-JEPA2 보다 우월 (Valence regression Pearson r 0.683 vs 0.470, Cat34 top-1 balanced accuracy 0.383 vs 0.293). 질문: brain-aligned subspace 와 emotion-encoding subspace 의 overlap 이 두 학습 패러다임 사이에 다른가, 그 차이가 text supervision 이 pure visual SSL 이 못 만드는 emotion-relevant 구조를 만든다는 것을 보여주는가.
+두 primary model 을 병렬로 분석. **V-JEPA2** (자기지도 비디오, language 없음) + **CLIP** (image-text contrastive). 이 비교는 EmoBrain 프로젝트의 경험적 관찰에 의해 motivated 됨 — CLIP 이 모든 emotion prediction probe 에서 V-JEPA2 보다 우월 (Valence regression Pearson r 0.683 vs 0.470, Cat34 top-1 balanced accuracy 0.383 vs 0.293). 질문: brain-aligned subspace 와 emotion-encoding subspace 의 overlap 이 두 학습 패러다임 사이에 다른가, 그 차이가 text supervision 이 pure visual SSL 이 못 만드는 emotion-relevant 구조를 만든다는 것을 보여주는가.
 
 조작적으로, 이건 단일 video model 의 두 subspace 사이 관계 질문이 된다.
 
@@ -111,7 +111,7 @@ M3 해석이 프로젝트의 핵심. 세 principal outcome 이 세 distinct 과�
 
 ### 5.1 Data
 
-Horikawa et al. (2020) 데이터셋: 5 명 참가자, **2,185 개 감정 유발 영상** (canonical Horikawa master index, 반복 클립 11 개 (stim_idx 2185-2195) 제외 후), 영상별 34 카테고리 + 14 affective dimension 연속 emotion rating. 자극 수는 동일 group 의 EmoViS, FEELIN 프로젝트와 일관.
+Horikawa et al. (2020) 데이터셋: 5 명 참가자, **2,185 개 감정 유발 영상** (canonical Horikawa master index, 반복 클립 11 개 (stim_idx 2185-2195) 제외 후), 영상별 34 카테고리 + 14 affective dimension 연속 emotion rating. 자극 수는 동일 group 의 EmoViS, EmoBrain 프로젝트와 일관.
 
 ### 5.2 Representations
 

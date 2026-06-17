@@ -13,9 +13,9 @@ from typing import Dict
 
 
 REQUIRED_BLOCKS = (
-    "**Role in FEELIN**",
+    "**Role in EmoBrain**",
     "**Dataset content**",
-    "**FEELIN task design**",
+    "**EmoBrain task design**",
     "**SwiFT use**",
     "**TRIBE v2 / stimulus use**",
     "**Risks**",

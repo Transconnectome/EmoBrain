@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FEELIN SwiFT_v2 embedding extraction.
+EmoBrain SwiFT_v2 embedding extraction.
 
 Supports 7 lab pretrained models (and scratch init for each):
   - UAH_P1_5M   (ver9, embed_dim=36,  patch [6,6,6,2])  ~5M
@@ -28,9 +28,9 @@ from torch.utils.data import Dataset, DataLoader
 SWIFT_REPO = "/pscratch/sd/s/sjmoon/SwiFT_v2"
 sys.path.insert(0, SWIFT_REPO)
 
-FEELIN_ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN")
+EmoBrain_ROOT = Path("/pscratch/sd/s/sjmoon/EmoBrain")
 VOL_BASE = Path("/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/img")
-CANONICAL_CSV = FEELIN_ROOT / "data/feelin_canonical_stimuli.csv"
+CANONICAL_CSV = EmoBrain_ROOT / "data/feelin_canonical_stimuli.csv"
 NUM_FRAMES = 20
 
 # ============================================================
@@ -107,7 +107,7 @@ COMMON = dict(
 # ============================================================
 # Dataset (same shape as NeuroSTORM, configurable padding)
 # ============================================================
-class FEELINHorikawaSwiFTDataset(Dataset):
+class EmoBrainHorikawaSwiFTDataset(Dataset):
     def __init__(self, subject: str, padding: str = "replicate", canonical_csv: Path = CANONICAL_CSV):
         self.subject = subject
         self.padding = padding
@@ -309,7 +309,7 @@ def main():
     ap.add_argument("--batch_size", type=int, default=4)
     ap.add_argument("--num_workers", type=int, default=2)
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
-    ap.add_argument("--out_root", default=str(FEELIN_ROOT / "output/embeddings"))
+    ap.add_argument("--out_root", default=str(EmoBrain_ROOT / "output/embeddings"))
     ap.add_argument("--limit_n", type=int, default=None)
     ap.add_argument("--save_layers", choices=["final", "all"], default="final",
                     help="final: (N, D_final) pooled only; "
@@ -324,14 +324,14 @@ def main():
     out_dir = Path(args.out_root) / f"swift_{args.output_tag}_{args.init}_pad-{args.padding}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"\n=== FEELIN SwiFT extraction ===")
+    print(f"\n=== EmoBrain SwiFT extraction ===")
     print(f"  model    : {args.model_name}  (output_tag: {args.output_tag})")
     print(f"  init     : {args.init}")
     print(f"  padding  : {args.padding}")
     print(f"  subject  : {args.subject}")
     print(f"  output   : {out_dir}")
 
-    dataset = FEELINHorikawaSwiFTDataset(args.subject, padding=args.padding)
+    dataset = EmoBrainHorikawaSwiFTDataset(args.subject, padding=args.padding)
     if args.limit_n:
         dataset.stim_names = dataset.stim_names[:args.limit_n]
         dataset.stim_nums = dataset.stim_nums[:args.limit_n]

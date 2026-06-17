@@ -16,14 +16,14 @@
 #   bash project/dir2_multimodal/code/legacy_phase2/run_cat34_phase2.sh joint          # only joint 4 methods
 #   bash project/dir2_multimodal/code/legacy_phase2/run_cat34_phase2.sh brain_only     # only brain-only 4 methods
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
 PY_PHASE1=/pscratch/sd/s/sjmoon/swift_PTL2/bin/python                 # phase 2 joint scripts use this env
 PY_BRAIN=/pscratch/sd/s/sjmoon/brainvlm_qwen_env/bin/python           # brain-only scripts use this env
 TASKS=(Cat34_multilabel Cat34_soft)
 TARGET=${1:-all}                                                       # all / brain_only / joint
 
-mkdir -p /pscratch/sd/s/sjmoon/FEELIN/project/shared/output/slurm
+mkdir -p /pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/slurm
 
 run_brain_only() {
   for task in "${TASKS[@]}"; do

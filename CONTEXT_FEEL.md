@@ -6,7 +6,7 @@ Agent / 협업자가 빠르게 참조할 single source of truth. 자세한 내�
 
 **EmoBrain** = Active brain decoding for emotion. **Three Directions** (D1 BrainVLM + D2 fMRI-LM main paper; D3 CCN 별도 발표).
 **Branch**. `sj_NEW_20260608_perlmutter`.
-**Repo name 보존**. 기존 path `/pscratch/sd/s/sjmoon/FEELIN/` 그대로 유지.
+**Repo name 보존**. 기존 path `/pscratch/sd/s/sjmoon/EmoBrain/` 그대로 유지.
 **이전 framing (v4 universal emotion code)** 은 `archive/v4_20260602/` 에 보존.
 
 ## Three Directions
@@ -61,7 +61,7 @@ ROI 가 모든 task 에서 BFM 보다 일관되게 높음. 원인은 Horikawa �
 ## Repository layout (2026-06-12 updated for 3-direction)
 
 ```
-FEELIN/
+EmoBrain/
 ├── project/                ← 모든 분석 활동
 │   ├── dir1_brainvlm/{code,data,output,results,docs}/   ← D1
 │   ├── dir2_fmri_lm/{code,data,output,results,docs}/    ← D2 (Wei 2026 architecture)

@@ -33,9 +33,9 @@ from sklearn.metrics import (
 warnings.filterwarnings("ignore", category=ConvergenceWarning)
 warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-DATA = FEELIN / "data"
-OUT_DIR = FEELIN / "project/shared/results/background/phase1"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+DATA = EmoBrain / "data"
+OUT_DIR = EmoBrain / "project/shared/results/background/phase1"
 
 DIM14_COLS = [
     "arousal_score", "dominance_score", "valence_score", "approach_score",

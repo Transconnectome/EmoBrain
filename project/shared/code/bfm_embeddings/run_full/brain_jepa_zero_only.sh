@@ -1,9 +1,9 @@
 #!/bin/bash
-# FEELIN — Brain-JEPA zero padding only re-extraction
+# EmoBrain — Brain-JEPA zero padding only re-extraction
 # (NUM_FRAMES=16 center-crop for T>=16, zero pad for T<16).
 # 5 subj × 2 init × zero = 10 cells.  ~1-2h on 1 GPU.
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
 LEAF_DIR="code/bfm_embeddings/extract_embedding/brain_jepa"
 LOG_DIR="output/logs/brain_jepa_T16center_zero"

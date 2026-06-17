@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-FEELIN Brain-JEPA embedding extraction (resting-pretrained or scratch)
+EmoBrain Brain-JEPA embedding extraction (resting-pretrained or scratch)
 
 - Input: ROI time series (Schaefer 400 + Tian S3 50 = 450 ROIs), variable T
 - Padding: replicate last frame to 20 frames (T<20), first 20 frames (T>20)
@@ -21,16 +21,16 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 
 # Inject EmoDe's Brain-JEPA codebase
-BRAIN_JEPA_REPO = "/pscratch/sd/s/sjmoon/FEELIN/external/Brain-JEPA"
+BRAIN_JEPA_REPO = "/pscratch/sd/s/sjmoon/EmoBrain/external/Brain-JEPA"
 sys.path.insert(0, BRAIN_JEPA_REPO)
 from downstream_tasks.models_vit_embedding_extraction import VisionTransformer
 
 # Paths
-FEELIN_ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN")
+EmoBrain_ROOT = Path("/pscratch/sd/s/sjmoon/EmoBrain")
 ROI_BASE = Path("/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_preprocess_JEPA_ROI/time_series")
 NORM_PARAMS = Path("/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_preprocess_JEPA_ROI/normalization_params.npz")
-CHECKPOINT = FEELIN_ROOT / "baseline/brain_jepa/jepa-ep300.pth"
-CANONICAL_CSV = FEELIN_ROOT / "data/feelin_canonical_stimuli.csv"
+CHECKPOINT = EmoBrain_ROOT / "baseline/brain_jepa/jepa-ep300.pth"
+CANONICAL_CSV = EmoBrain_ROOT / "data/feelin_canonical_stimuli.csv"
 
 # Constants
 N_ROIS = 450
@@ -40,7 +40,7 @@ NUM_FRAMES = 16  # BJ patch_size=16, NUM_FRAMES=16 정확히 1 time patch.
                  # T < 16 자극은 padding 필요 (mean default).
 
 
-class FEELINHorikawaJEPADataset(Dataset):
+class EmoBrainHorikawaJEPADataset(Dataset):
     """Brain-JEPA ROI dataset with configurable padding (replicate / zero / mean)."""
 
     def __init__(self, subject: str, padding: str = "replicate", canonical_csv: Path = CANONICAL_CSV):
@@ -236,7 +236,7 @@ def main():
     ap.add_argument("--num_workers", type=int, default=4)
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--attn_mode", default="normal", choices=["normal", "flash_attn"])
-    ap.add_argument("--out_root", default=str(FEELIN_ROOT / "output/embeddings"))
+    ap.add_argument("--out_root", default=str(EmoBrain_ROOT / "output/embeddings"))
     ap.add_argument("--smoke_test_n", type=int, default=None, help="If set, only process N stimuli for smoke test.")
     args = ap.parse_args()
 
@@ -247,7 +247,7 @@ def main():
     out_dir = Path(args.out_root) / f"brain_jepa_{args.init}_pad-{args.padding}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"\n=== FEELIN Brain-JEPA extraction ===")
+    print(f"\n=== EmoBrain Brain-JEPA extraction ===")
     print(f"  init     : {args.init}")
     print(f"  padding  : {args.padding}")
     print(f"  subject  : {args.subject}")
@@ -256,7 +256,7 @@ def main():
     print(f"  seed     : {args.seed}")
 
     # Dataset / Loader
-    dataset = FEELINHorikawaJEPADataset(args.subject, padding=args.padding)
+    dataset = EmoBrainHorikawaJEPADataset(args.subject, padding=args.padding)
     if args.smoke_test_n:
         dataset.stim_names = dataset.stim_names[:args.smoke_test_n]
         dataset.stim_nums = dataset.stim_nums[:args.smoke_test_n]

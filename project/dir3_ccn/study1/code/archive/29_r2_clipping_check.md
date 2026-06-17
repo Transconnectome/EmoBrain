@@ -14,8 +14,8 @@ The original permutation test (`19_permutation_test.py`, `23_reverse_pca_ridge.p
 
 ## Inputs
 
-- `/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/data/raw/brain_embeddings/brain_jepa_embeddings.npy` shape (5, 2196, 768)
-- `/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/data/raw/video_embeddings/vjepa2_embeddings.npy` shape (2196, 1408)
+- `/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/raw/brain_embeddings/brain_jepa_embeddings.npy` shape (5, 2196, 768)
+- `/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/raw/video_embeddings/vjepa2_embeddings.npy` shape (2196, 1408)
 
 ## Pipeline
 

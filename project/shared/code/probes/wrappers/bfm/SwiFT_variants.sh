@@ -12,7 +12,7 @@
 # 5 variants × 2 init × 6 task × 2 mode × 2 head × 5 fold × 1 seed.  ~5-7h on 1 GPU.
 set -e
 PADDING="${1:-mean}"
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 /pscratch/sd/s/sjmoon/swift_PTL2/bin/python code/probes/run_unified_probe.py \
     --config_set swift_variants \
     --swift_variants_padding "${PADDING}" \

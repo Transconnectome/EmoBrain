@@ -22,11 +22,11 @@ from pathlib import Path
 
 import torch
 
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/shared/code/brainvlm")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/shared/code/brainvlm")
 from _lib import load_horikawa_fmri
 
-FEELIN_ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN")
-OUT_ROOT = FEELIN_ROOT / "output/brainvlm_fmri"
+EmoBrain_ROOT = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+OUT_ROOT = EmoBrain_ROOT / "output/brainvlm_fmri"
 
 
 def main():

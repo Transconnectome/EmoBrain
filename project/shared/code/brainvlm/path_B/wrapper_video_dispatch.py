@@ -21,7 +21,7 @@ Open issues / TODOs marked inline. This is NOT yet a runnable training pipeline.
 import sys
 import torch
 
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/shared/code/brainvlm")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/shared/code/brainvlm")
 sys.path.insert(0, "/pscratch/sd/s/sjmoon/BrainVLM/UMBRELLA_qwen")
 
 from _lib import make_patch_embed

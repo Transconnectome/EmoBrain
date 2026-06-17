@@ -1,9 +1,9 @@
 #!/bin/bash
-# FEELIN — Brain-JEPA mean padding only re-extraction (NUM_FRAMES=16, center-crop).
+# EmoBrain — Brain-JEPA mean padding only re-extraction (NUM_FRAMES=16, center-crop).
 # 5 subj × 2 init × mean = 10 cells.  ~1-2h on 1 GPU.
 # Old extracts (T=20, first 16) archived as brain_jepa_LEGACY_T20first16_*.
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
 LEAF_DIR="code/bfm_embeddings/extract_embedding/brain_jepa"
 LOG_DIR="output/logs/brain_jepa_T16center"

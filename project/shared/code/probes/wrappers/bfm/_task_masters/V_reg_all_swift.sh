@@ -14,7 +14,7 @@ for variant in SwiFT_NewE36 SwiFT_NewE96 SwiFT_NewE192 SwiFT_UAH_5M SwiFT_UAH_51
   echo ""
   echo ">>> [${variant}] V_reg 시작 $(date)"
   START=$(date +%s)
-  bash /pscratch/sd/s/sjmoon/FEELIN/project/shared/code/probes/wrappers/bfm/${variant}/V_reg.sh
+  bash /pscratch/sd/s/sjmoon/EmoBrain/project/shared/code/probes/wrappers/bfm/${variant}/V_reg.sh
   END=$(date +%s)
   echo ">>> [${variant}] V_reg 끝 (elapsed $((END - START))s)"
 done

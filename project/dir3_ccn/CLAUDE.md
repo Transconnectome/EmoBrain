@@ -81,7 +81,7 @@ V-JEPA2 only sees video input. Therefore Brain-JEPA ↔ V-JEPA2 alignment **is b
 
 ### Stimulus canonical = 2185 (locked 2026-05-27)
 
-Horikawa repeat clips (stim_idx 2185-2195, 11 개) 메인 분석에서 제외. **모든 분석에 2185 stimuli 사용.** 이는 EmoViS / FEELIN standard 와 일관.
+Horikawa repeat clips (stim_idx 2185-2195, 11 개) 메인 분석에서 제외. **모든 분석에 2185 stimuli 사용.** 이는 EmoViS / EmoBrain standard 와 일관.
 
 - Master stimulus index: `stim_idx 0-2184` (2185 개)
 - Brain-JEPA: `(5, 2196, 768)` → `[:, :2185, :]` 슬라이스
@@ -115,7 +115,7 @@ data/raw/video_embeddings/
 
 기존 V-JEPA2 only → V-JEPA2 + CLIP dual-primary.
 
-**Background**: FEELIN 프로젝트의 emotion prediction probe 결과, **CLIP > V-JEPA2 모든 task 에서** (Valence reg Pearson 0.683 vs 0.470, Cat34 bal_acc 0.383 vs 0.293).
+**Background**: EmoBrain 프로젝트의 emotion prediction probe 결과, **CLIP > V-JEPA2 모든 task 에서** (Valence reg Pearson 0.683 vs 0.470, Cat34 bal_acc 0.383 vs 0.293).
 
 따라서 두 모델을 primary 로 운영. M1, M2, M3 둘 다 계산. 두 모델 결과 비교가 새로운 finding 의 source.
 

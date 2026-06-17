@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN/project/shared/results/phase1")
+ROOT = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/shared/results/phase1")
 
 TASK_LIST = ["V_binary", "A_binary", "V_reg", "A_reg", "Cat34_top1", "Dim14_multi"]
 TASK_METRIC_NAME = {

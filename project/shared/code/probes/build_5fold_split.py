@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold
 
-DATA = Path("/pscratch/sd/s/sjmoon/FEELIN/data")
+DATA = Path("/pscratch/sd/s/sjmoon/EmoBrain/data")
 SEED = 0
 
 def main():

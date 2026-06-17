@@ -30,7 +30,7 @@ EmoBrain framing 을 **2 direction (BrainVLM + Multimodal Alignment) → 3 direc
 
 ## Path migration
 
-- 20 파일 in CCN_Emotion 의 hardcoded path `/pscratch/sd/s/sjmoon/CCN_Emotion/` → `/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/`.
+- 20 파일 in CCN_Emotion 의 hardcoded path `/pscratch/sd/s/sjmoon/CCN_Emotion/` → `/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/`.
 - dir2_multimodal alignment 코드의 hardcoded path → `dir3_ccn/code/alignment_pilot/`.
 - 모든 docs 의 `dir2_multimodal/` → `dir3_ccn/code/alignment_pilot/` (path) + Direction 2 의 의미적 reframe (Multimodal Alignment → fMRI-LM).
 

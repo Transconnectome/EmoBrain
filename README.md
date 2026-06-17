@@ -59,7 +59,7 @@ D3 (CCN) 은 별도 axis 로 dir3_ccn 안에서 진행.
 ## Repository Layout
 
 ```
-FEELIN/
+EmoBrain/
 ├── project/                ← 모든 분석 활동 (self-contained per-direction + shared)
 │   ├── dir1_brainvlm/{code,data,output,results}/
 │   ├── dir2_multimodal/{code,data,output,results}/

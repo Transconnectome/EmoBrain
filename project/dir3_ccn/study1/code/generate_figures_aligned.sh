@@ -7,8 +7,8 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --time=00:10:00
 #SBATCH --job-name=fig_aligned
-#SBATCH --output=/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/study1/logs/fig_aligned_%j.out
-#SBATCH --error=/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/study1/logs/fig_aligned_%j.err
+#SBATCH --output=/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/study1/logs/fig_aligned_%j.out
+#SBATCH --error=/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/study1/logs/fig_aligned_%j.err
 
 # Regenerate CCN camera-ready figures with "Brain-aligned" terminology.
 # Writes figure1_ccn.pdf / figure2_ccn.pdf into both study1/results/figures/
@@ -16,6 +16,6 @@
 
 set -e
 source /pscratch/sd/s/sjmoon/tribev2/.venv/bin/activate
-cd /pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/study1/code
+cd /pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/study1/code
 python generate_figures_aligned.py
 echo "Figures regenerated with aligned labels."

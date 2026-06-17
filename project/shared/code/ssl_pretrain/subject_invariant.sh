@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=feel_subject_invariant
-#SBATCH --output=/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/slurm/ssl_pretrain/subject_invariant_%x_%j.out
-#SBATCH --error=/pscratch/sd/s/sjmoon/FEELIN/project/shared/output/slurm/ssl_pretrain/subject_invariant_%x_%j.err
+#SBATCH --output=/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/slurm/ssl_pretrain/subject_invariant_%x_%j.out
+#SBATCH --error=/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/slurm/ssl_pretrain/subject_invariant_%x_%j.err
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
@@ -28,7 +28,7 @@
 #
 set -e
 
-FEEL=/pscratch/sd/s/sjmoon/FEELIN
+FEEL=/pscratch/sd/s/sjmoon/EmoBrain
 PY=/pscratch/sd/s/sjmoon/tribev2/.venv/bin/python
 SCRIPT=$FEEL/code/ssl_pretrain/subject_invariant.py
 

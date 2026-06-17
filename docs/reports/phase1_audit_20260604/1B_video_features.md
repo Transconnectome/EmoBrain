@@ -2,7 +2,7 @@
 
 Date: 2026-06-04
 Auditor: Claude (Opus 4.7)
-Scope: `/pscratch/sd/s/sjmoon/FEELIN/project/shared/data/stimulus_features/` (Track 3 video probe 의 base material). EmoViS 의 추출 코드는 audit 대상 외 (사용자 결정: video side 는 black-box input).
+Scope: `/pscratch/sd/s/sjmoon/EmoBrain/project/shared/data/stimulus_features/` (Track 3 video probe 의 base material). EmoViS 의 추출 코드는 audit 대상 외 (사용자 결정: video side 는 black-box input).
 Inventory CSV: `1B_video_alignment.csv` (10 row)
 
 ---
@@ -44,7 +44,7 @@ NaN / Inf 0 in 모든 file. `finite_all = True`.
 
 ### P_B2. Symlink 통한 single source of truth
 
-10 파일 모두 EmoViS `study1/results/00_embeddings/*/{file}` 으로의 symlink. 데이터 중복 없음. FEELIN side 에서 별도 복사본 없음 (디스크 효율). 단, EmoViS 측에서 본체 변경 시 silent propagate (informational only, 결정사항).
+10 파일 모두 EmoViS `study1/results/00_embeddings/*/{file}` 으로의 symlink. 데이터 중복 없음. EmoBrain side 에서 별도 복사본 없음 (디스크 효율). 단, EmoViS 측에서 본체 변경 시 silent propagate (informational only, 결정사항).
 
 ### P_B3. FEEL stim_idx == EmoViS stim_idx (완전 일치)
 
@@ -109,7 +109,7 @@ videomae_pretrained 의 std = 18.46. 다른 encoder std ≈ 1. 처리 책임은 
 
 ### F_B3. EmoViS 본체 변경 시 silent propagate
 
-10 npy 모두 symlink → EmoViS. EmoViS team 측에서 본체 재추출 시 FEELIN side 결과가 silently 바뀜. 합의된 single-source-of-truth design 이므로 의도된 동작. 단, 결과 lock 후에는 FEELIN side 에 hard copy 보존이 안전 (정책 결정 사항).
+10 npy 모두 symlink → EmoViS. EmoViS team 측에서 본체 재추출 시 EmoBrain side 결과가 silently 바뀜. 합의된 single-source-of-truth design 이므로 의도된 동작. 단, 결과 lock 후에는 EmoBrain side 에 hard copy 보존이 안전 (정책 결정 사항).
 
 ## FAIL 항목
 

@@ -1,0 +1,6 @@
+[submodule "external/repos/BrainVLM"]
+	path = external/repos/BrainVLM
+	url = git@github.com:Transconnectome/BrainVLM.git
+[submodule "external/repos/fMRI-LM"]
+	path = external/repos/fMRI-LM
+	url = git@github.com:yuxiangwei0808/fMRI-LM.git

@@ -1,5 +1,5 @@
 """
-FEELIN BrainVLM fold 1 V/A training.
+EmoBrain BrainVLM fold 1 V/A training.
 
 Strategy: import upstream UMBRELLA Qwen3-VL training pipeline, monkey-patch the
 dataset's brain-scan loader so it reads our .pt files (shape (1,1,96,96,96,T))
@@ -36,7 +36,7 @@ import numpy as _np
 if not hasattr(_np, "BUFSIZE"):
     _np.BUFSIZE = 8192
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
 BRAINVLM = Path("/pscratch/sd/s/sjmoon/BrainVLM/UMBRELLA_qwen")
 
 for p in (BRAINVLM, BRAINVLM / "project"):
@@ -49,7 +49,7 @@ log = logging.getLogger("feelin.brainvlm")
 
 
 def patch_dataset_for_pt_files():
-    """Override UMBRELLADatasetQwen._load_brain_scans to load FEELIN .pt files directly.
+    """Override UMBRELLADatasetQwen._load_brain_scans to load EmoBrain .pt files directly.
 
     Our .pt files are (1, 1, 96, 96, 96, T) tensors saved by convert_horikawa_fmri.py.
     The upstream loader expects nibabel-readable (.nii.gz) files and applies MONAI
@@ -96,8 +96,8 @@ def maybe_subset_dataset(dataset, n_keep: int, label: str):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fold", type=int, default=1)
-    ap.add_argument("--config", default=str(FEELIN / "project/shared/code/brainvlm/config_feelin_fold1_VA.yaml"))
-    ap.add_argument("--conv_root", default=str(FEELIN / "project/shared/output/brainvlm_conversations/pad-zero_VA"))
+    ap.add_argument("--config", default=str(EmoBrain / "project/shared/code/brainvlm/config_feelin_fold1_VA.yaml"))
+    ap.add_argument("--conv_root", default=str(EmoBrain / "project/shared/output/brainvlm_conversations/pad-zero_VA"))
     ap.add_argument("--output_dir", default=None)
     ap.add_argument("--epochs", type=int, default=None,
                     help="override yaml max_epochs")
@@ -200,7 +200,7 @@ def main():
         config.eval_json_path = [str(p) for p in val_jsonls]
     config.use_wandb = False
 
-    out_default = FEELIN / "project/shared/output/brainvlm_ckpt" / f"fold{args.fold}_VA_smoke"
+    out_default = EmoBrain / "project/shared/output/brainvlm_ckpt" / f"fold{args.fold}_VA_smoke"
     config.output_dir = args.output_dir or str(out_default)
     Path(config.output_dir).mkdir(parents=True, exist_ok=True)
 

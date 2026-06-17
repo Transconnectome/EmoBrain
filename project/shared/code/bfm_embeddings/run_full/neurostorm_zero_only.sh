@@ -1,8 +1,8 @@
 #!/bin/bash
-# FEELIN — NeuroSTORM zero padding extraction.
+# EmoBrain — NeuroSTORM zero padding extraction.
 # 5 subj × 2 init × zero = 10 cells. ~30min-1h on 1 GPU.
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
 LEAF_DIR="code/bfm_embeddings/extract_embedding/neurostorm"
 LOG_DIR="output/logs/neurostorm_zero"

@@ -9,7 +9,7 @@ Scientific question:
   가장 critical reviewer-killing baseline. "당신 brain 결과 0.7 인데 영상만 봐도
   0.85 나오면 brain 의 의의는?" 의 답을 측정 가능하게 함.
 
-Feature sources (EmoViS 에서 추출됨, FEELIN 은 reuse):
+Feature sources (EmoViS 에서 추출됨, EmoBrain 은 reuse):
   V-JEPA2 (pretrained + scratch) — temporal video
   CLIP    (pretrained + scratch) — static image
   DINOv2  (pretrained + scratch) — static image
@@ -54,10 +54,10 @@ warnings.filterwarnings("ignore", category=LinAlgWarning)
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "analysis"))
 from _lib.heads import SwiftMLP
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-FEAT_DIR = FEELIN / "project/shared/data/stimulus_features"
-DATA = FEELIN / "data"
-OUT_DIR = FEELIN / "project/shared/results/phase1"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+FEAT_DIR = EmoBrain / "project/shared/data/stimulus_features"
+DATA = EmoBrain / "data"
+OUT_DIR = EmoBrain / "project/shared/results/phase1"
 
 # Video feature source: (display_name, filename_in_feat_dir)
 VIDEO_FEATURES = [

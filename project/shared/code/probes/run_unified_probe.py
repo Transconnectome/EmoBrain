@@ -60,10 +60,10 @@ warnings.filterwarnings("ignore", category=LinAlgWarning)
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "analysis"))
 from _lib.heads import SwiftMLP
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-EMB_ROOT = FEELIN / "project/shared/output/embeddings"
-DATA = FEELIN / "data"
-OUT_DIR = FEELIN / "project/shared/results/background/phase1"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+EMB_ROOT = EmoBrain / "project/shared/output/embeddings"
+DATA = EmoBrain / "data"
+OUT_DIR = EmoBrain / "project/shared/results/background/phase1"
 
 # Feature source 정의
 FEATURES = [

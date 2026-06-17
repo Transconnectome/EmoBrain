@@ -6,10 +6,10 @@ Step 2: Pass through random-init PatchEmbedQwen.fMRI → vision tokens.
 Step 3: Confirm output shape matches Qwen3-VL LLM hidden dim (2048 for 2B).
 Step 4 (Path C only): Load EmoViS video features for the same stim, confirm alignment.
 
-Does NOT load full Qwen3-VL weights (saves time). Tests the FEELIN-side integration only.
+Does NOT load full Qwen3-VL weights (saves time). Tests the EmoBrain-side integration only.
 """
 import sys
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/shared/code/brainvlm")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/shared/code/brainvlm")
 import torch
 import numpy as np
 
@@ -19,7 +19,7 @@ from _lib import (load_horikawa_fmri, make_patch_embed, build_emotion_query_conv
 
 def main():
     print("=" * 60)
-    print("FEELIN BrainVLM smoke test (random-init)")
+    print("EmoBrain BrainVLM smoke test (random-init)")
     print("=" * 60)
 
     # Step 1: Load Horikawa fMRI

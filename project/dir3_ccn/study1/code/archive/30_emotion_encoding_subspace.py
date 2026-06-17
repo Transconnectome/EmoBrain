@@ -33,9 +33,9 @@ from pathlib import Path
 warnings.filterwarnings('ignore', category=UserWarning)
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-VJEPA_PATH = Path("/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/data/raw/video_embeddings/vjepa2_embeddings.npy")
+VJEPA_PATH = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/raw/video_embeddings/vjepa2_embeddings.npy")
 META_PATH  = Path("/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/horikawa_meta_data_with_dimension_binary.csv")
-OUTPUT_DIR = Path("/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/study1/data")
+OUTPUT_DIR = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/study1/data")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 EMOTION_LABELS = [

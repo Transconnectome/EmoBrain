@@ -2,7 +2,7 @@
 Generate ONE combined wide figure (4 panels) for CCN 2026 camera-ready.
 
 Replaces the previous two-figure layout. Output:
-  /pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/ccn2026_template/figure1_ccn.pdf
+  /pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/ccn2026_template/figure1_ccn.pdf
 
 Panels:
   (A) R^2 per V-JEPA2 PC predicted from Brain-JEPA (PC1-3 marked)
@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib import rcParams
 
-ROOT     = '/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn'
+ROOT     = '/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn'
 DATA     = os.path.join(ROOT, 'study1', 'data')
 FIGREC   = os.path.join(ROOT, 'study1', 'results', 'figures')
 TEMPLATE = os.path.join(ROOT, 'ccn2026_template')

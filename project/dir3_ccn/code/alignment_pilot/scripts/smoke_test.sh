@@ -5,7 +5,7 @@
 set -euo pipefail
 
 VENV=/pscratch/sd/s/sjmoon/tribev2/.venv/bin/python
-SCRIPT=/pscratch/sd/s/sjmoon/FEELIN/project/dir3_ccn/code/alignment_pilot/code/train/train_align.py
+SCRIPT=/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/code/alignment_pilot/code/train/train_align.py
 OUT=/tmp/dir2_smoke_$$
 
 mkdir -p "$OUT"

@@ -21,8 +21,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
 
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2")
-sys.path.insert(0, "/pscratch/sd/s/sjmoon/FEELIN/project/dir2_multimodal/code/legacy_phase2/architectures")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2")
+sys.path.insert(0, "/pscratch/sd/s/sjmoon/EmoBrain/project/dir2_multimodal/code/legacy_phase2/architectures")
 
 from _lib import (TASKS, load_brain_embeddings, load_video_feature, load_task_labels,
                   get_fold_split, build_pooled_data, eval_metrics, val_score,
@@ -34,8 +34,8 @@ from arch_D_late_fusion import LateFusion
 from arch_A_token_transformer import TokenTransformer
 from arch_B_cross_attention import CrossAttention
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-OUT_DIR = FEELIN / "project/shared/results/phase2"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+OUT_DIR = EmoBrain / "project/shared/results/phase2"
 
 ARCHS = {"D": LateFusion, "A": TokenTransformer, "B": CrossAttention}
 

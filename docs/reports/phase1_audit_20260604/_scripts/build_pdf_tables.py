@@ -14,8 +14,8 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-P = Path("/pscratch/sd/s/sjmoon/FEELIN/project/shared/results/phase1")
-OUT = Path("/pscratch/sd/s/sjmoon/FEELIN/docs/reports/phase1_audit_20260604/_pdf")
+P = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/shared/results/phase1")
+OUT = Path("/pscratch/sd/s/sjmoon/EmoBrain/docs/reports/phase1_audit_20260604/_pdf")
 OUT.mkdir(parents=True, exist_ok=True)
 
 DISPLAY = {

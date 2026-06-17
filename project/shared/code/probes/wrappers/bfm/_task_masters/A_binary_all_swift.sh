@@ -14,7 +14,7 @@ for variant in SwiFT_NewE36 SwiFT_NewE96 SwiFT_NewE192 SwiFT_UAH_5M SwiFT_UAH_51
   echo ""
   echo ">>> [${variant}] A_binary 시작 $(date)"
   START=$(date +%s)
-  bash /pscratch/sd/s/sjmoon/FEELIN/project/shared/code/probes/wrappers/bfm/${variant}/A_binary.sh
+  bash /pscratch/sd/s/sjmoon/EmoBrain/project/shared/code/probes/wrappers/bfm/${variant}/A_binary.sh
   END=$(date +%s)
   echo ">>> [${variant}] A_binary 끝 (elapsed $((END - START))s)"
 done

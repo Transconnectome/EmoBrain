@@ -1,9 +1,9 @@
 #!/bin/bash
-# FEELIN — swift_NewE96_SL20 full run (all 30 leaf scripts, sequential)
+# EmoBrain — swift_NewE96_SL20 full run (all 30 leaf scripts, sequential)
 # Resume 가능 (이미 있는 .pt skip). For single-subject runs use swift_NewE96_SL20_sub-XX.sh.
 
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 
 MODEL_TAG="swift_NewE96_SL20"
 OUT_PREFIX="swift_NewE96_SL20"

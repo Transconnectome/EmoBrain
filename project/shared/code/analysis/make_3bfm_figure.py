@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-ROOT = Path("/pscratch/sd/s/sjmoon/FEELIN/results")
+ROOT = Path("/pscratch/sd/s/sjmoon/EmoBrain/results")
 OUT = ROOT / "main_grid_3bfm"
 OUT.mkdir(parents=True, exist_ok=True)
 

@@ -43,8 +43,11 @@ checkpoints/
 pretrained_models/
 models--*/
 
-# Vendored external model code (Brain-JEPA, NeuroSTORM, etc.)
-external/
+# Vendored external model code that should NOT be committed.
+# Submodules under external/repos/ (BrainVLM, fMRI-LM 등) 는 commit 대상.
+external/Brain-JEPA/
+external/NeuroSTORM/
+external/checkpoints/
 
 # Model checkpoints
 baseline/

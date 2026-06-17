@@ -3,7 +3,7 @@
 # Model: SwiFT_NewE96 (config_set=main).  Task: A_binary.
 # 5 fold × 1 seed × 2 head × (mode if applicable).  ~30-60min on 1 GPU.
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 /pscratch/sd/s/sjmoon/swift_PTL2/bin/python code/probes/run_unified_probe.py \
     --config_set main \
     --features SwiFT_NewE96 \

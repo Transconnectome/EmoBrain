@@ -21,7 +21,7 @@ rcParams.update({
     "pdf.fonttype": 42,
 })
 
-OUT = Path("/pscratch/sd/s/sjmoon/FEELIN/docs/reports/phase2_wrapup/figs/architecture_8methods.png")
+OUT = Path("/pscratch/sd/s/sjmoon/EmoBrain/docs/reports/phase2_wrapup/figs/architecture_8methods.png")
 OUT.parent.mkdir(parents=True, exist_ok=True)
 
 COL_BRAIN  = "#3182BD"  # blue

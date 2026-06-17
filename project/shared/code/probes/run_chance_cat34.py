@@ -34,9 +34,9 @@ from sklearn.metrics import f1_score, roc_auc_score
 
 warnings.filterwarnings("ignore")
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
-DATA = FEELIN / "data"
-OUT_DIR = FEELIN / "project/shared/results/background/phase1"
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
+DATA = EmoBrain / "data"
+OUT_DIR = EmoBrain / "project/shared/results/background/phase1"
 
 CAT34_MULTILABEL_THRESHOLD = 0.10  # 2026-06-07: was 0.15. See run_unified_probe.py.
 
@@ -226,7 +226,7 @@ def main():
 
     # Aggregate across folds + seeds for all test_* metrics.
     import sys
-    sys.path.insert(0, str(FEELIN / "project/shared/code/probes"))
+    sys.path.insert(0, str(EmoBrain / "project/shared/code/probes"))
     from _summary_helper import summarize_probe_csv
     summary = summarize_probe_csv(args.out_csv, args.summary_csv)
     print(f"Wrote summary {len(summary)} rows to {args.summary_csv}")

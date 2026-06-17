@@ -61,9 +61,9 @@ Top emotion-encoding PCs by `top1_acc` or `auc_ovr_macro` define the **emotion-e
 
 Comparison with M1 (Exp 29) brain-aligned PCs → M3 overlap (Exp 32).
 
-## Expected pattern from FEELIN
+## Expected pattern from EmoBrain
 
-FEELIN linear probe results (stim_level, pretrained):
+EmoBrain linear probe results (stim_level, pretrained):
 - CLIP: Cat34 top-1 bal_acc = 0.383, V-reg Pearson r = 0.683
 - V-JEPA2: Cat34 top-1 bal_acc = 0.293, V-reg Pearson r = 0.470
 

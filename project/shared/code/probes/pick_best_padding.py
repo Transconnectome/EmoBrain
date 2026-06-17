@@ -8,12 +8,12 @@ import argparse
 from pathlib import Path
 import pandas as pd
 
-FEELIN = Path("/pscratch/sd/s/sjmoon/FEELIN")
+EmoBrain = Path("/pscratch/sd/s/sjmoon/EmoBrain")
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--glob", default=str(FEELIN / "project/shared/results/phase1/swift_padding_ablation*.csv"),
+    ap.add_argument("--glob", default=str(EmoBrain / "project/shared/results/phase1/swift_padding_ablation*.csv"),
                     help="glob pattern. per-task split CSV 들 (swift_padding_ablation_V_binary.csv, ...) "
                          "을 자동 결합. _summary.csv 는 자동 제외.")
     ap.add_argument("--restrict_init", default=None,

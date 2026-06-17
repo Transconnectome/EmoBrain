@@ -1,7 +1,7 @@
 #!/bin/bash
-# FEELIN Brain-JEPA (scratch / zero / sub-01)
+# EmoBrain Brain-JEPA (scratch / zero / sub-01)
 set -e
-cd /pscratch/sd/s/sjmoon/FEELIN
+cd /pscratch/sd/s/sjmoon/EmoBrain
 mkdir -p output/logs
 
 source /pscratch/sd/s/sjmoon/brain-jepa-env/bin/activate
@@ -14,4 +14,4 @@ python code/bfm_embeddings/_lib/brain_jepa.py \
     --batch_size 32 \
     --num_workers 4 \
     --attn_mode normal \
-    --out_root /pscratch/sd/s/sjmoon/FEELIN/project/shared/output/embeddings
+    --out_root /pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings

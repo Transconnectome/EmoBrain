@@ -2,7 +2,7 @@
 
 Read `CONTEXT_FEEL.md` first. Active forward plan is `docs/masterplan_v3_emobrain.md`.
 
-Project name = EmoBrain (since 2026-06-08). Repo path `/pscratch/sd/s/sjmoon/FEELIN/` preserved. Previous v4 framing archived under `archive/v4_20260602/`.
+Project name = EmoBrain (since 2026-06-08). Repo path `/pscratch/sd/s/sjmoon/EmoBrain/` preserved. Previous v4 framing archived under `archive/v4_20260602/`.
 
 ## Operating Rules
 
