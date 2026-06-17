@@ -3,13 +3,15 @@
 Branch `sj_NEW_20260608_perlmutter`. Forward plan for the EmoBrain framing.
 
 **Structure.**
-- **Background**. Phase 1 benchmark (frozen BFM 한계 확정, completed).
-- **Direction 1**. BrainVLM (main).
-- **Direction 2**. Multimodal Alignment (main).
+- **Background**. Phase 1 benchmark (frozen BFM 한계 확정, Horikawa, completed).
+- **Direction 1**. BrainVLM (main paper).
+- **Direction 2**. fMRI-LM (main paper, Wei 2026 architecture 차용).
+- **Direction 3**. CCN. Brain-Video alignment + context clustering (별도 workshop 발표).
 - **Application**. Hackathon (5 일 demo).
-- **Output**. Paper + Submission.
+- **Output**. Paper + Submission (D1 + D2 의 2 × 2 grid) + CCN workshop poster (D3).
 
-Two directions 는 complementary 이며 둘 다 main scope.
+D1 + D2 가 main paper 의 2 axis. D3 는 별도 발표 path (`project/dir3_ccn/`).
+Dataset 2 개. Horikawa + Emo-FilM (다운로드 예정).
 
 ## 1. Research Question
 
@@ -17,10 +19,10 @@ Brain 에서 mixed / complex emotion 의 구조는 어떻게 나타나는가? �
 
 ### Sub-questions
 
-- SQ1. **VLM / LLM bridge 의 emotion-relevant gain (Direction 1)**. fMRI 를 VLM token 으로 주입하고 LoRA fine-tune 으로 multi-task emotion 출력했을 때, frozen BFM 단독 대비 V/A 와 Cat34 task 의 의미있는 향상이 있는가?
-- SQ2. **Brain unique contribution (Direction 2)**. Brain encoder + V-JEPA2 video encoder 의 contrastive alignment 위에서 brain 이 video baseline 위에 추가하는 unique emotion variance 가 존재하는가?
-- SQ3. **Mixed / complex emotion 의 표현**. Cat34 multilabel + soft distribution + mixed valence 의 fine structure 를 두 axis 가 각각 어떻게 잡는가?
-- SQ4 (optional, cross-dataset). 두 direction 의 학습된 표상이 Horikawa 외 다른 dataset (Emo-FilM, CineBrain, StudyForrest) 으로 transfer 되는가?
+- SQ1 (D1). **VLM bridge 의 emotion-relevant gain**. Qwen3-VL 위 LoRA fine-tune 으로 emotion multi-task 출력했을 때 frozen BFM 단독 대비 V/A 와 Cat34 의 향상이 있는가?
+- SQ2 (D2). **fMRI-LM 의 emotion 적응**. Wei 2026 의 architecture (LLM tokenizer + 3-stage tuning) 가 emotion task 에서 D1 보다 더 효과적인가?
+- SQ3 (D3). **Context clustering in brain**. Video embedding 위 learning clustering 이 emotion 1 개 안에서 context 별 sub-cluster 를 emerge 시키고, 그 context 가 brain 표상에서도 나타나는가?
+- SQ4 (cross-dataset). 두 dataset (Horikawa + Emo-FilM) 의 D1 + D2 + D3 결과가 transfer 되는가? 새 task design 에 어떤 label 이 universal 한가?
 
 ## 2. Background. Phase 1 Benchmark (Completed)
 
@@ -51,19 +53,40 @@ Brain 에서 mixed / complex emotion 의 구조는 어떻게 나타나는가? �
 
 Action 상세는 `ACTION_PLAN.md` Direction 1 (Action 1.1 ~ 1.3).
 
-## 4. Direction 2. Multimodal Alignment
+## 4. Direction 2. fMRI-LM (main paper)
 
-**Architecture**. Brain encoder (Brain-JEPA frozen 또는 학습 가능 BFM) + V-JEPA2 video feature + projection head (공통 embedding space) + InfoNCE symmetric contrastive loss.
+**Architecture**. Wei 2026 (arXiv 2511.21760) 의 fMRI-LM 3-stage pipeline 을 차용 후 emotion specific 으로 발전.
 
-**Optional**. Subject-invariant 학습 (같은 자극의 다른 subject brain 도 가까워지도록).
+- Stage 1. Brain-JEPA-like ViT tokenizer + Vector Quantizer → fMRI discrete token. SigLIP + GRL + reconstruction.
+- Stage 2. GPT-2 / Qwen3-0.6B LLM + F2F + F2T + T2T 3-objective (L_F2T + 0.1 L_F2F + 0.5 L_T2T).
+- Stage 3. Instruction tuning + LoRA.
 
-**Evaluation**. Variance partitioning. Brain unique variance = Joint - Video-only.
+**Synthetic descriptor corpus**. Horikawa 의 V/A + Cat34 + Qwen-VL caption → template + LLM rewrite. paired fMRI-text 의 자연 부재 우회.
 
-**Reference**. TRIBE 2025, VIBE 2025, CineBrain 2025, Doerig 2024, BraVL 2023.
+**Reference**. fMRI-LM (Wei 2026, arXiv 2511.21760).
 
-**Gate**. Brain unique variance 가 paired bootstrap p < 0.05 이고 Pearson r 향상 +0.05 이상이면 Direction 2 main path 확정.
+**Gate**. V/A Pearson r + Cat34 macro AUROC 가 Phase 1 ROI baseline 보다 의미있게 높음. D1 BrainVLM 과의 비교 (어느 architecture 가 emotion 잡는데 더 적합).
 
-Action 상세는 `ACTION_PLAN.md` Direction 2 (Action 2.1 ~ 2.3).
+Action 상세는 `ACTION_PLAN.md` Direction 2 (Action 2.1 ~ 2.5).
+
+## 4.5. Direction 3. CCN. Brain-Video Alignment + Context Clustering (workshop 별도)
+
+**위치**. `project/dir3_ccn/` (이전 CCN_Emotion + alignment_pilot + legacy_phase2 통합).
+
+**Architecture**. Brain encoder + V-JEPA2 video encoder + projection (SigLIP + GRL) + learning clustering on video embedding.
+
+**Goal**. Video embedding 위 learning clustering → context 반영된 cluster 가 emerge 하는지. **같은 emotion (예: joy) 안에서 context 별 sub-cluster 가 brain 표상에서도 나타나는지** 검증.
+
+**Evaluation**.
+- Cluster emergence (전체 자극의 video embedding 위에서 cluster 가 얼마나 명확히 분리되는가).
+- 감정 1 개로 세팅 (예: joy stim 만으로 sub-cluster 확인).
+- Independent dataset transfer (cross-dataset universal context structure).
+
+**Gate**. Cluster emergence + cross-dataset preservation 의미있으면 CCN workshop poster. 결과 강하면 paper 까지.
+
+**Reference**. TRIBE 2025, VIBE 2025, CineBrain 2025, Doerig 2024, BraVL 2023, Aligning machine and human visual representations across abstraction levels (2025).
+
+Action 상세는 `ACTION_PLAN.md` Direction 3 (Action 3.1 ~ 3.3).
 
 ## 5. Standard Baseline Suite
 

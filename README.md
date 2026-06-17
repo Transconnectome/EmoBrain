@@ -18,35 +18,43 @@ Naturalistic video fMRI 에서 emotion 표상을 학습하기 위해 두 axis �
 
 본 프로젝트는 위 두 흐름을 emotion specific 한 두 axis 로 통합한다.
 
-## Two Axes
+## Three Directions
 
-| Axis | 핵심 아이디어 | 주요 reference |
-|------|----------------|----------------|
-| **Direction 1. BrainVLM** | UMBRELLA_qwen (Qwen3-VL backbone) 또는 동등한 VLM 의 fMRI patchifier 로 brain volume 을 token 화, LLM context 에 주입, LoRA fine-tune 으로 emotion VQA + Cat34 distribution + V/A score 동시 출력 | MindLLM 2025, UMBRAE 2024, Mind Captioning 2025, MedBLIP 2023, BLIP-2 2023, LLaVA 2023 |
-| **Direction 2. Brain-Video Multimodal** | Brain encoder (Brain-JEPA 등 BFM 활용 가능) 와 video encoder (V-JEPA2) 의 contrastive alignment 학습, brain unique variance = joint − video-only 정량화, subject-invariant 표상 학습 추가 | TRIBE 2025, VIBE 2025, Multi-modal brain encoding 2025, CineBrain 2025, Doerig 2024, BraVL 2023 |
+| Direction | 핵심 아이디어 | 주요 reference |
+|-----------|----------------|----------------|
+| **Direction 1. BrainVLM** | Qwen3-VL VLM 의 fMRI patchifier + LoRA fine-tune. 자연어와 numeric 으로 emotion VQA / V/A / Cat34 distribution 동시 출력. | MindLLM 2025, UMBRAE 2024, Mind Captioning 2025, MedBLIP 2023, BLIP-2 2023, LLaVA 2023 |
+| **Direction 2. fMRI-LM** | Wei 2026 paper 의 fMRI-LM architecture (Brain-JEPA-like tokenizer + GPT-2/Qwen3 LLM + SigLIP + GRL + F2F+F2T+T2T) 차용 후 emotion specific 으로 발전. LLM tokenizer 활용 방향. | fMRI-LM (Wei 2026, arXiv 2511.21760) |
+| **Direction 3. CCN. Contextualized representation + 새 task design** | Video model embedding 으로 learning clustering → context 반영된 clustering → brain 이 그 context 학습 (Brain-Video alignment). 같은 emotion 안에서 context 별 sub-cluster 가 나타나는지 검증. | TRIBE 2025, VIBE 2025, CineBrain 2025, Doerig 2024, BraVL 2023 |
 
-두 axis 는 서로 보완. BrainVLM 이 generative + multi-task 측면, Multimodal 이 brain 의 정량적 contribution 측면을 다룬다. BFM 은 Direction 1 의 vision modality 의 적합 후보가 아니지만 Direction 2 의 brain encoder 로는 활용 가능.
+D1 + D2 는 main paper path (EmoBrain). D3 는 CCN 발표용 별도 axis (`project/dir3_ccn/` 안에 self-contained).
 
-## Tasks
+## Tasks (3 종류)
 
-| Task | 설명 |
-|------|------|
-| V/A Binary Classification | Quartile-based, Q1 vs Q4 |
-| V/A Regression | Continuous score 1-9 (V), 2-8.67 (A) |
-| Cat34 Multilabel Classification | 자극당 34 개 emotion 의 binary label vector, threshold 0.10 (= 1/10 raters, 자연 단위) |
-| Cat34 Soft Distribution Regression | 자극당 34 차원 probability distribution, KL divergence 학습 |
-| Mixed Valence Categorization | Positive / Negative / Mixed 의 3-way, Vaccaro 2024 가설 검증 |
-| Caption Embedding Regression (Direction 1 specific) | Brain → Qwen-VL caption embedding mapping |
-| Emotion VQA (Direction 1 specific) | "이 brain state 가 어떤 emotion 을 표현하는가" 의 자연어 응답 |
+| 종류 | 설명 | 적용 dataset |
+|------|------|----------------|
+| **A. 기존 언어 task (공통)** | V/A binary (Q1 vs Q4), V/A regression, categorical classification (threshold 기준 선택) | Horikawa + Emo-FilM 둘 다 |
+| **B. 새로운 공통 task (공통)** | independent dataset 에도 적용되는 label 을 어떻게 만들 것인가. clustering 이 한 방법일 수 있음. task design 결정 중. | Horikawa + Emo-FilM 둘 다 |
+| **C. 개별 dataset task** | Horikawa = visual feature 위주. Emo-FilM = narratives + dynamics 반영. | dataset 특화 |
 
-Phase 1 측정 완료. 1-4. 계획. 5-7.
+**Phase 1 측정 완료** (Horikawa 만): V/A binary, V/A regression, Cat34 multilabel, Cat34 soft. ROI baseline + chance + frozen BFM.
 
-## Data
+## Data (2 datasets)
 
-- **Horikawa naturalistic video fMRI**. 5 subject × 2185 video stimulus (canonical). Cowen 34 emotion category rating + 14 affective dimension rating 동반.
-- **Qwen-VL caption**. 2185 자극 모두 caption embedding 추출 완료.
-- **Video features**. CLIP, DINOv2, VideoMAE, V-JEPA2 의 pretrained + scratch.
-- **Independent datasets (future)**. Emo-FilM, StudyForrest, CineBrain, NNDb, Affective Videos for cross-dataset generalization.
+| Dataset | Subjects | Stim | 특성 | 상태 |
+|---------|----------|------|------|------|
+| **Horikawa** naturalistic video fMRI | 5 | 2185 | Cowen 34-cat + 14-dim + V/A. visual feature 위주. | 사용 중 |
+| **Emo-FilM** | TBD | TBD | narratives + temporal dynamics 강조 | 다운로드 예정 |
+
+부수 데이터. Qwen-VL caption (2185 자극), V-JEPA2 / CLIP / DINOv2 / VideoMAE pretrained+scratch (Horikawa 자극).
+
+**2 × 2 grid (Direction × Dataset)**.
+
+| | Horikawa | Emo-FilM |
+|--|----------|------------|
+| **D1. BrainVLM** | (BrainVLM, Horikawa) | (BrainVLM, Emo-FilM) |
+| **D2. fMRI-LM** | (fMRI-LM, Horikawa) | (fMRI-LM, Emo-FilM) |
+
+D3 (CCN) 은 별도 axis 로 dir3_ccn 안에서 진행.
 
 ## Repository Layout
 

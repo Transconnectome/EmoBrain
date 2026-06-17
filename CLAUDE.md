@@ -11,7 +11,7 @@ Project name = EmoBrain (since 2026-06-08). Repo path `/pscratch/sd/s/sjmoon/FEE
 - Narrative 는 `Paper/framework_EN.md`, `framework_KR.md`.
 - Methodology 는 `Paper/methodology.md`.
 - Decision log 는 `docs/notes/project_decisions.md`.
-- 실험 코드는 `project/shared/code/` 아래 (`probes/`, `bfm_embeddings/`, `dir1_brainvlm/` (Direction 1), `dir2_multimodal/` (Direction 2, `legacy_phase2/` 포함), `ssl_pretrain/`, `analysis/`, `tools/`).
+- 실험 코드. 공유 `project/shared/code/{probes,bfm_embeddings,ssl_pretrain,analysis,tools}/`. Per-direction. `project/dir1_brainvlm/code/` (D1), `project/dir2_fmri_lm/code/` (D2), `project/dir3_ccn/code/{alignment_pilot,legacy_phase2}/` + `project/dir3_ccn/study1/`, `study2_thesis/` (D3, 이전 CCN_Emotion).
 - 입력 데이터 (splits, target matrices) 는 `project/shared/data/`.
 - 추출된 features / logs 는 `project/shared/output/`.
 - 분석 결과 (CSV, figure, slide text) 는 `project/shared/results/`.
@@ -21,7 +21,7 @@ Project name = EmoBrain (since 2026-06-08). Repo path `/pscratch/sd/s/sjmoon/FEE
 ## Scientific Rules
 
 - EmoBrain 은 active brain decoding for emotion 의 model-development project. Emotion theory paper 아님.
-- 두 main axis 가 EmoBrain framing: **Direction 1 BrainVLM** (Qwen3-VL backbone + LoRA fine-tune) + **Direction 2 Multimodal Alignment** (Brain encoder + V-JEPA2 contrastive alignment). BFM 은 main scope 아님 (Direction 2 의 brain encoder 후보로만).
+- **Three Directions** 가 EmoBrain framing: **D1 BrainVLM** (Qwen3-VL + LoRA), **D2 fMRI-LM** (Wei 2026 architecture 차용), **D3 CCN** (Brain-Video alignment + context clustering, 별도 workshop 발표). D1 + D2 가 main paper, D3 는 CCN 발표 path. Dataset 2 개 (Horikawa + Emo-FilM).
 - Background benchmark (Phase 1) 의 frozen BFM (SwiFT NewE96 + 5 변종, Brain-JEPA, NeuroSTORM) 결과는 ROI baseline 못 넘음을 확정. EmoBrain framing 의 motivation evidence.
 - Horikawa stimulus 수 = 2185 canonical.
 - Claim 과 measured result 분리. Over-claim 금지.

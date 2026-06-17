@@ -38,7 +38,7 @@ Decision 기록은 시간순. 가장 최신이 위.
 4. **mixed emotion 의 적절한 표현**. 0.10 에서 평균 자극당 4.93 cat 양성. Vaccaro 2024 의 mixed valence framework 와 일관.
 
 **영향**.
-- `project/shared/code/probes/run_unified_probe.py:147`, `project/shared/code/probes/run_chance_cat34.py:41`, `project/dir2_multimodal/code/legacy_phase2/_lib.py:41` 의 `CAT34_MULTILABEL_THRESHOLD` 변경.
+- `project/shared/code/probes/run_unified_probe.py:147`, `project/shared/code/probes/run_chance_cat34.py:41`, `project/dir3_ccn/code/legacy_phase2/_lib.py:41` 의 `CAT34_MULTILABEL_THRESHOLD` 변경.
 - Cat34_multilabel + Cat34_soft 재측정 launch. 결과 CSV 는 `_t010` suffix 로 저장 (기존 0.15 결과 보존).
 - 발표 / paper 의 method section 에 threshold 선택 근거 명시.
 
