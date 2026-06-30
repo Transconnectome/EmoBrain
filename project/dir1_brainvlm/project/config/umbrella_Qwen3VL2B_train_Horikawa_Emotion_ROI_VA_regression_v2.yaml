@@ -1,0 +1,78 @@
+# ============================================================================
+# UMBRELLA v2. Horikawa Emotion VA regression (ROI_fMRI). Backbone = Qwen3-VL-2B-Instruct.
+# Plan B hyperparameter tuning. lr 5e-4 → 1e-4, epoch 50 → 10.
+# ============================================================================
+
+wandb:
+    API_KEY: "TODO_INSERT_USER_WANDB_KEY"
+
+seed: 1234
+
+dataset:
+    train_size: 0.8
+    val_size: 0.1
+    test_size: 0.1
+    add_context: False
+    sMRI:
+        target: []
+        img_size: [96, 96, 96]
+        study_sample: []
+        meta_dir: []
+        img_dir: []
+    dMRI:
+        target: []
+        img_size: [96, 96, 96]
+        study_sample: []
+        meta_dir: []
+        img_dir: []
+    fMRI:
+        target: []
+        img_size: [97, 115, 97, 16]
+        study_sample: []
+        img_dir: []
+        dataset_split_num: 1
+        sequence_length: 16
+        stride_between_seq: 1
+        stride_within_seq: 1
+        shuffle_time_sequence: False
+        input_scaling_method: "znorm_minback"
+        label_scaling_method: "standardization"
+        dtype: "float16"
+        limit_training_samples: Null
+        limit_validation_samples: Null
+        limit_test_samples: Null
+        balanced_training_samples: False
+        balanced_validation_samples: False
+        balanced_test_samples: False
+    ROI_fMRI:
+        target: ["va_regression"]
+        img_size: [450, 16]
+        recording: "Horikawa_ROI_zscore"
+        study_sample: ["Horikawa"]
+
+model:
+    hf_name: "Qwen/Qwen3-VL-2B-Instruct"
+    sMRI:
+        patch_size: [8, 8, 8]
+    dMRI:
+        patch_size: [8, 8, 8]
+    fMRI:
+        patch_size: [16, 16, 16, 4]
+    ROI_fMRI:
+        patch_size: [1, 8]
+
+trainer:
+    max_epochs: 10
+    learning_rate: 0.0001
+    warmup_steps: 50
+    weight_decay: 0.01
+    per_device_batch_size: 4
+    max_images_per_sample: 4
+    gradient_accumulation_steps: 16
+    gradient_checkpointing: True
+    mixed_precision: "bf16"
+    logging_steps: 50
+    eval_steps: 500
+    save_steps: 500
+    ckpt_dir: Null
+    resume_training: False

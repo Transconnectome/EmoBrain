@@ -49,6 +49,60 @@ external/Brain-JEPA/
 external/NeuroSTORM/
 external/checkpoints/
 
+# Vendored UMBRELLA_qwen_upgrade (BrainVLM heehwan branch) copied flat into dir1_brainvlm/.
+# Recopy on clone:
+#   cp -r /pscratch/sd/s/sjmoon/BrainVLM_heehwan/UMBRELLA_qwen_upgrade/* project/dir1_brainvlm/
+# 우리 emotion 추가물만 commit (naming: *Horikawa_Emotion*, calculate_horikawa_*, horikawa_*).
+project/dir1_brainvlm/dataset_construction_toolkit/
+project/dir1_brainvlm/exp_data/
+project/dir1_brainvlm/exp_scripts/
+project/dir1_brainvlm/sample_data/
+project/dir1_brainvlm/sample_scripts/UMBRELLA_*.sh
+project/dir1_brainvlm/Umbrella_engineering_design.md
+project/dir1_brainvlm/Umbrella_schema_migration_plan.md
+project/dir1_brainvlm/project/dataset/
+project/dir1_brainvlm/project/model/
+project/dir1_brainvlm/project/training/
+project/dir1_brainvlm/project/config/umbrella_Qwen3_train_BMIRegression.yaml
+project/dir1_brainvlm/project/config/umbrella_Qwen3_train_MultiTask_*.yaml
+project/dir1_brainvlm/project/config/umbrella_Qwen3_train_SexClassification*.yaml
+project/dir1_brainvlm/project/config/datasets/umbrella_ABCD*.yaml
+project/dir1_brainvlm/project/config/datasets/umbrella_ADHD200*.yaml
+project/dir1_brainvlm/project/config/datasets/umbrella_BMI.yaml
+project/dir1_brainvlm/project/config/datasets/umbrella_SexBMI.yaml
+project/dir1_brainvlm/project/config/datasets/umbrella_Sex.yaml
+project/dir1_brainvlm/project/config/datasets/umbrella_UKB*.yaml
+project/dir1_brainvlm/metric_calculation/calculate_ADHD_*.py
+project/dir1_brainvlm/metric_calculation/calculate_age_*.py
+project/dir1_brainvlm/metric_calculation/calculate_BMI_*.py
+project/dir1_brainvlm/metric_calculation/calculate_conversion_*.py
+project/dir1_brainvlm/metric_calculation/calculate_diagnosis_*.py
+project/dir1_brainvlm/metric_calculation/calculate_IQ_*.py
+project/dir1_brainvlm/metric_calculation/calculate_ptau_*.py
+project/dir1_brainvlm/metric_calculation/calculate_sex_*.py
+
+# Vendored fMRI-LM (Wei 2026, copied flat into dir2_fmri_lm/).
+# Recopy on clone:
+#   cp -r external/repos/fMRI-LM/* project/dir2_fmri_lm/
+# 우리 emotion 추가물만 commit (naming: horikawa_*, adapters/).
+project/dir2_fmri_lm/brain_encoder/
+project/dir2_fmri_lm/language_models/
+project/dir2_fmri_lm/nbs_data/
+project/dir2_fmri_lm/quantizers/
+project/dir2_fmri_lm/scripts/
+project/dir2_fmri_lm/dataset.py
+project/dir2_fmri_lm/eval_zeroshot.py
+project/dir2_fmri_lm/merge_deepspeed_checkpoint.py
+project/dir2_fmri_lm/model_fmrilm.py
+project/dir2_fmri_lm/model_gpt.py
+project/dir2_fmri_lm/README.md
+project/dir2_fmri_lm/train_instruction*.py
+project/dir2_fmri_lm/train_pretrain_paired.py
+project/dir2_fmri_lm/train_quantizer*.py
+project/dir2_fmri_lm/utils_loss.py
+project/dir2_fmri_lm/utils.py
+project/dir2_fmri_lm/configs/!(horikawa_*).yaml
+
 # Model checkpoints
 baseline/
 

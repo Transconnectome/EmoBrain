@@ -1,0 +1,218 @@
+============================================================
+EmoMind paper 분석 + EmoBrain 의 차별점 + 우리 방향성
+작성일 2026-06-22, EmoBrain 팀 공유용
+============================================================
+
+1. EmoMind 가 무엇을 했는가 (논문 요약)
+------------------------------------------------------------
+
+저자.
+- Bilal A. Mohammed (Vanderbilt BME)
+- Lin Gu (Tohoku / RIKEN)
+- Ruogu Fang (UF BME)
+- arXiv:2605.16739v2 (cs.LG), 2026-06-11 preprint. NeurIPS Paper Checklist 포함.
+
+핵심 한 줄.
+- fMRI 에서 decoding 한 34 차원 emotion vector 를 자연어 caption 으로 rewrite 하는 첫 brain-driven affective caption pipeline.
+
+문제 의식 (Introduction).
+- 기존 brain-to-text decoder (MindCaptioning [Horikawa 2024 Science Advances], Tang et al. 2023 Nature Neuroscience semantic reconstruction, UniCoRN, BrainX) 는 모두 semantic content recovery 에 초점. affect 차원 폐기 또는 무시.
+- LLM 을 emotion category label 로 prompt 하면 emotional text 생성 가능 (EmotionPrompt 등), 단 categorical label 이 inter-subject variability 를 coarse discrete bin 으로 압축.
+- 신경학적으로 affect representation 은 distributed + high-dimensional + individually variable (Saarimaki 2016 Cerebral Cortex, Cowen-Keltner 2017 PNAS, Horikawa 2020 iScience, Lettieri 2019 Nature Communications). 연속 brain-decoded vector 만이 이 3 성질을 보존 가능.
+- 미해결 gap. 연속 brain-decoded affect 를 LLM generation 의 control signal 로 직접 활용한 paper 없음.
+
+Method 의 정확한 세부.
+- 입력. per-clip voxel activation v in R^{N_vox} (cortical voxel 의 MNI 표준 공간).
+- 출력. 한 caption (open vocabulary token sequence).
+- 2 stage decomposition.
+
+Stage 1 (per-subject linear decoder).
+- stream 1 = layer-wise caption retrieval.
+  voxel 을 PCA 로 reduce (voxel 수 가 training clip 수 보다 훨씬 크므로 ridge 가 under-determined 되는 것 방지).
+  per-subject ridge 가 voxel -> mean-pooled DeBERTa-large 24 layer 의 1024 차원 hidden state stack.
+  test 시 brain-predicted 24-layer feature stack 을 training caption corpus 와 cosine retrieval.
+  MindCaptioning 의 iterative per-token mask-fill 보다 inference cost 가 수십 배 빠름 (single-pass).
+- stream 2 = per-subject emotion decoder.
+  voxel 을 PCA 로 reduce. ridge regression 으로 34 차원 Cowen-Keltner emotion vector e 예측.
+  target 은 stimulus 의 crowdsourced rating (subject 의 self report 아님). per-subject ridge weight 가 individual difference 를 흡수.
+
+Stage 2 (axis-token rewriter).
+- backbone = BART-base (d=768) encoder-decoder. 학습 가능 axis matrix A in R^{34 x 768}.
+- 각 forward pass 에서 emotion vector e 가 axis matrix 를 element-wise scale: e ⊙ A.
+- conditional encoder output H_cond = concat(H, e ⊙ A). null encoder output H_null = concat(H, 0).
+- 학습 loss (Bernoulli switched).
+  probability ρ = 0.4 로 null branch 사용, target = 입력 caption 자체 (reconstruction).
+  probability 1-ρ 로 conditional branch 사용, target = emotion-specific caption (GPT-4o 가 생성).
+  이렇게 하면 inference 시 classifier-free guidance (CFG) 가 "content 보존" 과 "affect override" 사이를 interpolate.
+- inference CFG. H_cfg = H_null + (1+w) (H_cond - H_null). 운영점 w=2.
+- training corpus. MC training clip 의 LLM-generated emotion-targeted caption (Stage 2 의 self-distillation from GPT-4o).
+
+Dataset 사용.
+- MindCaptioning (MC) [Horikawa 2024 Science Advances]. 6 subj, 2108 clip, 3T fMRI, 최대 20 crowd-written neutral caption per clip. 2036 train + 72 test 의 canonical split.
+- Horikawa 2020 [iScience]. 5 subj, 2181 clip, 3T fMRI + Cowen-Keltner 34 차원 rating. *cross-dataset 평가만* 사용.
+- Emo-FilM [Morgenroth 2025 Scientific Data]. 9 long-form film, 50 차원 continuous per-second emotion annotation. *synthetic-brain validation substrate 만* (TRIBE v2 가 video 로 predict 한 fMRI). 진짜 fMRI 학습 안 함.
+
+Evaluation 의 3 axis + cross-cutting probe.
+- Axis 1 = Subject specificity. 6 subject 의 caption 의 pairwise 다양도 3 metric (CK34 cosine, lexical unigram, character edit). 다른 subject 가 같은 자극 본 fMRI 가 다른 caption 만들어야 한다는 가정.
+- Axis 2 = Structural geometry. brain RDM (between-clip 거리) vs caption-CK34 RDM 의 RSA Spearman ρ. 의미. 모델이 brain emotion space 의 cross-clip 관계 구조 보존 하는가.
+- Axis 3 = Causal control. SWAP own leakage. 다른 clip 의 emotion target 을 query 에 줬을 때 caption 의 top-1 emotion 이 원래 clip 의 emotion 으로 새어 나오는 비율. 낮을수록 모델이 입력 target 을 정직하게 따른다.
+- Cross-cutting = TRIBE v2 substitution probe. 진짜 fMRI 대신 video-to-fMRI encoder (TRIBE v2, d'Ascoli 2025 arXiv 2507.22229) 가 video 만 보고 predict 한 BOLD 를 ridge 에 통과 시킴.
+
+핵심 평가 지표.
+- all-34 r (brain emotion fidelity). brain-decoded 34 차원 vector 와 generated caption 의 CK34 score 사이의 mean Pearson correlation.
+- semantic identification accuracy. caption 의 cosine pairwise rank (chance 0.5).
+- RSA Spearman ρ (brain RDM vs caption-CK34 RDM).
+- SWAP own-leakage. chance = 1/34 ≈ 2.9%.
+- inter-subject diversity (3 metric). CK34 cosine, lexical unigram, character edit.
+
+핵심 result.
+- MC all 34 r = 0.265 ± 0.022 (EmoMind), 0.240 ± 0.204 (GPT-4 OWN, top-5 label prompt).
+- MC RSA Spearman ρ = +0.635 (EmoMind), +0.435 (GPT-4 OWN).
+- MC SWAP own leakage = 2.8% (EmoMind, chance 와 거의 동일), 8.3% (GPT-4 OWN, chance 의 약 3 배).
+- MC subject diversity 비율 (EmoMind vs GPT-4). CK34 cosine 3.4 배, lexical 11.6 배, character edit 11.1 배 (모두 p < 10^-11).
+- 의미. continuous brain conditioning 이 categorical label prompt 보다 clean affect 전달 + subject specificity 크게 우월. label 은 surface form 을 collapse.
+- Cross dataset transfer (Horikawa 2020 위 MC-trained rewriter unchanged 적용) all 34 r = 0.253 ± 0.026. within-MC 의 0.265 와 거의 동등.
+- surface NLG metric (BLEU-4 등) 은 GPT-4 가 압도 (BLEU-4 39.0 vs 1.9). 단 affect fidelity ranking 에서는 EmoMind 우월. NLG metric 이 brain-decoded affect 평가에 부적합 함을 시사.
+
+EmoMind 의 핵심 discovery (TRIBE v2 substitution probe).
+- 진짜 fMRI 대신 video 만 보고 predict 한 BOLD 사용. video-to-fMRI encoder 가 현재 SOTA.
+- SWAP own leakage = 5.2% ± 1.8% (real fMRI 2.8% 의 약 2 배, 단 GPT-4 8.3% 보다 여전히 작음). point-wise affect 는 보존됨.
+- RSA Spearman ρ = +0.166 (real fMRI +0.635 의 약 26% 만 유지). cross-clip 의 relational geometry 는 크게 손실.
+- 의미. video-to-fMRI encoder 가 "point-wise affect" 는 잡지만 "between-clip 의 relational emotion structure" 는 못 잡음. 이 gap 은 SOTA encoder 의 own benchmark 에서는 안 보임. RSA between real and synthetic fMRI 가 더 strict generalization criterion.
+
+EmoMind 의 main claim (Discussion 의 발췌).
+- decoded neural affect 가 subject-specific relational structure 를 전달. categorical label conditioning 이 잡을 수 없는 것.
+- TRIBE v2 substitution 이 causal usability (point-wise affect) 가 측정 apparatus 와 무관 함을 보이지만 representational structure (between-clip geometry) 는 부분적으로 apparatus 에 묶임.
+- individual brain-decoded affect 가 향후 subject-specific perceptual experience 연구의 substrate.
+
+Compute cost.
+- Stage 1 ridge = CPU 만.
+- Stage 2 rewriter = single A100 40 GB 의 약 4 GPU hour.
+- 전체 project (sweep + ablation 포함) = 60-80 GPU hour.
+
+EmoMind 본인이 명시한 limitation 3 가지.
+- per-subject calibration 필수 (matched stimulus fMRI 가 새 subject 마다 필요).
+- 한 clip 당 단일 34 차원 vector. within clip 의 시간 dynamics 무시.
+- Cowen & Keltner 34 차원 taxonomy 에 묶임.
+
+
+2. EmoBrain (우리) 의 명확한 차별점 5 가지
+------------------------------------------------------------
+
+(1) Architecture.
+- EmoMind = BART base. text-only encoder-decoder. visual encoder 없음.
+- 우리 = Qwen3-VL 2B (vision language model). visual encoder 통합. fMRI 와 video 의 multi-modal grounding 가능.
+
+(2) Training paradigm.
+- EmoMind = per-subject ridge regression. subject 마다 별도 학습. cross-subject generalization 불가.
+- 우리 = subject pooled training + in-context learning (ICL). 5 subject 의 10925 trial 한 모델 학습. 새 subject 에 적용 가능.
+
+(3) Task suite.
+- EmoMind = single task (caption generation).
+- 우리 = 6 task (V/A regression + V/A binary + Cowen 34 의 top1 + top2 + full distribution + full regression). multi-task 평가.
+
+(4) Baseline.
+- EmoMind = GPT-4 (label prompted) 하나만.
+- 우리 = frozen brain foundation model (Brain-JEPA + SwiFT + NeuroSTORM) + ROI mean + Ridge. Phase 1 baseline 과 Phase 2 active fine-tune 의 head-to-head.
+
+(5) Horikawa 2020 사용.
+- EmoMind = cross-dataset 평가만. 학습 안 함.
+- 우리 = primary training dataset.
+
+추가 차별.
+- EmoMind 의 Stage 2 학습 corpus 가 GPT-4o 가 생성한 emotion-targeted caption. self-distillation. 우리 = Cowen 34 의 실제 rater rating 직접 사용.
+
+
+3. EmoBrain 의 정정된 main claim (정직하게)
+------------------------------------------------------------
+
+방어 가능한 main claim 4 가지.
+1. 첫 multi-task brain emotion evaluation suite. V/A 와 Cowen 34 의 다양 표현 6 종 을 한 framework 으로 평가. EmoMind 의 single task 와 차별.
+2. 첫 subject pooled brain VLM with cross-subject ICL generalization. EmoMind 의 per-subject ridge 와 차별. 새 subject zero-shot 평가 가능.
+3. 첫 head-to-head 비교 of frozen brain foundation model probes vs active fine-tuned VLM/LM on emotion task. Brain-JEPA + SwiFT + NeuroSTORM vs Qwen3-VL + LoRA + fMRI-LM.
+4. 첫 vision grounded brain emotion decoder. Qwen3-VL 의 visual encoder 통합. EmoMind 의 text-only BART 와 차별.
+
+권장 paper title 후보.
+- "EmoBrain: Multi-Task Brain Emotion Decoding with Pooled Vision-Language Models and In-Context Learning"
+- "Bridging Frozen and Active Paradigms in Brain Emotion Decoding"
+
+
+4. EmoMind 와 직접 비교 가능한 평가 protocol (paper 의 핵심)
+------------------------------------------------------------
+
+EmoMind 의 3 axis evaluation 우리 model 에도 적용 가능. paper 에 직접 비교 표 작성.
+
+같은 dataset (Horikawa 2020), 같은 metric (all 34 r, RSA Spearman ρ, SWAP own leakage, sem-id).
+
+추가로 EmoMind 의 TRIBE v2 substitution probe (video predicted fMRI 로 replace) 도 우리 model 에 적용 가능. EmoMind 가 발견한 "synthetic brain 이 point-wise affect 보존, structural geometry 잃음" 의 우리 model 에서 재현 여부 측정.
+
+비교 table 후보 (paper 의 main figure).
+                         | EmoMind | Phase 1 BFM (ours) | Phase 2 VLM (ours)
+H2020 all 34 r           | 0.253   | TBD                | TBD
+H2020 RSA Spearman ρ     | TBD     | TBD                | TBD
+H2020 SWAP leakage       | TBD     | TBD                | TBD
+H2020 cross subject 평가 | 불가능  | 가능 (pooled)      | 가능 (pooled + ICL)
+Multi task (V/A + Cat34) | no      | yes                | yes
+Vision grounded          | no      | TBD                | yes (Qwen3-VL)
+
+
+5. 우리 방향성 + 다음 step
+------------------------------------------------------------
+
+즉시 (학습 진행 중).
+- D1 BrainVLM (Qwen3-VL + LoRA) 의 VA binary + VA regression 본 학습 진행 중. 각자 약 1700 / 6800 step max. 학습 끝까지 진행 후 loss curve PNG.
+- 학습 .sh 에 자동 resume 기능 추가됨. interactive 끝나면 같은 명령으로 이어서.
+
+학습 끝난 후 (분석 + 비교).
+- EmoMind 의 3 axis evaluation (subject specificity + RSA + SWAP) 우리 model 에 적용.
+- TRIBE v2 substitution probe 적용.
+- Phase 1 baseline vs Phase 2 head-to-head 표.
+- EmoMind 와 quantitative comparison table.
+
+Cat34 4 stage 학습 (top1 -> top2 -> full distribution -> full regression).
+
+D2 fMRI-LM 학습 (Wei 2026 architecture).
+
+Emo-FilM dataset 학습 (cross-dataset).
+
+Paper 작성.
+- EmoMind 를 cite + 명확히 delineate.
+- 위 4 main claim 으로 positioning.
+- 직접 비교 table + supplementary 의 추가 분석.
+
+EmoMind 에 대한 위치 설정 한 줄.
+- "EmoMind 가 single task caption generation + per-subject ridge 의 paradigm. EmoBrain 은 multi-task pooled VLM with ICL 의 complementary paradigm. 두 paper 는 직접 충돌하지 않고 서로 다른 axis 의 contribution."
+
+
+6. 우리가 이미 돌린 TRIBE / CLIP 결과와 EmoMind 의 연관 (추가 2026-06-22)
+------------------------------------------------------------
+
+핵심. EmoMind 의 헤드라인 발견 (합성뇌 TRIBE 로 갈아끼우면 per-clip affect 는 보존되고 clip 간 관계기하 RSA 는 0.635 -> 0.166 으로 74% 손실) 이 우리가 이미 돌려둔 CLIP video-probe + TRIBE->Horikawa 결과 안에 독립적으로 들어있다. 이건 가장 강한 활용 근거이고 compute 0 이다.
+
+(A) CLIP. point-wise 강함 + relational 약함의 우리판 dissociation.
+
+우리 CLIP (Horikawa)              | 값
+per-stimulus 감정 디코딩 V_binary AUROC | 0.97   (EmoBrain phase1 video_probe_CLIP, 최강 video model)
+per-stimulus 감정 디코딩 A_binary AUROC | 0.80
+A_reg Pearson r (mlp)                   | 0.42
+brain RDM 과 RSA (cortex avg Spearman)  | 0.137  (EmoViS 02_rsa/rsa_results_all)
+brain RDM 과 cv-RSA fit                  | 0.088  (EmoViS 02_rsa/cv_rsa_summary)
+noise ceiling 하한                       | 0.31
+
+의미. CLIP (visual-semantic 모델) 은 "이 자극이 무슨 감정이냐" 는 거의 완벽히 (0.97) 맞히는데, "자극들이 서로 어떻게 배치되느냐" (관계기하 RSA) 는 뇌의 reliable 구조 (noise ceiling 0.31) 의 약 1/4 ~ 1/3 (0.09 ~ 0.14) 밖에 못 잡는다. 이게 EmoMind 의 TRIBE 발견 (point-wise 보존, RSA 약 26% 만 유지) 과 정확히 같은 dissociation. EmoMind 은 real -> synthetic 뇌를 열화시켜서, 우리는 같은 CLIP 의 디코딩 정확도 vs RSA 를 대비해서 보였다. 방법 다름, 결론 같음. 비율도 같은 자릿수 (EmoMind 약 26%, 우리 약 30%). 단 분모가 다름 (EmoMind 은 real-fMRI RSA, 우리는 noise ceiling) 이라 정량 동일시는 금지, 정성 수렴만 주장.
+
+추가. EmoMind 은 CLIP 을 안 썼고 의미채널이 하나뿐. 우리는 CLIP / DINOv2 / V-JEPA2 / VideoMAE / Caption 5 probe 라 "CLIP RSA 0.137 > caption-SBERT 0.076" 처럼 어느 objective 가 뇌 감정기하에 더 가깝나 까지 말할 수 있다. EmoMind 의 단일 의미채널로는 불가능한 진술.
+
+(B) TRIBE. 우리가 한 발 앞서 있는 자산.
+
+- 우리는 TRIBE v2 로 Horikawa 뇌 (fsaverage5) 를 이미 예측해뒀다 (archive/legacy_archive/results/tribe_horikawa/, 1304/2185 약 60% 완료, 1-1218 연속). EmoMind 은 Horikawa 엔 TRIBE 를 안 돌렸다 (Emo-FilM 9 편만).
+- 즉 EmoMind 의 헤드라인 probe (real fMRI <-> TRIBE 예측 치환) 를 그들이 못 한 Horikawa 위에서 우리가 돌릴 수 있고, 거기서 한 발 더 잃은 RSA 구조를 5 probe 로 sensory <-> semantic 분해할 수 있다.
+- 단 현실. (a) 60% 만 완료 + parked. (b) fsaverage5 surface 라 EmoViS 의 Schaefer400+Tian50 parcel 과 공간 정합 필요. (c) TRIBE 자체는 우리도 본 도구 (docs/reference/papers/TRIBE_v2.pdf), 신규성 없음. -> 지금 당장 재현 돌릴 이유는 약하다. foil framing 만으로 기여가 선다. 재현은 supplementary 후보로만 기록 (자산은 archive 보존).
+
+(C) 활용 결론 (compute 0 우선).
+
+- 즉시. paper intro / discussion 에서 EmoMind 을 nearest-competitor 로 명시 delineate. 위 CLIP dissociation (0.97 vs 0.09) 을 H1 의 외부 수렴증거로 박는다. "model / video 유도 emotion 구조 < brain emotion 구조" 를 EmoMind (디코딩+생성) 과 우리 (CLIP 디코딩 vs RSA) 두 방법이 독립 확증.
+- white-space 문장. "EmoMind 은 video->fMRI encoder 가 emotion 관계구조의 대부분을 잃음을 보였지만, 남은 / 잃은 구조가 어떤 표상 내용 (sensory vs semantic) 으로 구동되는지, cortex 어디에 사는지는 묻지 않는다. 본 연구가 그것을 분해한다."
+- 선택 (소). EmoMind 식 CK34 scorer (text -> 34-D, DeBERTa-v3, held-out r 0.79) 컨셉으로 우리 caption / level annotation 의 감정 누출 ("Do not name emotions" 준수 여부) 점검 모듈.
+
+상세. EmoViS 표상 각도 전체는 docs/notes/emomind_exploitation_20260622.md 참조.

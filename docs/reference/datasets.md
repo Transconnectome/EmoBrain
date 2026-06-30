@@ -87,6 +87,45 @@ which model question they answer.
 These datasets are closest to the downstream task: fMRI is available and the
 stimulus or trial has an emotion/affect target.
 
+### MindCaptioning (Horikawa 2024, Science Advances)
+
+**Role**
+
+Independent-cohort generalization test for EmoViS model-side claims. Per EmoMind
+(arXiv:2605.16739), H2020 is a "different cohort, stimuli, preprocessing" relative
+to MindCaptioning (MC), so MC's subjects are a different group of people from our
+Horikawa 2020 (H2020) 5 subjects. That makes MC genuinely independent fMRI data.
+
+**Dataset content (verified)**
+
+- Stimuli (from the MindCaptioning paper itself, not EmoMind): **2196 short videos**
+  from Cowen & Keltner (2017) [paper ref 36 + the C&K request-form link], 16 duplicates
+  dropped -> **2180 unique**. This is the **SAME 2196-video set as our EmoViS** fmri_raw
+  (5, 2196, 450). So our model embeddings AND C&K ratings transfer DIRECTLY, zero
+  re-extraction. EmoMind's "2108 / different stimuli" was EmoMind's own training subset
+  (2036 train + 72 test), not the MindCaptioning stimulus set.
+- **6 subjects**, 5 repetitions averaged per stimulus, perception + imagery experiments,
+  ~17.1 h/subject; raw fMRI on **OpenNeuro ds005191** (separate, much larger acquisition
+  than our H2020 ds002425, 5 subjects). Preprocessed fMRI + semantic features on figshare.
+  Source: Horikawa, "Mind captioning...", Science Advances 11, eadw1464 (2025).
+
+**Why it is a near-ideal independent replication (upgraded 2026-06-22)**
+
+- Because the videos are C&K, the **C&K 34-D emotion ratings transfer** to MC's clips
+  (ratings are stimulus properties, not subject-locked). So MC can replicate the FULL
+  EmoViS H1, INCLUDING the "model vs emotion-ratings" arm, not just RDM-vs-RDM.
+- Same full 2196-video set (2180 unique), so ALL our model embeddings + ratings + RDM
+  infrastructure transfer directly. The only new input needed is MC's brain RDMs.
+- 6 subjects + same stimuli + same ratings = clean replication: feed MC brain RDMs into
+  the existing h1_alignment / h2_cortical / h2a_layerwise pipeline, new people/scanner.
+- The ONE thing to confirm when acquired: whether MC's 6 subjects are individually the
+  same people as H2020's 5 (Kamitani lab reuses subjects). Same people = "separate
+  session, same subjects" (weaker independence); different = fully independent cohort.
+  EmoMind asserts "different cohort" but the MindCaptioning paper only labels them S1-S6.
+- Status: not local. Needs download (ds005191) + preprocessing + alignment to our
+  parcellation. Deferred "external dataset, final stage" bucket. Feeds the existing
+  h1_alignment / h2_cortical / h2a_layerwise modules as a second dataset.
+
 ### Horikawa / Cowen Emotional Video fMRI
 
 **Role in FEEL**

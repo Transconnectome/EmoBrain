@@ -1,0 +1,91 @@
+# ============================================================================
+# UMBRELLA dataset defs — Horikawa Emotion Cat34 Full Distribution (ROI_fMRI)
+#
+# Task. fMRI → 34 Cowen emotion 각자의 binary 활성 (active=1, inactive=0).
+# Threshold = 0.10 (Phase 1 background Cat34 multilabel baseline 과 일치).
+# Training stimuli = 전체 2185.
+# Output 형식.
+#   <Cat34_Full_Distribution_Analysis>
+#     <Admiration>0</Admiration>
+#     <Adoration>0</Adoration>
+#     <Aesthetic_Appreciation>1</Aesthetic_Appreciation>
+#     ... (34 줄)
+#     <Triumph>0</Triumph>
+#   </Cat34_Full_Distribution_Analysis>
+# ============================================================================
+
+variable_order: [cat34_full_distribution]
+
+variable_registry:
+  cat34_full_distribution:
+    kind: compound
+    block: Cat34_Full_Distribution_Analysis
+    unit: "Cowen & Keltner (2017) 34 emotion, each binarized at crowdsourced score threshold 0.10 (active=1, inactive=0)"
+    facets:
+      - {key: admiration,              options: ['0', '1'], fmt: str}
+      - {key: adoration,               options: ['0', '1'], fmt: str}
+      - {key: aesthetic_appreciation,  options: ['0', '1'], fmt: str}
+      - {key: amusement,               options: ['0', '1'], fmt: str}
+      - {key: anger,                   options: ['0', '1'], fmt: str}
+      - {key: anxiety,                 options: ['0', '1'], fmt: str}
+      - {key: awe,                     options: ['0', '1'], fmt: str}
+      - {key: awkwardness,             options: ['0', '1'], fmt: str}
+      - {key: boredom,                 options: ['0', '1'], fmt: str}
+      - {key: calmness,                options: ['0', '1'], fmt: str}
+      - {key: confusion,               options: ['0', '1'], fmt: str}
+      - {key: contempt,                options: ['0', '1'], fmt: str}
+      - {key: craving,                 options: ['0', '1'], fmt: str}
+      - {key: disappointment,          options: ['0', '1'], fmt: str}
+      - {key: disgust,                 options: ['0', '1'], fmt: str}
+      - {key: empathic_pain,           options: ['0', '1'], fmt: str}
+      - {key: entrancement,            options: ['0', '1'], fmt: str}
+      - {key: envy,                    options: ['0', '1'], fmt: str}
+      - {key: excitement,              options: ['0', '1'], fmt: str}
+      - {key: fear,                    options: ['0', '1'], fmt: str}
+      - {key: guilt,                   options: ['0', '1'], fmt: str}
+      - {key: horror,                  options: ['0', '1'], fmt: str}
+      - {key: interest,                options: ['0', '1'], fmt: str}
+      - {key: joy,                     options: ['0', '1'], fmt: str}
+      - {key: liberation,              options: ['0', '1'], fmt: str}
+      - {key: nostalgia,               options: ['0', '1'], fmt: str}
+      - {key: pride,                   options: ['0', '1'], fmt: str}
+      - {key: relief,                  options: ['0', '1'], fmt: str}
+      - {key: romance,                 options: ['0', '1'], fmt: str}
+      - {key: sadness,                 options: ['0', '1'], fmt: str}
+      - {key: satisfaction,            options: ['0', '1'], fmt: str}
+      - {key: surprise,                options: ['0', '1'], fmt: str}
+      - {key: sympathy,                options: ['0', '1'], fmt: str}
+      - {key: triumph,                 options: ['0', '1'], fmt: str}
+
+role_config:
+  cat34_full_distribution: {p_target: 1.00, p_context: 0.00}
+
+role_rules:
+  min_targets: 1
+  force_target_if_present: []
+  query_only_targets: false
+  min_vars_for_dynamic_roles: 2
+
+modality_map:
+  sMRI: "structural MRI (T1-weighted MRI)"
+  dMRI: "diffusion MRI (Fractional Anisotropic map)"
+  fMRI: "functional MRI (4D BOLD volume)"
+  ROI_fMRI: "ROI-based functional MRI (Schaefer-400 + Tian-S3-50 parcellated BOLD time-series during emotional video viewing)"
+
+templates:
+  - template_id: emotion_v1
+
+    intro: "<Clinical_Task>\nYou are an expert AI affective neuroscientist. Analyze the provided fMRI data and classify the activation (1) or non-activation (0) of each of 34 emotion categories of the video stimulus, using crowdsourced threshold 0.10.</Clinical_Task>\n\n"
+
+    question:
+      wrapper: "<Question>\n{body} **You MUST structure your response strictly using the {tags} XML tags.**\n</Question>"
+      ask_phrase:
+        cat34_full_distribution: "the binary activation (1 = active above crowdsourced threshold 0.10, 0 = inactive) of each of the 34 emotion categories of the emotional video stimulus they were viewing"
+      clause: {}
+      reference: "Analyze the ROI-based fMRI time-series of {label}, focusing on parcel-level BOLD modulation during emotional video viewing. Predict {ask_phrase}."
+      query: "Based on the two reference subjects analyzed previously, analyze the ROI-based fMRI time-series of {label}. Predict {ask_phrase}.{clauses}"
+
+    answer:
+      answer_phrase:
+        cat34_full_distribution: "{block}"
+      phrase_maps: {}

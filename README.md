@@ -1,81 +1,102 @@
 # EmoBrain
 
-**Active brain decoding for emotion via Vision-Language Models and Brain-Video Multimodal alignment.**
+**Decoding fine-grained emotion from human brain activity.**
 
-(Internal / repo name = EmoBrain. Branch `sj_NEW_20260608_perlmutter` 의 new framing.)
+(Repo path. `/pscratch/sd/s/sjmoon/EmoBrain/`.)
 
-## 한 줄 요약
+---
 
-Naturalistic video fMRI 에서 emotion 표상을 학습하기 위해 두 axis 를 함께 진행한다. (1) **BrainVLM** axis 가 fMRI 를 VLM / LLM 의 token 으로 주입해 emotion VQA / caption / V/A score 를 자연어로 multi-task 출력한다. (2) **Brain-Video Multimodal** axis 가 brain encoder 와 video encoder 의 contrastive alignment 로 brain 이 video baseline 위에 추가하는 unique emotion variance 를 정량화한다.
+## Spine
 
-## Motivation
+Single LLM-based foundation model that decodes fine-grained emotion (Cowen-Keltner 34-category distribution + V/A continuous) from human brain activity. brain + naturalistic video + human-written caption 의 3 modality 를 한 LLM forward pass 에서 통합 fusion, modular brain encoder 로 backbone 의 fair ablation, 4-stage curriculum 으로 distribution-level output 의 학습.
 
-지금 방향이 active brain VLM / multimodal 로 정리된 근거.
+## 5 Novelties
 
-- **Frozen brain foundation model (BFM) 의 한계**. 본 프로젝트의 Phase 1 측정에서 frozen BFM (Brain-JEPA, NeuroSTORM, SwiFT 6 종) 의 모든 emotion task (V/A binary, V/A regression, Cat34 multilabel, Cat34 soft) 가 단순 ROI mean BOLD + Ridge regression baseline 을 넘지 못함. Phase 1 audit 결과 `docs/reports/phase1_audit_20260604/` 참조.
-- **VLM / LLM 기반 brain decoding 의 부상**. MindLLM (2025), UMBRAE (ECCV 2024), Mind Captioning (Horikawa, Science Advances 2025) 등이 BFM 의 frozen embedding 단독 결과보다 일관되게 우수. 표상의 semantic manifold 를 LLM / VLM 으로 가져온 뒤 brain-side adapter 만 학습하는 paradigm 이 표준화.
-- **Multimodal brain alignment 의 성숙**. TRIBE (Meta FAIR, Algonauts 2025 1 위, V-JEPA2 + Wav2Vec2-BERT + Llama 통합), Doerig 2024 (NSD 에서 vision DNN 이 LLM caption embedding 보다 고차 시각피질을 더 잘 잡음), CineBrain (audiovisual + fMRI) 등이 brain 의 added value 를 video baseline 위에서 정량화하는 framework 를 확립.
+| ID | Name | One-line statement |
+|----|------|--------------------|
+| **NV0** | LLM-based brain emotion decoder | Emotion 분야 에서 LLM 을 brain activity 의 fine-grained decoder 로 통합 한 first instrument. |
+| **NV1** | 3-modality LLM fusion | brain + video + caption 의 token sequence 가 single LLM forward pass 에서 통합. |
+| **NV2** | MindCaptioning bridge | Human-written neutral caption (MindCaptioning, Horikawa) 이 brain-context bridge. 우리 model-generated caption (Qwen-VL) 도 비교 자원 으로 동시 활용. |
+| **NV3** | Modular brain encoder | raw ROI / Ridge embedding / BFM (Brain-JEPA, NeuroSTORM, SwiFT) / VLM-derived brain token 의 swappable adapter. 같은 fusion stack 이 4 encoder 모두 받음. |
+| **NV4** | 34-distribution curriculum | Cowen 34-category distribution 출력 을 top-1 → top-2 → top-k → full 34D KL 의 4 stage curriculum 으로 학습. |
 
-본 프로젝트는 위 두 흐름을 emotion specific 한 두 axis 로 통합한다.
+NV0 가 spine 의 framing axis, NV1-NV4 가 NV0 를 구성 하는 architectural component.
 
-## Three Directions
+## Architecture (concise)
 
-| Direction | 핵심 아이디어 | 주요 reference |
-|-----------|----------------|----------------|
-| **Direction 1. BrainVLM** | Qwen3-VL VLM 의 fMRI patchifier + LoRA fine-tune. 자연어와 numeric 으로 emotion VQA / V/A / Cat34 distribution 동시 출력. | MindLLM 2025, UMBRAE 2024, Mind Captioning 2025, MedBLIP 2023, BLIP-2 2023, LLaVA 2023 |
-| **Direction 2. fMRI-LM** | Wei 2026 paper 의 fMRI-LM architecture (Brain-JEPA-like tokenizer + GPT-2/Qwen3 LLM + SigLIP + GRL + F2F+F2T+T2T) 차용 후 emotion specific 으로 발전. LLM tokenizer 활용 방향. | fMRI-LM (Wei 2026, arXiv 2511.21760) |
-| **Direction 3. CCN. Contextualized representation + 새 task design** | Video model embedding 으로 learning clustering → context 반영된 clustering → brain 이 그 context 학습 (Brain-Video alignment). 같은 emotion 안에서 context 별 sub-cluster 가 나타나는지 검증. | TRIBE 2025, VIBE 2025, CineBrain 2025, Doerig 2024, BraVL 2023 |
+```
+INPUT
+  fMRI (5 subj × 2185 stim pooled)
+      → Brain encoder (modular. raw ROI / Ridge / BFM / VLM)         → brain tokens
+  Video (Horikawa silent clip)
+      → Vision encoder (CLIP / V-JEPA2 / VideoMAE selectable)        → video tokens
+  Caption
+      MindCaptioning human-written neutral caption (NV2 main)
+      + our Qwen-VL generated caption (비교)
+      → text encoder (LLM tokenizer)                                  → text tokens
+  Prompt (task-specific instruction + 34-cat label inventory)
+      → instruction tokens
 
-D1 + D2 는 main paper path (EmoBrain). D3 는 CCN 발표용 별도 axis (`project/dir3_ccn/` 안에 self-contained).
+FUSION
+  [brain | video | text | instruction] tokens
+      → Qwen3-VL LLM (LoRA fine-tune)
+      또는 POYO 형 sequence model (ablation)
+      → fused hidden state
 
-## Tasks (3 종류)
+OUTPUT (4 stage curriculum, NV4)
+  Stage 1   top-1     34-class CE
+  Stage 2   top-2     multi-label CE (top 2 per stimulus)
+  Stage 3   top-k     k-hot sparse CE
+  Stage 4   full 34D  soft distribution KL (rater empirical distribution as target)
 
-| 종류 | 설명 | 적용 dataset |
-|------|------|----------------|
-| **A. 기존 언어 task (공통)** | V/A binary (Q1 vs Q4), V/A regression, categorical classification (threshold 기준 선택) | Horikawa + Emo-FilM 둘 다 |
-| **B. 새로운 공통 task (공통)** | independent dataset 에도 적용되는 label 을 어떻게 만들 것인가. clustering 이 한 방법일 수 있음. task design 결정 중. | Horikawa + Emo-FilM 둘 다 |
-| **C. 개별 dataset task** | Horikawa = visual feature 위주. Emo-FilM = narratives + dynamics 반영. | dataset 특화 |
+LOSS
+  Stage 1-3  cross-entropy + class weighting
+  Stage 4    KL divergence with soft target + class weighting
+  Optional   brain-reconstruction auxiliary (LLM hidden → ROI mean 복원)
+```
 
-**Phase 1 측정 완료** (Horikawa 만): V/A binary, V/A regression, Cat34 multilabel, Cat34 soft. ROI baseline + chance + frozen BFM.
+상세 spec 은 `docs/notes/architecture_design_20260629.md`.
 
-## Data (2 datasets)
-
-| Dataset | Subjects | Stim | 특성 | 상태 |
-|---------|----------|------|------|------|
-| **Horikawa** naturalistic video fMRI | 5 | 2185 | Cowen 34-cat + 14-dim + V/A. visual feature 위주. | 사용 중 |
-| **Emo-FilM** | TBD | TBD | narratives + temporal dynamics 강조 | 다운로드 예정 |
-
-부수 데이터. Qwen-VL caption (2185 자극), V-JEPA2 / CLIP / DINOv2 / VideoMAE pretrained+scratch (Horikawa 자극).
-
-**2 × 2 grid (Direction × Dataset)**.
-
-| | Horikawa | Emo-FilM |
-|--|----------|------------|
-| **D1. BrainVLM** | (BrainVLM, Horikawa) | (BrainVLM, Emo-FilM) |
-| **D2. fMRI-LM** | (fMRI-LM, Horikawa) | (fMRI-LM, Emo-FilM) |
-
-D3 (CCN) 은 별도 axis 로 dir3_ccn 안에서 진행.
-
-## Repository Layout
+## Directory structure
 
 ```
 EmoBrain/
-├── project/                ← 모든 분석 활동 (self-contained per-direction + shared)
-│   ├── dir1_brainvlm/{code,data,output,results}/
-│   ├── dir2_multimodal/{code,data,output,results}/
-│   │   └── code/legacy_phase2/   (v4 Brain+Video framework, Direction 2 reuse base)
-│   └── shared/{code,data,output,results}/   (두 direction 이 공유)
-│       └── results/background/    (Phase 1 benchmark)
-├── external/                ← vendored repos + checkpoints/ (pretrained, 이전 baseline/)
-├── docs/                    ← masterplan + notes + reports + reference + templates + workflows + figures
-├── Paper/                   ← paper draft workspace
-├── archive/                 ← v4 framing 보존 + legacy + weekly + v4_results
-├── tools/                   ← project-wide maintenance utility
+├── project/
+│   ├── shared/                       (공통 data + baseline)
+│   │   ├── code/{probes,bfm_embeddings,ssl_pretrain,analysis,tools}/
+│   │   ├── data/                     (Horikawa splits, target matrices, ROI csv)
+│   │   ├── output/                   (BFM embeddings, logs)
+│   │   └── results/background/       (baseline CSV, figure)
+│   ├── code/                         (main code)
+│   │   ├── adapters/                 (brain ↔ LLM token adapter, video ↔ LLM token adapter)
+│   │   ├── brain_encoder/            (raw ROI / Ridge / BFM / VLM 의 4 modular)
+│   │   ├── vision_encoder/           (CLIP / V-JEPA2 / VideoMAE selectable)
+│   │   ├── caption_loader/           (MindCaptioning human + 우리 generated)
+│   │   ├── fusion/                   (multi-modal token assembler + LLM wrapper)
+│   │   ├── training/                 (4 stage curriculum trainer)
+│   │   └── evaluation/               (variance partitioning + ceiling + dissociation)
+│   ├── config/                       (YAML hyperparams, model registry)
+│   ├── sample_scripts/               (SLURM .sh)
+│   └── output/                       (training logs, checkpoints, predictions)
+├── archive/                          (이전 framing 의 보존. 현 작업 과 무관, 참조용)
+├── external/                         (vendored repos + pretrained checkpoints)
+├── docs/                             (notes + reports + reference)
+├── Paper/                            (framework_EN/KR, methodology)
+├── tools/
 └── 7 root .md (README, README_KR, CONTEXT_EMOBRAIN, ACTION_PLAN, CLAUDE, CODEX, ONBOARDING)
 ```
 
-## Status (2026-06-08)
+## Status
 
-Branch `sj_NEW_20260608_perlmutter` 의 EmoBrain framing 이 active. Background benchmark (Phase 1 frozen BFM 측정 + audit + Cat34 threshold 0.10 재측정) 모두 완료. 다음 step 은 Direction 1 BrainVLM pilot + Direction 2 Multimodal Alignment pilot 의 병행 launch (Hackathon 5 일 단위).
+- 12-16 주 build phase. S7-S11 (`ACTION_PLAN.md`).
+- Resolved decisions. Backbone Qwen3-VL 2B + 4B 둘 다 ablation. Caption source MindCaptioning only + MindCaptioning + 우리 generated dual 둘 다 ablation.
 
-상세 forward plan 은 `docs/masterplan_v3_emobrain.md`, ground-level weekly action 은 `ACTION_PLAN.md` 참조.
+## Pointers
+
+| 파일 | 역할 |
+|------|------|
+| `Paper/framework_EN.md` + `Paper/framework_KR.md` | Spine narrative (5 NV + architecture + evaluation framework + sub-claims) |
+| `docs/notes/architecture_design_20260629.md` | Architecture design 의 상세 spec |
+| `docs/notes/project_decisions.md` | Chronological decision log |
+| `ACTION_PLAN.md` | S7-S11 의 ground-level weekly action |
+| `CONTEXT_EMOBRAIN.md` | Agent / 협업자 의 compact context |

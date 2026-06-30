@@ -1,165 +1,172 @@
 # EmoBrain Action Plan
 
-Branch `sj_NEW_20260608_perlmutter`. Three Directions = D1 BrainVLM + D2 fMRI-LM (main paper) + D3 CCN (workshop 발표 별도).
+한 paper. Spine = framework novelty path (NV0-NV4).
 
 이 문서는 ground-level weekly action.
-High-level (motivation, three directions, tasks) 는 `README.md` 와 `CONTEXT_EMOBRAIN.md`.
-Forward plan (Direction 별 deliverable + gate) 은 `docs/masterplan_v3_emobrain.md`.
+High-level (spine, 5 novelty, architecture) 는 `README.md`, `README_KR.md`, `CONTEXT_EMOBRAIN.md`.
+Spine narrative 는 `Paper/framework_EN.md` + `framework_KR.md`.
+Architecture spec 은 `docs/notes/architecture_design_20260629.md`.
+Chronological decision log 는 `docs/notes/project_decisions.md`.
 
 ## 한 줄 요약
 
-D1 + D2 의 2 × 2 grid (2 model × 2 dataset Horikawa + Emo-FilM) 가 main paper. D3 (CCN) 는 별도 workshop 발표 path (Brain-Video alignment + context clustering).
+12-16 주 build phase (S7-S11). brain + video + caption 의 multi-modal LLM fusion + 34-distribution 4-stage curriculum 의 구축.
 
 ## 자원 환경
 
 | 자원 | 위치 | 용도 |
 |------|------|------|
-| Perlmutter GPU | NERSC m4641 (gpu queue, A100 80GB) | D1 LoRA, D2 LLM tuning, D3 alignment |
-| Perlmutter CPU | NERSC m4641 (cpu queue) | Probe, baseline |
-| Python env (general) | `/pscratch/sd/s/sjmoon/tribev2/.venv` | Probe, 분석, D3 alignment pilot |
-| Python env (LLM) | `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` | D1 BrainVLM, D2 fMRI-LM 의 LLM 부분 |
-| Data (Horikawa) | `/pscratch/sd/s/sjmoon/EmoBrain/project/shared/data/` | Splits, target matrix, stim feature |
-| Data (Emo-FilM) | 다운로드 예정 | 두 번째 dataset |
+| Perlmutter GPU | NERSC m4641 (gpu queue, A100 80GB) | LLM fusion training, LoRA, vision encoder fine-tune |
+| Perlmutter CPU | NERSC m4641 (cpu queue) | Probe, baseline ladder, post-hoc analysis |
+| Python env (general) | `/pscratch/sd/s/sjmoon/tribev2/.venv` | Probe, evaluation, dataset 통합 |
+| Python env (LLM) | `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` | Qwen3-VL fine-tune, LoRA |
+| Data (Horikawa) | `/pscratch/sd/s/sjmoon/EmoBrain/project/shared/data/` | Splits, target matrix, ROI csv |
+| Data (Emo-FilM) | 다운로드 예정 | Cross-cohort 평가 (S11) |
 | BFM embeddings | `/pscratch/sd/s/sjmoon/EmoBrain/project/shared/output/embeddings/` | BJ resting/scratch, NS, SwiFT 6 변종 |
-| CCN dataset (D3) | `/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/` | 1.8G |
-| Results | `/pscratch/sd/s/sjmoon/EmoBrain/project/{dir1,dir2,dir3,shared}/results/` | per-direction CSV, figure |
+| MindCaptioning caption | TBD (S7 에서 fetch) | NV2 main bridge source |
+| 우리 generated caption | `/pscratch/sd/s/sjmoon/EmoBrain/project/shared/data/captions/qwen_vl/` | NV2 비교 자원 |
+| Results | `/pscratch/sd/s/sjmoon/EmoBrain/project/output/` | per-stage CSV, figure |
 
-모든 .py 는 .sh 동반.
-
----
-
-## Background. Phase 1 Benchmark (Completed, Horikawa)
-
-EmoBrain framing 의 evidence base. Frozen BFM 의 한계를 측정으로 확정.
-
-- [x] Brain-JEPA / NeuroSTORM / SwiFT 6 변종 의 zero padding embedding 추출 (5 subj × 2185 stim).
-- [x] Linear + MLP probe 의 V/A binary + V/A reg + Cat34 multilabel + Cat34 soft 측정.
-- [x] ROI baseline + chance baseline.
-- [x] Phase 1 audit (`docs/reports/phase1_audit_20260604/` 1A-1D).
-- [x] Cat34 multilabel threshold 0.10 재측정.
-- [x] Phase 1 method + result PDF.
-
-**핵심 발견**. Frozen BFM 이 simple ROI mean baseline 을 못 넘음. D1/D2/D3 의 motivation.
+모든 .py 는 .sh 동반. Bash 명령은 절대경로. Sbatch 제출 전 사용자 확인.
 
 ---
 
-## Direction 1. BrainVLM (main paper, 2 dataset)
+## 12-16 week Build Phase (S7-S11)
 
-**Goal**. Qwen3-VL backbone 위에 fMRI 를 token 으로 주입하는 minimum viable pipeline. emotion VQA / V/A / Cat34 distribution 의 multi-task 출력.
+5 novelty (NV0-NV4) 의 architectural component 구축 + 학습 + 평가 + paper draft.
 
-### Action 1.1. BrainVLM env + fMRI patchify (Horikawa)
+### S7. 3-modality adapter + dataset 통합 (week 1-3)
 
-- [ ] `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` 환경 verify.
-- [ ] UMBRELLA_qwen ABCD-pretrained checkpoint loader (`project/dir1_brainvlm/code/load_brainvlm.py`).
-- [ ] Horikawa fMRI 의 2D ROI-based representation 설계 (`project/dir1_brainvlm/code/fmri_patchify.py`).
-- [ ] Token distribution 분석.
+**Goal**. brain + video frame + caption (MindCaptioning human + 우리 generated) 의 unified dataset. 각 modality 의 token adapter scaffolding.
 
-### Action 1.2. Emotion VQA prompt + multi-task head
+#### S7.1. Caption source 정리
+- [ ] MindCaptioning human-written caption 의 fetch (Horikawa stim 매칭 verify, `project/shared/data/captions/mindcaptioning/`).
+- [ ] 우리 generated caption (Qwen-VL) 의 batch 확인 + missing 자극 fill.
+- [ ] Caption 형식 통일 (token length, prompt format).
 
-- [ ] Prompt template 설계 (V/A 자연어 vs special token, Cat34 distribution 출력 형식).
-- [ ] Multi-task loss = CE (caption) + MSE (V/A) + KL (Cat34 soft).
-- [ ] LoRA target 결정.
+#### S7.2. Brain encoder adapter (NV3)
+- [ ] `project/code/brain_encoder/raw_roi.py`. 5 subj × 2185 stim × ROI mean tensor → brain token.
+- [ ] `project/code/brain_encoder/ridge_embedding.py`. ROI ridge prediction 의 latent 활용.
+- [ ] `project/code/brain_encoder/bfm.py`. BJ resting / scratch, NS, SwiFT 6 변종 embedding loader.
+- [ ] `project/code/brain_encoder/vlm.py`. VLM-derived brain token wrapper.
+- [ ] `project/code/adapters/brain_to_llm.py`. 4 encoder 모두 동일 token shape 으로 변환.
 
-### Action 1.3. Pilot 학습 + 평가 (Horikawa)
+#### S7.3. Vision encoder selectable
+- [ ] `project/code/vision_encoder/clip.py`, `vjepa2.py`, `videomae.py`. 동일 interface 로 frame → token.
+- [ ] `project/code/adapters/video_to_llm.py`. video token → LLM 입력 형식.
 
-- [ ] Horikawa fold 1 pilot 학습 (5 subj pooled).
-- [ ] V/A regression / Cat34 multilabel / Cat34 soft 평가, Phase 1 ROI baseline 비교.
-- [ ] Free-form emotion caption sample.
+#### S7.4. Caption loader (NV2)
+- [ ] `project/code/caption_loader/mindcaptioning.py`. human caption loader.
+- [ ] `project/code/caption_loader/generated.py`. 우리 generated loader.
+- [ ] 두 source 동시 활용 의 batch 구성 strategy.
 
-### Action 1.4. Emo-FilM 적용
+#### S7.5. Unified dataset
+- [ ] `project/code/training/dataset.py`. brain + video + caption + label 의 4-tuple dataset (5 subj × 2185 stim pooled).
+- [ ] Stim level stratified split (8 fold).
+- [ ] `project/config/dataset.yaml`. modality on/off switch + encoder selection.
 
-- [ ] Emo-FilM 다운로드 + preprocessing.
-- [ ] 동일 pipeline 으로 학습 + 평가.
-- [ ] 두 dataset 의 결과 비교 (cross-dataset generalization).
+### S8. Multi-modal LLM fusion + trainer (week 4-6)
 
-### Gate (D1)
+**Goal**. NV1 (3-modality LLM fusion) + NV4 (4-stage curriculum) 의 main model + trainer.
 
-V/A Pearson r 가 Phase 1 ROI baseline (V 0.40, A 0.23) 보다 의미있게 높으면 main path 확정.
+#### S8.1. Fusion module
+- [ ] `project/code/fusion/token_assembler.py`. [brain | video | text | instruction] token sequence 의 ordered concat + attention mask.
+- [ ] `project/code/fusion/llm_wrapper.py`. Qwen3-VL backbone + LoRA hook. main backbone.
+- [ ] `project/code/fusion/poyo_alt.py`. POYO 형 sequence model. ablation.
 
----
+#### S8.2. 34-distribution head (NV4)
+- [ ] `project/code/fusion/dist_head.py`. LLM hidden → 34D distribution head (softmax for stage 1-3, soft target for stage 4).
+- [ ] Class weighting (Cowen 34 의 imbalance, top-1 frequency 기반).
 
-## Direction 2. fMRI-LM (main paper, 2 dataset)
+#### S8.3. Trainer (4 stage curriculum)
+- [ ] `project/code/training/trainer.py`. unified trainer. stage 별 loss / scheduler / metric switch.
+- [ ] Stage 1. top-1 CE. baseline 형성.
+- [ ] Stage 2. top-2 multi-label CE. label sparsity.
+- [ ] Stage 3. top-k k-hot CE. (k = 자극별 active category 수, threshold 0.10).
+- [ ] Stage 4. full 34D KL with rater empirical distribution target.
+- [ ] Optional auxiliary loss. LLM hidden → ROI mean reconstruction (NV3 의 brain modality 의 representational anchor).
 
-**Goal**. fMRI-LM (Wei 2026, arXiv 2511.21760) architecture 를 차용한 emotion-specific brain LM. Brain-JEPA-like tokenizer + GPT-2/Qwen3 LLM + SigLIP + GRL + F2F+F2T+T2T 3-objective tuning.
+#### S8.4. Config + smoke harness
+- [ ] `project/config/train_curriculum.yaml`. 4 stage 의 LR / epoch / batch / scheduler / class weight.
+- [ ] `project/code/training/smoke.py`. 100 trial subset 의 4 stage smoke run.
 
-### Action 2.1. fMRI-LM checkpoint + architecture 확보
+### S9. SMOKE test + 사용자 launch (week 7)
 
-- [ ] fMRI-LM (Wei 2026) 의 official checkpoint / repo 존재 확인 (arXiv 2511.21760).
-- [ ] 우리 환경 호환성 (Schaefer-400+Tian-50 ROI, T=160 vs Horikawa T=5 median 차이).
-- [ ] 차용 가능 여부 + 적용 방법 (직접 weight load vs scratch 재구현).
+**Goal**. 100 trial × 1 epoch smoke 가 학습 곡선 + memory profile + token budget 확인.
 
-### Action 2.2. Stage 1. fMRI tokenizer
+- [ ] Smoke run (CPU, 100 trial). NaN / shape / loss decrease.
+- [ ] GPU 1 epoch (5 subj × 100 stim subset, A100). memory + step time + token attention budget.
+- [ ] **사용자 confirm 후 full launch** (모든 sbatch 명령 절대경로).
 
-- [ ] Brain-JEPA-like ViT + Vector Quantizer 의 fMRI → discrete token.
-- [ ] Synthetic descriptor corpus 합성 (Horikawa 의 V/A + Cat34 + Qwen-VL caption → template + LLM rewrite).
-- [ ] SigLIP contrastive + GRL domain-adversarial loss 로 fMRI token ↔ text embedding 정렬.
+### S10. 4 stage curriculum 학습 (week 8-12)
 
-### Action 2.3. Stage 2. LLM fine-tuning
+**Goal**. 5 subj × 2185 stim pooled 에서 4 stage 순차 학습. brain encoder 4 변종 × vision encoder 3 변종 × caption source 2 (MindCaptioning vs 우리) 의 modular ablation.
 
-- [ ] GPT-2 또는 Qwen3-0.6B backbone 선택.
-- [ ] F2F (fMRI next-step) + F2T (fMRI → text) + T2T (random text LM, catastrophic forgetting 방지) 3-objective.
-- [ ] Loss balance L_F2T + 0.1 L_F2F + 0.5 L_T2T.
+- [ ] Stage 1 학습 (top-1). 1-2 주 (각 backbone × 각 encoder combination).
+- [ ] Stage 2 학습 (top-2). 1 주.
+- [ ] Stage 3 학습 (top-k). 1 주.
+- [ ] Stage 4 학습 (full 34D KL). 1-2 주.
+- [ ] Ablation grid. (brain encoder 4) × (vision encoder 3) × (caption source 2). 24 condition (sparse, top combination 만 학습).
+- [ ] Checkpoint save 정책 (best per metric + last per stage).
 
-### Action 2.4. Stage 3. Instruction tuning + emotion task 평가
+### S11. Evaluation + paper draft (week 13-16)
 
-- [ ] Single-Q/A + multi-Q/A + open-ended 3 paradigm + LoRA.
-- [ ] V/A regression, Cat34 multilabel, Cat34 soft 평가, Phase 1 ROI baseline 비교.
+**Goal**. variance partitioning + ceiling anchor + dissociation + LOSO + cross-cohort 의 full evaluation suite + paper draft.
 
-### Action 2.5. Emo-FilM 적용
+#### S11.1. Baseline ladder
+- [ ] Chance baseline (label permutation).
+- [ ] ROI mean + Ridge baseline.
+- [ ] Best BFM frozen probe.
+- [ ] Video-only baseline (vision encoder + classifier head, brain 제외).
+- [ ] Caption-only baseline (text-only LLM, brain + video 제외).
+- [ ] Full multi-modal (brain + video + caption).
 
-- [ ] Emo-FilM 으로 동일 pipeline 적용 (D1 의 Action 1.4 와 병렬).
-- [ ] 두 dataset 결과 비교.
+#### S11.2. Variance partitioning
+- [ ] Brain-only / Video-only / Caption-only / Brain+Video / Brain+Caption / Video+Caption / Full 의 7 condition.
+- [ ] Unique vs shared vs joint variance 의 emotion task 별 decomposition.
+- [ ] N=5 subject 의 statistical power limit 명시.
 
-### Gate (D2)
+#### S11.3. Ceiling anchor
+- [ ] Inter-rater agreement (Cowen 34 의 rater split).
+- [ ] Inter-subject brain similarity (RSA).
+- [ ] Model performance 의 ceiling 대비 비율 reporting.
 
-V/A Pearson r 가 Phase 1 ROI baseline 보다 의미있게 높음 + D1 BrainVLM 과의 비교 (어느 architecture 가 emotion 잡는데 더 적합).
+#### S11.4. Dissociation
+- [ ] Decoding vs structural similarity (RSA) 의 dissociation.
+- [ ] Visual-confound vs emotion-specific variance 의 분리.
 
----
+#### S11.5. LOSO + cross-cohort
+- [ ] LOSO (5-fold by subject). zero-shot transfer.
+- [ ] Cross-cohort (Horikawa → Emo-FilM). 다운로드 + preprocessing 의 prerequisite.
 
-## Direction 3. CCN. Brain-Video Alignment + Context Clustering (workshop 발표, 별도 axis)
-
-**위치**. `project/dir3_ccn/` (이전 CCN_Emotion + alignment_pilot + legacy_phase2 통합).
-
-**Goal**. Video model 의 embedding 으로 learning clustering → context 반영된 clustering → brain 이 그 context 학습. **같은 emotion (예: joy) 안에서 context 별 sub-cluster 가 brain 표상에서도 나타나는지** 검증.
-
-### Action 3.1. Alignment pilot (현재 진행)
-
-- [x] BrainVideoDataset + ProjBrain/ProjVideo + SigLIP + GRL scaffolding 완료.
-- [x] Local smoke test PASS.
-- [ ] **Pilot 학습 launch** (sbatch, fold 1, BJ resting + scratch 2 variant, 약 30 분/variant).
-  - 위치. `project/dir3_ccn/code/alignment_pilot/scripts/train_pilot_{resting,scratch}.sh`
-- [ ] Variance partitioning (Brain-only / Video-only / Joint) emotion task 평가.
-
-### Action 3.2. Context clustering 학습
-
-- [ ] V-JEPA2 embedding 위 learning clustering. cluster 가 context 를 반영하는지.
-- [ ] 같은 emotion (1 개 선택, 예: joy) 안에서 context 별 sub-cluster emergence 검증.
-- [ ] Brain 이 그 context cluster 를 학습할 수 있는지.
-
-### Action 3.3. Independent dataset transfer
-
-- [ ] Emo-FilM 또는 CCN 의 별도 dataset 으로 동일 clustering 검증.
-- [ ] Cross-dataset universal context structure 확인.
-
-### Gate (D3)
-
-Cluster emergence + cross-dataset preservation 의미있게 보이면 CCN workshop poster. 결과 강하면 paper 까지.
-
----
-
-## Hackathon (5 일 demo, 별도)
-
-별도 진행. D1 + D2 의 minimal pilot + 발표.
-
-상세는 `docs/masterplan_v3_emobrain.md` 의 Hackathon section.
-
----
-
-## Paper + Submission
-
-- [ ] Paper draft. D1 + D2 의 2 × 2 grid (2 model × 2 dataset) 결과 통합.
-- [ ] Task 3 종류 (공통 언어 + 공통 새 task + 개별 특화) 결과.
-- [ ] Cross-dataset evaluation (Horikawa ↔ Emo-FilM).
+#### S11.6. Paper draft
+- [ ] Section 1. Intro + 5 NV 의 contribution box.
+- [ ] Section 2. Related work (LLM-based brain decoding, MindCaptioning, BFM survey, multimodal alignment).
+- [ ] Section 3. Method (architecture + 4 stage curriculum).
+- [ ] Section 4. Modular brain encoder ablation.
+- [ ] Section 5. Main result (full multi-modal vs baseline ladder).
+- [ ] Section 6. Analysis (variance partitioning, ceiling, dissociation, LOSO, cross-cohort).
+- [ ] Section 7. Discussion + limitation + future work.
 - [ ] Submission venue 결정.
 
-상세는 `docs/masterplan_v3_emobrain.md`.
+---
+
+## Open decisions
+
+상세 list 는 `docs/notes/architecture_design_20260629.md` 의 §Open Implementation Questions 와 `Paper/framework_EN.md` 의 §Open Decisions. 본 ACTION_PLAN 의 timeline 에 영향 큰 항목.
+
+- ~~OD-A.~~ **[2026-06-29 RESOLVED]** Backbone size = **Qwen3-VL 2B + 4B 둘 다** ablation. 8B 보류.
+- OD-B. POYO ablation 의 priority (S8 main 에 포함 vs supplementary).
+- OD-C. Cross-cohort (Emo-FilM) 의 inclusion 시점.
+- ~~OD-D.~~ **[2026-06-29 RESOLVED]** Caption source = **(a) MindCaptioning only + (b) MindCaptioning + 우리 generated dual** 둘 다 ablation.
+- OD-E. Stage 4 의 KL target distribution 의 smoothing (Dirichlet prior 적용 여부).
+- OD-F. Hackathon 5 일 path 의 별도 진행 여부 (현 build phase 와 분리).
+- **OD-G [NEW].** Q3 의 video frame temporal alignment (uniform sample vs HRF-aligned). 미정 (S7 시작 전 결정).
+
+---
+
+## Pointer
+
+- Spine narrative. `Paper/framework_EN.md` + `Paper/framework_KR.md`.
+- Architecture spec. `docs/notes/architecture_design_20260629.md`.
+- Chronological decision. `docs/notes/project_decisions.md`.

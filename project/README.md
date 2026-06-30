@@ -24,8 +24,8 @@ D1 + D2 는 main paper 의 2 axis (2 × 2 grid with Horikawa + Emo-FilM). D3 는
 | Sequence length | 단일 image (time-axis mean). L3 ablation 으로 (450, T) matrix 가능 |
 | ROI atlas | Schaefer-400 + Tian-S3 50 = 450 ROI |
 | Backbone | Qwen3-VL-2B-Instruct, vision tower frozen, LLM body LoRA r=16 alpha=32 |
-| Output | (a) caption 자연어 (b) V/A 2-D scalar (c) K-cat soft distribution |
-| Loss | CE (caption) + λ1 MSE (V/A) + λ2 KL (cat soft), λ1=1.0 λ2=0.5 |
+| Output | (a) caption 자연어 (b) V/A 2-D scalar (c) V/A 2-D binary logit (Q1 vs Q4) (d) Cat34 distribution |
+| Loss | CE (caption) + λ_va MSE (V/A reg) + λ_vabin BCE (V/A binary, masked) + λ_cat34 KL (cat34 soft), λ_va=1.0 λ_vabin=0.5 λ_cat34=0.5 |
 | Env | `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` (torch 2.11.0, transformers 4.57.0, peft 0.19.2.dev0) |
 | Pilot HW | NERSC m4641 gpu queue, A100 80GB 1 장 |
 | Smoke | `bash scripts/smoke_test.sh` (skeleton-only, file/backbone 부재 OK) |
@@ -93,8 +93,21 @@ data/<DATASET>/fmri/<ATLAS>/
 - `horikawa_5fold.csv` (per-stim fold split).
 - `roi_timeseries_schaefer400tian50/sub-XX_<stim>.npy` (각 (T, 450)).
 - `stimulus_features/qwen_vl_captions.jsonl` (per-stim 자연어).
-- `va_continuous_z.csv` (per-stim valence_z, arousal_z).
+- `va_continuous_z.csv` (per-stim `valence_z`, `arousal_z`, `valence_quartile`, `arousal_quartile`). quartile 컬럼은 `project/shared/code/tools/va_quartile_split.py` 로 생성 (train fold 의 25/75 percentile 로 fit).
 - `cat34_soft_distribution.csv` (per-stim 34-cat soft, Horikawa 의 Cowen rating).
+
+## 3.5. Task 목록 (D1 + D2 공통)
+
+| Task | 종류 | Label 정의 | Loss | Metric |
+|------|------|------------|------|--------|
+| V_reg | regression | `valence_z` continuous | MSE | Pearson r, MAE |
+| A_reg | regression | `arousal_z` continuous | MSE | Pearson r, MAE |
+| V_binary (Q1 vs Q4) | binary | `valence_quartile` in {Q1, Q4} (OTHER masked) | BCE (masked) | AUROC, balanced acc |
+| A_binary (Q1 vs Q4) | binary | `arousal_quartile` in {Q1, Q4} (OTHER masked) | BCE (masked) | AUROC, balanced acc |
+| Cat34_multilabel | multilabel | `cat34_soft >= 0.10` | (D1: KL on soft) | macro AUROC |
+| Cat34_soft | distribution | `cat34_soft` (sum=1) | KL divergence | mean Pearson r, top1 acc |
+
+Phase 1 의 4 task (V/A binary + V/A reg + Cat34 multilabel + Cat34 soft) 와 동일 정의. D1 / D2 모두 동일 schema 의 eval metric 사용 (`dir1/code/eval/eval_emotion.py`, `dir2/code/eval_emotion/metrics.py`).
 
 (주의. 위 파일 일부는 아직 추출 대기. `shared/code/probes/` 의 wrapper 로 생성.)
 

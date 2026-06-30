@@ -1,0 +1,55 @@
+# ============================================================================
+# UMBRELLA dataset defs — Horikawa Emotion V/A Regression (ROI_fMRI)
+#
+# Task. fMRI → valence + arousal 의 continuous z-normalized score 예측.
+# Training stimuli = 전체 2185 (모든 자극 사용).
+# Output 형식.
+#   <VA_Regression_Analysis>
+#     <Valence_Value>0.42</Valence_Value>
+#     <Arousal_Value>0.68</Arousal_Value>
+#   </VA_Regression_Analysis>
+# ============================================================================
+
+variable_order: [va_regression]
+
+variable_registry:
+  va_regression:
+    kind: compound
+    block: VA_Regression_Analysis
+    unit: "Cowen & Keltner crowdsourced rater mean (z-normalized within Horikawa corpus)"
+    facets:
+      - {key: valence_value, options: [], fmt: "float:2"}
+      - {key: arousal_value, options: [], fmt: "float:2"}
+
+role_config:
+  va_regression: {p_target: 1.00, p_context: 0.00}
+
+role_rules:
+  min_targets: 1
+  force_target_if_present: []
+  query_only_targets: false
+  min_vars_for_dynamic_roles: 2     # 변수 1 개 → dynamic role 비활성, 항상 TARGET
+
+modality_map:
+  sMRI: "structural MRI (T1-weighted MRI)"
+  dMRI: "diffusion MRI (Fractional Anisotropic map)"
+  fMRI: "functional MRI (4D BOLD volume)"
+  ROI_fMRI: "ROI-based functional MRI (Schaefer-400 + Tian-S3-50 parcellated BOLD time-series during emotional video viewing)"
+
+templates:
+  - template_id: emotion_v1
+
+    intro: "<Clinical_Task>\nYou are an expert AI affective neuroscientist. Analyze the provided fMRI data and infer the valence and arousal of the emotional video stimulus the subject was viewing during the scan.</Clinical_Task>\n\n"
+
+    question:
+      wrapper: "<Question>\n{body} **You MUST structure your response strictly using the {tags} XML tags.**\n</Question>"
+      ask_phrase:
+        va_regression: "the precise z-normalized valence score and the precise z-normalized arousal score of the emotional video stimulus they were viewing"
+      clause: {}
+      reference: "Analyze the ROI-based fMRI time-series of {label}, focusing on parcel-level BOLD modulation during emotional video viewing. Predict {ask_phrase}."
+      query: "Based on the two reference subjects analyzed previously, analyze the ROI-based fMRI time-series of {label}. Predict {ask_phrase}.{clauses}"
+
+    answer:
+      answer_phrase:
+        va_regression: "{block}"
+      phrase_maps: {}

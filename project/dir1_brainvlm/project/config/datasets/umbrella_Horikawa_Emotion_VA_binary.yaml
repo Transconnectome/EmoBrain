@@ -1,0 +1,56 @@
+# ============================================================================
+# UMBRELLA dataset defs — Horikawa Emotion V/A Binary Classification (ROI_fMRI)
+#
+# Task. fMRI → valence + arousal 의 Low (Q1, lowest 25%) vs High (Q4, highest 25%) 분류.
+# Training stimuli = Q1 + Q4 만 (≈ 1093 자극, 중간 50% 제외).
+# Phase 1 baseline 의 V_binary / A_binary AUROC 와 직접 비교 가능.
+# Output 형식.
+#   <VA_Binary_Analysis>
+#     <Valence_Category>High</Valence_Category>
+#     <Arousal_Category>Low</Arousal_Category>
+#   </VA_Binary_Analysis>
+# ============================================================================
+
+variable_order: [va_binary]
+
+variable_registry:
+  va_binary:
+    kind: compound
+    block: VA_Binary_Analysis
+    unit: "Cowen & Keltner crowdsourced rater mean, binarized as Low (≤ 25%-ile) vs High (≥ 75%-ile)"
+    facets:
+      - {key: valence_category, options: [Low, High], fmt: str}
+      - {key: arousal_category, options: [Low, High], fmt: str}
+
+role_config:
+  va_binary: {p_target: 1.00, p_context: 0.00}
+
+role_rules:
+  min_targets: 1
+  force_target_if_present: []
+  query_only_targets: false
+  min_vars_for_dynamic_roles: 2
+
+modality_map:
+  sMRI: "structural MRI (T1-weighted MRI)"
+  dMRI: "diffusion MRI (Fractional Anisotropic map)"
+  fMRI: "functional MRI (4D BOLD volume)"
+  ROI_fMRI: "ROI-based functional MRI (Schaefer-400 + Tian-S3-50 parcellated BOLD time-series during emotional video viewing)"
+
+templates:
+  - template_id: emotion_v1
+
+    intro: "<Clinical_Task>\nYou are an expert AI affective neuroscientist. Analyze the provided fMRI data and classify the binary valence and arousal of the emotional video stimulus the subject was viewing.</Clinical_Task>\n\n"
+
+    question:
+      wrapper: "<Question>\n{body} **You MUST structure your response strictly using the {tags} XML tags.**\n</Question>"
+      ask_phrase:
+        va_binary: "the valence category (options: {options}) and the arousal category (options: {options}) of the emotional video stimulus they were viewing"
+      clause: {}
+      reference: "Analyze the ROI-based fMRI time-series of {label}, focusing on parcel-level BOLD modulation during emotional video viewing. Predict {ask_phrase}."
+      query: "Based on the two reference subjects analyzed previously, analyze the ROI-based fMRI time-series of {label}. Predict {ask_phrase}.{clauses}"
+
+    answer:
+      answer_phrase:
+        va_binary: "{block}"
+      phrase_maps: {}

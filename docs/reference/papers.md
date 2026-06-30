@@ -400,6 +400,14 @@ This file records the currently relevant papers and how each should be used in t
 - **FEEL role**: direct cautionary precedent for brain-to-emotion decoding with LLM priors; useful for the brain-tuned affective LLM/VLM track, but not evidence that an fMRI emotion foundation model already exists.
 - **Source**: https://www.mdpi.com/2076-3417/15/20/11100
 
+### EmoMind: Decoding Affective Captions from Human Brain fMRI (Mohammed, Gu, Fang 2026)
+
+- **Type**: brain-to-text affective caption *generation* pipeline (decoding).
+- **Claim**: Per-subject fMRI decoded into a neutral semantic caption (DeBERTa-large 24-layer retrieval) plus a continuous 34-D Cowen & Keltner emotion vector (per-subject ridge), then rewritten by an axis-token BART with classifier-free guidance. Beats label-prompted GPT-4 on subject-specificity, RSA structure, and SWAP causal control across MindCaptioning + Horikawa 2020. Key probe: TRIBE v2 synthetic-brain substitution preserves point-wise affect (SWAP own-leakage 2.8%->5.2%) but loses ~74% of between-clip RSA structure (rho +0.635 -> +0.166).
+- **EmoBrain/EmoViS role**: nearest competitor on the decoding side (D1/D2) — full delineation in `docs/notes/emomind_team_post_20260622.txt`. For EmoViS (sensory-semantic representational study) it is a *foil*: it separates affect from a single monolithic semantic caption and shows model-predicted brain loses most emotion relational geometry, but never decomposes that structure along the sensory->semantic axis or localizes it in cortex, which is exactly our white space. Exploitation plan in `docs/notes/emomind_exploitation_20260622.md`.
+- **Status**: arXiv:2605.16739v2 [cs.LG], 2026-06-11. Preprint (NeurIPS submission, not yet accepted) — cite as preprint.
+- **Source**: arXiv:2605.16739
+
 ## Dataset/Challenge References
 
 ### Algonauts Project 2025

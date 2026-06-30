@@ -1,0 +1,75 @@
+# ============================================================================
+# UMBRELLA dataset defs — Horikawa Emotion Cat34 Top-2 (ROI_fMRI)
+#
+# Task. fMRI → 34 Cowen emotion 중 rank-1 + rank-2 emotion 과 각자 score.
+# Training stimuli = 전체 2185.
+# Output 형식.
+#   <Cat34_Top2_Analysis>
+#     <Rank1_Emotion>joy</Rank1_Emotion>
+#     <Rank1_Score>0.72</Rank1_Score>
+#     <Rank2_Emotion>awe</Rank2_Emotion>
+#     <Rank2_Score>0.18</Rank2_Score>
+#   </Cat34_Top2_Analysis>
+# ============================================================================
+
+variable_order: [cat34_top2]
+
+variable_registry:
+  cat34_top2:
+    kind: compound
+    block: Cat34_Top2_Analysis
+    unit: "Cowen & Keltner (2017) 34 emotion, rank-1 and rank-2 dominant emotions with their crowdsourced scores"
+    facets:
+      - key: rank1_emotion
+        options: [admiration, adoration, aesthetic_appreciation, amusement, anger,
+                  anxiety, awe, awkwardness, boredom, calmness,
+                  confusion, contempt, craving, disappointment, disgust,
+                  empathic_pain, entrancement, envy, excitement, fear,
+                  guilt, horror, interest, joy, liberation,
+                  nostalgia, pride, relief, romance, sadness,
+                  satisfaction, surprise, sympathy, triumph]
+        fmt: str
+      - {key: rank1_score, options: [], fmt: "float:3"}
+      - key: rank2_emotion
+        options: [admiration, adoration, aesthetic_appreciation, amusement, anger,
+                  anxiety, awe, awkwardness, boredom, calmness,
+                  confusion, contempt, craving, disappointment, disgust,
+                  empathic_pain, entrancement, envy, excitement, fear,
+                  guilt, horror, interest, joy, liberation,
+                  nostalgia, pride, relief, romance, sadness,
+                  satisfaction, surprise, sympathy, triumph]
+        fmt: str
+      - {key: rank2_score, options: [], fmt: "float:3"}
+
+role_config:
+  cat34_top2: {p_target: 1.00, p_context: 0.00}
+
+role_rules:
+  min_targets: 1
+  force_target_if_present: []
+  query_only_targets: false
+  min_vars_for_dynamic_roles: 2
+
+modality_map:
+  sMRI: "structural MRI (T1-weighted MRI)"
+  dMRI: "diffusion MRI (Fractional Anisotropic map)"
+  fMRI: "functional MRI (4D BOLD volume)"
+  ROI_fMRI: "ROI-based functional MRI (Schaefer-400 + Tian-S3-50 parcellated BOLD time-series during emotional video viewing)"
+
+templates:
+  - template_id: emotion_v1
+
+    intro: "<Clinical_Task>\nYou are an expert AI affective neuroscientist. Analyze the provided fMRI data and identify the top 2 dominant emotion categories of the video stimulus, with their crowdsourced scores.</Clinical_Task>\n\n"
+
+    question:
+      wrapper: "<Question>\n{body} **You MUST structure your response strictly using the {tags} XML tags.**\n</Question>"
+      ask_phrase:
+        cat34_top2: "the rank-1 emotion category and the rank-2 emotion category (options for both: {options}), and their precise crowdsourced scores, of the emotional video stimulus they were viewing"
+      clause: {}
+      reference: "Analyze the ROI-based fMRI time-series of {label}, focusing on parcel-level BOLD modulation during emotional video viewing. Predict {ask_phrase}."
+      query: "Based on the two reference subjects analyzed previously, analyze the ROI-based fMRI time-series of {label}. Predict {ask_phrase}.{clauses}"
+
+    answer:
+      answer_phrase:
+        cat34_top2: "{block}"
+      phrase_maps: {}
