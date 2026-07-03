@@ -1,6 +1,0 @@
-feature,dir_prefix,padding,init,task,task_type,main_metric,head,mode,subject,fold,seed,n_train,n_val,n_test,brain_model,brain_init,brain_padding,video,best_lr,val_main,test_auroc,test_auprc,test_bal_acc,test_main
-Phase2_D,n/a,n/a,n/a,V_binary,binary,AUROC,trained,pooled,pool,1,0,3390,1130,1135,brain_jepa,resting,zero,clip_pretrained,C=0.001,0.9693361749151472,0.9828861788617886,0.9841827107064466,0.9289321450906817,0.9828861788617886
-Phase2_D,n/a,n/a,n/a,V_binary,binary,AUROC,trained,pooled,pool,2,0,3395,1130,1130,brain_jepa,resting,zero,clip_pretrained,C=0.001,0.9670680958385878,0.9743436735338227,0.9784187763163441,0.9204041360801958,0.9743436735338227
-Phase2_D,n/a,n/a,n/a,V_binary,binary,AUROC,trained,pooled,pool,3,0,3395,1130,1130,brain_jepa,resting,zero,clip_pretrained,C=0.001,0.9600630517023959,0.9678530895334174,0.9715233586132691,0.9203499369482977,0.9678530895334174
-Phase2_D,n/a,n/a,n/a,V_binary,binary,AUROC,trained,pooled,pool,4,0,3395,1130,1130,brain_jepa,resting,zero,clip_pretrained,C=0.001,0.9823171500630515,0.9607755359394703,0.9646673617031816,0.8943095838587642,0.9607755359394703
-Phase2_D,n/a,n/a,n/a,V_binary,binary,AUROC,trained,pooled,pool,5,0,3390,1135,1130,brain_jepa,resting,zero,clip_pretrained,C=0.01,0.9808943089430894,0.9729161412358133,0.9760186076138412,0.9171343001261034,0.9729161412358133

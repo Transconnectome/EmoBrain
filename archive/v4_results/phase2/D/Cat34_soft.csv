@@ -1,6 +1,0 @@
-feature,dir_prefix,padding,init,task,task_type,main_metric,head,mode,subject,fold,seed,n_train,n_val,n_test,brain_model,brain_init,brain_padding,video,best_lr,val_main,test_pearson_r_mean,test_top1_acc,test_main
-Phase2_D,n/a,n/a,n/a,Cat34_soft,soft_dist,mean_pearson_r,trained,pooled,pool,1,0,6555,2185,2185,brain_jepa,resting,zero,clip_pretrained,alpha=100.0,0.4127580522746915,0.4372757463344095,0.4636155606407323,0.4372757463344095
-Phase2_D,n/a,n/a,n/a,Cat34_soft,soft_dist,mean_pearson_r,trained,pooled,pool,2,0,6555,2185,2185,brain_jepa,resting,zero,clip_pretrained,alpha=100.0,0.4156990260546794,0.4081572710130974,0.44073226544622424,0.4081572710130974
-Phase2_D,n/a,n/a,n/a,Cat34_soft,soft_dist,mean_pearson_r,trained,pooled,pool,3,0,6555,2185,2185,brain_jepa,resting,zero,clip_pretrained,alpha=100.0,0.4377969886661892,0.4121886248188018,0.4302059496567506,0.4121886248188018
-Phase2_D,n/a,n/a,n/a,Cat34_soft,soft_dist,mean_pearson_r,trained,pooled,pool,4,0,6555,2185,2185,brain_jepa,resting,zero,clip_pretrained,alpha=100.0,0.41489268169537674,0.42759509869148454,0.46727688787185356,0.42759509869148454
-Phase2_D,n/a,n/a,n/a,Cat34_soft,soft_dist,mean_pearson_r,trained,pooled,pool,5,0,6555,2185,2185,brain_jepa,resting,zero,clip_pretrained,alpha=100.0,0.4280038023006802,0.40480529976448,0.4443935926773455,0.40480529976448

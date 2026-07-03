@@ -1,2 +1,0 @@
-tag,bfm,head,out_dim,temperature,fold,seed,n_train_pairs,head_params,epochs,pre_pos_cos,pre_neg_cos,pre_gap,val_best_gap,test_pos_cos,test_neg_cos,test_gap,best_epoch
-brain_jepa_resting_pad-mean_head-linear_dim-256_tau-0.07_fold1_seed0,brain_jepa_resting_pad-mean,linear,256,0.07,1,0,13110,196864,1,0.905868411064148,0.8920956254005432,0.013772785663604736,0.10029757022857666,0.7930465340614319,0.67670738697052,0.11633914709091187,1

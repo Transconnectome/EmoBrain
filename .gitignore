@@ -130,3 +130,12 @@ data/stimulus_features/
 
 # archive 의 큰 binary 들
 archive/legacy_archive/
+
+# Archive 전체 를 gitignore. 로컬 evidence base 로만 유지, repo 에 포함 안 함.
+# STATUS.md 와 .gitkeep 은 예외 로 tracked 유지 (archive 구조 를 repo 에 최소 반영).
+# 주의. Directory 자체 를 ignore 하면 안 의 exception 이 무효. 그래서 file-level 로 ignore.
+archive/**
+!archive/*/
+!archive/.gitkeep
+!archive/**/STATUS.md
+!archive/**/.gitkeep
