@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "reports" / "status" / "PROJECT_STATUS.md"
+OUT = ROOT / "docs" / "reports" / "status" / "PROJECT_STATUS.md"
 
 
 def run_git(args):
@@ -22,7 +22,7 @@ def run_git(args):
 
 
 def count_dataset_entries():
-    text = (ROOT / "reference" / "datasets.md").read_text(encoding="utf-8")
+    text = (ROOT / "docs" / "reference" / "datasets.md").read_text(encoding="utf-8")
     return sum(1 for line in text.splitlines() if line.startswith("### "))
 
 
@@ -42,8 +42,8 @@ def main():
     recent = run_git(["log", "--oneline", "--max-count", "5"])
 
     dataset_count = count_dataset_entries()
-    paper_rows = count_reference_rows("reference/papers.md")
-    model_rows = count_reference_rows("reference/code_resources.md")
+    paper_rows = count_reference_rows("docs/reference/papers.md")
+    model_rows = count_reference_rows("docs/reference/code_resources.md")
 
     dirty = status if status else "clean"
 
@@ -79,8 +79,8 @@ Generated: {now}
 ## Next Operating Checks
 
 ```bash
-python3 scripts/check_md_completeness.py
-python3 scripts/build_project_status.py
+python3 tools/check_md_completeness.py
+python3 tools/build_project_status.py
 ```
 """.format(
         now=now,

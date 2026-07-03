@@ -17,8 +17,8 @@ Agent / 협업자 가 빠르게 참조할 single source of truth. 자세한 내�
 | NV0 | LLM-based brain emotion decoder | Emotion 분야 의 LLM 통합 fine-grained brain decoder 의 first instrument |
 | NV1 | 3-modality LLM fusion | brain + video + caption 을 single LLM forward 의 token sequence 로 통합 |
 | NV2 | MindCaptioning bridge | Human-written neutral caption (MindCaptioning, Horikawa) 의 brain-context bridge + 우리 generated caption 비교 |
-| NV3 | Modular brain encoder | raw ROI / Ridge / BFM / VLM 의 swappable adapter |
-| NV4 | 34-distribution curriculum | top-1 → top-2 → top-k → full 34D KL 의 4 stage |
+| NV3 | Modular brain encoder | E1 raw ROI (control) / E2 Ridge / E3 BFM frozen / E4 VLM hidden (image pretrain + fMRI fine-tune) 의 4 swappable adapter. 공통 patchify 없음. Encoder 순위 자체 는 spine 아님 |
+| NV4 | 34D independent emotion regression + curriculum | 34 감정 은 독립 점수 (bittersweet 예). Per-emotion MSE (curriculum stage 별 subset), z-score 필수. Softmax / sum-to-1 / KL 금지. Curriculum (top-1 → top-2 → top-k → full 34D) 은 stepwise validation. 실행 = Track A (direct) → Track B (distillation) × sub-stage 1-4 |
 
 NV0 = spine framing axis. NV1-NV4 = 그 구성 component.
 
@@ -36,11 +36,17 @@ FUSION
                                           또는 POYO (ablation)
                                           →  fused hidden
 
-OUTPUT (4 stage curriculum)
-  Stage 1  top-1    34-class CE
-  Stage 2  top-2    multi-label CE
-  Stage 3  top-k    k-hot sparse CE
-  Stage 4  full 34D KL  (rater empirical distribution target)
+OUTPUT (NV4. 34D independent emotion regression + curriculum)
+  34D linear regression head. Softmax / sum-to-1 / KL 금지.
+  각 감정 은 독립 점수 (bittersweet 예).
+  Preprocess = z-score per emotion (mean 0, std 1, training set fit).
+  Curriculum (per-emotion MSE 원리 유지, subset A 만 다름)
+    1 top-1     A = {자극 별 rating 1위}
+    2 top-2     A = {상위 2}
+    3 top-k     A = {rating > threshold}
+    4 full 34D  A = {1..34}
+  Loss (Track A direct)     L_main = sum_{k ∈ A} (pred_k - target_k)^2
+  Loss (Track B distill)    L_total = L_main + λ × L_distill (teacher 34D MSE 재현)
 ```
 
 상세 spec 은 `docs/notes/architecture_design_20260629.md`. Spine narrative 는 `Paper/framework_EN.md` + `Paper/framework_KR.md`. Chronological decision 은 `docs/notes/project_decisions.md`.
@@ -95,7 +101,23 @@ EmoBrain/
 
 ## Go-to docs
 
+- **Code 구현 명세**. `docs/notes/implementation_spec_20260702.md` (Claude Code 대상, DECIDED / OPEN / CAUTION, Acceptance, 34개 감정 순서). Code 시작 시 canonical spec.
 - **Spine narrative**. `Paper/framework_EN.md` + `framework_KR.md`.
 - **Architecture design**. `docs/notes/architecture_design_20260629.md` (NV ↔ component 매핑, token budget, 4 stage curriculum spec, evaluation framework, open question).
 - **Decision log**. `docs/notes/project_decisions.md`.
 - **Action plan**. `ACTION_PLAN.md` (S7-S11 ground-level weekly action).
+- **34 감정 canonical 순서**. `project/shared/data/cowen34_order.txt`.
+
+## Cross-subject caveat
+
+MindCaptioning external test 는 **cross-subject 이지만 cross-stimulus 는 아님** (subject 6 명 이 Horikawa 5 명 과 안 겹치지만 stimulus 는 Cowen 계열 과 겹침). 리포트 마다 "cross-subject external test, NOT cross-stimulus" 를 명시. Cross-stimulus 평가 는 Horikawa 내부 held-out stimuli split (별도).
+
+## Workflow triggers
+
+| Trigger | 용도 | Workflow |
+|---------|------|----------|
+| `[deep search]` | 외부 논문 / code / data 검색 후 reference doc 갱신 | `docs/workflows/literature_sota_workflow.md` |
+| `[experiment card]` | 모델 아이디어 를 구조화 된 experiment card 로 | `docs/workflows/experiment_planning_workflow.md` |
+| `[red team]` | Multi-reviewer critique + blue-team 응답 | `docs/workflows/red_blue_team_review.md` |
+| `[weekly status]` | Git 변경 + canonical doc 기반 status report | `docs/workflows/weekly_update_workflow.md` |
+| `[verification]` | Path / completeness / overclaim check (tools/) | `python3 tools/check_md_completeness.py` |

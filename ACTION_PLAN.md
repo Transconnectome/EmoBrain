@@ -74,21 +74,32 @@ Chronological decision log 는 `docs/notes/project_decisions.md`.
 - [ ] `project/code/fusion/llm_wrapper.py`. Qwen3-VL backbone + LoRA hook. main backbone.
 - [ ] `project/code/fusion/poyo_alt.py`. POYO 형 sequence model. ablation.
 
-#### S8.2. 34-distribution head (NV4)
-- [ ] `project/code/fusion/dist_head.py`. LLM hidden → 34D distribution head (softmax for stage 1-3, soft target for stage 4).
-- [ ] Class weighting (Cowen 34 의 imbalance, top-1 frequency 기반).
+#### S8.2. 34D independent regression head (NV4)
+- [ ] `project/code/fusion/regression_head.py`. LLM hidden → 34D linear regression head. Softmax 없음, sum-to-1 없음.
+- [ ] `project/code/training/preprocess.py`. Per-emotion z-score fit (training set only) + apply (test set 에 transform 만).
+- [ ] Rating raw (1-9) → z-scored target 저장 (`project/shared/data/cowen34_zscored/`).
 
-#### S8.3. Trainer (4 stage curriculum)
-- [ ] `project/code/training/trainer.py`. unified trainer. stage 별 loss / scheduler / metric switch.
-- [ ] Stage 1. top-1 CE. baseline 형성.
-- [ ] Stage 2. top-2 multi-label CE. label sparsity.
-- [ ] Stage 3. top-k k-hot CE. (k = 자극별 active category 수, threshold 0.10).
-- [ ] Stage 4. full 34D KL with rater empirical distribution target.
-- [ ] Optional auxiliary loss. LLM hidden → ROI mean reconstruction (NV3 의 brain modality 의 representational anchor).
+#### S8.3. Trainer (Track A direct + Track B distillation, 각 track 안 curriculum 1-4)
+- [ ] `project/code/training/trainer.py`. Unified trainer.
+- [ ] Track A loss = subset per-emotion MSE (stage 별 active target A). Class weighting 없음 (z-score 로 균등 가중).
+- [ ] Track B loss = subset per-emotion MSE (Track A 와 동일 stage 별 A) + λ × distillation MSE (teacher 34D 재현). λ grid (0.5 / 1.0 / 2.0).
+- [ ] Curriculum sub-stage handler. stage 별 active target set A 계산 (자극 별 top-1 / top-2 / top-k / full 34).
+- [ ] Non-active 감정 은 loss 계산 에서 masked (gradient 없음). Prediction head 는 항상 34-dim.
+- [ ] Optional auxiliary loss. LLM hidden → ROI mean reconstruction. λ_recon 0.1 (S9 smoke 후 결정).
+- [ ] Softmax / sum-to-1 / KL divergence / cross-entropy 사용 금지 (regression head 로 강제).
+- [ ] Stage transition. 이전 stage checkpoint 에서 weight load. Head dim 변경 없음.
 
 #### S8.4. Config + smoke harness
-- [ ] `project/config/train_curriculum.yaml`. 4 stage 의 LR / epoch / batch / scheduler / class weight.
-- [ ] `project/code/training/smoke.py`. 100 trial subset 의 4 stage smoke run.
+- [ ] `project/config/train.yaml`. Track A (direct MSE) + Track B (distillation) × curriculum sub-stage 1-4 의 LR / epoch / batch / scheduler.
+- [ ] `project/code/training/smoke.py`. 100 trial subset 의 Track A curriculum A1 (top-1 subset MSE) smoke run.
+- [ ] Sanity check. Prediction 이 z-scored 공간 에서 mean 0 근처, std 1 근처 (initialization 후).
+
+### S7.6. Caption neutrality + video-caption overlap 사전 검증
+
+- [ ] `project/shared/code/tools/verify_caption_neutrality.py`. MindCaptioning caption 의 Cowen 34 + V/A vocabulary substring match + 100 개 sample 인간 검토.
+- [ ] Caption sample 실제 열람 (100 개 최소). 감정 단어 / 명시적 해석 부여 여부 표본 검증.
+- [ ] 우리 generated Qwen-VL caption 도 동일 검증.
+- [ ] Video embedding 에서 caption embedding 을 예측 하는 linear regression fit (`shared/code/tools/video_caption_residualize.py`). 잔차 caption 생성.
 
 ### S9. SMOKE test + 사용자 launch (week 7)
 
@@ -96,17 +107,51 @@ Chronological decision log 는 `docs/notes/project_decisions.md`.
 
 - [ ] Smoke run (CPU, 100 trial). NaN / shape / loss decrease.
 - [ ] GPU 1 epoch (5 subj × 100 stim subset, A100). memory + step time + token attention budget.
+- [ ] Projector token count grid smoke (Nb / Nv 각각 8 / 32 / 128 grid). 34D 고차원 구조 보존 vs token cost trade-off.
 - [ ] **사용자 confirm 후 full launch** (모든 sbatch 명령 절대경로).
 
-### S10. 4 stage curriculum 학습 (week 8-12)
+### Stage 0. Noise ceiling estimation (S10 진입 gate)
 
-**Goal**. 5 subj × 2185 stim pooled 에서 4 stage 순차 학습. brain encoder 4 변종 × vision encoder 3 변종 × caption source 2 (MindCaptioning vs 우리) 의 modular ablation.
+**Goal**. Encoder competition 이 의미 있는 headroom 위 에서 진행 되는지 pre-check. Case I/II/III 판정.
 
-- [ ] Stage 1 학습 (top-1). 1-2 주 (각 backbone × 각 encoder combination).
-- [ ] Stage 2 학습 (top-2). 1 주.
-- [ ] Stage 3 학습 (top-k). 1 주.
-- [ ] Stage 4 학습 (full 34D KL). 1-2 주.
-- [ ] Ablation grid. (brain encoder 4) × (vision encoder 3) × (caption source 2). 24 condition (sparse, top combination 만 학습).
+- [ ] ISC (Inter-Subject Correlation). 5 subj × same stim 의 cross-subject correlation. per ROI per TR.
+- [ ] Repeated-trial split-half reliability. Horikawa test set 56 stim × 24 repeat. bootstrap 1000 회.
+- [ ] Analytical noise ceiling (Lage-Castellanos 2019). signal / noise variance 분리 estimation.
+- [ ] Task-specific upper bound (Cowen-Keltner ICC 0.54).
+- [ ] 4 estimator consensus → noise ceiling lock.
+- [ ] gap_filled threshold Case I/II/III boundary final lock. 학습 시작 전 사전 등록.
+
+### S10. Two-stage validation 학습 (week 8-14)
+
+**Goal**. Stage 1 (context 없는 direct 34D supervised) 완료 를 gate 로 삼아 Stage 2 (P2-B distillation) 진입.
+
+#### S10.1. Track A. Brain-only direct supervised MSE (E1-E4 encoder ablation, curriculum A1-A4)
+
+Teacher 없음, video / caption 완전 제거. 각 encoder 를 brain-only 로 curriculum 순차 학습. Loss = subset per-emotion MSE, z-score 전처리 필수. Leakage 원천 차단, encoder ranking 가장 깨끗.
+
+- [ ] Z-score fit (training set only). Per-emotion mean / std 계산 및 저장. Test set 에 transform 만.
+- [ ] Sanity check. Prediction 이 z-scored 공간 에서 mean 0 근처 (initialization), std 1 근처 (수렴 후).
+- [ ] Track A curriculum, 각 encoder (E1-E4) × 각 stage.
+  - **A1**. Top-1 subset MSE (자극 별 rating 최고 1 감정 만). 1-2 주. 감정 하나 라도 학습 되는지 sanity.
+  - **A2**. Top-2 subset MSE (자극 별 rating 상위 2). 1 주. Mixed emotion 학습.
+  - **A3**. Top-k subset MSE (자극 별 rating threshold > 0.5 z-score 기준, 평균 5-8 감정). 1-2 주.
+  - **A4**. Full 34D independent MSE. 2-3 주. 최종 target.
+- [ ] 각 sub-stage 는 이전 stage checkpoint 에서 weight inherit.
+- [ ] Track A 결과 = E1-E4 의 gap_filled ranking (A4 기준) + per-stimulus 34D profile shape similarity. Framework 의 modularity 검증 완료.
+
+#### S10.2. Track B. P2-B distillation (context contribution, curriculum B1-B4)
+
+Track A 의 best encoder 위 에 teacher (brain+video+caption) 학습 → 34D soft label cache → student (brain-only) 가 teacher 34D 를 MSE 로 재현. Teacher / student 모두 curriculum B1-B4 순차.
+
+- [ ] Teacher 학습 (brain+video+caption). Curriculum B1-B4 순차. Per-emotion subset MSE. 각 stage 마다 34D soft label cache 생성 (`project/shared/output/teacher_soft_labels/B{stage}/`). Softmax 없음, raw 34D score caching.
+- [ ] Student 학습 (brain-only). Curriculum B1-B4 순차. Loss = L_main (subset MSE on z-scored target) + λ × L_distill (MSE on teacher 34D). λ grid (0.5 / 1.0 / 2.0). Caption dropout 확률 grid (0.5 / 0.7 / 0.9).
+- [ ] Modality ablation (Full / no-caption / no-video / brain-only 4 조건, B4 기준). Caption-video overlap 검증.
+- [ ] Video-on-caption residualize 조건 vs 원본 caption 조건 비교 (B4 기준). Caption 고유 기여 판정.
+- [ ] Track A → Track B delta (A4 → B4 기준) = context lift. Positive / null / negative 모두 publishable.
+
+#### S10.3. Ablation grid (sparse)
+
+- [ ] (brain encoder 4) × (vision encoder 3) × (caption source 2) = 24 condition. sparse marginal sweep (Stage 1 best × vision 3, Stage 1 best × caption 2, full × encoder 4).
 - [ ] Checkpoint save 정책 (best per metric + last per stage).
 
 ### S11. Evaluation + paper draft (week 13-16)
@@ -159,14 +204,43 @@ Chronological decision log 는 `docs/notes/project_decisions.md`.
 - OD-B. POYO ablation 의 priority (S8 main 에 포함 vs supplementary).
 - OD-C. Cross-cohort (Emo-FilM) 의 inclusion 시점.
 - ~~OD-D.~~ **[2026-06-29 RESOLVED]** Caption source = **(a) MindCaptioning only + (b) MindCaptioning + 우리 generated dual** 둘 다 ablation.
-- OD-E. Stage 4 의 KL target distribution 의 smoothing (Dirichlet prior 적용 여부).
+- ~~OD-E.~~ **[2026-06-30 SUPERSEDED]** Stage 4 KL target smoothing 은 KL 자체 를 폐기 하여 (34D independent MSE regression 으로 대체) 무효.
+- **OD-D2 [NEW 2026-06-30]**. Distillation loss weight λ. Stage 2 의 L_total = L_main + λ × L_distill (per-emotion MSE 로 teacher 34D 재현). 0.5 / 1.0 / 2.0 grid 후 결정.
 - OD-F. Hackathon 5 일 path 의 별도 진행 여부 (현 build phase 와 분리).
-- **OD-G [NEW].** Q3 의 video frame temporal alignment (uniform sample vs HRF-aligned). 미정 (S7 시작 전 결정).
+- **OD-G.** Q3 의 video frame temporal alignment (uniform sample vs HRF-aligned). 미정 (S7 시작 전 결정).
+- **OD-P [NEW 2026-06-30]**. Caption dropout 확률 (student 학습). 0.5 / 0.7 / 0.9 grid 후 결정. Teacher-student prompt asymmetry 완화 + brain-only 강제 학습.
+- **OD-T [NEW 2026-06-30]**. Projector token 개수 (bottleneck width). Nb / Nv 각각 8 / 32 / 128 grid 후 결정. 34D 고차원 구조 보존 과 직결.
+- **OD-R [NEW 2026-06-30]**. Video-on-caption residualize 절차. Linear regression fit 위치 (training set only) + 잔차 조건 vs 원본 조건 delta 로 caption 고유 기여 판정.
+- **OD-V [NEW 2026-06-30]**. Stage 1 vs Stage 2 sequential vs parallel. Sequential default (Stage 1 만 성공 해도 publishable, Stage 2 실패 도 별도 finding).
 
 ---
 
+## Repo layout crosswalk (implementation_spec vs 현재 skeleton)
+
+Implementation_spec §11 은 `emobrain/` 하위 root layout (`data/`, `models/`, `losses/`, `train/`, `eval/`, `utils/`, `scripts/`, `configs/`) 을 제안. 현재 skeleton 은 `project/code/{adapters, brain_encoder, vision_encoder, caption_loader, fusion, training, evaluation}/`. 다음 crosswalk 로 매핑.
+
+| implementation_spec | 현재 skeleton |
+|---------------------|---------------|
+| `emobrain/data/{datasets, labels, caption_map, fmri_adapter}.py` | `project/code/{caption_loader, adapters}/` + 신설 필요 |
+| `emobrain/models/encoders/{e1_projection, e2_ridge_encoder, e3_bfm, e4_vit}.py` | `project/code/brain_encoder/{raw_roi, ridge_embedding, bfm, vlm}.py` |
+| `emobrain/models/{projector, video_encoder, prompt, llm_backbone}.py` | `project/code/{adapters, vision_encoder, fusion}/` |
+| `emobrain/models/{teacher, student}.py` | `project/code/fusion/` + 신설 필요 |
+| `emobrain/losses/{supervised, distillation, structure}.py` | `project/code/training/` + 신설 |
+| `emobrain/train/*.py` | `project/code/training/*.py` |
+| `emobrain/eval/*.py` | `project/code/evaluation/*.py` |
+| `emobrain/configs/` | `project/config/` |
+| `emobrain/scripts/run_experiment.py` | `project/sample_scripts/` |
+
+S7 진입 시 위 crosswalk 로 mapping. Implementation_spec 의 module 명 은 현재 skeleton 내 파일 명 으로 alias.
+
+## Config schema
+
+전체 config schema 는 `docs/notes/implementation_spec_20260702.md` §10. `project/config/train.yaml` 은 이 spec 을 따름.
+
 ## Pointer
 
+- **Code 구현 명세**. `docs/notes/implementation_spec_20260702.md` (Claude Code 대상, DECIDED / OPEN / CAUTION, Acceptance, 34개 감정 순서).
+- 34 감정 canonical 순서. `project/shared/data/cowen34_order.txt`.
 - Spine narrative. `Paper/framework_EN.md` + `Paper/framework_KR.md`.
 - Architecture spec. `docs/notes/architecture_design_20260629.md`.
 - Chronological decision. `docs/notes/project_decisions.md`.

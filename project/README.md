@@ -1,102 +1,134 @@
 # EmoBrain `project/` Quick Reference
 
-EmoBrain 의 active 분석 work 가 모두 모이는 폴더. Three Directions 의 entry point 와 공통 자원의 한눈 정리.
-자세한 forward plan 은 `../docs/masterplan_v3_emobrain.md`, ground-level action 은 `../ACTION_PLAN.md`.
+EmoBrain 의 active 분석 work 가 모두 모이는 폴더. Single unified pipeline (5 novelty framework, 2026-06-29 pivot) 의 entry point 와 공통 자원 정리.
 
-## 1. Directions at a glance
+Spine narrative 는 `../Paper/framework_EN.md`, `../Paper/framework_KR.md`.
+Architecture spec 은 `../docs/notes/architecture_design_20260629.md`.
+Ground-level weekly action 은 `../ACTION_PLAN.md`.
+Red-team synthesis 는 `../docs/notes/redteam_review_20260630.md`.
 
-| Dir | Method | Architecture base | 위치 | 결정 (모델/코드 변경) |
-|------|---------|--------------------|------|------------------------|
-| **D1** | BrainVLM | Qwen3-VL backbone + ROI patchify + LoRA + multi-task heads | `dir1_brainvlm/` | UMBRELLA_qwen (`external/repos/BrainVLM/UMBRELLA_qwen/`) reference, 우리 emotion task 에 맞춰 신규 |
-| **D2** | fMRI-LM | Wei 2026 fMRI-LM 3-stage (tokenizer + paired LLM + instruction tuning) | `dir2_fmri_lm/` | **upstream 그대로 사용**. `external/repos/fMRI-LM/` submodule. wrapper 만 추가 |
-| **D3** | CCN | Brain-Video alignment (SigLIP + GRL) + context clustering | `dir3_ccn/` | study1/2 의 본문 연구 + alignment_pilot scaffolding |
-| **shared** | 공통 자원 | Phase 1 baseline, BFM embedding, splits, target matrices | `shared/` | 두 main direction 이 공유 |
+## 1. Framing at a glance
 
-D1 + D2 는 main paper 의 2 axis (2 × 2 grid with Horikawa + Emo-FilM). D3 는 별도 workshop path.
+**Single project.** Multi-modal LLM (brain + video + caption) 을 single forward pass 에서 통합 fusion, modular brain encoder (raw ROI / Ridge / BFM / VLM) 로 backbone 의 fair ablation, 4-stage curriculum (top-1 → top-2 → top-k → full 34D KL) 으로 Cowen-Keltner 34-category distribution + V/A continuous fine-grained output.
 
-## 2. Direction 별 핵심 정보
+**5 Novelty.**
 
-### D1. BrainVLM (`dir1_brainvlm/`)
+| ID | Name | 한 줄 |
+|----|------|-------|
+| NV0 | LLM-based brain emotion decoder | Emotion 분야 LLM 통합 fine-grained brain decoder 의 first instrument |
+| NV1 | 3-modality LLM fusion | brain + video + caption 을 single LLM forward 의 token sequence 로 통합 |
+| NV2 | MindCaptioning bridge | Human-written neutral caption (MindCaptioning, Horikawa) 의 brain-context bridge |
+| NV3 | Modular brain encoder | raw ROI / Ridge / BFM / VLM 의 swappable adapter |
+| NV4 | 34-distribution curriculum | top-1 → top-2 → top-k → full 34D KL 의 4 stage |
 
-| 항목 | 값 |
-|------|-----|
-| Input shape | (3, 224, 224) — Schaefer-400 + Tian-S3 50 ROI 의 2D grid (L1 layout, 23×20=460 cells 중 10 pad) |
-| Sequence length | 단일 image (time-axis mean). L3 ablation 으로 (450, T) matrix 가능 |
-| ROI atlas | Schaefer-400 + Tian-S3 50 = 450 ROI |
-| Backbone | Qwen3-VL-2B-Instruct, vision tower frozen, LLM body LoRA r=16 alpha=32 |
-| Output | (a) caption 자연어 (b) V/A 2-D scalar (c) V/A 2-D binary logit (Q1 vs Q4) (d) Cat34 distribution |
-| Loss | CE (caption) + λ_va MSE (V/A reg) + λ_vabin BCE (V/A binary, masked) + λ_cat34 KL (cat34 soft), λ_va=1.0 λ_vabin=0.5 λ_cat34=0.5 |
-| Env | `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` (torch 2.11.0, transformers 4.57.0, peft 0.19.2.dev0) |
-| Pilot HW | NERSC m4641 gpu queue, A100 80GB 1 장 |
-| Smoke | `bash scripts/smoke_test.sh` (skeleton-only, file/backbone 부재 OK) |
-| Pilot | `sbatch scripts/train_pilot_path_a.sh` (사용자 사전 승인 필수) |
+이전 Three Directions (D1 BrainVLM + D2 fMRI-LM + D3 CCN, 2026-06-08~06-28) framing 은 폐기. `../archive/v5_direction_split_20260628/` 에 보존.
 
-### D2. fMRI-LM (`dir2_fmri_lm/`)
-
-| 항목 | 값 |
-|------|-----|
-| Input shape | (N_rois, N_timepoints) per sample, HDF5 `time_series/sample_{i}` |
-| Sequence length | 기본 cfg `vit_base_p160.yaml` 의 patch size 160 (clip_timepoints=160), short-T dataset 의 경우 interpolate 처리 (`fMRI-LM/dataset.py:interpolate_time_dimension`) |
-| ROI atlas | Schaefer-400 + Tian-S3 50 = 450 ROI (TianS3 디렉토리 명) |
-| Backbone | Stage 2/3 의 LLM 은 Qwen3-0.6B (user 본인 default), LoRA r=1 alpha=2 dropout=0.1 on q_proj/k_proj |
-| Quantizer | VQ (user 본인 default) — 변경 금지 |
-| Output (Stage 3) | instruction-following 자연어 (single-Q/A default, multi-Q/A + open-ended variant) |
-| Env | `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` |
-| Pilot HW | NERSC m4641 gpu queue, A100 80GB 4 장 (DeepSpeed zero stage 2) |
-| Repository | `external/repos/fMRI-LM/` (submodule). 모델/loss/quantizer/LLM 변경 없음 |
-
-### D3. CCN (`dir3_ccn/`)
-
-| 항목 | 값 |
-|------|-----|
-| Brain encoder input | BFM hidden state (Brain-JEPA, NeuroSTORM, SwiFT) 또는 ROI mean. (5 subj, 2185 stim) |
-| Video encoder | V-JEPA2 pretrained (default) |
-| Projection | ProjBrain (768→1024→512), ProjVideo (1408→1024→512) |
-| Alignment loss | SigLIP (learnable log_t, b) + GRL (modality discriminator) |
-| Smoke | `bash code/alignment_pilot/scripts/smoke_test.sh` (PASS) |
-| Pilot | `sbatch code/alignment_pilot/scripts/train_pilot_{resting,scratch}.sh` (사용자 사전 승인 필수) |
-
-### shared (`shared/`)
-
-| 항목 | 위치 |
-|------|------|
-| ROI time series (필요 시 추출) | `shared/data/roi_timeseries_schaefer400tian50/` |
-| Splits | `shared/data/horikawa_5fold.csv`, `horikawa_split.csv` |
-| Stimulus feature embeddings | `shared/data/stimulus_features/` (Qwen-VL caption, V-JEPA2/CLIP/DINOv2/VideoMAE pretrained + scratch) |
-| BFM hidden state embeddings | `shared/output/embeddings/` (Brain-JEPA 5 subj × 10 cell, NeuroSTORM, SwiFT 6 변종) |
-| Phase 1 background result | `shared/results/background/phase1/` |
-| 공통 probe/baseline code | `shared/code/{probes,bfm_embeddings,ssl_pretrain,analysis,tools}/` |
-
-## 3. 데이터 schema 비교
-
-### D2 의 schema (fMRI-LM 표준)
+## 2. Directory 구조 (project/)
 
 ```
-data/<DATASET>/fmri/<ATLAS>/
-├── data_resampled.h5
-│     time_series/sample_{i}: (N_rois, N_timepoints) float32
-│     metadata/subjects:      (N_samples,) bytes
-│     metadata/sessions:      (N_samples,) bytes
-├── normalization_params.npz
-│     medians (N_rois,) iqrs (N_rois,)    # --norm robust
-│     mean    (N_rois,) std  (N_rois,)    # --norm std
-└── descriptors_rewritten/
-      fc_descriptors.csv
-      ica_descriptors.csv
-      gradient_descriptors.csv
-      graph_descriptors.csv
+project/
+├── shared/                           (공통 자원)
+│   ├── code/
+│   │   ├── probes/                   (Ridge / linear probe, baseline)
+│   │   ├── bfm_embeddings/           (Brain-JEPA / NeuroSTORM / SwiFT embedding 추출)
+│   │   ├── ssl_pretrain/             (self-supervised pretrain wrapper)
+│   │   ├── analysis/                 (variance partitioning, RSA, dissociation)
+│   │   └── tools/                    (data build, va_quartile_split 등)
+│   ├── data/                         (splits, target matrix, ROI csv, stimulus feature)
+│   │   ├── horikawa_5fold.csv
+│   │   ├── horikawa_split.csv
+│   │   ├── cowen_horikawa_labels.csv
+│   │   └── stimulus_features/        (Qwen-VL caption, V-JEPA2/CLIP/DINOv2/VideoMAE)
+│   ├── output/
+│   │   ├── embeddings/               (BFM hidden state, Brain-JEPA 5subj × 10cell, NS, SwiFT 6 변종)
+│   │   ├── logs/                     (baseline run log)
+│   │   └── slurm/                    (SLURM 출력)
+│   └── results/
+│       └── background/               (Phase 1 baseline CSV, figure)
+├── code/                             (main unified pipeline, single project)
+│   ├── adapters/                     (brain ↔ LLM token, video ↔ LLM token)
+│   ├── brain_encoder/                (raw_roi / ridge_embedding / bfm / vlm 의 4 modular NV3)
+│   ├── vision_encoder/               (clip / vjepa2 / videomae selectable)
+│   ├── caption_loader/               (mindcaptioning human + qwen_vl generated NV2)
+│   ├── fusion/                       (token_assembler + llm_wrapper Qwen3-VL + poyo_alt + dist_head)
+│   ├── training/                     (dataset + trainer 4 stage curriculum + smoke)
+│   └── evaluation/                   (variance partitioning + ceiling + dissociation + LOSO + cross-cohort)
+├── config/                           (YAML hyperparam, dataset.yaml, train_curriculum.yaml, model registry)
+├── sample_scripts/                   (SLURM .sh entry point)
+└── output/                           (training log, checkpoint, prediction)
 ```
 
-### D1 의 schema
+`code/` 하위 7 개 subdir 는 skeleton 만 생성 됨 (2026-06-29). 실제 implementation 은 S7 부터 (`../ACTION_PLAN.md`).
 
-`shared/data/` 에 모인 standardized matrix.
-- `horikawa_5fold.csv` (per-stim fold split).
-- `roi_timeseries_schaefer400tian50/sub-XX_<stim>.npy` (각 (T, 450)).
-- `stimulus_features/qwen_vl_captions.jsonl` (per-stim 자연어).
-- `va_continuous_z.csv` (per-stim `valence_z`, `arousal_z`, `valence_quartile`, `arousal_quartile`). quartile 컬럼은 `project/shared/code/tools/va_quartile_split.py` 로 생성 (train fold 의 25/75 percentile 로 fit).
-- `cat34_soft_distribution.csv` (per-stim 34-cat soft, Horikawa 의 Cowen rating).
+## 3. Architecture (요약)
 
-## 3.5. Task 목록 (D1 + D2 공통)
+```
+INPUT
+  fMRI (5 subj × 2185 stim pooled)
+      → Brain encoder (modular. raw ROI / Ridge / BFM / VLM)         → brain tokens
+  Video (Horikawa silent clip)
+      → Vision encoder (CLIP / V-JEPA2 / VideoMAE selectable)        → video tokens
+  Caption (MindCaptioning human + Qwen-VL generated)
+      → text encoder (LLM tokenizer)                                  → text tokens
+  Prompt (task-specific instruction + 34-cat label inventory)
+      → instruction tokens
+
+FUSION
+  [brain | video | text | instruction] tokens
+      → Qwen3-VL LLM (LoRA fine-tune, main)
+      또는 POYO 형 sequence model (ablation)
+      → fused hidden state
+
+OUTPUT (NV4. 34D independent emotion regression + curriculum)
+  34-D linear regression head. Softmax / sum-to-1 / KL 금지.
+  각 감정 은 독립 점수 (bittersweet 예). Preprocess = z-score per emotion.
+  Curriculum (subset per-emotion MSE, stage 별 target 만 다름).
+    1 top-1     A = {자극 별 rating 1위}
+    2 top-2     A = {상위 2}
+    3 top-k     A = {rating > threshold}
+    4 full 34D  A = {1..34}
+  Loss (Track A direct)     L_main = sum_{k ∈ A} (pred_k - target_k)^2
+  Loss (Track B distill)    L_total = L_main + λ × L_distill (teacher 34D MSE 재현)
+```
+
+상세 spec 은 `../docs/notes/architecture_design_20260629.md`.
+
+## 4. 데이터 schema
+
+### 4.1 shared/data/ (present, 2026-06-30 기준)
+
+실제 존재 하는 파일.
+
+- `horikawa_5fold.csv` — per-stim 5 fold split.
+- `horikawa_split.csv` — canonical train/val/test split.
+- `cowen_horikawa_labels.csv` — Cowen 34 rating (Horikawa 매칭). Raw 1-9 Likert, z-score 전처리 필요 (S7 에서 fit).
+- `horikawa_L0_V_binary_subset.csv` — Phase 1 valence Q1 vs Q4 binary subset.
+- `horikawa_L0_A_binary_subset.csv` — Phase 1 arousal Q1 vs Q4 binary subset.
+- `feelin_canonical_stimuli.csv` — canonical stimulus index (FEELIN v3 시절 유지, 2185 stim reference).
+- `stimulus_features/captions.json` — per-stim 자연어 (우리 generated Qwen-VL, S7 에 verify 예정).
+- `stimulus_features/caption_embed.npy` — caption embedding.
+- `stimulus_features/stim_idx.npy` — stim index alignment.
+- `stimulus_features/{clip,vjepa2,dinov2,videomae}_{pretrained,scratch}.npy` — video embedding 8 종.
+
+### 4.2 shared/data/ (S7 생성 예정)
+
+Framework 가 요구 하지만 아직 파일 없는 것.
+
+- `roi_timeseries_schaefer400tian50/sub-XX_<stim>.npy` — (T, 450) ROI mean time series. Raw fMRI → ROI 추출 pipeline 필요 (S7.2 참조).
+- `cowen34_zscored/` — z-scored 34D target (per-emotion mean/std fit on training set, apply on test). `project/code/training/preprocess.py` 로 생성 (S7 or S8.2).
+- `va_continuous_z.csv` — per-stim `valence_z`, `arousal_z` + quartile 컬럼. `shared/code/tools/va_quartile_split.py` 로 생성.
+- `cat34_soft_distribution.csv` — 이전 formulation (sum=1 soft distribution) 은 폐기 (NV4 재정의). Raw independent scores 는 `cowen_horikawa_labels.csv` 에서 z-score 후 사용.
+
+### 4.3 shared/output/embeddings/ (partial present)
+
+- Brain-JEPA (BJ) resting / scratch, NeuroSTORM (NS), SwiFT 6 변종. Frozen probe baseline 자원.
+- `shared/output/embeddings/` 하위 실제 구조 는 `ls shared/output/embeddings/` 로 확인.
+
+### 4.4 MindCaptioning caption (NV2 main bridge, S7 fetch 예정)
+
+- 위치 TBD (S7 에서 fetch). Human-written neutral caption, Horikawa stim 매칭. OpenNeuro ds005191 + figshare 에서 fetch. Framework spine 의 NV2 main source.
+
+## 5. Task 목록
 
 | Task | 종류 | Label 정의 | Loss | Metric |
 |------|------|------------|------|--------|
@@ -104,52 +136,53 @@ data/<DATASET>/fmri/<ATLAS>/
 | A_reg | regression | `arousal_z` continuous | MSE | Pearson r, MAE |
 | V_binary (Q1 vs Q4) | binary | `valence_quartile` in {Q1, Q4} (OTHER masked) | BCE (masked) | AUROC, balanced acc |
 | A_binary (Q1 vs Q4) | binary | `arousal_quartile` in {Q1, Q4} (OTHER masked) | BCE (masked) | AUROC, balanced acc |
-| Cat34_multilabel | multilabel | `cat34_soft >= 0.10` | (D1: KL on soft) | macro AUROC |
-| Cat34_soft | distribution | `cat34_soft` (sum=1) | KL divergence | mean Pearson r, top1 acc |
+| Cat34_multilabel | multilabel | `cat34_soft >= 0.10` (Stage 2/3) | BCE / k-hot CE | macro AUROC |
+| Cat34_soft | distribution | `cat34_soft` (sum=1, Stage 4) | KL divergence | mean Pearson r, top1 acc |
+| Cat34_top1 | 34-class | `argmax(cat34_soft)` (Stage 1) | CE + class weighting | top1 acc, macro F1 |
 
-Phase 1 의 4 task (V/A binary + V/A reg + Cat34 multilabel + Cat34 soft) 와 동일 정의. D1 / D2 모두 동일 schema 의 eval metric 사용 (`dir1/code/eval/eval_emotion.py`, `dir2/code/eval_emotion/metrics.py`).
+Phase 1 의 4 task (V/A binary + V/A reg + Cat34 multilabel + Cat34 soft) 와 정의 일관. Curriculum 의 stage 별 loss 는 `../docs/notes/architecture_design_20260629.md` §4-stage curriculum.
 
-(주의. 위 파일 일부는 아직 추출 대기. `shared/code/probes/` 의 wrapper 로 생성.)
-
-## 4. 환경
+## 6. 환경
 
 | 자원 | 위치 | 용도 |
 |------|------|------|
-| Python (general) | `/pscratch/sd/s/sjmoon/tribev2/.venv` | probe, baseline, D3 alignment, dataset adapter smoke |
-| Python (LLM) | `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` | D1 LoRA, D2 LLM tuning |
-| Submodule (D1 reference) | `external/repos/BrainVLM/` | UMBRELLA_qwen 의 patch_embed + merger + trainer |
-| Submodule (D2 본체) | `external/repos/fMRI-LM/` | Stage 1/2/3 trainer 그대로 사용 |
-| Compute | NERSC m4641 (cpu/gpu queue) | A100 80GB |
+| Python (general) | `/pscratch/sd/s/sjmoon/tribev2/.venv` | probe, baseline, dataset adapter, evaluation |
+| Python (LLM) | `/pscratch/sd/s/sjmoon/brainvlm_qwen_env` | Qwen3-VL LoRA, fusion training |
+| Submodule (VLM reference) | `../external/repos/BrainVLM/` | UMBRELLA_qwen 의 patch_embed + merger 참조 (NV3 의 VLM-derived encoder) |
+| Submodule (fMRI LLM reference) | `../external/repos/fMRI-LM/` | Wei 2026 tokenizer + LLM tuning 참조 |
+| Compute | NERSC m4641 (cpu / gpu queue) | A100 80GB |
 
-## 5. 협업자 onboarding (다른 사람도 가져갈 수 있게)
+## 7. 협업자 onboarding
 
-clone.
+Clone.
 ```bash
 git clone --recursive git@github.com:Transconnectome/EmoBrain.git
-# 이미 clone 했다면
-git submodule update --init --recursive
+cd EmoBrain && git submodule update --init --recursive
 ```
 
-각 direction 의 `docs/getting_started.md` 가 사용법 entry.
+읽을 순서.
+1. `../README.md` / `../README_KR.md` — 5 NV + architecture.
+2. `../CONTEXT_EMOBRAIN.md` — compact single-source-of-truth.
+3. `../Paper/framework_EN.md` + `framework_KR.md` — spine narrative.
+4. `../docs/notes/architecture_design_20260629.md` — architecture spec.
+5. `../docs/notes/redteam_review_20260630.md` — 4 panel red-team 의 7 blocker + 12 recommendation (training start 전 gate).
+6. `../ACTION_PLAN.md` — S7-S11 weekly action.
+7. `../CLAUDE.md` — operating + scientific rule.
 
-새 dataset (Horikawa, Emo-FilM 외) 을 D2 에 가져갈 때.
-1. raw fMRI → HDF5 변환 (`dir2_fmri_lm/code/adapters/_template.py` 복사).
-2. paired descriptor CSV (`dir2_fmri_lm/code/adapters/generate_descriptors.py`).
-3. `external/repos/fMRI-LM/dataset.py` 의 `DATASET_INFO` + `configs/dataset_config.yaml` 에 1 줄 추가.
-4. `dir2_fmri_lm/scripts/train_stage1.sh` 의 `DATASET_DIR` env var override 만으로 launch.
+## 8. 운영 규칙
 
-## 6. 결과 + 운영 규칙
-
-- 모든 .py 는 .sh 동반 (NERSC 의 sbatch 진입점).
+- 모든 .py 는 .sh 동반 (NERSC sbatch 진입점).
 - Bash 명령은 절대경로. cd + relative 금지.
-- sbatch 는 사용자 사전 승인 필수.
-- 결과 / output / checkpoint 는 per-direction 의 `output/`, `results/` 에 저장. shared 자원은 `shared/` 에.
-- D1, D2 의 main paper 결과는 standard baseline suite (chance / ROI Ridge / BFM frozen reference / video baseline) 와 함께 reporting.
+- Sbatch 는 사용자 사전 승인 필수.
+- 결과 / output / checkpoint 는 `project/output/` (main pipeline) 또는 `project/shared/` (공통).
+- 추출된 raw data / checkpoint / output 덮어쓰지 않음.
+- 모든 main claim 은 standard baseline suite (chance / ROI Ridge / BFM frozen reference / Video baseline) + noise ceiling anchor 와 함께 reporting.
 
-## 7. Forward plan
+## 9. Status (2026-06-30)
 
-- Background. Phase 1 frozen BFM 한계 확정 완료 (`../docs/reports/phase1_audit_20260604/`).
-- D1 / D2. Horikawa pilot → Emo-FilM 확장 → 2 × 2 grid.
-- D3. alignment pilot → context clustering 학습 → cross-dataset transfer → CCN workshop.
-
-자세한 forward plan 은 `../docs/masterplan_v3_emobrain.md`.
+- Framework lock (2026-06-29 pivot). NV3 P2-B knowledge distillation main paradigm (2026-06-30).
+- Red-team 완료. 4 panel, 7 blocker, 12 recommendation. `../docs/notes/redteam_review_20260630.md`.
+- Week 0 engineering sprint 대기 (training start 전 gate). Stage 0 noise ceiling 측정, factored 3-phase sweep (30 run) 준비.
+- Sbatch training on hold. Week 0 완료 + 사용자 승인 후 launch.
+- Background Phase 1 완료. Frozen BFM 한계 확정. `../docs/reports/phase1_audit_20260604/`.
+- `project/code/{adapters,brain_encoder,vision_encoder,caption_loader,fusion,training,evaluation}/` skeleton 만 존재. Implementation S7 부터.

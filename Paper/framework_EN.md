@@ -59,9 +59,15 @@ Horikawa 2024 (Science Advances DOI 10.1126/sciadv.adw1464) 의 MindCaptioning �
 
 같은 framework 안 에서 brain encoder backbone 의 4 variant (raw ROI / Ridge embedding / BFM embedding (Brain-JEPA / NeuroSTORM / SwiFT) / trained VLM token) 의 *swappable architecture*. Prior work 는 한 paper 가 한 encoder choice 만 보고. 우리 는 *같은 fusion + 같은 head + 같은 evaluation* 에서 4 encoder 의 fair comparison. Phase 1 evidence (frozen BFM < ROI ridge) 의 *generalization* 측정.
 
-### NV4. 34-distribution output via 4-stage curriculum
+### NV4. 34D independent emotion regression + practical curriculum (2026-06-30 재정의)
 
-Cowen-Keltner 34-category 의 *full distribution* 의 KL-target output 의 4 stage curriculum 학습. Stage 1 top-1 (cross-entropy, easiest), Stage 2 top-2, Stage 3 top-k (k=5), Stage 4 34D distribution (soft KL). Prior work (EmoMind, Saarimäki, Horikawa) 는 single-task (caption rewriting, top-1 classification, individual category MVPA) 만. *Distribution-level decoding + curriculum* 의 emotion fMRI first.
+Cowen-Keltner 34-category 를 서로 경쟁 하지 않는 독립 점수 로 output. 34D linear regression head, per-emotion MSE loss, z-score preprocessing (mean 0, std 1 per emotion) 필수. Softmax / sum-to-1 / KL / cross-entropy 사용 금지 (34 감정 은 distribution 이 아님, bittersweet 처럼 여러 감정 이 동시 에 높을 수 있음). Prior work (EmoMind, Saarimäki, Horikawa) 는 single-task (caption rewriting, top-1 classification, individual category MVPA) 만. *34D independent readout on same forward pass* 의 emotion fMRI first. Distillation (Track B) 도 동일 원칙 (softmax 금지, per-emotion MSE 로 teacher 34D 재현).
+
+**Curriculum staging 은 practical stepwise validation 으로 유지.** Curriculum (top-1 → top-2 → top-k → full 34D) 을 통해 하나 라도 학습 되는지 부터 sanity check 후 dimension 확장. 각 sub-stage 는 여전히 per-emotion independent MSE (softmax / KL 없음, subset target 만 다름). 이전 formulation 에서 폐기 된 것 은 "softmax head + KL divergence + class weighting" 이지 stage 진행 자체 는 유지.
+
+실행 구조 (계층 정리).
+- **Track A. Direct supervised** (context 없음, brain-only). Track A 안 curriculum A1 → A2 → A3 → A4.
+- **Track B. Distillation** (teacher context + student brain-only). Track B 안 curriculum B1 → B2 → B3 → B4.
 
 ---
 
@@ -105,10 +111,16 @@ LOSS
 
 | Variant | Representation | Trainable? | 대응 prior work |
 |---|---|---|---|
-| E1. Raw ROI | Schaefer-400 + Tian-S3-50 의 450 region × 16 TR mean BOLD | No | Cowen-Keltner 2017 MVPA, Saarimäki 2018 |
-| E2. Ridge embedding | ROI BOLD → Ridge regression → low-dim embedding | Trained (ridge) | Phase 1 baseline (winning baseline) |
-| E3. BFM embedding | Brain-JEPA / NeuroSTORM / SwiFT 의 frozen embedding | Frozen | Phase 1 (6 variant 모두 측정 됨) |
-| E4. VLM token | ROI patchify → projector → LLM input slot 의 trainable token | Trained (LoRA + projector) | D1 BrainVLM v1/v2 (token output limit), 본 paper 의 new variant |
+| E1. Raw ROI (no pretrain, no adaptation, control) | Schaefer-400 + Tian-S3-50 의 450 region × 16 TR mean BOLD, simple projector | Projector only | Cowen-Keltner 2017 MVPA, Saarimäki 2018 |
+| E2. Ridge latent (task-specific, no LLM pretrain) | ROI BOLD → Ridge regression → low-dim embedding | Trained (ridge) | Phase 1 baseline (winning baseline) |
+| E3. BFM embedding (fMRI pretrain frozen) | Brain-JEPA / NeuroSTORM / SwiFT 의 frozen embedding (rsfMRI large-scale pretrain) | Frozen | Phase 1 (6 variant 모두 측정 됨) |
+| E4. Image pretrain + fMRI fine-tune | Qwen3-VL vision encoder → D1 BrainVLM fMRI fine-tune (LoRA + projector) hidden state | D1 학습 시 학습, 추출 후 frozen | D1 BrainVLM v1/v2 (token output limit), 본 paper 의 new variant |
+
+E3 vs E4 의 진짜 question. rsfMRI large-scale pretrain 의 frozen transfer 가 강한가, image pretrain 에서 출발 해 task-specific N 으로 fMRI fine-tune 한 adaptation 이 강한가. E4 label 은 "image pretrain + fMRI fine-tune" 으로 고정 (D1 의 fMRI 적응 단계 가 가려지지 않도록).
+
+**중요. 공통 patchify frontend 없음.** ViT 계열 은 ViT patch embedding, SwiFT 는 Swin 4D window, Brain-JEPA 는 또 다른 방식 을 각자 사용. 공통 인 것 은 결과 로 brain token 이 나온다는 사실 뿐. 진짜 변수 는 사전 학습 유무 와 fMRI 적응 설계.
+
+**Encoder 순위 자체 는 spine result 가 아님.** Framework (multi-modal 학습 + brain-only 추론 비대칭 + 34D 고차원 readout) 가 novelty. E1-E4 는 modularity 검증 이며 framework 가 열어주는 후속 질문.
 
 Phase 1 의 evidence base. Frozen BFM (E3) < Ridge baseline (E2). D1 v1/v2 의 evidence base. Trained VLM token output (E4 의 token-output variant) < Ridge baseline (E2). 본 paper 의 new test. E4 의 hidden-state output variant + multi-modal fusion + curriculum 에서 ranking 이 어떻게 바뀌 는지.
 
@@ -118,15 +130,41 @@ Phase 1 의 evidence base. Frozen BFM (E3) < Ridge baseline (E2). D1 v1/v2 의 e
 
 ## Multi-modal fusion
 
-### Token concatenation
+### Token concatenation (2026-07-02 implementation_spec 반영)
 
+**Teacher sequence.**
 ```
-[brain_tokens (E_var)] | [video_tokens (V_enc)] | [human_caption_tokens] | [model_caption_tokens] | [instruction_tokens]
+[video_tokens (V_enc)] | [Caption field] | [brain_tokens (E_var)] | [Question field]
 ```
 
-Brain encoder variant 에 따라 brain token 수 가변. Video encoder 의 frame downsample 후 token 수 ~256. Human caption ~ 50 token, model caption ~ 50 token. Instruction ~ 20 token (stage-specific task tag).
+**Student sequence.**
+```
+[brain_tokens (E_var)] | [Question field]
+```
 
-각 modality 의 token 앞 에 modality 의 special token (`<BRAIN>`, `<VIDEO>`, `<CAPTION_H>`, `<CAPTION_M>`, `<TASK>`) 으로 LLM 이 modality boundary 학습.
+Video 를 앞 에 두어 시각 context anchor, brain 을 Question 직전 에 두어 마지막 hidden state 가 brain 신호 를 반영. Student 는 video / caption 없이 brain + Question 만. 이전 default (`brain → video → caption → instruction`) 는 폐기.
+
+Brain encoder variant 에 따라 brain token 수 가변. Video projector token 기본 N_v=16 (sweep {8,16,32}). Caption ~ 50 token. Question ~ 20 token (고정 지시문). 각 modality 의 token 앞 에 modality special token (`<BRAIN>`, `<VIDEO>`, `<CAPTION>`, `<TASK>`) 으로 LLM 이 modality boundary 학습.
+
+### Prompt 의 caption field vs question field
+
+Prompt 는 두 slot 으로 구성. Caption field 와 question field.
+
+- **Caption field**. 매 sample 마다 달라지는 자연어 서술. MindCaptioning human caption (main) + 우리 model caption (parallel). Student 학습 시 확률적 dropout.
+- **Question field**. 모든 sample 에서 동일한 fixed 문자열 (task instruction + 34-category inventory). 매 sample 이 같으므로 question 자체 는 label 을 구별 할 shortcut 이 없음.
+- **의미**. 진짜 shortcut 위험 은 question 이 아니라 caption 이 brain 을 대신 하는 경로. 그래서 caption 만 dropout, question 은 항상 유지.
+
+### Teacher vs student prompt asymmetry + caption dropout
+
+Teacher (학습) 와 student (추론) 의 prompt 구조 가 다름. 방치 하면 distribution shift 로 student 추론 성능 저하.
+
+| 시점 | Prompt 구조 | 벡터 입력 |
+|------|-------------|-----------|
+| 학습 (teacher) | caption field + question field | brain + video |
+| 학습 (student) | question field, caption 은 확률적 dropout | brain (일부 배치 에서 video 도) |
+| 추론 (student) | question field only | brain only |
+
+Caption dropout 이 두 문제 를 동시 해결. (1) Student 가 caption 없는 prompt 에 미리 익숙 해짐, (2) Student 가 caption 을 못 기대 하게 되어 brain-only 신호 를 강제 학습. Dropout 확률 은 open decision (OD-P, 0.5 / 0.7 / 0.9 grid 후 결정).
 
 ### Why MindCaptioning human captions specifically
 
@@ -149,30 +187,206 @@ Frozen Qwen3-VL (no fine-tune) 의 video → caption pipeline 으로 *same 2185 
 
 ---
 
-## 4-stage curriculum
+## 34D independent emotion regression (NV4, 2026-06-30 재정의)
 
-### Stage progression rationale
+### 정답 형식
 
-Stage 1 top-1 (easiest) → Stage 4 34D distribution (hardest) 의 *progressive task difficulty*. 각 stage 의 output space 가 점진 적 으로 expand.
+- Horikawa Cowen-Keltner rating. 영상 당 34 개 감정 을 1-9 Likert 로 rating. 각 감정 은 독립 rating.
+- Raw target `y ∈ R^34`, 각 원소 = rater 평균 rating (1-9 unnormalized).
+- 34 감정 은 서로 경쟁 하지 않음. Bittersweet 처럼 기쁨 과 슬픔 이 둘 다 높을 수 있음. → distribution 아님, softmax / sum-to-1 금지.
 
-| Stage | Output | Target | Loss | Rationale |
-|---|---|---|---|---|
-| 1 | top-1 emotion | one-hot (argmax of crowd 34D) | Cross-entropy | Easiest. Model 의 *gross categorization* 학습. Prior work 의 single-label classification 과 직접 비교 가능. |
-| 2 | top-2 emotion | two-hot (top-2 of crowd 34D) | Cross-entropy (multi-label) | Mixed emotion 의 first level recognition. Vaccaro 2024 mixed valence framework 와 align. |
-| 3 | top-k (k=5) | k-hot (top-5 of crowd 34D) | Cross-entropy (k-label) | Distribution shape 의 partial capture. Mid-curriculum stabilizer. |
-| 4 | 34D distribution | soft target (crowd 34D distribution) | KL to soft target | Full fine-grained distribution. EmoBrain 의 main contribution. |
+### 필수 전처리. per-emotion z-score
 
-### Loss schedule
+```
+z_k = (y_k - mean_k) / std_k     for each emotion k = 1..34
+```
 
-각 stage 에서 *previous stage loss term 의 weight 점진 감소*. Stage 1 의 learning 이 backbone 의 *gross emotion category space* 학습 → Stage 2-3 의 multi-label 학습 이 *category boundary refinement* → Stage 4 의 KL 학습 이 *distribution shape* 학습. 학습 시 catastrophic forgetting 회피.
+Mean 과 std 는 training set 에서 감정 별 로 계산. Test set 에 fit 하지 않음. z-score 안 하면 큰 값 감정 이 loss 를 지배 → 드문 감정 무시. Rare-emotion recovery 를 primary metric 으로 둔 이상 필수.
 
-Class weighting. Cowen-Keltner 34 cat 의 frequency imbalance (예. "amusement" frequent, "embarrassment" rare) 보정. Inverse-frequency or median-frequency balancing.
+### Loss. Per-emotion MSE (subset sum, curriculum stage 별)
 
-Optional brain-reconstruction auxiliary. Brain encoder 의 *trained variant* (E4) 의 경우 *brain token → reconstructed BOLD* 의 auxiliary task. Brain signal 의 *information preservation* 의 regularizer.
+```
+L_main(pred, target; A) = sum_{k ∈ A} (pred_k - target_k)^2
+```
+
+`A` = 해당 curriculum stage 의 active target subset. 원리 는 항상 per-emotion independent MSE, stage 별 로 A 의 크기 만 다름. Softmax / KL / cross-entropy / multi-label BCE 사용 금지. Class weighting 불필요 (z-score 가 이미 균등 가중).
+
+**Curriculum stage 별 A**.
+
+| Stage | Active target A (per stimulus) | Loss size | Rationale |
+|-------|-------------------------------|-----------|-----------|
+| 1 (top-1) | 자극 별 rating 최고 감정 1 개 | 1 항 | 감정 하나 라도 학습 되는지 sanity |
+| 2 (top-2) | 자극 별 rating 상위 2 | 2 항 | Mixed emotion 학습 되는지 |
+| 3 (top-k) | 자극 별 rating > threshold, 평균 5-8 개 | 가변 | Sparse profile |
+| 4 (full 34D) | 34 개 전부 | 34 항 | 최종 formulation |
+
+Stage 1-3 의 non-active 감정 은 loss 계산 에서 masked (gradient 없음). Prediction head 는 항상 34-dim 유지. Stage 4 (full 34D) 가 안정 적 으로 실행 되면 향후 curriculum 없이 direct 34D 로 통합 가능.
+
+### Distillation loss (Stage 2 에서 얹음)
+
+Teacher soft label 도 34D 독립 점수 로 caching. Student 가 teacher 34D 를 MSE 로 재현.
+
+```
+L_distill(student_pred, teacher_pred) = sum_{k=1..34} (student_pred_k - teacher_pred_k)^2
+```
+
+Total loss = L_main + λ × L_distill (λ = 0.5 / 1.0 / 2.0 grid, S9 후 결정).
+
+### Optional brain-reconstruction auxiliary
+
+Brain encoder 의 trained variant (E4) 의 경우 brain token → reconstructed BOLD 의 auxiliary task. Brain signal 의 information preservation 의 regularizer. λ_recon = 0.1 (S9 smoke 후 결정).
+
+### Loss ≠ metric
+
+Loss (MSE) 는 학습 을 굴리는 연료. Metric 은 결과 를 채점 하는 성적표. Headline metric 은 개별 감정 점수 정확도 가 아니라 영상 하나 에 대한 34 개 숫자 의 전체 profile shape 이 정답 profile 과 닮았는지 (§Evaluation).
+
+### 이전 formulation 의 폐기 부분 vs 유지 부분
+
+**폐기 (2026-06-30)**.
+- Softmax head + KL divergence with 34D distribution target (34D 를 probability distribution 으로 오해).
+- Class weighting (inverse frequency) (z-score 가 이미 균등 가중).
+- Stage 4 target = rater empirical distribution (sum-to-1).
+
+**유지**.
+- Curriculum staging (top-1 → top-2 → top-k → full 34D) 자체 는 practical stepwise validation tool 로 유지.
+- Stage 진행 시 checkpoint 의 weight inheritance.
+
+실행 계층 은 (Track A direct / Track B distillation) × (curriculum sub-stage 1-4) 의 2-level 구조 로 정리 (Two-stage execution section).
+
+---
+
+## Training paradigm (2026-06-30 late-3 lock)
+
+Training paradigm 의 결정. P2-A (random modality dropout, **teacher side**), P2-B (knowledge distillation), P2-C (auxiliary alignment) 중에서 다음과 같이 lock. 이전 lock (P2-B main + KL / cross-entropy + student-side dropout) 은 (a) NV4 재정의 로 KL 폐기, (b) red-team recommendation 18 에 따라 modality dropout 을 teacher 로 이동 하여 정정.
+
+### P2-B knowledge distillation 이 본명 (main)
+
+Teacher 와 student 의 두 단계 학습. Loss 는 모두 per-emotion MSE (§NV4, softmax / KL / CE 금지).
+
+- **Teacher**. Brain + video + caption 의 3-modality 로 학습. Backbone = Qwen3-VL + LoRA-A. Loss = subset per-emotion MSE (curriculum stage 별). **Teacher 학습 중 P2-A modality dropout (video / caption 을 random 확률 로 mask + padding, p=0.3 each)** 적용 → soft label 이 다양한 modality 조합 에서 생성 → student 의 inference-time OOD 완화.
+- **Student**. Brain-only 입력 만. 같은 Qwen3-VL backbone + LoRA-B (LoRA weight 만 분리, backbone 공유). Loss = `L_main (subset MSE on z-scored target) + λ × L_distill (subset MSE on teacher 34D)`. Softmax / KL / CE 사용 금지.
+- **Soft label caching**. Teacher convergence 후 각 (brain, video, caption) tuple 의 34D raw score (softmax 없음) 를 caching. Student 학습 시 teacher forward 불필요.
+
+핵심 leakage 차단 mechanism. Student 가 video 의 raw feature 를 직접 보지 않고 teacher 의 34D 출력 만 본다. Context 의 도움 이 정답 에 가까운 34D score 형태 로 전달, brain 이 video 를 흉내 내는 통로 가 원천 차단.
+
+구현 cost. Teacher 와 student 가 같은 backbone 공유 + LoRA 만 분리 → 두 model 동시 hosting 부담 없음. Teacher 는 한 번 학습 후 soft label cache → student 학습 cost 는 단일 model 과 유사.
+
+### P2-A teacher-side modality dropout (integrated into P2-B)
+
+**Red-team correction (2026-06-30 late-3)**. 이전 spec 에서 student 에 dropout 을 두었 던 것 은 잘못. Student 는 항상 brain-only 이므로 modality dropout 이 무의미. Modality dropout 은 teacher 에 위치 해야 (a) teacher 가 다양한 modality 조합 에서 soft label 을 생성, (b) student 가 teacher 의 다양성 을 흡수 하여 inference-time distribution 이 학습 시 이미 노출 됨.
+
+- Teacher 학습 시 매 step 마다 video / caption 을 각각 확률 p=0.3 (grid 0.1 / 0.3 / 0.5) 으로 mask + padding (같은 position 유지).
+- Student 는 modality dropout 없음. Brain-only + caption dropout (§7.6) 은 유지 (student prompt shift 완화 용).
+
+### P2-C alignment 는 제외 (excluded)
+
+Structural conflict 으로 exclude.
+- P2-A teacher dropout = teacher 가 video 에만 기대지 않도록 만드는 장치.
+- P2-C alignment = brain representation 을 video representation 에 가깝게 당기는 장치.
+- 방향 정반대.
+
+Phase 1 의 video 의 0.97 dominance (CLIP video probe valence AUROC) 상황 에서 brain 을 video 에 정렬 → brain encoder 가 video 흉내 표현 으로 수렴 → 입력 에서 막은 leakage 가 representation 정렬 로 되돌아옴. Brain 이 emotion 을 담고 있음 을 보이는 게 목표 인데 P2-C 는 brain 을 video 의 그림자 로 만드는 가장 위험한 장치. 향후 video 가 약한 modality 의 setting 에서 재고.
+
+### Sanity comparison (red-team recommended)
+
+Student-from-teacher (P2-B) vs student-from-hard-label (Track A A4) 을 같은 brain-only input 으로 비교. 만약 *tie within noise* 면 distillation 이 overhead 로 판정, P2-B 자체 를 재고.
+
+---
+
+## Two-stage execution (2026-06-30 lock)
+
+### Stage 0. Noise ceiling estimation (before Stage 1)
+
+목적. Encoder competition 이 *의미 있는 headroom* 위에서 진행 되는지 의 pre-check. R0 risk (noise ceiling 자체 가 낮음) 의 직접 test.
+
+4 의 estimator.
+- **ISC (Inter-Subject Correlation).** 5 subject 의 brain response 의 cross-subject correlation. 같은 stimulus 의 brain signal 의 *consistency* 의 upper bound estimator.
+- **Repeated-trial split-half reliability.** Horikawa test set 의 56 stim × 24 repeat 의 split-half correlation. Within-subject 의 *signal vs noise* ratio.
+- **Analytical noise ceiling (Lage-Castellanos 2019 formula).** PLoS Comp Bio 2019, DOI 10.1371/journal.pcbi.1006397. Analytical upper bound from signal variance estimation.
+- **Task-specific upper bound.** Cowen-Keltner ICC 0.54 = 34D self-report rating 의 theoretical max.
+
+이 4 의 결과 의 consensus 가 noise ceiling. 그 위 에서 ridge baseline 의 위치 가 headroom 의 width.
+
+Naming 정리. Track A / Track B (상위) 와 curriculum sub-stage (하위) 를 구분.
+
+### Track A. Brain-only direct supervised (E1-E4 encoder ablation)
+
+Teacher 없음, context 없음. Brain encoder E1-E4 를 brain-only 입력 으로 학습. Loss = subset per-emotion MSE (curriculum stage 별), z-score preprocessing 후 학습.
+
+Curriculum sub-stage.
+- **A1**. Top-1 subset MSE. 자극 별 1 개 감정 만 target. Sanity.
+- **A2**. Top-2 subset MSE.
+- **A3**. Top-k subset MSE (k 가변, rating threshold 기반).
+- **A4**. Full 34D independent MSE. 최종 target.
+
+Leakage 위험 원천 차단, encoder ranking 가 가장 깨끗. Track A 만 으로 발표 가능 한 결과 (A4 결과 를 gap_filled 계산 base 로).
+
+### Track B. P2-B distillation (context contribution measurement)
+
+Track A 의 best encoder 위 에 P2-B distillation 을 layered. Teacher (brain+video+caption) 도 curriculum B1 → B4 순차. 각 stage 의 teacher 34D soft label caching 후 student (brain-only) 가 MSE 로 재현.
+
+Teacher 의 context 가 student 의 brain-only 성능 을 끌어 올리는지 의 *별도* question. Encoder 효과 (Track A) 와 context 효과 (Track A → Track B delta) 의 귀속 분리.
 
 ---
 
 ## Evaluation framework
+
+### Stage 0 noise ceiling estimation (pre-Stage 1, ceiling-anchored framing)
+
+Stage 0 의 4 estimator (ISC + split-half + analytical + theoretical) 의 consensus 가 noise ceiling 으로 lock. Ridge baseline 의 위치 가 headroom 의 width 를 결정.
+
+### Pre-registered success criterion (ceiling-anchored gap_filled)
+
+평가 의 primary criterion. Ridge 를 "넘어야 할 floor" 가 아닌 *sanity-check reference* 로 reframe. 진짜 question 은 ridge 와 noise ceiling 사이 의 *gap 의 어느 만큼* 을 best encoder 가 채우는가.
+
+```
+gap_filled = (best_encoder_brainonly_accuracy - ridge_accuracy) / (noise_ceiling - ridge_accuracy)
+```
+
+Pre-registered case 의 3 분기.
+- **Case I. noise_ceiling - ridge < 0.05.** R0 realized. Headroom 자체 가 너무 좁아 encoder competition 무의미. Framework 의 reframing 필요. Negative outcome 도 publishable (R0 의 실증).
+- **Case II. noise_ceiling - ridge = 0.05 - 0.15.** Narrow headroom. Encoder competition 진행 하되 effect size 보고 시 reservation 명시.
+- **Case III. noise_ceiling - ridge > 0.15.** Wide headroom. Encoder competition 정상 진행, gap_filled 의 ranking 이 main result.
+
+이 criterion 은 학습 시작 *전* 에 lock. 결과 본 후 의 post-hoc threshold reframing 금지.
+
+### Primary metric. Per-stimulus 34D profile shape similarity (headline)
+
+Loss (MSE) 는 학습 을 굴리는 연료, metric 은 결과 를 채점 하는 성적표. Headline metric 은 개별 감정 점수 정확도 가 아니라 영상 하나 에 대한 34 개 숫자 의 전체 profile shape 이 정답 profile 과 닮았는지.
+
+- **Per-clip 34D profile correlation. Pearson r 과 Spearman ρ 둘 다** (implementation_spec §9-1). Predicted 34D vector vs target 34D vector, test clip 마다 계산 후 mean. 두 지표 를 함께 보고 하여 rank 안정성 검증.
+- **Interpretation**. "이 영상 은 기쁨 과 향수 가 높고 공포 는 낮다" 라는 윤곽 을 맞히는 것 이 목표. 개별 숫자 를 조금 틀려도 profile shape 이 닮았 으면 성공.
+
+### Primary metric (부가). High-D structure preservation
+
+34D Cowen-Keltner profile 의 *고차원 구조 보존* 이 1차 지표. Ridge 는 차원별 독립 선형 회귀 라 이 고차원 구조 를 구조적 으로 잡지 못함. Framework 가 그것을 잡으면 그것이 ridge 가 못 하는 것을 한다 는 novelty 의 실증.
+
+4 의 metric.
+- **Per-emotion correlation.** 34 category 각각 의 prediction-target Pearson r. Distribution 의 각 dimension 의 fidelity.
+- **Rare-emotion recovery.** Frequency-imbalance 하 의 rare category (예. "embarrassment", "guilt") 의 recovery rate. Ridge 의 inverse-frequency weighting 의 한계 측정.
+- **Inter-dimension correlation preservation.** Predicted 34D 의 dimension 간 correlation matrix 가 target 의 correlation matrix 와 의 Frobenius norm. Dimension 간 dependency 보존.
+- **Dimension compression curve.** Output 또는 brain-aligned subspace 를 k 차원 으로 줄이며 성능 저하 측정. Framework 의 이득 이 *저차원 모델 이 잃는 차원* 에 집중 되는지 의 정량.
+
+절대 정확도 (top-1 acc 등) 은 secondary. 어려운 34D task 에서 ridge 든 framework 든 점수 가 낮게 나올 수 있고, 거기서 의 몇 점 차이 는 본질 아님.
+
+### Ridge baseline reframing
+
+Ridge 0.72 (Phase 1 의 V binary balAcc) 는 valence 이진 의 쉬운 task 의 값. 우리 34D task 와 *같은 자 위에 있지 않음*. "0.72 를 넘어라" 의 비교 자체 가 성립 안 함.
+
+Ridge 의 새 역할.
+- *Sanity-check reference* on same 34D task.
+- *고차원 구조 의 dissociation evidence*. Ridge 가 차원 독립 이라 못 잡는 구조 를 framework 가 잡는지 의 reference.
+- *Not a floor to beat*. 절대 점수 우열 의 비교 가 main 아님.
+
+### Negative outcome reporting (publishability spec)
+
+Distillation 의 boost 가 near-zero 가능 (cross-modal large-gap distillation 의 known difficulty). Negative outcome 의 publishability 의 spec.
+
+요구 사항.
+- **Variance partitioning.** Teacher 의 accuracy 를 modality (brain / video / caption) 의 unique contribution 으로 decompose. Teacher 자체 의 video 의존 비율 의 정량.
+- **Transfer gap analysis vs noise ceiling.** Student 의 brain-only accuracy 와 teacher 의 brain-only accuracy 의 gap 을 noise ceiling 대비 비율 로 보고. Transfer gap 의 nature (capacity vs information loss).
+
+Negative outcome 단독 보고 (= "distillation 이 효과 없음") 금지. 위 의 두 분석 의 *explanation* 의 동반 이 publishability 의 minimum.
 
 ### Baseline ladder
 
@@ -220,11 +434,20 @@ Test. Stage 4 의 EmoBrain 학습 후 *같은 backbone + 같은 brain encoder* �
 
 SC3 의 직접 instrument.
 
-### Cross-cohort stretch
+### Cross-subject external test (MindCaptioning, 2026-07-02 정정)
 
-MindCaptioning 11 subject × 2196 video (Horikawa 2024) 의 *cross-cohort* evaluation. EmoBrain 학습 (Horikawa 5 subj) 후 MC 11 subj 의 brain 의 *zero-shot or light-finetune* evaluation.
+**중요 caveat.** Cross-subject 이지만 cross-stimulus 아님.
 
-Stretch goal. 성공 시 *cohort-invariant brain affect code* 의 evidence. 실패 시 cohort-specific factor 의 boundary 정의.
+- MindCaptioning (Horikawa 2024 Science Advances) = **6 subject × 약 2108 clip**, 중립 caption. Horikawa 2020 (5 subj) 과 subject 가 겹치지 않으므로 cross-subject.
+- **그러나 stimulus 는 Cowen 계열 과 상당 부분 겹침** → cross-stimulus 아님.
+- **리포트 필수 caveat**. 평가 리포트 마다 "cross-subject external test, NOT cross-stimulus" 를 명시 출력. Cross-subject 를 cross-stimulus 로 서술 하면 over-claim.
+- 절차. MindCaptioning clip ↔ Cowen clip 대응 표 → 겹치는 clip 에만 Cowen 34D 라벨 매핑 → 겹치지 않는 clip 제외 (제외 수 로그 필수) → train 통계 로 z-score (test 통계 사용 금지).
+
+Cross-stimulus 평가 는 별도. Horikawa 내부 held-out stimuli split (config `data.holdout_stimuli`) 의 slot.
+
+### Cross-cohort stretch (Emo-FilM)
+
+Emo-FilM cross-cohort evaluation. EmoBrain 학습 (Horikawa 5 subj) 후 Emo-FilM 의 zero-shot or light-finetune. Emo-FilM 다운로드 + Cowen 34 schema mapping 이 prerequisite. 성공 시 cohort-invariant brain affect code 의 evidence. 실패 시 cohort-specific factor 의 boundary 정의.
 
 ---
 
@@ -259,6 +482,51 @@ Null result interpretation. LOSO fail = subject-pooled fusion 의 *new-subject g
 같은 backbone + 같은 brain encoder 의 semantic decoding (caption generation) 과 affect decoding (Stage 4) 의 accuracy 의 gap 이 *Tang/Huth 2023 + Horikawa 2024 의 reported semantic-affect dissociation 의 magnitude* 와 *consistent* (within 20 % relative difference). Threshold. semantic R² / affect R² ratio 가 prior work range (2x-5x) 안.
 
 Null result interpretation. Dissociation 안 보임 = 두 task 가 *similar brain code* 사용 의 finding. Affect 가 *semantic 의 subset* 의 evidence. Theoretical 으로 의미 있는 result.
+
+### SC6. Ceiling-anchored gap_filled (pre-registered 2026-06-30)
+
+Stage 0 의 noise ceiling estimation 후 의 pre-registered criterion. Best brain-only encoder (Stage 1 winner) 의 accuracy 와 ridge baseline 의 gap 이 noise_ceiling - ridge 의 fraction 으로 정의 되는 gap_filled.
+
+```
+gap_filled = (best_encoder_brainonly - ridge) / (noise_ceiling - ridge)
+```
+
+Pre-registered case 의 3 분기.
+- **Case I. noise_ceiling - ridge < 0.05.** R0 realized. Framework reframing 필요. Negative outcome 도 R0 의 실증 으로 publishable.
+- **Case II. noise_ceiling - ridge = 0.05 - 0.15.** Narrow headroom. Encoder competition 진행 하되 reservation 명시.
+- **Case III. noise_ceiling - ridge > 0.15.** Wide headroom. Encoder competition 정상, gap_filled ranking 이 main result.
+
+Null result interpretation. gap_filled ≤ 0 (best encoder 가 ridge 못 넘음) 인 경우 = framework 의 *fine-grained gain* 없음. Ridge 가 차원 독립 으로 도 sufficient 의 finding. Modality fusion (Stage 2) 의 추가 contribution 이 의미 있는 lift 의 last 가능성.
+
+---
+
+## Caption-video overlap 대응 (2026-06-30 추가)
+
+Caption 과 video 는 같은 사건 을 서로 다른 추상화 수준 에서 기술 → 일부 겹침 은 구조적 이고 결함 아님. Video 의 고유 기여 는 얼굴 표정 / 움직임 / 구도 같은 저수준 지각. Caption 의 고유 기여 는 인물 관계 / 사회적 상황 같은 고차 의미.
+
+**진짜 리스크**. Caption 의 시각 관련 성분 이 이미 강한 video 와 합쳐져 teacher 가 시각 으로 과결 을 내고, brain 고유 기여 가 학습 신호 에서 지워지는 것. VA binary 에서 video probe AUROC 0.97 vs ROI ridge 0.72 는 이 지배 가 실제 로 관측 됨 을 보인 증거.
+
+**검증 절차**.
+1. **Video residualize on caption**. Caption embedding 에서 video 로 예측 가능한 성분 을 linear regression 으로 제거 → 잔차 만 caption slot 에 입력. 잔차 조건 성능 이 원본 caption 조건 과 유사 하면 caption 고유 기여 살아 있음, 크게 떨어지면 겹침 이 지배.
+2. **Modality ablation**. Full / no-caption / no-video / brain-only 의 4 조건 학습. Caption 을 뺐을 때 gap_filled 감소 폭 = caption 의 고유 기여.
+3. **초기 layer 하강 회피**. 겹침 을 줄인 다고 video 를 low-level layer embedding (e.g., VGG19 초기) 으로 내리면 감정 관련 시각 정보 자체 를 잃음. CCN 결과 (brain-aligned subspace 는 V-JEPA2 마지막 hidden state 에서 나옴, 저수준 residualize 후 에도 categorical 연속 성 유지) 가 이 결정 을 뒷받침. 고차 layer 유지 + 잔차 분석 이 옳은 방향.
+
+**Caption 중립성 검증**. MindCaptioning 은 감정 / 해석 없는 중립 서술 로 규정. 그러나 규정 인용 만 으로 는 부족. Caption sample 을 실제 로 읽어 감정 단어 / 명시적 해석 부여 를 표본 검증 (`project/shared/code/tools/verify_caption_neutrality.py`, S7 에서 작성 예정).
+
+---
+
+## Risks
+
+### R0. Noise ceiling 자체 가 낮음 (high prior probability, 2026-06-30 추가)
+
+Brain signal 의 noise ceiling 자체 가 ridge 와 가까워 어떤 encoder 도 의미 있는 lift 못 만드는 risk. Encoder choice 자체 가 moot.
+
+High prior probability 의 근거.
+- Phase 1 evidence. 6 BFM variant 모두 ROI ridge 못 넘음. Encoder capacity 추가 가 의미 있는 lift 안 만듦 의 reproducible evidence.
+- D1 v1/v2 evidence. 3 backbone size (2B / 4B / 8B) 의 plateau. Capacity 가 issue 아닌 ceiling 자체 의 한계 의심.
+- Cowen-Keltner ICC 0.54. Self-report 의 inter-rater agreement 자체 가 절반. Brain decoding 의 absolute ceiling 이 0.54.
+
+Stage 0 의 noise ceiling estimation 이 R0 의 직접 test. Case I 의 outcome = R0 의 실증 = framework reframing 또는 alternative path 의 trigger.
 
 ---
 

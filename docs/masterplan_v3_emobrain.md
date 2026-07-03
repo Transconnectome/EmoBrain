@@ -1,6 +1,19 @@
-# EmoBrain Masterplan v3
+# EmoBrain Masterplan v3 (SUPERSEDED 2026-06-29)
 
-Branch `sj_NEW_20260608_perlmutter`. Forward plan for the EmoBrain framing.
+> **STATUS. SUPERSEDED.** 이 v3 masterplan 은 Three Directions (D1 BrainVLM + D2 fMRI-LM + D3 CCN) framing 을 전제. 2026-06-29 pivot 으로 single project + 5 novelty (NV0-NV4) framing 으로 전환. 아래 내용은 참조/역사용 이며 active forward plan 아님.
+>
+> **Current forward plan.**
+> - Spine narrative. `../Paper/framework_EN.md`, `../Paper/framework_KR.md`.
+> - Architecture spec. `notes/architecture_design_20260629.md`.
+> - Ground-level weekly action. `../ACTION_PLAN.md` (S7-S11).
+> - Red-team synthesis. `notes/redteam_review_20260630.md` (7 blocker + 12 recommendation).
+> - Chronological decision. `notes/project_decisions.md`.
+>
+> **Archive.** Three Directions 시절 code / doc 은 `../archive/v5_direction_split_20260628/`.
+
+---
+
+Branch `sj_NEW_20260608_perlmutter`. Forward plan for the EmoBrain framing (v3, historical).
 
 **Structure.**
 - **Background**. Phase 1 benchmark (frozen BFM 한계 확정, Horikawa, completed).

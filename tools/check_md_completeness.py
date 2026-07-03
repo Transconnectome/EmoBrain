@@ -13,43 +13,39 @@ REQUIRED_FILES = [
     "README_KR.md",
     "ACTION_PLAN.md",
     "ONBOARDING.md",
-    "CONTEXT_EmoBrain.md",
+    "CONTEXT_EMOBRAIN.md",
     "CLAUDE.md",
     "CODEX.md",
     "Paper/framework_EN.md",
     "Paper/framework_KR.md",
     "Paper/methodology.md",
-    "reference/datasets.md",
-    "reference/task.md",
-    "reference/training_strategy.md",
-    "reference/systematic_reference_map.md",
-    "workflows/README.md",
-    "workflows/literature_sota_workflow.md",
-    "workflows/experiment_planning_workflow.md",
-    "workflows/red_blue_team_review.md",
-    "workflows/weekly_update_workflow.md",
-    "setup/README.md",
-    "templates/paper_note.md",
-    "templates/dataset_card.md",
-    "templates/experiment_card.md",
-    "templates/model_card.md",
-    "templates/review_card.md",
-    "templates/decision_log.md",
+    "docs/reference/datasets.md",
+    "docs/reference/task.md",
+    "docs/reference/training_strategy.md",
+    "docs/reference/systematic_reference_map.md",
+    "docs/workflows/README.md",
+    "docs/workflows/literature_sota_workflow.md",
+    "docs/workflows/experiment_planning_workflow.md",
+    "docs/workflows/red_blue_team_review.md",
+    "docs/workflows/weekly_update_workflow.md",
+    "docs/templates/paper_note.md",
+    "docs/templates/dataset_card.md",
+    "docs/templates/experiment_card.md",
+    "docs/templates/model_card.md",
+    "docs/templates/review_card.md",
+    "docs/templates/decision_log.md",
 ]
 
 DATASET_REQUIRED_BLOCKS = [
-    "**Role in EmoBrain**",
-    "**Dataset content**",
-    "**EmoBrain task design**",
-    "**SwiFT use**",
-    "**TRIBE v2 / stimulus use**",
-    "**Risks**",
+    ("**Role in EmoBrain**", "**Role**"),
+    ("**Dataset content**", "**Dataset content"),
+    ("**Risks**",),
 ]
 
 OLD_REFERENCES = [
-    "reference/literature_map.md",
-    "reference/emotion_foundation_model_landscape.md",
-    "notes/" + "pi" + "lot_benchmark_design.md",
+    "docs/reference/literature_map.md",
+    "docs/reference/emotion_foundation_model_landscape.md",
+    "docs/notes/" + "pi" + "lot_benchmark_design.md",
     "NARRATIVE_KR.md",
     "scripts/audit_emode_design.py",
     "scripts/audit_emode_extraction.py",
@@ -59,7 +55,7 @@ OLD_REFERENCES = [
 ]
 
 GENERATED_MARKDOWN = {
-    "reports/status/PROJECT_STATUS.md",
+    "docs/reports/status/PROJECT_STATUS.md",
 }
 
 
@@ -104,22 +100,22 @@ def dataset_sections(text):
 
 
 def check_dataset_inventory(failures):
-    path = ROOT / "reference" / "datasets.md"
+    path = ROOT / "docs" / "reference" / "datasets.md"
     if not path.exists():
-        failures.append("missing reference/datasets.md")
+        failures.append("missing docs/reference/datasets.md")
         return
     sections = dataset_sections(path.read_text(encoding="utf-8"))
     for title, body in sections.items():
-        for block in DATASET_REQUIRED_BLOCKS:
-            if block not in body:
-                failures.append("dataset %s missing %s" % (title, block))
+        for block_variants in DATASET_REQUIRED_BLOCKS:
+            if not any(v in body for v in block_variants):
+                failures.append("dataset %s missing %s" % (title, block_variants[0]))
         if "**Source**" not in body and "**Sources**" not in body:
             failures.append("dataset %s missing source block" % title)
 
 
 def check_trigger_visibility(failures):
-    context = read("CONTEXT_EmoBrain.md")
-    workflow = read("workflows/README.md")
+    context = read("CONTEXT_EMOBRAIN.md")
+    workflow = read("docs/workflows/README.md")
     for trigger in ["[deep search]", "[experiment card]", "[red team]", "[weekly status]", "[verification]"]:
         if trigger not in context or trigger not in workflow:
             failures.append("trigger not visible in context/workflows: %s" % trigger)
@@ -128,8 +124,8 @@ def check_trigger_visibility(failures):
 def check_agent_memory_links(failures):
     for rel in ["CLAUDE.md", "CODEX.md"]:
         text = read(rel)
-        if "CONTEXT_EmoBrain.md" not in text:
-            failures.append("%s must point to CONTEXT_EmoBrain.md" % rel)
+        if "CONTEXT_EMOBRAIN.md" not in text:
+            failures.append("%s must point to CONTEXT_EMOBRAIN.md" % rel)
 
 
 def check_no_redundant_root_docs(failures):

@@ -4,6 +4,245 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 ---
 
+## 2026-07-02. Code 구현 명세 (implementation_spec) 반영
+
+**Decision.** 사용자 canonical implementation spec 을 `docs/notes/implementation_spec_20260702.md` 로 이동 하고 delta 를 framework / architecture / action plan / CLAUDE 에 반영.
+
+**Spec 위치.** `docs/notes/implementation_spec_20260702.md` (Claude Code 대상, 487 line, DECIDED / OPEN / CAUTION, Acceptance 기준, config schema, repo layout, 34개 감정 순서 포함).
+
+**주요 delta 반영.**
+
+1. **Prompt token 순서 변경 (implementation_spec §6-5).**
+   - Teacher. `video → Caption field → brain → Question field`.
+   - Student. `brain → Question field`.
+   - 이전 default (`brain → video → caption → instruction`, architecture_design §7.2) 폐기. Video 를 앞 에 두어 시각 anchor, brain 을 Question 직전 에 두어 마지막 hidden state 가 brain 반영.
+2. **Modality dropout 을 caption 만 유지 (implementation_spec §8-2).**
+   - Teacher 학습 시 Bernoulli(p_drop) 로 caption field 제거. Video 는 항상 유지.
+   - Red-team recommendation 18 의 "video+caption 둘 다" 를 caption 만 으로 축소.
+   - 이유. Video 를 학습 시 빼면 teacher 의 시각 anchor 불안정. Caption dropout 만 으로 도 (a) caption 없는 forward pass 훈련, (b) student 가 teacher 다양성 흡수 목적 달성.
+   - p_drop default 0.5, sweep {0.0, 0.3, 0.5, 0.7}.
+3. **Cross-subject external test caveat 명문화 (implementation_spec §5-4, §9-4).**
+   - MindCaptioning 은 cross-subject 이지만 cross-stimulus 아님 (subject 6 명 이 Horikawa 5 명 과 안 겹치지만 stimulus 는 Cowen 계열 과 겹침).
+   - 리포트 마다 "cross-subject external test, NOT cross-stimulus" 명시 필수. Cross-subject 를 cross-stimulus 로 서술 하면 over-claim.
+   - Cross-stimulus 평가 는 별도. Horikawa 내부 held-out stimuli split (config `data.holdout_stimuli`) 에서.
+4. **Headline metric 확장 (implementation_spec §9-1).**
+   - Per-clip 34D profile correlation 을 **Pearson r + Spearman ρ 둘 다** 계산. 이전 spec (Pearson r 단독) 을 확장. Rank 안정성 검증 목적.
+5. **34개 감정 canonical 순서 확정 (implementation_spec 부록 A).**
+   - admiration, adoration, ..., triumph 의 34개 순서 를 `project/shared/data/cowen34_order.txt` 에 저장.
+   - 라벨 / 예측 / mu, std 파일 이 모두 이 순서 를 따르도록 강제.
+6. **B1 ridge (LLM 없음) vs E2 ridge encoder (LLM 경유) 구분 명문화.** CLAUDE.md CAUTION 에 포함.
+7. **Config schema 위치.** `docs/notes/implementation_spec_20260702.md` §10 이 canonical YAML schema. `project/config/train.yaml` 은 이 spec 을 따름.
+8. **Repo layout crosswalk.** ACTION_PLAN 에 implementation_spec `emobrain/` layout ↔ 현재 `project/code/` skeleton 매핑 table 신설. S7 진입 시 crosswalk 적용.
+9. **CLAUDE.md CAUTION section 신설.** Implementation_spec §14 의 10 개 CAUTION 을 CLAUDE.md 에 병합 (softmax 금지, train 통계 만, projector text 금지, video 고차 layer, caption 별도 field, encoder 축 독립, E4 full fine-tune 금지, student 최종 평가 form, cross-subject caveat, B1 vs E2 구분).
+
+**Files updated.**
+- `docs/notes/implementation_spec_20260702.md` (신규, 이전 `/pscratch/sd/s/sjmoon/EmoBrain/emobrain_implementation_spec.md` 에서 이동).
+- `project/shared/data/cowen34_order.txt` (신규, 34개 감정 canonical 순서).
+- `docs/notes/architecture_design_20260629.md`. §7.2 token order (teacher/student 별), §8.6.2 caption dropout (video dropout 제거), §9.0 headline metric (Pearson + Spearman), §9.6-9.8 재편 (cross-subject / cross-stimulus / cross-cohort 분리), §12 cross-references (implementation_spec pointer 추가).
+- `Paper/framework_EN.md`, `Paper/framework_KR.md`. Token concatenation (teacher/student 순서), Primary metric (Pearson + Spearman), Cross-subject external test caveat (기존 Cross-cohort stretch 를 replace).
+- `ACTION_PLAN.md`. Repo layout crosswalk table 신설, config schema pointer, implementation_spec pointer.
+- `CLAUDE.md`. Implementation CAUTION section 신설 (10 개 rule).
+- `README.md`, `README_KR.md`, `CONTEXT_EMOBRAIN.md`, `ONBOARDING.md`. Pointer 추가 (implementation_spec, cowen34_order.txt), CONTEXT_EMOBRAIN 에 cross-subject caveat section, ONBOARDING 읽을 순서 재정렬.
+
+**Rationale.** 사용자 canonical spec 이 framework 를 실제 로 구현 가능 한 수준 으로 정제. DECIDED / OPEN / CAUTION 구분 + Acceptance 기준 + config schema + repo layout 이 모두 갖춰짐. 지금까지 흩어져 있던 spec 을 하나 의 code-implementation entry point 로 통합. Delta (prompt 순서, dropout 범위, cross-subject caveat, metric) 는 spec 을 canonical 로 삼아 다른 doc 을 정합.
+
+---
+
+## 2026-06-30 (late-4). 감사 지적 3 개 정정 (framework/tools/project README 잔재 제거)
+
+**Decision.** 외부 감사 (codex 검토) 가 지적 한 3 개 미완료 문제 를 정정.
+
+**정정 사항.**
+
+1. **Framework/architecture 본문 의 이전 formulation 잔재 제거.**
+   - `Paper/framework_EN.md` §Training paradigm, `Paper/framework_KR.md` §Training paradigm, `docs/notes/architecture_design_20260629.md` §8.6 P2-B 세 곳 에 남아 있던 "P2-B main lock (KL 또는 cross-entropy)" 표현 을 per-emotion MSE 로 통일.
+   - Student loss 를 `KL(student_pred || teacher_soft_label) + λ × L_main` 에서 `L_main (subset MSE on z-scored target) + λ × L_distill (subset MSE on teacher 34D)` 로 교체.
+   - Teacher soft label caching 을 "34D soft label (probability 또는 logit)" 에서 "34D raw score (softmax 없음)" 로 정정.
+2. **Modality dropout 을 student → teacher 로 이동 (red-team recommendation 18).**
+   - 이전 spec 은 P2-A modality dropout 을 student 에 배치. Student 는 항상 brain-only 이므로 dropout 무의미.
+   - 정정. Teacher 학습 시 video / caption 각각 확률 p=0.3 (grid 0.1 / 0.3 / 0.5) 으로 mask + padding. Soft label 이 다양한 modality 조합 에서 생성 되어 student 의 inference-time OOD 완화.
+   - Student 는 modality dropout 없음. Caption dropout (§7.6) 은 별개 유지.
+3. **Sanity comparison 추가.** Student-from-teacher (P2-B) vs student-from-hard-label (Track A A4) 을 같은 brain-only input 으로 비교. Tie within noise 면 distillation 이 overhead 로 판정.
+
+**Tools path fix.**
+- `tools/check_md_completeness.py`. `CONTEXT_EmoBrain.md` → `CONTEXT_EMOBRAIN.md`, `reference/*` → `docs/reference/*`, `workflows/*` → `docs/workflows/*`, `templates/*` → `docs/templates/*`, `setup/README.md` 삭제, `GENERATED_MARKDOWN` 경로 도 `docs/reports/status/PROJECT_STATUS.md` 로. `DATASET_REQUIRED_BLOCKS` 를 tuple variant 로 relax (`**Role in EmoBrain**` 또는 `**Role**` 수용, SwiFT / TRIBE-specific block 제거).
+- `tools/build_project_status.py`. `reference/*` → `docs/reference/*`, `OUT` 경로 를 `docs/reports/status/PROJECT_STATUS.md` 로, `Next Operating Checks` 안 의 `scripts/` → `tools/`.
+- `CONTEXT_EMOBRAIN.md`. `Workflow triggers` section 신설 (5 trigger tag 노출).
+- `CODEX.md`. `CONTEXT_EMOBRAIN.md` 명시 (agent memory link check).
+
+**project/README.md data schema 정정.**
+- §3 architecture diagram OUTPUT 을 NV4 재정의 (34D independent regression + curriculum) 반영.
+- §4 데이터 schema 를 §4.1 present (실제 존재), §4.2 S7 생성 예정, §4.3 partial present, §4.4 S7 fetch 예정 으로 4 분할.
+- 이전 spec 에서 primary 로 적혀 있던 `roi_timeseries_schaefer400tian50/`, `stimulus_features/qwen_vl_captions.jsonl`, `va_continuous_z.csv`, `cat34_soft_distribution.csv` 는 S7 예정 으로 이동.
+- 실제 존재 하는 파일 은 `horikawa_5fold.csv`, `horikawa_split.csv`, `cowen_horikawa_labels.csv`, binary subset 2 개, `feelin_canonical_stimuli.csv`, `stimulus_features/{captions.json, caption_embed.npy, stim_idx.npy, clip/vjepa2/dinov2/videomae × pretrained/scratch .npy}`.
+- `cat34_soft_distribution.csv` (sum=1 soft distribution) 은 NV4 재정의 로 폐기. Z-scored raw score 로 대체.
+
+**Tools 실행 결과 (late-4).**
+- `tools/build_project_status.py`. Exit 0, `docs/reports/status/PROJECT_STATUS.md` 생성 성공.
+- `tools/check_md_completeness.py`. Path/case/trigger/agent memory link 문제 는 모두 해결. 남은 failure 는 `docs/reference/datasets.md` 의 dataset section 이 required block (`**Role in EmoBrain**`, `**Risks**`, `**Source**`) 을 만족 안 함. 이 파일 은 FEEL v2/v3 시절 legacy content 이므로 EmoBrain 5 NV framing 으로 재작성 필요 (별도 작업, out of scope).
+
+**Rationale.** Late-2/late-3 entry 갱신 시 framework 본문 의 Training paradigm section 을 놓쳤음. 새 원칙 (per-emotion MSE, teacher-side dropout) 이 spec 문서 여러 곳 에 걸쳐 있었 는데 일부만 갱신 되고 잔재 가 남아 decision log 와 본문 이 충돌. Tools path fix 는 v5 pivot (dir3_ccn 아래 → single project) 시 tools 를 갱신 안 한 유산. project/README.md data schema 는 forward-looking spec 이 present state 를 앞서 나가는 문제 를 present vs planned 로 분리 하여 해소.
+
+---
+
+## 2026-06-30 (late-3). NV4 correction. Curriculum staging 복구 (KL / softmax 폐기 는 유지)
+
+**Decision.** late-2 entry 의 "curriculum staging 자체 도 폐기" 부분 을 사용자 correction 후 되돌림. Curriculum (top-1 → top-2 → top-k → full 34D) 은 practical stepwise validation tool 로 유지. Softmax / KL / class weighting 폐기 는 그대로.
+
+**사용자 correction (원문).** "우리도 바로 34개 독립으로 갈 건 아니고, 하나씩 일단 해보는지는 확인 해봐야할 것 같아."
+
+**정정 사항.**
+1. **Curriculum staging 복구**. top-1 → top-2 → top-k → full 34D 의 4 sub-stage. 하나 라도 학습 되는지 부터 sanity check 후 dimension 확장.
+2. **각 stage 의 loss 는 subset MSE**. `L_main(pred, target; A) = sum_{k ∈ A} (pred_k - target_k)^2`. A 가 stage 별 active target subset. 원리 는 여전히 per-emotion independent MSE.
+3. **Non-active 감정 처리**. Loss 계산 에서 masked (gradient 없음). Prediction head 는 항상 34-dim.
+4. **Stage transition**. 이전 stage checkpoint 에서 weight inherit. Head dim 변경 없음.
+5. **Curriculum 의 status**. Practical stepwise validation tool. Stage 4 (full 34D) 가 안정 적 으로 실행 되면 향후 curriculum 없이 direct 34D 로 통합 가능.
+
+**폐기 유지 항목** (late-2 entry 그대로 유지).
+- Softmax head.
+- KL divergence with 34D distribution target.
+- Class weighting (inverse frequency).
+- Sum-to-1 constraint.
+- Cross-entropy, multi-label BCE.
+
+**Naming 재정리 (2-level 계층).**
+- **Track A**. Brain-only direct supervised (context 없음). Track A 안 curriculum sub-stage A1 → A2 → A3 → A4.
+- **Track B**. P2-B distillation (teacher context + student brain-only). Track B 안 도 curriculum B1 → B4.
+
+용어 충돌 방지 를 위해 이전 "Stage 1 / Stage 2" 대신 "Track A / Track B" 사용.
+
+**Files updated.**
+- `docs/notes/architecture_design_20260629.md`. §8 curriculum 부활 (§8.3 loss 를 subset MSE 로 재정의, §8.3.1 stage 별 active target subset table). §8.9 를 Track A / Track B × curriculum sub-stage 2-level 구조 로 재정리. §2 diagram OUTPUT block 에 curriculum table 추가.
+- `Paper/framework_EN.md`, `Paper/framework_KR.md`. NV4 정의 에 curriculum 복구. Loss section 에 subset MSE + curriculum table. "이전 formulation 폐기" section 을 "폐기 부분 vs 유지 부분" 으로 재정리. Two-stage execution 을 Track A / Track B naming 으로.
+- `ACTION_PLAN.md`. S8.3 trainer 에 curriculum sub-stage handler + non-active masking. S10.1 을 Track A curriculum A1-A4 로, S10.2 를 Track B curriculum B1-B4 로 재작성.
+- `README.md`, `README_KR.md`, `CONTEXT_EMOBRAIN.md`. NV4 한 줄 요약 + architecture diagram OUTPUT block 에 curriculum table 추가.
+
+**Rationale.** 사용자 의 실용 적 우려. 처음 부터 34 개 모두 학습 가능 한지 는 open. Curriculum staging 으로 하나 라도 되는지 확인 후 확장 하는 것 이 안전. Section 9 의 34D independent 원칙 은 curriculum 과 orthogonal (curriculum 안 에서 도 subset MSE 로 원칙 준수 가능). 두 아이디어 (curriculum + independent MSE) 를 결합 하면 practical validation + principled formulation 을 동시 달성.
+
+---
+
+## 2026-06-30 (late-2). NV4 재정의. 34D independent regression + z-score + MSE (curriculum + KL + softmax 폐기)
+
+**Decision.** 사용자 canonical summary section 9 반영. NV4 를 "4-stage curriculum with KL on 34D softmax" 에서 "34D independent emotion regression with per-emotion MSE" 로 근본적 재정의.
+
+**핵심 원칙.**
+1. **34 개 감정 은 서로 경쟁 하지 않음**. Bittersweet 처럼 기쁨 과 슬픔 이 둘 다 높을 수 있음. Softmax / sum-to-1 / KL divergence / cross-entropy / multi-label BCE 사용 금지.
+2. **필수 전처리 = per-emotion z-score**. 감정 별 로 mean 0, std 1 로 rescale (training set fit, test set transform). 클래스 불균형 이 curriculum 이 아니라 z-score 로 해결.
+3. **Loss = per-emotion MSE sum**. `L_main = sum_{k=1..34} (pred_k - target_k)^2`. 34 개 독립 항. Class weighting 불필요.
+4. **Distillation 도 동일 원칙**. Teacher 34D soft label caching, student 가 per-emotion MSE 로 재현. `L_distill = sum_k (student_k - teacher_k)^2`. Softmax 금지.
+5. **시작 = teacher 없이 direct MSE, 그 다음 distillation 얹기**. Curriculum staging (top-1 → top-k → 34D) 자체 가 불필요.
+
+**Loss ≠ metric.**
+- Loss (MSE) = 학습 을 굴리는 연료.
+- Metric = 결과 를 채점 하는 성적표.
+- **Headline metric = per-stimulus 34D profile shape similarity**. 개별 감정 점수 정확도 가 아니라 영상 하나 에 대한 34 개 숫자 의 전체 profile shape 이 정답 profile 과 닮았는지. Per-stimulus Pearson r 34D vector correlation (또는 cosine similarity), test stim 마다 계산 후 mean.
+
+**폐기 된 formulation.**
+- ~~4-stage curriculum (top-1 → top-2 → top-k → full 34D KL)~~. 34D 를 distribution 으로 오해 한 결과.
+- ~~34D softmax head~~. 34 개 감정 이 서로 경쟁 하지 않으므로 부적절.
+- ~~KL divergence with rater empirical distribution target~~.
+- ~~Class weighting (inverse frequency)~~. Z-score 가 이미 균등 가중.
+- ~~Curriculum stage 간 checkpoint inheritance~~. Stage 개념 자체 삭제.
+
+**새 실행 순서 (§8.9 의 2-stage validation order 로 이동).**
+- Stage 1. Teacher / context 없이 E1-E4 를 34D 독립 점수 에 직접 지도 학습. Loss = per-emotion MSE sum, z-score 전처리.
+- Stage 2. Stage 1 의 best encoder 위 에 teacher (brain+video+caption) 학습 → 34D soft label cache → student (brain-only) 가 teacher 34D 를 MSE 로 재현.
+
+**새 OD.** OD-D2 (distillation loss weight λ, 0.5 / 1.0 / 2.0 grid). ~~OD-E (KL target smoothing)~~ SUPERSEDED (KL 자체 폐기).
+
+**Files updated.**
+- `docs/notes/architecture_design_20260629.md`. §2 diagram OUTPUT block (softmax + KL 제거 → 34D regression + MSE). §8 전체 재작성 (4-stage curriculum → NV4 34D independent regression). §8.1-8.6 (정답 형식, z-score preprocessing, MSE loss, distillation loss, aux recon, metric). §8.9 (2-stage validation order 의 MSE + distillation 반영). §9.0 (headline metric = per-stimulus profile shape).
+- `Paper/framework_EN.md`, `Paper/framework_KR.md`. NV4 정의 재작성 (Section 5 Novelties). "4-stage curriculum" 큰 섹션 을 "34D independent emotion regression" 으로 대체. Evaluation Primary metric 을 per-stimulus profile shape headline 으로.
+- `ACTION_PLAN.md`. S8.2 (dist_head.py → regression_head.py, softmax 없음). S8.3 (curriculum stage 별 CE / KL → per-emotion MSE + distillation MSE). S8.4 (train_curriculum.yaml → train.yaml + z-score sanity check). S10.1 (top-1/2/k/full 삭제 → Stage 1 direct MSE 단일). S10.2 (student loss KL → MSE distillation). OD-E SUPERSEDED, OD-D2 신설.
+- `README.md`, `README_KR.md`, `CONTEXT_EMOBRAIN.md`. NV4 한 줄 요약 갱신. Architecture diagram OUTPUT 블록 재작성.
+
+**Rationale.** 이전 NV4 formulation 은 두 가지 실수. (a) Cowen-Keltner 34-cat rating (1-9 독립 Likert) 을 probability distribution 으로 오해 하여 sum-to-1 constraint 부여, (b) 클래스 불균형 문제 를 curriculum staging 으로 해결 하려 했으나 z-score preprocessing 이 훨씬 더 clean 한 해법. Bittersweet 같은 mixed emotion 이 34D 를 non-competitive 로 취급 해야 하는 이유 의 최종 증거.
+
+---
+
+## 2026-06-30 (late). Framework master summary 반영 (사용자 제출 summary 문서)
+
+**Decision.** 사용자 canonical framework summary (`emotion_framework_master_summary.md`) 를 architecture_design + framework_EN/KR + ACTION_PLAN 에 반영.
+
+1. **Novelty 위치 재확인.** Framework 자체 (multi-modal 학습 + brain-only 추론 비대칭 + modality 별 역할 분리 + 34D 고차원 readout) 가 novelty. E1-E4 encoder ablation 은 framework 가 열어주는 후속 질문 이지 spine result 아님. "어떤 encoder 가 best 인가" 는 spine question 아님.
+
+2. **공통 patchify frontend 없음 을 명문화.** fMRI 가 곧장 각 encoder 로 들어가고 patchify 는 각 encoder 내부 에서 발생. 공통 인 것 은 output 이 brain token 이라는 사실 뿐. 진짜 변수 는 사전 학습 유무 + fMRI 적응 설계.
+
+3. **Prompt 구조 명문화.** Caption field vs question field 로 분리. Question 은 모든 sample fixed → shortcut 아님. 진짜 shortcut 위험 은 caption 이 brain 을 대신 하는 경로 → student 학습 시 caption field 만 확률적 dropout, question 은 항상 유지.
+
+4. **Teacher-student prompt asymmetry + caption dropout 이중 효과.** (a) Student 가 caption 없는 prompt 에 미리 익숙 해짐 (distribution shift 완화), (b) Student 가 caption 을 못 기대 하게 되어 brain-only 신호 를 강제 학습. Dropout 확률 = OD-P (0.5 / 0.7 / 0.9 grid).
+
+5. **Caption-video overlap 대응 절차 lock.** 세 가지. (i) Video 를 caption 위 에 residualize 후 잔차 caption 조건 vs 원본 caption 조건 비교, (ii) Full / no-caption / no-video / brain-only 4 조건 ablation, (iii) 초기 layer 하강 회피 (V-JEPA2 마지막 hidden 유지, 저수준 residualize 후 에도 categorical 연속 성 유지 라는 CCN evidence).
+
+6. **Caption 중립성 검증 절차 lock.** MindCaptioning 규정 인용 만 으로 는 부족. `verify_caption_neutrality.py` 로 substring match + 100 개 sample 인간 검토. S7 gate.
+
+7. **2-stage validation order lock.** Stage 1 (context 없는 direct 34D supervised, brain-only) 완료 를 gate 로 Stage 2 (P2-B distillation) 진입. Stage 1 만 성공 해도 modular encoder ablation + high-D readout 이 하나 의 contribution 으로 publishable. Stage 2 실패 도 P2-B limits 로 별도 finding.
+
+8. **Primary metric 재확인.** 1 차 = 고차원 구조 보존 (per-emotion Pearson r, rare-emotion recovery, 34×34 correlation matrix Frobenius norm, dimension compression curve) + LOSO cross-subject 일반화. 2 차 = 절대 정확도 + ridge sanity check. Ridge 0.72 는 valence binary 특정, 34D floor 아님.
+
+9. **새 OD 4 개.** OD-P (caption dropout 확률), OD-T (projector token 개수, bottleneck width), OD-R (residualize 절차), OD-V (Stage 1 vs Stage 2 sequential vs parallel, sequential default).
+
+**Files updated.**
+- `docs/notes/architecture_design_20260629.md` §4 (E1-E4 재정의 + patchify note + projector 두 목적), §7.5-7.6 (prompt field + caption dropout), §8.8 (caption-video overlap), §8.9 (2-stage order), §9.0 (primary metric), §11 (open Q 16-19).
+- `Paper/framework_EN.md`, `Paper/framework_KR.md`. Modular brain encoder section (patchify note + encoder 순위 spine 아님), Multi-modal fusion (prompt field + teacher-student asymmetry), 새 section (caption-video overlap).
+- `ACTION_PLAN.md`. S7.6 (caption 검증 + residualize), Stage 0 (S10 gate), S10.1-10.3 (2-stage validation + ablation). Open decisions OD-P/T/R/V 추가.
+
+**Rationale.** Red-team recommendation 과 사용자 summary 가 대부분 수렴. Summary 의 novelty framing (framework > encoder) 이 그동안 문서 여러 곳 에서 흔들렸음. 이번 갱신 으로 canonical framing lock.
+
+---
+
+## 2026-06-30. NV3 framework final lock. P2-B distillation main + R0 + Stage 0 ceiling estimation
+
+**Decision.** Lock the NV3 framework with the following.
+
+1. **Training paradigm.** P2-B knowledge distillation 이 main, light P2-A modality dropout 이 auxiliary, P2-C alignment 는 excluded (structural conflict with P2-A).
+   - Teacher. brain + video + caption 의 3-modality 학습, Qwen3-VL backbone + LoRA-A.
+   - Student. brain-only 학습, 같은 backbone + LoRA-B, distillation target = teacher 의 34D soft label.
+   - Soft label 의 caching 후 student 학습 cost 가 단일 model 과 유사.
+
+2. **Three-stage execution.**
+   - Stage 0. Noise ceiling estimation (ISC + repeated-trial split-half + Lage-Castellanos 2019 analytical + Cowen-Keltner ICC 0.54 의 theoretical max).
+   - Stage 1. Brain-only direct supervised E1-E4 의 encoder ablation. Teacher 없음, context 없음.
+   - Stage 2. P2-B distillation 의 context contribution measurement (Stage 1 의 best encoder 위 에서).
+
+3. **Pre-registered success criterion (ceiling-anchored).**
+   - `gap_filled = (best_encoder_brainonly - ridge) / (noise_ceiling - ridge)`.
+   - Case I (noise_ceiling - ridge < 0.05). R0 realized. Framework reframing 필요.
+   - Case II (0.05 - 0.15). Narrow headroom. Reservation 명시.
+   - Case III (> 0.15). Wide headroom. 정상 진행.
+
+4. **Risk 추가. R0.** Noise ceiling 자체 가 ridge 와 가까움. High prior probability (Phase 1 의 6 BFM variant plateau + D1 v1/v2 의 3 size plateau + Cowen-Keltner ICC 0.54 의 absolute ceiling). Stage 0 이 직접 test.
+
+5. **Ridge baseline 의 reframing.** Floor to beat 가 아닌 sanity-check reference on same 34D task. Ridge 0.72 의 valence binary 가 우리 34D task 와 같은 자 위 에 있지 않음.
+
+6. **Primary metric 의 변경.** 절대 accuracy 가 아닌 high-D structure preservation (per-emotion correlation + rare-emotion recovery + inter-dimension correlation preservation + dimension compression curve).
+
+7. **Negative outcome publishability spec.** Distillation 의 boost near-zero 가능. 그 경우 의 publishability 의 minimum = variance partitioning (teacher 의 modality 별 unique contribution) + transfer gap analysis vs noise ceiling. Negative outcome 의 단독 보고 금지.
+
+8. **E4 label 확정.** "Image pretrain + fMRI fine-tune" (NOT "image pretrain only"). D1 의 fMRI 적응 단계 가 가려지지 않도록.
+
+**Rationale.**
+
+Multi-round critic feedback 의 수렴.
+- 2026-06-29 의 3-panel review (literature + methodology + publishability).
+- 2026-06-30 의 후속 2 round 의 adversarial critique.
+
+핵심 통찰.
+- P2-A + P2-C 의 combination 의 structural conflict. P2-C 의 alignment 가 video 의 representation 을 brain token 으로 leak back. P2-B 의 teacher/student 분리 가 이 leakage 회피.
+- Ceiling-anchored framing 의 의미. Encoder competition 이 *의미 있는* 것은 headroom 이 존재 할 때 만. headroom 의 width 의 estimate 없이 encoder ranking 보고 는 R0 risk 의 무시.
+
+**Action items.**
+- Caption neutral 의 verify (pending). MindCaptioning sample 의 affect vocabulary substring match.
+- Stage 0 noise ceiling estimation (pending). 4 estimator 의 implementation + consensus value 의 확정.
+- gap_filled threshold 의 final lock (pending). Stage 0 결과 + literature consensus 후 학습 시작 전 lock.
+
+**영향.**
+- `Paper/framework_EN.md` + `framework_KR.md` 에 §Training paradigm + §Two-stage execution + §Risks (R0) + §Negative outcome reporting + SC6 의 추가.
+- `docs/notes/architecture_design_20260629.md` 에 §8.5 Stage 0 noise ceiling protocol + §8.6 Training paradigm details + §8.7 Pre-registered success criterion 의 추가.
+- §11 Open Questions 의 13-15 (caption neutral + Stage 0 timing + gap_filled threshold) 의 추가.
+
+---
+
 ## 2026-06-29. Spine pivot. Direction 폐기 + single project + framework novelty path
 
 **결정.**
