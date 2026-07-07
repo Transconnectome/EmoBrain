@@ -48,7 +48,8 @@ EmoBrain은 fMRI에서 34차원 감정 프로파일을 디코딩하는 통합 fr
 
 ## 3. 확정된 사실과 제약 (DECIDED)
 
-* 학습 데이터는 Horikawa 2020이다. 5명 피험자, 약 2,180에서 2,196개 Cowen 계열 정서 영상(데이터 버전에 따라 클립 수 확인), 각 영상에 34차원 감정 점수(1점에서 9점 원점수).
+* 학습 데이터는 Horikawa 2020이다. 5명 피험자, 우리 canonical 2,185 Cowen 계열 정서 영상, 각 영상에 34차원 감정 라벨.
+* **34D 라벨의 실제 정의 (2026-07-07 원문 검증).** Cowen-Keltner 2017 은 영상당 9-17 rater가 34 emotion category를 yes/no 판단. 우리 라벨의 각 값 = 그 category를 고른 rater 비율 (crowd proportion, 0-1, k/n 형태). "1-9 점수"가 아니라 crowd 동의 비율이다. 대부분 0 (영상당 평균 1.7 category만 활성) → 73.8% sparse는 yes/no 응답의 본질이지 오류가 아님. V/A/dominance 등 affective feature는 별도로 1-9 Likert (score 컬럼과 구분).
 * cross-subject 확인용 test는 MindCaptioning(Horikawa, Science Advances 2025)이다. 6명 피험자, 약 2,108개 영상, 중립 caption, 문헌 기준 2,036 train과 72 test 분할. 우리는 이 데이터의 영상이 Cowen 계열과 겹치는 부분에 34차원 라벨을 매핑해 external test로 쓴다.
 * 이 test는 cross-subject 일반화 확인이다. 영상이 겹치므로 cross-stimulus가 아니다. 평가 리포트에 이 구분을 반드시 출력한다.
 * 출력은 34차원 감정 값이다. 34개는 서로 배타적이지 않다(공존 가능). 따라서 34개에 softmax를 적용하지 않는다. 감정별 독립 회귀로 다룬다.
@@ -82,7 +83,7 @@ EmoBrain은 fMRI에서 34차원 감정 프로파일을 디코딩하는 통합 fr
 ### 5-1. 입력과 라벨
 
 * fMRI 입력: 영상 단위 반응. 각 (subject, clip) 쌍에 대해 하나의 fMRI 표현. encoder 종류에 따라 형식이 다르므로(아래 6절), 원 데이터는 encoder 이전의 표준 형태로 보관하고 encoder 어댑터에서 변환한다.
-* 라벨: 각 clip에 34차원 벡터. 원점수 1에서 9. shape (C,) with C=34.
+* 라벨: 각 clip에 34차원 벡터. 각 원소 = crowd proportion 0-1 (그 emotion category를 고른 rater 비율, §3 정정). shape (C,) with C=34. "1-9 원점수" 아님.
 * caption: 각 clip에 중립 caption 문자열(teacher 전용). MindCaptioning 소스에서 매핑.
 * question: 고정 지시문 문자열(아래 8-3).
 
@@ -91,7 +92,7 @@ EmoBrain은 fMRI에서 34차원 감정 프로파일을 디코딩하는 통합 fr
 1. train split의 각 감정 열에서 평균 mu[c]와 표준편차 std[c]를 구한다. shape (C,).
 2. 모든 split의 라벨을 z = (raw - mu) / std로 변환한다.
 3. mu, std를 파일로 저장한다.
-4. reporting 시 raw = z * std + mu로 되돌리고, 표시용 0에서 1은 별도 min-max나 clip 규칙으로 만든다(표시 전용, 학습에 미사용).
+4. reporting 시 raw = z * std + mu로 되돌린다. raw 자체가 이미 0-1 crowd proportion이므로 그대로 표시 가능 (음수/1 초과는 clip). 학습은 z 공간.
 
 CAUTION: test 자체 통계로 정규화하면 정보 누출이다. 반드시 train 통계만 쓴다.
 
@@ -253,14 +254,19 @@ Caption: <neutral scene description mapped from MindCaptioning>
 
 ## 9. 평가 명세 (DECIDED)
 
-### 9-1. 헤드라인 지표
+### 9-1. 헤드라인 지표 (2026-07-07 CCC 추가)
 
-* per-clip profile correlation: 각 clip에서 예측 34차원 벡터와 정답 34차원 벡터의 상관(Pearson과 Spearman 둘 다). clip 평균으로 집계. 이것이 헤드라인.
+* per-clip profile 지표. 각 clip에서 예측 34차원 벡터와 정답 34차원 벡터를 비교, clip 평균. 세 축 함께.
+  - **Pearson r** (모양). shape correlation. 값을 절반으로 눌러도 1.0.
+  - **CCC (Concordance Correlation Coefficient)** (모양 + 값). `2ρσxσy / (σx² + σy² + (μx−μy)²)`. shape + scale/bias 동시 penalize. 감정 인식(AVEC) 표준. Pearson 맞아도 진폭 작으면 CCC 낮음.
+  - **Spearman ρ** (순위).
+* 하나만 보면 속는다. Pearson 만 = 값 mismatch 놓침. MSE 만 = sparse label(73.8% zero)이라 무딤. CCC 가 둘을 합침. Baseline 실측 Pearson 0.30 vs CCC 0.17 (brain) = ridge 가 진폭 못 살림.
 
 ### 9-2. 보조 지표
 
-* per-emotion correlation: 각 감정에서 clip을 가로지른 예측과 정답의 상관. 드문 감정 부분집합 별도 리포트.
-* mean R2, mean squared error(z-space).
+* per-emotion correlation: 각 감정에서 clip을 가로지른 예측과 정답의 Pearson + CCC. 드문 감정 부분집합 별도 리포트.
+* mean R2, MSE, MAE (z-space + raw). sparse label 이라 무딤, 보조로만.
+* sparse retrieval: top-k emotion precision@k / jaccard@k (labels 가 sparse 하므로 top 감정 검출 능력).
 
 ### 9-3. 구조 지표
 

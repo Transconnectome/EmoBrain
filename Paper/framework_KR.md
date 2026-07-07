@@ -24,18 +24,29 @@
 
 Fine-grained emotion (Cowen-Keltner 34 category 의 distribution + V/A 의 continuous) 의 representation 이 human brain 에서 *얼마나 decoding 가능* 한가. 그리고 그 decoding 이 *brain activity 의 unique* 한 contribution 인가. 즉 같은 stimulus 의 video 의 visual content 와 human caption 의 semantic content 를 *control* 한 후 의 brain 의 residual contribution.
 
-이 질문 은 model design 의 질문 이 아니다. Foundation model 은 *answering instrument* 다. Decoding 의 ceiling 자체 = inter-rater concordance (Cowen-Keltner 2017 의 ICC ≈ 0.54). Brain 의 unique contribution 자체 = modality variance partitioning 의 unique-brain term. 둘 다 *측정 가능 한 neuroscientific quantity*.
+이 질문 은 model design 의 질문 이 아니다. Foundation model 은 *answering instrument* 다. Human label agreement 의 reference point = Cowen-Keltner 2017 의 categorical concordance (평균 54%, chance 27%; 이는 ICC 가 아니라 같은 emotion category 를 고른 rater 비율). Brain 의 unique contribution 자체 = modality variance partitioning 의 unique-brain term. 둘 다 *측정 가능 한 neuroscientific quantity*. (주의. concordance 54% 는 categorical yes/no 일치율 이라 우리 34D continuous 회귀 metric 의 ceiling 으로 직접 환산 불가. §Cowen concordance note 참조.)
 
 Model 의 design choice (3-modality fusion, modular encoder, 4-stage curriculum) 는 이 질문 의 *resolution + denoising* instrument 다. 질문 자체 와 conflate 하지 않는다.
 
 ### 4 sub-question (척추 질문 의 분해)
 
-- **(a) Affect decoding ceiling.** Cowen-Keltner inter-rater ICC 0.54 의 ceiling 대비 brain decoding 이 얼마 까지 도달 가능 한가. 도달 못 한다 면 그 *gap* 의 nature 가 무엇 인지 (noise vs irreducible individual difference vs missing modality).
+- **(a) Affect decoding ceiling.** Brain decoding 이 얼마 까지 도달 가능 한가. 참고. Cowen-Keltner categorical concordance 는 평균 54% (chance 27%) 이지만 categorical 일치율 이라 우리 continuous metric 의 직접 ceiling 아님. 진짜 ceiling 은 별도 방법 (brain cross-subject ISC, 또는 label crowd split-half) 으로 측정. 도달 못 한다 면 그 *gap* 의 nature 가 무엇 인지 (noise vs irreducible individual difference vs missing modality).
 - **(b) Brain-unique vs shared contribution.** Brain only 의 decoding accuracy 와 brain + video + caption joint 의 accuracy 의 *delta* 가 video / caption 의 어느 dimension 에 의해 explain 되는가.
 - **(c) Modular encoder hierarchy.** Raw ROI vs Ridge vs frozen BFM vs trained VLM 의 4 backbone 의 *which one best preserves fine-grained affect signal*. Phase 1 의 frozen BFM ceiling 한계 가 다른 backbone 에서 도 동일 한지.
 - **(d) Behavioral-brain dissociation.** Semantic decoding (Tang/Huth 2023, Horikawa 2024) 은 brain 에서 well-decoded. Affect decoding 은 ceiling-bound. 같은 architecture 에서 두 task 의 *dissociation* 을 reproduce 할 수 있는가. 이는 brain 의 affect code 의 *structural difference* 의 evidence.
 
 각 sub-question 은 §Evaluation framework 의 component 와 1:1 매핑.
+
+### Subject pooling. Universal emotion code 를 학습 (2026-07-07 확정)
+
+5 subject 를 pool 로 학습 하는 이유 는 데이터 증강 이 아니라 **universal (subject-공통) emotion code 만 학습** 하려는 것. 개인차 극복 이 목표 가 아니라 개인차 를 의도적 으로 배제. Spine question 이 "사람 일반 의 뇌 에서 감정 이 어떻게 표상 되나" 이므로 subject-general code 가 target.
+
+실측 (ridge, 2026-07-07). Within-subject (각 subject 따로) profile pearson 0.305 > Pooled 0.294 > LOSO 0.232. Brain cross-subject ISC 0.23 (낮음) 과 일치.
+
+- **Within > Pooled 는 feature, not bug.** Within 이 높은 건 개인 특화 를 학습 해서. 그건 우리 관심 아님 (universal 아님). Within 은 subject-specific 질문 에 답 하는 것 이라 우리 spine 과 성능 비교 대상 이 아님.
+- **LOSO 가 가장 의미 있는 숫자.** 본 적 없는 subject 에 전이 = pure universal code. Chance (0) 대비 확실 히 높음 (0.232) = universal emotion code 가 뇌 에 존재 하는 증거. 단 pooled 대비 하락 이라 "새 subject 전이" 는 성능 하락 인정 하며 서술 (over-claim 금지).
+- **Context lift (Track B) 의 위치.** Video/caption 은 개인차 극복 도구 가 아니라 universal code 의 SNR 개선 도구. 뇌 만 으로 universal code 를 뽑는데 뇌 신호 가 noisy → subject-invariant context (모든 사람 같은 영상) 로 감정 정보 보강 → teacher 가 더 정확한 universal soft label → student distill.
+- **개인차 는 다음 step.** Universal 확립 (지금) → 개인차 가 universal 위 에 어떻게 얹히나 (별도/future work).
 
 ---
 
@@ -311,7 +322,7 @@ Student-from-teacher (P2-B) vs student-from-hard-label (Track A A4) 을 같은 b
 - **ISC (Inter-Subject Correlation).** 5 subject 의 brain response 의 cross-subject correlation. 같은 stimulus 의 brain signal 의 *consistency* 의 upper bound estimator.
 - **Repeated-trial split-half reliability.** Horikawa test set 의 56 stim × 24 repeat 의 split-half correlation. Within-subject 의 *signal vs noise* ratio.
 - **Analytical noise ceiling (Lage-Castellanos 2019 formula).** PLoS Comp Bio 2019, DOI 10.1371/journal.pcbi.1006397. Signal variance estimation 의 analytical upper bound.
-- **Task-specific upper bound.** Cowen-Keltner 의 ICC 0.54 = 34D self-report rating 의 theoretical max.
+- **Task-specific reference (NOT a direct ceiling).** Cowen-Keltner 2017 의 categorical concordance 평균 54% (chance 27%). Categorical yes/no 일치율 이라 continuous metric 의 직접 max 아님. 참고 값 으로만.
 
 이 4 의 consensus 가 noise ceiling. 그 위 에서 ridge baseline 의 위치 가 headroom 의 width.
 
@@ -362,12 +373,18 @@ Pre-registered case 의 3 분기.
 
 이 criterion 은 학습 시작 *전* 에 lock. 결과 의 본 후 의 post-hoc threshold reframing 금지.
 
-### Primary metric. Per-stimulus 34D profile shape similarity (headline)
+### Primary metric. Per-clip 34D profile shape + calibration (headline, 2026-07-07 CCC 추가)
 
-Loss (MSE) 는 학습 을 굴리는 연료, metric 은 결과 를 채점 하는 성적표. Headline metric 은 개별 감정 점수 정확도 가 아니라 영상 하나 에 대한 34 개 숫자 의 전체 profile shape 이 정답 profile 과 닮았는지.
+Loss (MSE) 는 학습 을 굴리는 연료, metric 은 결과 를 채점 하는 성적표. Headline 은 영상 하나 에 대한 34 개 숫자 의 profile 이 정답 과 (a) 모양 이 닮았고 (b) 값 까지 맞는지.
 
-- **Per-clip 34D profile correlation. Pearson r 과 Spearman ρ 둘 다** (implementation_spec §9-1). Predicted 34D vector vs target 34D vector, test clip 마다 계산 후 mean. 두 지표 를 함께 보고 하여 rank 안정성 검증.
-- **Interpretation**. "이 영상 은 기쁨 과 향수 가 높고 공포 는 낮다" 라는 윤곽 을 맞히는 것 이 목표. 개별 숫자 를 조금 틀려도 profile shape 이 닮았 으면 성공.
+**세 축 을 함께 report (하나 만 보면 속는다).**
+- **Profile Pearson r** (모양). Predicted 34D vs target 34D 의 shape correlation. 값 을 절반 으로 눌러도 1.0 → 모양 만 봄.
+- **Profile CCC (Concordance Correlation Coefficient)** (모양 + 값). `CCC = 2ρσ_x σ_y / (σ_x² + σ_y² + (μ_x − μ_y)²)`. Shape 과 scale/bias 를 동시 penalize. 감정 인식 (AVEC) 의 표준. Pearson 은 맞아도 진폭 이 작으면 CCC 가 낮아짐.
+- **MSE / MAE / R2** (절대 오차). Label 이 73.8% zero 라 MSE 는 무딤 ("전부 0" 이 이미 낮음). 그래도 report 하되 headline 은 아님.
+
+**왜 셋 다 인가.** Pearson 만 보면 "값 을 다 절반 으로 눌러도 1.0" 이라 속음. MSE 만 보면 sparse label 이라 model 차이 가 안 보임. CCC 가 둘 을 합쳐 "모양 도 맞고 값 도 맞아야" 를 강제. Baseline 에서 실제 로 Pearson 0.30 인데 CCC 0.17 (brain) — ridge 가 진폭 을 못 살려 값 이 절반 도 안 맞음 이 CCC 로 드러남.
+
+- **Interpretation**. "이 영상 은 기쁨 과 향수 가 높다" 의 윤곽 (Pearson) 을 맞히되, 그 강도 (CCC) 까지 맞히는 것 이 목표.
 
 ### Primary metric (부가). High-D structure preservation
 
@@ -410,7 +427,7 @@ Negative outcome 의 단독 보고 (= "distillation 의 효과 없음") 금지. 
 | 3 | Frozen BFM (E3, Phase 1 의 6 variant) | Foundation-model baseline (frozen) |
 | 4 | Per-modality only (brain / video / caption) | Single-modality baseline |
 | 5 | Joint fusion (full EmoBrain) | Our target |
-| C | Cowen-Keltner ICC ceiling (0.54) | Upper bound |
+| C | Noise ceiling (brain cross-subject ISC / label crowd split-half) | Upper bound (별도 측정) |
 
 각 tier 의 result 의 *gap* 자체 가 finding 의 component. Tier 5 - Tier 2 = *novelty 의 lift*, Tier C - Tier 5 = *remaining gap to ceiling*.
 
@@ -426,11 +443,16 @@ Variance decomposition. Joint 의 explained variance R² 를 4 component 로 분
 
 SC2 (brain-unique contribution) 의 직접 instrument. Unique-brain 의 정량 = brain 의 *stimulus content 를 넘는 information* 의 양.
 
-### Cowen-Keltner inter-rater concordance ceiling anchor
+### Cowen-Keltner concordance note (2026-07-07 정정)
 
-Cowen-Keltner 2017 PNAS 의 inter-rater ICC ≈ 0.54 (34-category 의 mean). Single video 의 affect rating 의 *human-human agreement* 의 upper limit. 이 ceiling 은 *task 의 irreducible noise* 의 양. Brain decoding 의 absolute ceiling.
+**정확한 사실 (원문 검증, 2026-07-07 정정).** Cowen-Keltner 2017 PNAS 원문 (PMC5617253). "75% of the videos elicited significant concordance for at least one category of emotion across raters (FDR < 0.05), with concordance averaging 54% (chance level being 27%)". 즉.
+- **ICC 가 아님.** Concordance = 한 영상 에 대해 같은 emotion category 를 고른 rater 비율 (평균 54%, chance 27%).
+- 영상 당 9-17 rater 가 34 category 를 yes/no 판단. 우리 label 은 그 crowd 동의 비율 (proportion).
+- 34 category 로 rating, 27 cluster 로 축소 (우리 는 34 사용).
 
-우리 의 evaluation. Stage 4 의 34D distribution accuracy 의 KL divergence 또는 spearman correlation 을 0.54 ICC ceiling 의 fraction 으로 normalize 해서 report. "Brain decoding 이 ceiling 의 N % 달성" 의 form.
+**Ceiling 으로 직접 못 쓰는 이유.** Concordance 54% 는 categorical 일치율. 우리 headline 은 continuous 34D profile Pearson. 단위 가 달라 "ridge 0.29 = ceiling 0.54 의 54%" 같은 환산 은 부적절. 이전 문서 의 "ICC 0.54 를 fraction 으로 normalize" 계획 은 철회.
+
+**진짜 noise ceiling.** 별도 방법. Brain cross-subject ISC (우리 데이터 로 측정 가능) 또는 label crowd split-half (rater-level 데이터 확보 시). Concordance 54% 는 참고 값 으로만.
 
 ### Behavioral-brain dissociation
 
@@ -536,7 +558,7 @@ Brain signal 의 noise ceiling 자체 가 ridge 와 가까워 어떤 encoder 도
 High prior probability 의 근거.
 - Phase 1 의 evidence. 6 BFM variant 모두 ROI ridge 못 넘음. Encoder 의 capacity 추가 가 의미 있는 lift 안 만듦 의 reproducible evidence.
 - D1 v1/v2 의 evidence. 3 backbone size (2B / 4B / 8B) 의 plateau. Capacity 가 issue 아닌 ceiling 자체 의 한계 의심.
-- Cowen-Keltner ICC 0.54. Self-report 의 inter-rater agreement 자체 가 절반. Brain decoding 의 absolute ceiling 이 0.54.
+- Cowen-Keltner concordance 54% (chance 27%). Crowd 가 같은 category 를 고르는 일치율 이 절반 수준 = label 자체 에 irreducible disagreement 존재. (단 categorical 일치율 이라 continuous metric ceiling 으로 직접 환산 불가, §Cowen concordance note.)
 
 Stage 0 의 noise ceiling estimation 이 R0 의 직접 test. Case I 의 outcome = R0 의 실증 = framework 의 reframing 또는 alternative path 의 trigger.
 
@@ -606,7 +628,7 @@ EmoMind 는 LLM-based brain emotion decoding 의 nearest published competitor. P
 - *Subject-pooled vs per-subject*. 우리 = pooled + LOSO transfer, EmoMind = per-subject endpoint.
 - *Multi-task curriculum vs single caption rewriting*. 우리 = Stage 1-4 의 V/A + Cat34 distribution, EmoMind = caption.
 - *Modular encoder ablation vs single encoder*. 우리 = E1-E4 의 4 variant, EmoMind = ridge only.
-- *Cowen-Keltner ICC ceiling anchor vs no ceiling*. 우리 = absolute ceiling-normalized report, EmoMind = relative comparison only.
+- *Noise ceiling anchor vs no ceiling*. 우리 = brain ISC / label split-half 로 측정한 ceiling 대비 report, EmoMind = relative comparison only. (Cowen concordance 54% 는 참고 값, 직접 ceiling 아님.)
 - *Behavioral-brain dissociation evidence vs no comparison*. 우리 = semantic vs affect dissociation in same architecture, EmoMind = single decoding task.
 
 같은 framework novelty path 의 viable path. EmoMind 의 boundary 의 *systematic extension* 의 paper position.

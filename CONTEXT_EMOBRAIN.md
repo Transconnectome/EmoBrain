@@ -55,7 +55,7 @@ OUTPUT (NV4. 34D independent emotion regression + curriculum)
 
 | Source | Subjects | Stim | Rating | 특성 | 상태 |
 |--------|----------|------|--------|------|------|
-| **Horikawa** naturalistic video fMRI | 5 | 2185 | Cowen 34-cat + 14-dim + V/A continuous | visual feature 위주 | 사용 중 |
+| **Horikawa** naturalistic video fMRI | 5 | 2185 unique (fMRI 2196 presentation 중 11 중복 제외) | Cowen 34-cat + 14-dim + V/A continuous | visual feature 위주 | 사용 중 |
 | **Emo-FilM** | TBD | TBD | TBD | narratives + temporal dynamics | 다운로드 예정 (cross-cohort 평가 후보) |
 
 부수 데이터. MindCaptioning human-written caption (Horikawa stim 매칭). Qwen-VL caption (2185 stim, 우리 generated). V-JEPA2 / CLIP / DINOv2 / VideoMAE pretrained + scratch (Horikawa).

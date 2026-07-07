@@ -106,7 +106,7 @@
 - 이 question 의 *fMRI foundation model + multi-modal context* 의 도구 로 답.
 
 **Sub-question 4 (4 component).**
-- (a) **Decoding ceiling.** Cowen-Keltner inter-rater concordance (ICC ≈ 0.54) 의 ceiling 의 의 brain decoding 의 *도달 정도*.
+- (a) **Decoding ceiling.** Brain decoding 의 도달 정도. Ceiling 은 brain ISC / label split-half 로 측정. (Cowen concordance 54% 는 참고 값, ICC 아니고 직접 ceiling 아님 — 2026-07-07 정정.)
 - (b) **Brain-unique vs shared contribution.** Brain only 의 decoding accuracy 와 brain + video + caption joint 의 decoding accuracy 의 *delta* 의 source.
 - (c) **Modular encoder hierarchy.** Raw ROI vs Ridge vs frozen BFM vs trained VLM 의 *which preserves fine-grained affect signal*.
 - (d) **Behavioral-brain dissociation.** Semantic decoding (Tang/Huth 2023, Horikawa 2025) 의 success vs affect decoding 의 ceiling-bound 의 *same architecture 의 dissociation*.

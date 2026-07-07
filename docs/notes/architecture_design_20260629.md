@@ -400,13 +400,17 @@ Lage-Castellanos et al. 2019 (PLoS Comp Bio, DOI 10.1371/journal.pcbi.1006397) �
 NC_analytical = sigma_signal^2 / (sigma_signal^2 + sigma_noise^2 / n_repeat)
 ```
 
-### 8.5.4 Task-specific upper bound (Cowen-Keltner ICC)
+### 8.5.4 Cowen-Keltner concordance (참고 값, NOT ICC — 2026-07-07 정정)
 
-Cowen-Keltner 2017 PNAS 의 inter-rater ICC ≈ 0.54 (34-category 의 mean). Self-report rating 자체 의 reliability 의 absolute ceiling. Brain decoding 이 self-report 의 reliability 를 넘을 수 없음.
+**원문 검증 (PMC5617253).** "75% of the videos elicited significant concordance for at least one category of emotion across raters (FDR < 0.05), with concordance averaging 54% (chance level being 27%)".
+
+- **ICC 아님.** Concordance = 한 영상 에 같은 emotion category 를 고른 rater 비율 (평균 54%, chance 27%). 이전 서술 "inter-rater ICC ≈ 0.54" 는 오류.
+- 영상 당 9-17 rater 가 34 category yes/no 판단. 우리 label = crowd 동의 비율 (proportion).
+- **Continuous metric ceiling 으로 직접 못 씀.** Categorical 일치율 (54%) 과 우리 continuous 34D Pearson 은 단위 다름. 참고 값 으로만.
 
 ### 8.5.5 Consensus + headroom width
 
-4 estimator 의 consensus = noise ceiling. Ridge baseline (Phase 1 의 E2) 의 위치 가 headroom width 의 lower bound. (noise_ceiling - ridge) 의 absolute 값 이 encoder competition 의 meaningful range.
+Noise ceiling 은 측정 가능 한 estimator (brain cross-subject ISC, repeated-trial split-half, label crowd split-half, Lage-Castellanos analytical) 의 consensus. **Cowen concordance 54% 는 여기 estimator 로 넣지 않음** (categorical 이라 continuous 와 mixing 불가). Ridge baseline (E2) 의 위치 가 headroom width 의 lower bound. (noise_ceiling - ridge) 의 absolute 값 이 encoder competition 의 meaningful range.
 
 ---
 
@@ -560,6 +564,14 @@ Framework 의 검증 은 두 단계 로 분리. Context (video + caption) 의 bo
 - 목적. Context 가 brain-only 를 얼마나 끌어올리는지 를 별도 로 검증. 끌어 올리지 못하면 P2-B 자체 의 실증 이 부정적 결과 로 publishable.
 - 산출. Student 의 gap_filled (B4 기준) vs Track A best 의 direct-supervised (A4 기준) 의 delta = **context lift** (framework 검증 의 headline).
 
+**Track B 성공 판정 = context lift + distillation 검증 둘 다 (2026-07-07 추가, 필수).**
+
+Context lift (성능 상승) 만 으로 는 부족. B2 baseline 에서 video (CLIP 0.60) >> brain (0.30) 이 확인 됨. Distillation 이 student 를 brain 자체 정보 로 학습 시키는지, 아니면 video 지식 을 우회 주입 하는지 를 반드시 구분. Video 우회 주입 을 "brain decoding" 으로 오인 하면 spine 붕괴.
+
+- **검증 A. Variance partitioning.** Student 예측 성능 을 brain 설명 부분 vs video 설명 부분 으로 분해. Distillation 이 brain 고유 성분 을 키웠는지, video 공유 성분 만 키웠는지 판정.
+- **검증 B. Brain-ablated student.** Brain 을 shuffle / 제거 한 student 의 남는 성능. 크게 안 떨어지면 student 가 brain 을 안 쓴다는 경고 (video 우회 주입 신호).
+- 두 검증 을 통과 해야 Track B 성공. §9.2 variance partitioning 과 연결.
+
 ### 8.9.3 Publishability guarantee
 
 Stage 1 만 성공 하면 modular encoder ablation + high-D readout 이 하나 의 contribution 으로 발표 가능. Stage 2 가 실패 해도 P2-B distillation 의 limits 가 별도 의 findings 로 정리.
@@ -695,7 +707,7 @@ S11 의 ablation 은 *sparse marginal sweep* 으로만 실행.
 11. **Stage 4 의 KL target smoothing.** Dirichlet prior alpha=0.1 vs alpha=0.01 vs none. minority class 의 학습 안정성 vs target sharpness 의 trade-off.
 12. **Cross-cohort 의 Emo-FilM 의 rating schema 정합성.** Cowen 34 의 schema 와 의 mapping 가능 여부. mapping 안 되면 cross-cohort 의 *transferable subset* 으로 축소.
 13. **Caption neutral 의 검증** (2026-06-30 추가, pending). MindCaptioning 의 caption 의 affect leakage 여부 의 sample 검증. Cowen 34 + V/A vocabulary 의 substring match. strict factual ("a man walks") = leakage 작음, affect-laden ("joyful walking") = leakage 큼. 검증 전 까지 caption leakage 의 risk 는 미정.
-14. **Stage 0 timing** (2026-06-30 추가, pending). Noise ceiling estimation 의 실행 시점 = Stage 1 의 학습 *전*. Lage-Castellanos 2019 formula + ISC + split-half + Cowen-Keltner ICC 0.54 의 4 estimator. Output 의 consensus 가 noise_ceiling 의 value.
+14. **Stage 0 timing** (2026-06-30 추가, 2026-07-07 정정). Noise ceiling estimation 의 실행 시점 = Stage 1 의 학습 *전*. Estimator = brain cross-subject ISC + repeated-trial split-half + label crowd split-half + Lage-Castellanos 2019 formula. **Cowen concordance 54% 는 estimator 에서 제외** (categorical 일치율 이라 continuous metric 과 mixing 불가, §8.5.4). Output 의 consensus 가 noise_ceiling 의 value.
 15. **gap_filled threshold values 의 확정** (2026-06-30 추가, preliminary). Case I (< 0.05) / Case II (0.05-0.15) / Case III (> 0.15) 의 boundary 는 preliminary. Stage 0 의 estimator variance + literature consensus 의 review 후 final lock. 학습 시작 전 의 lock 가 필수.
 16. **Projector token 개수 (bottleneck width)** (2026-06-30 추가). Brain / video embedding 을 몇 token 으로 압축 하는가 가 34D 고차원 구조 보존 과 직결. Nb, Nv 각각 (8 / 32 / 128) grid 의 S9 smoke 후 결정. Token 이 너무 적 으면 34D 구조 가 배관 에서 깎임.
 17. **Caption dropout 확률** (2026-06-30 추가, OD-P). Student 학습 시 caption field 를 확률적 으로 dropout. 0.5 / 0.7 / 0.9 grid 후 결정. Teacher-student prompt asymmetry 완화 와 brain-only 강제 학습 의 이중 목적.

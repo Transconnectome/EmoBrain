@@ -117,7 +117,7 @@ Chronological decision log 는 `docs/notes/project_decisions.md`.
 - [ ] ISC (Inter-Subject Correlation). 5 subj × same stim 의 cross-subject correlation. per ROI per TR.
 - [ ] Repeated-trial split-half reliability. Horikawa test set 56 stim × 24 repeat. bootstrap 1000 회.
 - [ ] Analytical noise ceiling (Lage-Castellanos 2019). signal / noise variance 분리 estimation.
-- [ ] Task-specific upper bound (Cowen-Keltner ICC 0.54).
+- [ ] Label crowd split-half reliability (rater-level 데이터 확보 시). Cowen concordance 54% 는 참고 값 (categorical, 직접 ceiling 아님 — 2026-07-07 정정).
 - [ ] 4 estimator consensus → noise ceiling lock.
 - [ ] gap_filled threshold Case I/II/III boundary final lock. 학습 시작 전 사전 등록.
 
@@ -150,6 +150,9 @@ Track A best encoder 위 에 teacher (brain+video+caption) 학습 → 34D soft l
 - [ ] Modality ablation (Full / no-caption / no-video / brain-only 4 조건, B4 기준). Caption-video overlap 검증.
 - [ ] Video-on-caption residualize 조건 vs 원본 caption 조건 비교 (B4 기준). Caption 고유 기여 판정.
 - [ ] Track A best A4 → Track B best B4 delta = **context lift** (framework 검증 headline). Positive / null / negative 모두 publishable.
+- [ ] **Distillation 검증 A. Variance partitioning (필수, 2026-07-07).** Student 성능 을 brain 설명 부분 vs video 설명 부분 으로 분해. Distillation 이 brain 고유 성분 을 키웠는지 판정.
+- [ ] **Distillation 검증 B. Brain-ablated student (필수).** Brain shuffle / 제거 후 남는 성능. 크게 안 떨어지면 video 우회 주입 경고.
+- [ ] **Track B 성공 판정 = context lift + 검증 A/B 둘 다 통과.** Video (B2 에서 CLIP 0.60 >> brain 0.30) 우회 주입 을 "brain decoding" 으로 오인 방지.
 
 #### S10.3. Ablation grid (sparse)
 

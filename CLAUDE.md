@@ -27,7 +27,7 @@ Project name = EmoBrain (2026-06-08 rename, path preserved). Repo path `/pscratc
 - **Core novelty**. Framework 자체 (multi-modal LLM fusion + modular brain encoder + 34-distribution curriculum) 와 "emotion 은 high-dimensional 이다" (34D distribution + V/A continuous output). "어떤 encoder 가 제일 좋은가" 가 spine 이 아님.
 - **Red-team 완료 (2026-06-30)**. 4 panel (Architecture / Training stability / Inference paradigm / RoPE position-shift) 로 7 blocker + 12 redesign recommendation. `docs/notes/redteam_review_20260630.md`. Training start 전 Week 0 engineering sprint 로 blocker resolve.
 - Background benchmark (Phase 1) 의 frozen BFM (SwiFT NewE96 + 5 변종, Brain-JEPA, NeuroSTORM) 은 ROI ridge baseline 못 넘음을 확정. EmoBrain framing 의 motivation evidence. `docs/reports/phase1_audit_20260604/`.
-- Horikawa stimulus 수 = 2185 canonical. 5 subject × 2185 stim pooled 이 primary paradigm.
+- Stimulus 수 = **2185 unique canonical**. fMRI session 에는 2196 presentation 이 있지만 그 중 **11 개 는 reliability check 로 두 번 제시된 중복** (EmoViS DECISIONS 2026-05-08). Unique stimulus = 2196 − 11 = **2185**. fmri_raw.npy 축 2196 은 presentation 수 (중복 포함), 우리 canonical 은 2185 unique. label CSV / split / ROI pt 모두 2185. 5 subject × 2185 stim pooled 이 primary paradigm.
 - Claim 과 measured result 분리. Over-claim 금지.
 - 약어 (BFM, VLM, LLM, ROI, RSA, CKA) 첫 등장 시 풀어쓰기.
 - **Baseline 의무**. 모든 task 결과는 standard baseline suite (chance / ROI mean + Ridge / Phase 1 best BFM frozen reference / Video baseline) 와 함께 reporting. Baseline 없는 result 는 unreliable. 자세히 `ACTION_PLAN.md` §S11.1.

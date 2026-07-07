@@ -31,9 +31,11 @@ import numpy as np  # noqa: E402
 import torch  # noqa: E402
 from project.evaluation.metrics import (  # noqa: E402
     profile_correlation,
+    error,
     per_emotion_correlation,
     rsa,
     dim_compression_curve,
+    sparse_retrieval,
     compute_metrics,
     C,
 )
@@ -49,14 +51,22 @@ def check_profile() -> None:
     target = factor @ loading + 0.1 * torch.randn(N, C)
 
     m = profile_correlation(target.clone(), target)
-    print(f"  perfect: pearson={m['pearson_mean']:.4f} spearman={m['spearman_mean']:.4f} "
+    print(f"  perfect: pearson={m['pearson_mean']:.4f} ccc={m['ccc_mean']:.4f} spearman={m['spearman_mean']:.4f} "
           f"used={m['n_used']} skipped={m['n_skipped']}")
     assert m["pearson_mean"] > 0.999
+    assert m["ccc_mean"] > 0.999
     assert m["spearman_mean"] > 0.999
+
+    # CCC penalizes scale mismatch that Pearson ignores.
+    half = target * 0.5
+    mh = profile_correlation(half, target)
+    print(f"  half-scale: pearson={mh['pearson_mean']:.4f} (still ~1) ccc={mh['ccc_mean']:.4f} (< pearson)")
+    assert mh["pearson_mean"] > 0.999          # Pearson blind to scale
+    assert mh["ccc_mean"] < mh["pearson_mean"] - 0.1   # CCC penalizes it
 
     rand = torch.randn(N, C)
     mr = profile_correlation(rand, target)
-    print(f"  random : pearson={mr['pearson_mean']:+.4f} spearman={mr['spearman_mean']:+.4f}")
+    print(f"  random : pearson={mr['pearson_mean']:+.4f} ccc={mr['ccc_mean']:+.4f}")
     assert abs(mr["pearson_mean"]) < 0.2
 
     # constant clip -> skipped
@@ -121,6 +131,53 @@ def check_dim_compression() -> None:
             assert v > 0.99, f"k={k} pearson={v}"
 
 
+def check_error() -> None:
+    print("")
+    print("[error]")
+    torch.manual_seed(5)
+    N = 200
+    target = torch.randn(N, C)
+
+    # perfect -> mse 0, r2 1
+    m = error(target.clone(), target)
+    print(f"  perfect: mse_z={m['mse_z']:.3e} mae_z={m['mae_z']:.3e} r2={m['r2_mean_z']:.4f}")
+    assert m["mse_z"] < 1e-10
+    assert m["r2_mean_z"] > 0.999
+
+    # all-zero prediction -> mse ~ 1 (z-space variance), r2 ~ 0
+    zero = torch.zeros(N, C)
+    mz = error(zero, target)
+    print(f"  all-zero: mse_z={mz['mse_z']:.4f} (expect ~1) r2={mz['r2_mean_z']:+.4f} (expect ~0)")
+    assert abs(mz["mse_z"] - 1.0) < 0.15
+    assert abs(mz["r2_mean_z"]) < 0.05
+
+    # raw-space error via a fake normalizer
+    class FakeNorm:
+        mu = torch.ones(C) * 0.05
+        std = torch.ones(C) * 0.02
+    mr = error(target.clone(), target, normalizer=FakeNorm())
+    print(f"  raw-space (perfect): mse_raw={mr['mse_raw']:.3e} mae_raw={mr['mae_raw']:.3e}")
+    assert mr["mse_raw"] < 1e-10
+
+
+def check_sparse() -> None:
+    print("")
+    print("[sparse_retrieval]")
+    torch.manual_seed(6)
+    N = 200
+    target = torch.randn(N, C)
+
+    m = sparse_retrieval(target.clone(), target, ks=(1, 3, 5))
+    print(f"  perfect: p@1={m['precision@1']:.3f} p@3={m['precision@3']:.3f} p@5={m['precision@5']:.3f}")
+    assert m["precision@1"] > 0.999
+    assert m["precision@5"] > 0.999
+
+    rand = torch.randn(N, C)
+    mr = sparse_retrieval(rand, target, ks=(1, 3, 5))
+    print(f"  random : p@1={mr['precision@1']:.3f} p@5={mr['precision@5']:.3f} (chance-ish)")
+    assert mr["precision@5"] < 0.5
+
+
 def check_dispatcher() -> None:
     print("")
     print("[compute_metrics dispatcher]")
@@ -129,16 +186,20 @@ def check_dispatcher() -> None:
     factor = torch.randn(N, 3)
     loading = torch.randn(3, C)
     target = factor @ loading + 0.1 * torch.randn(N, C)
-    out = compute_metrics(target.clone(), target, which=["profile", "rsa"])
-    print(f"  keys returned: {sorted(out.keys())}")
-    assert set(out.keys()) == {"profile", "rsa"}
+    out = compute_metrics(target.clone(), target)
+    print(f"  all families: {sorted(out.keys())}")
+    assert set(out.keys()) == {"profile", "error", "per_emotion", "rsa", "dim_compression", "sparse"}
+    out2 = compute_metrics(target.clone(), target, which=["profile", "error"])
+    assert set(out2.keys()) == {"profile", "error"}
 
 
 def main() -> None:
     check_profile()
+    check_error()
     check_per_emotion()
     check_rsa()
     check_dim_compression()
+    check_sparse()
     check_dispatcher()
     print("")
     print("all checks OK")

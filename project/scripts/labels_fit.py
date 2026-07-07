@@ -34,7 +34,12 @@ from project.data.labels import Cowen34Normalizer  # noqa: E402
 DATA_DIR = REPO_ROOT / "project" / "shared" / "data"
 LABELS_CSV = DATA_DIR / "cowen_horikawa_labels.csv"
 SPLIT_CSV = DATA_DIR / "horikawa_split.csv"
-NORM_OUT = DATA_DIR / "norm_stats" / "cowen34_train.pt"
+NORM_DIR = DATA_DIR / "norm_stats"
+
+# Default = log1p_z (2026-07-07). Both modes are fitted and saved so experiments
+# can select either; log1p_z is the project default.
+MODES = ["log1p_z", "zscore"]
+DEFAULT_MODE = "log1p_z"
 
 SCORE_COLS = [f"score_{k}" for k in range(34)]
 
@@ -57,26 +62,25 @@ def main() -> None:
     print(f"        val stimuli   = {labels['stim_num_int'].isin(set(split.loc[split['split'] == 'val', 'stimulus_num'].unique())).sum()}")
     print(f"        test stimuli  = {labels['stim_num_int'].isin(set(split.loc[split['split'] == 'test', 'stimulus_num'].unique())).sum()}")
 
-    # Fit
-    norm = Cowen34Normalizer()
-    train_z = norm.fit_transform(train_labels)
+    # Fit both modes, save to separate files. Default = log1p_z.
+    NORM_DIR.mkdir(parents=True, exist_ok=True)
+    for mode in MODES:
+        norm = Cowen34Normalizer(mode=mode)
+        train_z = norm.fit_transform(train_labels)
+        post_mu = train_z.mean(dim=0)
+        post_std = train_z.std(dim=0, unbiased=False)
+        assert post_mu.abs().max() < 1e-4, f"[{mode}] post-transform mean not ~ 0"
+        assert (post_std - 1).abs().max() < 1e-4, f"[{mode}] post-transform std not ~ 1"
 
-    # Sanity: post-transform train should be mean ~ 0, std ~ 1 per emotion.
-    post_mu = train_z.mean(dim=0)
-    post_std = train_z.std(dim=0, unbiased=False)
-    print("")
-    print("[sanity] after z-score on train:")
-    print(f"         mu   range [{post_mu.min().item():+.2e}, {post_mu.max().item():+.2e}]")
-    print(f"         std  range [{post_std.min().item():+.4f}, {post_std.max().item():+.4f}]")
-    assert post_mu.abs().max() < 1e-4, "post-transform mean not ~ 0"
-    assert (post_std - 1).abs().max() < 1e-4, "post-transform std not ~ 1"
+        out = NORM_DIR / f"cowen34_train_{mode}.pt"
+        norm.save(out)
+        default_tag = "  (DEFAULT)" if mode == DEFAULT_MODE else ""
+        print(f"[{mode}] post mu range [{post_mu.min():+.1e}, {post_mu.max():+.1e}], "
+              f"std [{post_std.min():.4f}, {post_std.max():.4f}] -> {out.name}{default_tag}")
 
-    # Save
-    norm.save(NORM_OUT)
-    print("")
-    print(f"[save] {NORM_OUT}")
-    print(f"       mu  shape = {tuple(norm.mu.shape)}")
-    print(f"       std shape = {tuple(norm.std.shape)}")
+    # Also write the default under the legacy name for backward compat.
+    Cowen34Normalizer(mode=DEFAULT_MODE).fit(train_labels).save(NORM_DIR / "cowen34_train.pt")
+    print(f"[default] cowen34_train.pt = {DEFAULT_MODE}")
 
 
 if __name__ == "__main__":

@@ -4,6 +4,53 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 ---
 
+## 2026-07-07 (2). report 외부 검토. Stimulus 수 + RSA 비교 오류 정정 + distillation 검증 승격
+
+**Decision.** report_0707 외부 검토 지적 을 verify 후 반영. 사실/해석 오류 2 개 확정 정정.
+
+1. **Stimulus 수 = 2185 unique (재확인).** 검토자 "2196" 제안 → 사용자 정정 + EmoViS DECISIONS (2026-05-08) 확인 결과 **2185 가 맞음**. fMRI 2196 presentation 중 11 개 는 reliability check 중복 (두 번 제시). Unique = 2196 − 11 = 2185. 우리 canonical 2185 정확. 정확한 표현 은 "2185 unique / 2196 presentation w/ 11 repeat". CLAUDE.md 는 이 설명 을 명시 하도록 갱신 (이전 "2185 canonical" 만 이던 것 을 왜 2185 인지 근거 포함).
+
+2. **EmoMind RSA 비교 철회.** "우리 RSA 0.78 > EmoMind 0.09 = 우리가 낫다" 는 apples-to-oranges (성립 안 함). EmoMind RSA = cross-modal (brain RDM vs caption RDM, 원래 낮음), 우리 RSA = same-space (predicted 34D vs target 34D, 원래 높음). 우리 자체 노트 (emomind_exploitation) 도 "정량 동일시 금지" 명시 했었음. report 에서 대소 비교 제거, 두 정의 명시.
+
+3. **Distillation 검증 을 Track B 필수 로 승격.** "distillation 이 brain 정보 를 학습 하나 video 우회 주입 하나" 가 프로젝트 최대 날카로운 질문. 열어두지 않고 Track B 성공 판정 = context lift + 검증 A (variance partitioning) + 검증 B (brain-ablated student). architecture §8.9.2 + ACTION_PLAN S10.2 필수 항목.
+
+**부수 정정.** MindCaptioning 연도 2025 (Science Advances, bioRxiv 2024). Label 스케일 명시 (원점수 0-1 vs log1p_z 후 z-space). ISC 는 decoding ceiling 아님 (신호 신뢰도 축).
+
+**Rationale.** 사실 오류 (stimulus, RSA) 는 리뷰어 즉시 지적. 검토자 가 "반드시 고칠 것 2 개" 로 우선순위 명확히 줌. Verify 후 전부 타당 확인, 반사적 동의 아님.
+
+---
+
+## 2026-07-07. Cowen 2017 원문 검증. "ICC 0.54" 오류 정정 + 34D 라벨 정의 확정
+
+**Decision.** 사용자 지적 으로 Cowen-Keltner 2017 원문 (PMC5617253) 을 직접 검증. 우리 문서 여러 곳 의 "inter-rater ICC ≈ 0.54" 서술 이 오류 임 을 확정 하고 정정.
+
+**원문 사실 (검증).**
+- "75% of the videos elicited significant concordance for at least one category of emotion across raters (FDR < 0.05), with concordance averaging 54% (chance level being 27%)".
+- **ICC 가 아님.** Concordance = 한 영상 에 같은 emotion category 를 고른 rater 의 비율 (평균 54%, chance 27%).
+- 영상 당 9-17 rater 가 34 emotion category 를 yes/no 판단. 34 category 로 rating, 27 cluster 로 축소 (우리 는 34 사용).
+- Ratings averaged (individual rater-level 아님).
+
+**34D 라벨 정의 확정 (우리 데이터 로 검증).**
+- 우리 label 의 각 값 = 그 category 를 고른 rater 비율 (crowd proportion, 0-1, k/n 형태). "1-9 점수" 아님.
+- 우리 데이터 로 확인. Nonzero 값 이 k/n (n = 영상별 rater 수 9-30, median 13, 최빈 12). 기약분수 로 저장 되어 분모 가 달라 보이지만 영상별 고정 rater 수 로 나눈 yes 비율.
+- 영상당 34D 합 평균 1.71 (rater 가 영상당 평균 1.7 category 선택). 73.8% 가 0 인 sparse 는 yes/no 응답 의 본질 이지 오류 아님.
+- V/A/dominance 등 affective feature 는 별도 1-9 Likert (score 컬럼 과 구분).
+
+**철회된 계획.**
+- "ICC 0.54 를 continuous metric 의 ceiling 으로 삼아 fraction normalize" (framework_EN 구 line 425). Concordance 54% 는 categorical 일치율, 우리 headline 은 continuous 34D Pearson. 단위 달라 직접 환산 부적절.
+- Stage 0 noise ceiling 의 4 estimator 중 "Cowen-Keltner ICC 0.54" 를 제외. Estimator 는 brain cross-subject ISC + repeated-trial split-half + label crowd split-half + Lage-Castellanos analytical 로 재구성. Concordance 54% 는 참고 값 으로만 인용.
+
+**Files updated.**
+- `Paper/framework_EN.md`, `framework_KR.md`. Spine question, sub-question (a), baseline ladder Tier C, "Cowen concordance note" section (구 "inter-rater concordance ceiling anchor"), R0 근거, competitor 비교. 6 곳.
+- `docs/notes/architecture_design_20260629.md`. §8.5.4 (제목 + 내용 재작성), §8.5.5 (estimator 에서 concordance 제외), §11 open Q 14.
+- `docs/notes/implementation_spec_20260702.md`. §3 (34D 라벨 정의 = crowd proportion), §5-1 (라벨 정의), §5-2 (reporting 변환).
+- `ACTION_PLAN.md` Stage 0 estimator. `docs/notes/ppt_outline_20260630.md` sub-question (a).
+- 과거 entry (2026-06-30 lock 의 "ICC 0.54") 는 당시 기록 으로 유지, 본 entry 가 supersede.
+
+**Rationale.** 원출처 없이 "ICC 0.54" 를 신뢰 하고 여러 문서 에 전파 했던 오류. 사용자 가 "제대로 확인 하라" 지적 → 원문 직접 검증 으로 concordance (categorical) 임 을 확인. Continuous metric 의 ceiling 으로 쓸 수 없음 이 핵심. 진짜 noise ceiling 은 brain ISC 또는 label crowd split-half 로 별도 측정 필요.
+
+---
+
 ## 2026-07-03. Track B scope 축소 + Framework 검증 축 재확인
 
 **Decision.** Track B (P2-B teacher-student distillation) 는 Track A 에서 확정 된 **best encoder 1 개** 만 진행. E1-E4 각각 distillation 하지 않음.
