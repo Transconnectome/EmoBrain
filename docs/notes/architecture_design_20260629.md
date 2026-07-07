@@ -548,13 +548,17 @@ Framework 의 검증 은 두 단계 로 분리. Context (video + caption) 의 bo
 - 목적. Encoder 효과 만 순수 하게 측정. Leakage 근본 차단. Encoder 순위 자체 를 단독 발표 가능. Curriculum 은 stepwise validation.
 - 산출. E1-E4 의 gap_filled (Stage 0 noise ceiling 기준, A4 결과 기준) + per-stimulus profile shape similarity.
 
-### 8.9.2 Track B. Distillation 추가
+### 8.9.2 Track B. Distillation 추가 (Track A best encoder 1 개 만, 2026-07-03 scope 확정)
 
-- Track A 의 best encoder 를 기반 으로 teacher (brain+video+caption) 학습.
+**Scope**. E1-E4 각각 Track B 를 돌리지 않음. Track A 에서 확정 된 **best encoder 1 개** 만 Track B 로 진입. Spec §13 은 이론 매트릭스, 실행 은 여기 규정 이 우선.
+
+**Framework 검증 축**. Track B 의 primary question 은 "context (video + caption) 가 brain-only 예측 을 얼마나 끌어 올리는가". "어느 encoder 가 distillation 과 잘 맞는가" 가 아님. Encoder 순위 는 Track A 에서 이미 확정.
+
+- Track A 의 best encoder 위 에 teacher (brain+video+caption) 학습.
 - Teacher 도 curriculum B1 → B4 순차. 각 stage 의 teacher 34D soft label caching.
 - Student (brain-only) 가 teacher 34D 를 MSE 로 재현 (§8.4). Student 도 curriculum 순차.
 - 목적. Context 가 brain-only 를 얼마나 끌어올리는지 를 별도 로 검증. 끌어 올리지 못하면 P2-B 자체 의 실증 이 부정적 결과 로 publishable.
-- 산출. Student 의 gap_filled (B4 기준) vs Track A 의 direct-supervised (A4 기준) 의 delta = context lift.
+- 산출. Student 의 gap_filled (B4 기준) vs Track A best 의 direct-supervised (A4 기준) 의 delta = **context lift** (framework 검증 의 headline).
 
 ### 8.9.3 Publishability guarantee
 

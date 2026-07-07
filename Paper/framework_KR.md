@@ -329,11 +329,15 @@ Curriculum sub-stage.
 
 Leakage 위험 원천 차단, encoder ranking 가 가장 깨끗. Track A 만 으로 발표 가능 한 결과 (A4 결과 를 gap_filled 계산 base 로).
 
-### Track B. P2-B distillation (context contribution 의 측정)
+### Track B. P2-B distillation (Track A best encoder 1 개 만, context lift 정량)
+
+**Scope (2026-07-03 확정).** E1-E4 각각 Track B 를 돌리지 않음. Track A 에서 확정 된 **best encoder 1 개** 만 진입. Implementation_spec §13 실험 매트릭스 는 이론 상 "E1-E4 각각 distillation" 도 나열 하지만, 실행 은 여기 규정 이 우선.
+
+**Framework 검증 축.** Track B 의 primary question 은 **"context (video + caption) 가 brain-only 예측 을 얼마나 끌어 올리는가"**. "어느 encoder 가 distillation 과 잘 맞는가" 가 아님. Encoder 순위 는 Track A 에서 이미 확정, encoder × distillation 그리드 검증 은 framework 검증 축 을 흐리게 함.
 
 Track A 의 best encoder 위 에 P2-B distillation 을 layered. Teacher (brain+video+caption) 도 curriculum B1 → B4 순차. 각 stage 의 teacher 34D soft label caching 후 student (brain-only) 가 MSE 로 재현.
 
-Teacher 의 context 가 student 의 brain-only 성능 을 끌어 올리는지 의 *별도* 질문. Encoder 효과 (Track A) 와 context 효과 (Track A → Track B delta) 의 귀속 분리.
+Encoder 효과 (Track A 결과) 와 context 효과 (Track A best A4 → Track B best B4 delta = **context lift**) 의 귀속 분리. Context lift 가 Track B 의 headline 결과.
 
 ---
 

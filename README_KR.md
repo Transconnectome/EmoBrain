@@ -92,10 +92,18 @@ EmoBrain/
 └── 7 root .md (README, README_KR, CONTEXT_EMOBRAIN, ACTION_PLAN, CLAUDE, CODEX, ONBOARDING)
 ```
 
+## Framework 검증 축 (2026-07-03 확정)
+
+두 축 명확히 구분.
+- **Encoder 순위 확정** = Track A (E1-E4 각각 학습, brain + question only).
+- **Context lift 정량 (framework primary)** = Track B (**Track A best encoder 1 개 만**, teacher + student distillation).
+
+Track B 는 E1-E4 각각 진행 아님. Track A best 하나 만. Framework 검증 의 primary question 은 **"context 가 brain-only 예측 을 얼마나 끌어 올리는가"** 이지 "어느 encoder 가 distillation 과 잘 맞는가" 가 아님.
+
 ## 진행 상태
 
 - 12-16 주 build phase. S7-S11 (`ACTION_PLAN.md`).
-- 결정 된 항목. Backbone = Qwen3-VL 2B + 4B 둘 다 ablation. Caption source = MindCaptioning only + MindCaptioning + 우리 generated dual 둘 다 ablation.
+- 결정 된 항목. Backbone = Qwen3-VL 2B + 4B 둘 다 ablation. Caption source = MindCaptioning only + MindCaptioning + 우리 generated dual 둘 다 ablation. Track B scope = Track A best encoder 1 개 (2026-07-03).
 
 ## Pointer
 

@@ -139,15 +139,17 @@ Teacher 없음, video / caption 완전 제거. 각 encoder 를 brain-only 로 cu
 - [ ] 각 sub-stage 는 이전 stage checkpoint 에서 weight inherit.
 - [ ] Track A 결과 = E1-E4 의 gap_filled ranking (A4 기준) + per-stimulus 34D profile shape similarity. Framework 의 modularity 검증 완료.
 
-#### S10.2. Track B. P2-B distillation (context contribution, curriculum B1-B4)
+#### S10.2. Track B. P2-B distillation (Track A best encoder 1 개 만, context lift 정량)
 
-Track A 의 best encoder 위 에 teacher (brain+video+caption) 학습 → 34D soft label cache → student (brain-only) 가 teacher 34D 를 MSE 로 재현. Teacher / student 모두 curriculum B1-B4 순차.
+**Scope (2026-07-03 확정).** E1-E4 각각 Track B 를 돌리지 않음. Track A 에서 확정 된 **best encoder 1 개** 만 Track B 로. Framework 검증 의 primary question = **"context 가 brain-only 를 얼마나 끌어 올리는가" (context lift)**, "어느 encoder 가 distillation 과 잘 맞는가" 가 아님.
 
-- [ ] Teacher 학습 (brain+video+caption). Curriculum B1-B4 순차. Per-emotion subset MSE. 각 stage 마다 34D soft label cache 생성 (`project/shared/output/teacher_soft_labels/B{stage}/`). Softmax 없음, raw 34D score caching.
-- [ ] Student 학습 (brain-only). Curriculum B1-B4 순차. Loss = L_main (subset MSE on z-scored target) + λ × L_distill (MSE on teacher 34D). λ grid (0.5 / 1.0 / 2.0). Caption dropout 확률 grid (0.5 / 0.7 / 0.9).
+Track A best encoder 위 에 teacher (brain+video+caption) 학습 → 34D soft label cache → student (brain-only) 가 teacher 34D 를 MSE 로 재현. Teacher / student 모두 curriculum B1-B4 순차.
+
+- [ ] Teacher 학습 (brain+video+caption). Track A best encoder × curriculum B1-B4 순차. Per-emotion subset MSE. 각 stage 마다 34D soft label cache 생성 (`project/shared/output/teacher_soft_labels/B{stage}/`). Softmax 없음, raw 34D score caching.
+- [ ] Student 학습 (brain-only). Track A best encoder × curriculum B1-B4 순차. Loss = L_main (subset MSE on z-scored target) + λ × L_distill (MSE on teacher 34D). λ grid (0.5 / 1.0 / 2.0). Caption dropout 확률 grid (0.5 / 0.7 / 0.9).
 - [ ] Modality ablation (Full / no-caption / no-video / brain-only 4 조건, B4 기준). Caption-video overlap 검증.
 - [ ] Video-on-caption residualize 조건 vs 원본 caption 조건 비교 (B4 기준). Caption 고유 기여 판정.
-- [ ] Track A → Track B delta (A4 → B4 기준) = context lift. Positive / null / negative 모두 publishable.
+- [ ] Track A best A4 → Track B best B4 delta = **context lift** (framework 검증 headline). Positive / null / negative 모두 publishable.
 
 #### S10.3. Ablation grid (sparse)
 

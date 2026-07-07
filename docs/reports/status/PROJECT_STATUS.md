@@ -1,29 +1,31 @@
 # EmoBrain Project Status
 
-Generated: 2026-07-01 06:47 UTC
+Generated: 2026-07-07 00:54 UTC
 
 ## Git
 
 - Branch: `main`
-- Last commit: `6c51fd3 Pivot to single-project framework novelty path`
+- Last commit: `266240c [REFACTOR] Adopt implementation_spec + physical archive of v5 Three Directions`
 - Working tree: `M ACTION_PLAN.md
- M CLAUDE.md
- M CODEX.md
  M CONTEXT_EMOBRAIN.md
  M ONBOARDING.md
  M Paper/framework_EN.md
  M Paper/framework_KR.md
  M README.md
  M README_KR.md
- M docs/masterplan_v3_emobrain.md
  M docs/notes/architecture_design_20260629.md
+ M docs/notes/implementation_spec_20260702.md
  M docs/notes/project_decisions.md
- M docs/reports/status/PROJECT_STATUS.md
  M project/README.md
- M tools/build_project_status.py
- M tools/check_md_completeness.py
-?? docs/notes/ppt_outline_20260630.md
-?? docs/notes/redteam_review_20260630.md`
+ T project/shared/data/cowen_horikawa_labels.csv
+?? project/__init__.py
+?? project/data/
+?? project/evaluation/
+?? project/models/
+?? project/scripts/
+?? project/shared/data/caption_ck20.csv
+?? project/training/
+?? project/utils/`
 
 ## Canonical Direction
 
@@ -41,11 +43,11 @@ Generated: 2026-07-01 06:47 UTC
 ## Recent Commits
 
 ```text
+266240c [REFACTOR] Adopt implementation_spec + physical archive of v5 Three Directions
+4054164 [SPEC] Adopt implementation_spec_20260702 as canonical code spec
 6c51fd3 Pivot to single-project framework novelty path
 1d2749d [CONTEXT] Rename CONTEXT_FEEL.md → CONTEXT_EMOBRAIN.md, rewrite ONBOARDING.md, fix CODEX.md
 e205135 [SETUP] Rename FEELIN→EmoBrain, submodule BrainVLM/fMRI-LM, D1/D2 scaffolding
-d4537a3 [FRAMING] 3-direction pivot. D1 BrainVLM + D2 fMRI-LM (main) + D3 CCN (separate)
-9f6ec33 [DESIGN] Direction 1 + Direction 2 design.md with fMRI-LM reference
 ```
 
 ## Next Operating Checks

@@ -45,20 +45,46 @@ project/
 │   │   └── slurm/                    (SLURM 출력)
 │   └── results/
 │       └── background/               (Phase 1 baseline CSV, figure)
-├── code/                             (main unified pipeline, single project)
-│   ├── adapters/                     (brain ↔ LLM token, video ↔ LLM token)
-│   ├── brain_encoder/                (raw_roi / ridge_embedding / bfm / vlm 의 4 modular NV3)
-│   ├── vision_encoder/               (clip / vjepa2 / videomae selectable)
-│   ├── caption_loader/               (mindcaptioning human + qwen_vl generated NV2)
-│   ├── fusion/                       (token_assembler + llm_wrapper Qwen3-VL + poyo_alt + dist_head)
-│   ├── training/                     (dataset + trainer 4 stage curriculum + smoke)
-│   └── evaluation/                   (variance partitioning + ceiling + dissociation + LOSO + cross-cohort)
-├── config/                           (YAML hyperparam, dataset.yaml, train_curriculum.yaml, model registry)
-├── sample_scripts/                   (SLURM .sh entry point)
-└── output/                           (training log, checkpoint, prediction)
+├── configs/                          (YAML experiment config)
+├── data/                             (Python module. dataset / label / caption / fmri adapter)
+│   ├── datasets.py                   (Horikawa, MindCaptioning loader)
+│   ├── labels.py                     (34D z-score. mu/std fit train, apply test)
+│   ├── caption_map.py                (MindCaptioning caption + Cowen label 매핑)
+│   └── fmri_adapter.py               (encoder 별 fMRI 입력 형식 변환)
+├── models/
+│   ├── encoders/                     (E1 - E4 brain encoder)
+│   │   ├── e1_projection.py          (control, no pretrain, MLP projector)
+│   │   ├── e2_ridge_encoder.py       (LLM 경유 ridge latent, B1 ridge 와 다름)
+│   │   ├── e3_bfm.py                 (SwiFT / Brain-JEPA / NeuroSTORM frozen)
+│   │   └── e4_vit.py                 (Qwen vision encoder, image pretrain + fMRI fine-tune)
+│   ├── losses/                       (loss module)
+│   │   ├── supervised.py             (per-emotion MSE hard loss + subset target)
+│   │   ├── distillation.py           (per-emotion MSE distillation loss)
+│   │   └── structure.py              (optional 34x34 corr matching, default off)
+│   ├── projector.py                  (per-modality × per-encoder projector, MLP / Q-Former)
+│   ├── video_encoder.py              (V-JEPA2 / CLIP / VideoMAE, last hidden)
+│   ├── prompt.py                     (Caption field + Question field 조립)
+│   ├── llm_backbone.py               (LLM + LoRA + 34D linear head, z-space)
+│   ├── teacher.py                    (brain + video + caption + question 조합)
+│   └── student.py                    (brain + question, LoRA-B, inference form)
+├── training/                         (실험 entry loop)
+│   ├── train_teacher.py              (teacher supervised training)
+│   ├── train_student.py              (student hard + distillation loss)
+│   ├── train_baseline_ridge.py       (B1 ridge, LLM 없음)
+│   └── train_modality_solo.py        (B2 modality solo)
+├── evaluation/                       (평가 + ablation)
+│   ├── metrics.py                    (per-clip Pearson + Spearman, per-emotion, RSA, dim compression)
+│   ├── cross_subject.py              (MindCaptioning external test, cross-subject caveat)
+│   ├── ablation.py                   (shortcut check + teacher modality ablation)
+│   └── mixed_emotion.py              (bittersweet case)
+├── utils/                            (seed, log, checkpoint, tensor shape)
+├── scripts/                          (entry runner, run_experiment.py + SLURM .sh pair)
+└── output/                           (training log, checkpoint, prediction. 기존 유지)
 ```
 
-`code/` 하위 7 개 subdir 는 skeleton 만 생성 됨 (2026-06-29). 실제 implementation 은 S7 부터 (`../ACTION_PLAN.md`).
+**주의.** 현재 `configs/, data/, models/**, training/, evaluation/, utils/, scripts/` 는 `__init__.py` 만 있는 empty package. 실제 `.py` 는 `docs/notes/implementation_spec_20260702.md` §12 빌드 순서 대로 하나 씩 추가 예정.
+
+**Naming rule.** snake_case, 명사 (module) / 동사 (entry script). 버전 접미사 (`v1`, `test`, `tmp`, `_new`, `_old`) 금지. Iteration 은 git branch.
 
 ## 3. Architecture (요약)
 

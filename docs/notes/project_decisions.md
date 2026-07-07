@@ -4,6 +4,37 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 ---
 
+## 2026-07-03. Track B scope 축소 + Framework 검증 축 재확인
+
+**Decision.** Track B (P2-B teacher-student distillation) 는 Track A 에서 확정 된 **best encoder 1 개** 만 진행. E1-E4 각각 distillation 하지 않음.
+
+**Framework 검증 축 재확인.**
+
+Framework 검증 의 핵심 은 **"context (video + caption) 가 brain-only 예측 을 얼마나 끌어 올리는가"**. "어느 encoder 가 distillation 이랑 잘 맞는가" 가 아님.
+
+이 두 축 은 명확히 다름.
+
+| 축 | 실험 위치 |
+|----|-----------|
+| Encoder 순위 확정 | Track A 에서 E1-E4 각각 학습 (brain + question only, direct MSE) |
+| Context lift 정량 (framework 검증) | Track B 에서 Track A best encoder × (teacher soft label → student brain-only) |
+
+Encoder 를 여러 개 Track B 로 돌리면 자원 낭비 이자 검증 축 혼동. Encoder 순위 는 Track A 만 으로 확정 됨.
+
+**Spec §13 실험 매트릭스 관계.**
+Implementation_spec §13 은 "E1-E4 각각 student + distillation" 도 이론상 나열. 그러나 실용 적 채택 은 Track A best × Track B 1 개 만. §13 원문 은 canonical 로 유지, 실행 계획 은 project_decisions 의 이 결정 이 우선.
+
+**Files updated.**
+- `docs/notes/architecture_design_20260629.md` §8.9 Track B 서술 재작성 + 검증 축 명시.
+- `Paper/framework_EN.md`, `Paper/framework_KR.md` Track B section 정정 (E1-E4 각각 → best 1 개), Framework 검증 축 강조 문단 추가.
+- `ACTION_PLAN.md` S10.2 재작성 (E1-E4 → best 1 개).
+- `docs/notes/implementation_spec_20260702.md` §13 에 scope note 추가 (실행 은 best 1 개, §13 은 이론 매트릭스 로만 유지).
+- `README.md`, `README_KR.md`, `CONTEXT_EMOBRAIN.md` Track B / distillation 언급 정합.
+
+**Rationale.** 자원 절약 + 검증 축 명확화. Spec §13 은 이론 매트릭스, 실행 spec 은 이 decision 이 우선. Framework 검증 의 primary question 이 encoder × distillation 그리드 로 흐르는 것 을 방지.
+
+---
+
 ## 2026-07-02. Code 구현 명세 (implementation_spec) 반영
 
 **Decision.** 사용자 canonical implementation spec 을 `docs/notes/implementation_spec_20260702.md` 로 이동 하고 delta 를 framework / architecture / action plan / CLAUDE 에 반영.

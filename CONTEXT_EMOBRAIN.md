@@ -112,6 +112,17 @@ EmoBrain/
 
 MindCaptioning external test 는 **cross-subject 이지만 cross-stimulus 는 아님** (subject 6 명 이 Horikawa 5 명 과 안 겹치지만 stimulus 는 Cowen 계열 과 겹침). 리포트 마다 "cross-subject external test, NOT cross-stimulus" 를 명시. Cross-stimulus 평가 는 Horikawa 내부 held-out stimuli split (별도).
 
+## Framework 검증 축 (2026-07-03 확정)
+
+두 축 을 명확히 구분.
+
+| 축 | 실험 위치 |
+|----|-----------|
+| Encoder 순위 확정 | Track A 에서 E1-E4 각각 학습 (brain + question only) |
+| Context lift (framework primary) | Track B 에서 **Track A best encoder 1 개 만** distillation |
+
+Track B 는 E1-E4 각각 진행 아님. Track A best 하나 만. Framework 검증 의 primary question 은 **"context (video + caption) 가 brain-only 예측 을 얼마나 끌어 올리는가"** 이지 "어느 encoder 가 distillation 과 잘 맞는가" 가 아님.
+
 ## Workflow triggers
 
 | Trigger | 용도 | Workflow |

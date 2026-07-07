@@ -444,6 +444,12 @@ emobrain/
 
 각 run은 config 하나로 재현 가능해야 한다.
 
+**Scope 결정 (2026-07-03 project_decisions).**
+- "E1 to E4 각각 student + distillation" 항목 은 이론 매트릭스 로 유지. 실행 은 Track A 에서 확정 된 best encoder 1 개 만 Track B (distillation) 진입.
+- Framework 검증 의 primary question 은 "context lift" (Track A best A4 → Track B best B4 delta) 이지 "encoder × distillation 그리드" 가 아님.
+- Encoder 순위 는 Track A 만 으로 확정. Encoder × distillation 그리드 는 자원 낭비 + 검증 축 혼동.
+- 자세한 근거 는 `project_decisions.md` 2026-07-03 entry.
+
 ---
 
 ## 14. 전역 CAUTION 요약

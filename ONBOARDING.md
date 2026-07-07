@@ -117,6 +117,7 @@ EmoBrain/
 ## 현재 진행 상황 (2026-06-30 기준)
 
 - **Framework lock.** 5 NV framework 확정 (2026-06-29 pivot). NV3 modular brain encoder 의 P2-B knowledge distillation 을 main training paradigm 으로 lock (2026-06-30).
+- **Track B scope 확정 (2026-07-03).** Track B (distillation) 은 Track A best encoder 1 개 만. E1-E4 각각 Track B 안 함. Framework 검증 primary question = "context lift" (Track A best A4 → Track B best B4 delta).
 - **Red-team review 완료.** 4-panel adversarial review (Architecture / Training stability / Inference paradigm / RoPE position-shift) 로 7 blocker + 12 redesign recommendation 확정. `docs/notes/redteam_review_20260630.md`.
 - **Week 0 engineering sprint 대기.** Training start 전 gate. 7 blocker resolve, Stage 0 noise ceiling 측정, factored 3-phase sweep (30 run) 준비.
 - **Background (Phase 1) 완료.** Frozen BFM (Brain-JEPA, NeuroSTORM, SwiFT 6 변종) 가 ROI ridge baseline 못 넘음을 audit 으로 확정. `docs/reports/phase1_audit_20260604/`.
