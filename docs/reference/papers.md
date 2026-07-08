@@ -408,6 +408,54 @@ This file records the currently relevant papers and how each should be used in t
 - **Status**: arXiv:2605.16739v2 [cs.LG], 2026-06-11. Preprint (NeurIPS submission, not yet accepted) — cite as preprint.
 - **Source**: arXiv:2605.16739
 
+## Du / Fu / He 그룹 (CAS) — 같은 Horikawa 데이터 선행/경쟁군
+
+Changde Du, Kaicheng Fu, Zhongyu Huang, Huiguang He (Institute of Automation, CAS) 그룹 이 **우리 와 같은 Horikawa 2020 정서 영상 fMRI (5 subject, CK34)** 로 fine-grained emotion decoding 을 개척. EmoBrain 의 가장 직접적 선행/경쟁. 7편 상세 review + 우리 positioning 은 `docs/reference/du_fu_group_review_0707.md`.
+
+### GED — Graph Emotion Decoding (MICCAI 2022 → TMI 2023) ★ 가장 직접 비교
+
+- **Type**: brain→34D emotion regression, emotion-brain bipartite graph + GNN. (PDF 원문 확인.)
+- **Data**: Horikawa 5 subject, **2196 pair = 2181 unique + 15 duplicate**, 34 category continuous (우리 cowen34_order 동일), 370 region (360 HCP + 10 subcortical). Per-subject 10-fold (1976/220) + cross-subject LOSO (TMI).
+- **Target**: rater binary → 평균 [0,1] proportion. **우리 crowd-proportion target 과 동일.**
+- **Metric**: **MAE 만** (34 감정 합산, Pearson 아님 — web 조사 오류 정정). Within-subject GED best 1.64-1.67, LOSO GED 1.689±0.015 (BrainGNN 1.727, GCN 1.826, FNN 2.384). 우리 pooled ridge raw MAE 0.054×34 ≈ 1.84 (환산) ≈ GCN 수준. **target·metric 동일 하므로 우리 예측 에 GED 식 MAE 재계산 시 직접 대조.**
+- **EmoBrain role**: continuous-regression + 같은 target 의 nearest external anchor. bipartite (emotion×ROI) graph 는 우리 34×34 structure loss 의 generalization. Relation prior 가 decoding 을 돕는 존재 증명 (structure loss default OFF 재고 근거).
+- **Source**: TMI DOI 10.1109/TMI.2023.3246220 (PMID 37027550), MICCAI DOI 10.1007/978-3-031-16452-1_38. Code https://github.com/zhongyu1998/GED. PDF = Du2/Du3.
+
+### ML-BVAE — Multi-view Multi-label Fine-grained Emotion Decoding (TNNLS 2022)
+
+- **Type**: multi-label binary 분류 (27-cat, 0.1 threshold). Multi-view VAE (L/R/L−R PoE) + label co-occurrence masked self-attention + asymmetric focal loss. (PDF 원문 확인.)
+- **Data**: MEMO27 = Horikawa 5 subject, HCP360. Metric (5-subj avg) miF1 0.505 / maF1 0.398 / mAP 0.448 / e-AP 0.619 (Pearson 없음). LR(Horikawa 선형 baseline) mAP 0.246.
+- **EmoBrain role**: 가장 강한 fine-grained decoding 선행. 숫자 비교 불가 (binarize 분류). 우리 regression-vs-classification + 27→34 확장 을 contribution 으로. 그들 co-occurrence 모델링 vs 우리 independent MSE.
+- **Source**: arXiv 2211.02629. Code https://github.com/KaichengFu1997/ML-BVAE. PDF = Du1.
+
+### EmoGrowth — Incremental Multi-label Emotion Decoding (ICML 2025)
+
+- **Type**: class-incremental multi-label 분류. Augmented Emotional Relation Graph (co-occurrence P(i|j)) + GIN GAE + affective-dim RSM distillation. (PDF 원문 확인.)
+- **Data**: Brain27 = Horikawa 5 subject, 27-cat + 14 affective dim, 0.1 threshold, 2880-dim ROI-pooling (360×8), train 1800/test 396. Brain27 subject1 mAP 44.2/43.8/41.9/39.5.
+- **EmoBrain role**: continual 기계장치 는 우리 problem 아님. 단 structure loss 에 borrowable — arctanh reparam (Eq. 12), affective-dim RSM as second teacher, oracle-vs-learned ERG Pearson (RKD r=0.86 vs 0.75). **NV0 경고**: LLaMA 3.1-8B sentence embedding 을 label 로 naive 사용 시 오히려 성능 하락 (ablation) → LLM 은 구조 안 에서 써야 함.
+- **Source**: PMLR v267 (ICML 2025). arXiv 2405.20600. Code https://github.com/ChangdeDu/EmoGrowth. PDF = Du_4.
+
+### iScience 2023 — Topographic Representation (encoding, 표상)
+
+- **Type**: voxel-wise encoding (34 emotion→brain), topographic map, banded ridge.
+- **Data**: Horikawa 5 subject, 34-cat + 14-dim.
+- **EmoBrain role**: ROI 우선순위 근거 (TPJ ~62% / IPL ~50% / LO 51-67% significant voxel, V1 최저) → modular encoder up-weight. "emotion high-D + distributed" (cortex 21% significant, locationism 기각). Behavioral-brain dissociation (neural 0.56 vs behavioral 0.20-0.25) → 우리 sub-question (d). Valence not primary neural axis.
+- **Source**: DOI 10.1016/j.isci.2023.107571. OSF https://osf.io/9uyn2/. (encoding-only, per-emotion decoding accuracy 없음.)
+
+### TAFFC 2023 — CNN-Brain Alignment (우리 CCN 라인)
+
+- **Type**: brain RSM 을 video CNN 에 inductive bias 주입 (brain→CNN 단방향). RSA loss + learnable per-layer weight + Fisher-z.
+- **Data**: Brain = Horikawa 5 subject. Video task = VideoEmotion-8 / Ekman-6 (별개 자극).
+- **EmoBrain role**: CCN video-brain alignment 라인 의 방향-반대 foil. Borrowable = softmax-gamma layer weight + Fisher-z RSA matching. Tension 해소 — "brain improves lightweight CNN" vs 우리 "strong CLIP 0.60 > brain 0.30" 는 model capacity regime 이 달라 모순 아님.
+- **Source**: DOI 10.1109/TAFFC.2023.3316173. Code https://osf.io/ucx57.
+
+### Information Fusion 2025 — Hierarchical Emotional Areas (Horikawa 아님)
+
+- **Type**: FC 트리 정보전파 깊이 로 hierarchical emotional area 식별. HEmoN (LSTM per level).
+- **Data**: **Horikawa 아님.** StudyForrest (15 subj, 6 basic) + Vimeo (8 subj, 80). Power 264 ROI.
+- **EmoBrain role**: "distributed + hierarchical (sensory→psychological→cognitive)" 근거, psychological constructionist 지지. **주의**: visual 이 Level 1/2/3 재등장 (visual=저차 전용 서사 완화), 그들 위계(FC 트리) ≠ 우리 ISC. "상위 명제 수렴" 수준 만.
+- **Source**: arXiv 2408.00525. PII S1566253524003919. (DOI 미확인.)
+
 ## Dataset/Challenge References
 
 ### Algonauts Project 2025

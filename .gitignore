@@ -7,7 +7,11 @@ __pycache__/
 # Generated artifacts
 project/shared/output/
 project/shared/results/
+project/output/
 docs/reports/status/PROJECT_STATUS.md
+
+# Reference paper PDFs kept locally only (citations live in papers.md / review docs)
+docs/reference/papers/*.pdf
 
 # Large scientific/model artifacts: never commit embeddings, checkpoints, or raw neuroimaging files.
 *.pt

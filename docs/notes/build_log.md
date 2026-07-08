@@ -15,6 +15,67 @@ Spec §12 build order 기준.
 
 ---
 
+## 2026-07-08. Cycle 19. Qwen backbone 첫 가동 (GPU, E1+LoRA end-to-end 학습 확인)
+
+**What.** stub → 실제 Qwen2.5-3B-Instruct backbone. E1(MLP) + LoRA(attention) + projector + head 를 GPU 에서 학습. peft 0.19.1 설치. NERSC offline 대응 (login predownload → HF_HOME scratch cache → bash/GPU 실행, 사용자 salloc GPU 노드).
+
+**Files.** `configs/trackA_e1_qwen_gpusmoke.yaml`, `trackA_e1_qwen_full.yaml`. `scripts/predownload_qwen.py`+`.sh`. `training/train_qwen.sh` (HF_HOME set bash launcher), `train_qwen_gpusmoke.sbatch`. `models/backbones/qwen.py` (tokenize/pad 보정). `models/emobrain_model.py` (dtype cast 2곳. brain token → backbone bf16, pooled → head fp32). `train.py` (step 로깅 + robust check = windowed train loss OR val_pearson gain).
+
+**버그 2개 잡음.** (1) brain token fp32 → LLM bf16 concat dtype mismatch. (2) LLM bf16 pooled → head fp32 mismatch. 둘 다 dtype cast 로 해결. + check 노이즈 오판 (per-batch loss 26~135 변동 → 단일 step 비교 무의미 → windowed avg + val gain 으로 교체).
+
+**GPU smoke (bash, 사용자, Qwen2.5-3B, 50 batch).** trainable 42.5M (LoRA+E1+proj+head, LLM base frozen). **step loss 135→48→31→30→26 명확 하강**, check drop +38 → OK learning. head/LoRA 가 50 step 만에 큰 초기 출력 잡고 train 맞춰감. val 0.02 (50 step 뿐, 무의미).
+
+**Meaning.** 실제 3B LLM 경로 (load, LoRA, brain+question forward, backward, optim, eval) 전부 검증. 학습 명확히 작동. 다음 = full config (전체 데이터, epoch 3, batch 8) → **E1+Qwen(LoRA) 의 ridge(0.30/0.17) 대비 첫 실 val 숫자.**
+
+---
+
+## 2026-07-08. Cycle 18. 학습 루프 train.py (CPU stub 검증 통과)
+
+**What.** `training/train.py` = config → build_model → AdamW 학습 루프 → val 평가 (compute_metrics profile/error). 모델 갈아끼워도 루프 불변. Track A / E1 / CPU-stub config 로 최적화 동작 검증 (정확도 아님).
+
+**Files.** `project/training/train.py`, `configs/trackA_e1_stub_cpu.yaml` (stub, cpu, 20 batch × 5 epoch), `training/train.sh`.
+
+**Smoke (CPU, bash, 사용자 실행).** train_loss 34.58 → 32.96 (drop +1.62) = `OK optimization runs`. 더 중요. **val 단조 상승** (pearson -0.02→+0.17, ccc→+0.07, mse_z 1.13→1.07 단조 하강). held-out val 이 오르는 건 파이프라인 (진짜 fMRI→E1→projector→stub transformer→head) 이 뇌→감정 신호 를 실제로 학습 한다는 신호. 100 step tiny stub 인데도 val pearson +0.17 (ridge 0.30 절반, 진짜 LLM 아님). train_loss 노이즈 (epoch2 spike) 는 shuffle+서브셋+tiny 탓, 신뢰 신호 는 val 단조.
+
+**Meaning.** 학습 루프 + 데이터 배관 + loss + eval 전부 정상. 다음 = Qwen backbone (config 한 줄 스왑 stub→qwen, cpu→cuda) + sbatch. NERSC 함정. compute 노드 offline → login 노드 에서 모델 pre-download 후 offline 로드. 모델 선택 (text-only Qwen vs Qwen3-VL) + GPU account/queue 확정 필요.
+
+---
+
+## 2026-07-08. Cycle 17. Data <-> model 어댑터 (실데이터 배치 → 모델 → loss)
+
+**What.** 골격(더미 텐서)에 실제 HorikawaDataset 을 연결. dataset dict (fmri, label, meta) + spec §8-3 고정 question 을 모델 forward 입력 (fmri, text_ids, text_mask) 으로 변환. Backbone 계약에 `tokenize` 추가 (stub 간이 hash / qwen 실제 tokenizer) → collate 는 backbone-agnostic.
+
+**Files.**
+- `project/models/prompt.py` (spec §8-3 고정 Question, cowen34_order 에서 34감정 목록 자동 채움, TRACK_A_QUESTION).
+- `project/training/collate.py` (make_collate(question, backbone) → collate_fn. fmri/label stack + question tokenize + caption 별도 유지).
+- `project/models/base.py` + `backbones/stub.py` + `backbones/qwen.py` (Backbone.tokenize 추가. stub = deterministic hash 간이 tokenizer, qwen = 실제 tokenizer + pad_token 보정).
+- `project/scripts/data_model_smoke.py` + `.sh`.
+
+**Smoke (CPU, bash, no download).** val 1085 샘플 → collate → build_model(stub) forward → `pred (8,34)` finite → `supervised_loss = 35.95`. loss ≈ 34 는 z-space 무작위 예측 기대값 (감정당 ~1 std, 합 ~34, losses_smoke scale sanity 와 일치) → loss 계산 정상 부착 확인. text_ids (8,85) = 고정 question 85 토큰. student 형태 (brain + question) 그대로.
+
+**Meaning.** 디스크→모델→loss 배관 완성. 학습 루프는 이제 optimizer + epoch + eval 만 얹으면 됨. 다음 = Qwen backbone 실장 (GPU) + `training/train.py` (config → build_model → loop → metrics), sbatch (사전 승인). E1-through-LLM 첫 실결과 = ridge (0.30) 대비.
+
+---
+
+## 2026-07-07. Cycle 16. Swappable model skeleton (registry + factory, Step 4 시작)
+
+**What.** 모델 컴포넌트 를 config/이름 으로 갈아끼우는 골격 (NV3 swappable adapter). 학습 스크립트 는 "어떤 모델" 만 config 로 지정, encoder/backbone 교체 = config 한 줄. LLM-free E1/E2 는 ridge baseline 과 중복 이라 폐기, encoder 는 처음부터 LLM 통과 로 확정 (design_plan §5.1 미결 해소).
+
+**계약 (갈아끼우기 핵심).** `base.py` 4 계약. BrainEncoder(.out_dim 노출) / Projector(any in_dim → llm_dim, n_tokens 고정) / Backbone(.hidden_dim, embed_text) / Head(34D z-space, no activation). build.py 가 dim 자동 주입 (projector.in_dim=encoder.out_dim, head.hidden_dim=backbone.hidden_dim) → downstream dim 하드코딩 없음.
+
+**Files.**
+- `project/models/base.py` (계약), `registry.py` (register/build/available), `build.py` (factory, qwen lazy import), `emobrain_model.py` (배선. brain token prepend + text embed, modalities 토글 = teacher/student).
+- `encoders/e1_raw_roi.py` (E1 = ROI→MLP), `projectors/mlp.py` (pool→n_tokens×llm_dim), `backbones/stub.py` (CPU smoke 용 tiny transformer, no download), `backbones/qwen.py` (real, transformers lazy, GPU), `heads/linear34.py` (linear, softmax 금지).
+- `configs/smoke_e1_stub.yaml`, `scripts/model_build_smoke.py` + `.sh`.
+
+**Smoke (CPU, bash, no download).** `build_model(cfg)` → forward [4,34] 통과. config 만 바꿔 n_tokens 8→16, enc out_dim 128→256, brain on→off (ablation) 이 코드 수정 0 으로 다른 모델 재배선 됨을 확인. 전부 finite, softmax 없음.
+
+**CAUTION 준수.** softmax 없음 / text 는 tokenizer+embed 만 (projector 안 붙임) / caption 별도 field / frozen·finetune 은 별개 축 (config) / brain-ablated student 는 modalities 토글.
+
+**Meaning.** "스크립트에서 모델만 지정" 이 실물 로 동작. 이후 E2/E3/E4 encoder, Qwen backbone, Q-Former projector 는 파일 1개 + `@register` 로 config 선택 대상. 다음 = 실제 데이터 배치 로 forward (HorikawaDataset ↔ 모델 입력 어댑터) + Qwen backbone 실장 + 학습 루프 (sbatch, 사전 승인).
+
+---
+
 ## 2026-07-07. Cycle 15. report_0707 외부 검토 반영 (사실/해석 오류 정정, no new code)
 
 **What.** report_0707.md 외부 검토 (사용자) 의 6 지적 을 verify 후 반영. 2 는 반드시 고칠 사실/해석 오류, 4 는 완성도.

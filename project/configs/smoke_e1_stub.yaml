@@ -1,0 +1,22 @@
+# CPU wiring smoke config. E1 raw ROI -> MLP projector -> stub backbone -> 34D.
+# Tiny dims, no downloads. Real training swaps backbone.name stub -> qwen and
+# bumps dims; nothing else in the config or code changes.
+encoder:
+  name: e1_raw_roi
+  roi_dim: 450
+  hidden: 128
+  out_dim: 128
+projector:
+  name: mlp
+  n_tokens: 8
+backbone:
+  name: stub
+  hidden_dim: 64
+  n_layers: 2
+  n_heads: 4
+head:
+  name: linear34
+modalities:
+  brain: true
+  video: false
+  caption: false

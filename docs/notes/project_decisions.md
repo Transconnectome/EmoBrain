@@ -4,6 +4,18 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 ---
 
+## 2026-07-07 (3). Stimulus 수 = 2185 원본 실측 최종 확정 + Du 그룹 4편 PDF 원문 확인
+
+**Decision.** 사용자 요청 ("stimulus 수 확정, 무조건 Horikawa 에 맞춘다") 에 따라 Horikawa 배포 원본 label 파일 을 직접 실측 하여 **논문 서술 이 아닌 raw data 로 확정**.
+
+1. **Stimulus 수 최종 확정.** Horikawa `feature/categcontinuous.mat` (및 category.mat, dimension.mat) = feat shape (2196, 34), **unique row = 정확히 2185**, 나머지 11 = repeat. Repeat 구조 = presentation 2185~2195 이 0~10 을 그대로 재제시 (마지막 11개 = 첫 11개, reliability check). fmri_raw.npy = (5, 2196, 450). 우리 processed = 2185 unique (stimulus_num 1~2185 연속 gap 없음), split 10925 = 5×2185. **결론. Horikawa = 2185 unique + 11 repeat = 2196 presentation. 논문 간 차이 아니라 raw data 자체 값.** EmoViS DECISIONS (2185, 11 repeat) 가 정확했음 재확인. 우리 canonical 2185 유지, 변경 없음. 11 repeat 는 intra-subject test-retest noise ceiling 자원 (Stage 0).
+
+2. **Du 그룹 "2181 + 15" 는 부정확.** MICCAI GED 가 "2196 = 2181 unique + 15 duplicate" 라 서술 했으나 Horikawa 원본 실측 (2185 + 11) 과 불일치. Du 는 dedup 없이 2196 전체 를 학습 하므로 그들 "unique" 서술 은 파이프라인 무관. 우리 는 dedup (2185) 이 train/test leakage 방지 + Horikawa unique 와 일치 하므로 더 clean.
+
+3. **Du 그룹 4편 PDF 원문 확인 (Du1-4.pdf).** 1차 web 조사 대비 정정. (a) GED metric = **MAE 만, Pearson 아님** (34 감정 합산). (b) GED target = rater binary 평균 [0,1] = 우리 crowd proportion 과 동일 → target·metric 동일 하므로 우리 예측 에 GED 식 MAE (sum-over-34) 재계산 시 직접 대조 (within GED best 1.64 / LOSO 1.689 vs 우리 pooled ridge raw 0.054×34≈1.84). (c) EmoGrowth 차용 3항목 (arctanh Eq.12, affective-dim RSM teacher, oracle ERG r=0.86) 확정. (d) **NV0 경고**: EmoGrowth ablation 에서 LLaMA 3.1-8B sentence embedding 을 label 로 naive 사용 시 성능 하락 → LLM 은 fusion/decoding 구조 안 에서만. 상세 = `docs/reference/du_fu_group_review_0707.md`, `docs/reference/papers.md`.
+
+---
+
 ## 2026-07-07 (2). report 외부 검토. Stimulus 수 + RSA 비교 오류 정정 + distillation 검증 승격
 
 **Decision.** report_0707 외부 검토 지적 을 verify 후 반영. 사실/해석 오류 2 개 확정 정정.

@@ -1,0 +1,35 @@
+# Track A / E1 / CPU stub training smoke. Verifies the loop OPTIMIZES
+# (train_loss decreases), not accuracy. Small subset so CPU finishes fast.
+# Real run = swap backbone stub -> qwen and device cpu -> cuda (see
+# trackA_e1_qwen2b.yaml), then sbatch.
+encoder:
+  name: e1_raw_roi
+  roi_dim: 450
+  hidden: 256
+  out_dim: 256
+projector:
+  name: mlp
+  n_tokens: 8
+backbone:
+  name: stub
+  hidden_dim: 128
+  n_layers: 2
+  n_heads: 4
+head:
+  name: linear34
+modalities:
+  brain: true
+  video: false
+  caption: false
+data:
+  fmri_mode: mean
+train:
+  device: cpu
+  seed: 0
+  epochs: 5
+  batch_size: 16
+  lr: 1.0e-3
+  weight_decay: 0.01
+  max_train_batches: 20     # small on purpose (revisits -> overfits -> loss drops visibly)
+  max_eval_batches: null
+  out_json: project/output/train_trackA_e1_stub_cpu.json
