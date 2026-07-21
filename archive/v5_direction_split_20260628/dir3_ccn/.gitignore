@@ -1,0 +1,43 @@
+# Raw inputs (large, downloaded externally)
+data/raw/videos/
+data/raw/CowenEmotionVideos.zip
+data/raw/brain_embeddings/
+data/raw/video_embeddings/
+data/raw/feature/
+data/raw/raw_fmri/
+data/raw/*.csv
+data/raw/*.npy
+
+# Intermediate data (regeneratable)
+study*/data/*.npy
+study*/data/*.npz
+study*/data/*.pkl
+study*/data/*.pt
+
+# SLURM logs
+logs/*.out
+logs/*.err
+study*/logs/*.out
+study*/logs/*.err
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS junk
+.DS_Store
+._*
+__MACOSX/
+._dbindex_
+
+# Large figures (track PDFs only, regenerate PNGs)
+study*/results/figures/*.png
+
+# Environment
+.env

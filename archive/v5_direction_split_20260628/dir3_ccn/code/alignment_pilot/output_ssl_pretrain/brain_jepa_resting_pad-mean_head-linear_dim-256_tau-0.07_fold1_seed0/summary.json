@@ -1,0 +1,34 @@
+{
+  "args": {
+    "bfm": "brain_jepa_resting_pad-mean",
+    "head": "linear",
+    "out_dim": 256,
+    "temperature": 0.07,
+    "batch_size": 64,
+    "epochs": 1,
+    "lr": 0.0001,
+    "weight_decay": 0.05,
+    "fold": 1,
+    "seed": 0,
+    "eval_every": 1
+  },
+  "tag": "brain_jepa_resting_pad-mean_head-linear_dim-256_tau-0.07_fold1_seed0",
+  "n_train_pairs": 13110,
+  "head_params": 196864,
+  "pre_train_alignment": {
+    "mean_pos_cos": 0.905868411064148,
+    "mean_neg_cos": 0.8920956254005432,
+    "alignment_gap": 0.013772785663604736,
+    "n_pos": 4370,
+    "n_neg": 4370
+  },
+  "best_val_alignment_gap": 0.10029757022857666,
+  "test_alignment": {
+    "mean_pos_cos": 0.7930465340614319,
+    "mean_neg_cos": 0.67670738697052,
+    "alignment_gap": 0.11633914709091187,
+    "n_pos": 4370,
+    "n_neg": 4370
+  },
+  "best_epoch": 1
+}
