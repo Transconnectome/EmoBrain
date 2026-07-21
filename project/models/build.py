@@ -21,7 +21,10 @@ transformers, so it is imported lazily only when selected.
 from __future__ import annotations
 
 # side-effect imports register the components (no transformers dependency)
-import project.models.encoders.e1_raw_roi  # noqa: F401
+import project.models.encoders.identity  # noqa: F401
+import project.models.encoders.ridge_latent  # noqa: F401
+import project.models.encoders.vec_mlp  # noqa: F401
+import project.models.encoders.vit_fmri  # noqa: F401  (transformers lazy)
 import project.models.projectors.mlp  # noqa: F401
 import project.models.backbones.stub  # noqa: F401
 import project.models.heads.linear34  # noqa: F401
@@ -41,10 +44,21 @@ def build_model(cfg: dict) -> EmoBrainModel:
     )
     head = build("head", cfg["head"], hidden_dim=backbone.hidden_dim)
 
+    # optional video projector (vector modality, teacher path)
+    video_projector = None
+    mods = cfg.get("modalities", {"brain": True})
+    if mods.get("video"):
+        vcfg = cfg["video"]
+        video_projector = build(
+            "projector", {"name": "mlp", "n_tokens": vcfg.get("n_tokens", 8)},
+            in_dim=vcfg["dim"], llm_dim=backbone.hidden_dim,
+        )
+
     return EmoBrainModel(
         encoder=encoder,
         projector=projector,
         backbone=backbone,
         head=head,
-        modalities=cfg.get("modalities", {"brain": True}),
+        modalities=mods,
+        video_projector=video_projector,
     )

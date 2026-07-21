@@ -93,6 +93,7 @@ class HorikawaDataset(Dataset):
         split: Split,
         fmri_mode: FmriMode = "mean",
         caption_mode: CaptionMode = "off",
+        brain_source: str = "roi_mean",
         labels_csv: str | Path = DEFAULT_LABELS_CSV,
         split_csv: str | Path = DEFAULT_SPLIT_CSV,
         norm_stats: str | Path = DEFAULT_NORM_STATS,
@@ -105,6 +106,7 @@ class HorikawaDataset(Dataset):
         self.split = split
         self.fmri_mode = fmri_mode
         self.caption_mode = caption_mode
+        self.brain_source = brain_source
         self._epoch: int = 0
 
         labels_df = pd.read_csv(labels_csv)
@@ -124,7 +126,17 @@ class HorikawaDataset(Dataset):
         self._label_z = Cowen34Normalizer.load(norm_stats).transform(raw_labels)
         assert self._label_z.shape == (len(self._samples), C)
 
-        self._fmri = fmri_adapter if fmri_adapter is not None else FmriAdapter()
+        # brain input source. "roi_mean" -> FmriAdapter (450-d ROI mean, E1).
+        # any other name -> BFMSource frozen embedding variant (E3), served
+        # through the same .get(subject, stim, mode) interface.
+        if fmri_adapter is not None:
+            self._fmri = fmri_adapter
+        elif brain_source == "roi_mean":
+            self._fmri = FmriAdapter()
+        else:
+            assert fmri_mode == "mean", "BFM source serves a single vector; use fmri_mode=mean"
+            from project.data.bfm_source import BFMSource
+            self._fmri = BFMSource(brain_source)
 
         if self.caption_mode == "off":
             self._captions: CaptionMap | None = None

@@ -4,6 +4,90 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 ---
 
+## 2026-07-21. Fusion 전략 2 갈래 (future) + 마커 토큰 반영 + loss 재검토
+
+**Decision 1. 마커 토큰 반영 (즉시).** EmoBrainModel 조립 에 세그먼트 경계 마커 (`<brain_start>`/`<brain_end>` 등, red-team C4, 스펙 §6-5) 를 fresh learnable embedding 으로 추가. 4 세그먼트 (brain/video/caption/question) 각각 start/end 로 감쌈. 이전 조립 은 순서 로만 암묵 구분 했음.
+
+**Decision 2. Fusion 전략 을 2 갈래 로 진행 (future, 기록만).** 사용자 지시.
+- **(a) LLaVA 스타일 단순 concat** (현재 구현). 각 modality 를 토큰 으로 만들어 이어붙여 LLM 통과.
+- **(b) Alignment 학습 전략** (contrastive learning 등). Student 는 추론 시 brain-only 이므로 brain 과 video/caption/emotion 사이 관계 를 명시적 으로 학습 시키는 방향.
+- **주의 (no-sycophancy).** architecture §8.6.3 은 과거 P2-C alignment 를 명시적 으로 기각 했음. 근거 = teacher-side dropout 과 방향 정반대 (structural conflict), video 0.97 dominance 상황 에서 brain 을 video 그림자 로 수렴 시켜 leakage 부활 위험. 즉 (b) 를 진행 하려면 이 이전 기각 근거 를 반드시 reconcile 해야 함 (contrastive target 을 video 가 아닌 emotion/label 공간 으로 두면 conflict 회피 가능성). Future 진행 시 재검토.
+
+**Decision 3. Loss 재검토 (진행 중).** 현재 trainer 는 per-emotion MSE 만. Headline metric 은 profile Pearson + CCC 인데 train 은 MSE 라 objective-metric 불일치. CCC loss / correlation loss 등 대안 검토 후 config 옵션 (`loss.hard.type: mse|huber|ccc`) 로 노출 예정.
+
+---
+
+## 2026-07-20 (2). Encoder 라인업 재정의 + architecture 전체 세팅 착수
+
+**Decision.** 사용자 지시 로 encoder 슬롯 재정의. 이전 E1-E4 사다리 폐기.
+- **Encoder 1 = ViT** (image-pretrained ViT, fMRI-as-image, LoRA/frozen).
+- **Encoder 2 = BFM** (Brain-JEPA = ROI 기반 / SwiFT = whole-brain volume). frozen = precomputed 임베딩 probe, finetune = 모델 in-loop.
+- **Encoder_baseline = Ridge** (ROI ridge latent 34D → LLM. B1 no-LLM ridge 는 별도 외부 baseline 으로 유지).
+- **Simple projection (구 E1 raw ROI) 폐기.** `e1_projection.py` 제거.
+
+**BFM 입력 확정 (실측).** Brain-JEPA 는 `n_rois: 450` = ROI 기반. SwiFT 와 NeuroSTORM 은 96³ whole-brain volume. 즉 whole-brain-volume BFM 은 SwiFT 하나 가 아니라 SwiFT + NeuroSTORM 둘. 기본 세팅 은 ViT + Brain-JEPA + SwiFT 로 (NeuroSTORM 은 config 로 교체 가능한 volume BFM 대안).
+
+**작업 방향.** 탐색 (frozen probe / LOSO / 해상도) 은 충분히 함. 이제 `project/code/` 에 스펙 §6-8 architecture 전체 (encoder × projector × prompt × Qwen3-VL backbone × 34D head × teacher/student × distillation × trainer × config) 를 세팅. Encoder 교체 = config 한 줄, frozen/lora = 독립 축.
+
+---
+
+## 2026-07-20. R0 삼중 확인 + "ridge 대신 BFM/VLM 쓰는 이유" 탐색 (cross-subject 축 음성)
+
+**맥락.** Stage 0 이 within-subject 에서 34D 감정 디코딩 천장 ~0.31 (Case I / R0) 을 냈고, "왜 ridge 대신 BFM/VLM 이냐" 의 근거 를 within-accuracy 가 아닌 다른 축 에서 탐색.
+
+**R0 삼중 확인 (within-subject, 전부 무죄).**
+- 시간 해상도. roi_mean(450) 0.296 vs 시간요약 mean+std+max+min(1800) 0.285 (−0.011). Cycle 22.
+- 공간 해상도. tylee nii 볼륨 으로 해상도 사다리 16/8/4/2mm. 최고 0.319 (8mm), 2mm(24 만 voxel) 는 0.292 로 과적합 하강. 450 ROI(0.313) 대비 +0.006. `spatial_resolution_ladder.py`.
+- 모델 비선형성. kernel ridge 0.313 vs linear 0.307 (+0.006). Stage 0.
+- **결론. 뇌 단독 34D 디코딩 은 시간·공간·비선형 어느 축 으로도 ~0.32 를 못 넘음. R0 는 ROI-mean 만 의 문제 가 아니라 접근 가능 한 뇌 데이터 전체 의 성질.**
+
+**Cross-subject 축 (후보 1) 음성 확정.** `loso_representation_comparison.py` (35 variant 3 regime) → `loso_matched_retention.py` (학습량 보정).
+- 최초 LOSO 비교 는 within(n=1748) vs LOSO(n=6992) 라 학습량 4 배 혼입. 약한 표현 이 retention>1.0 (불가능) 을 냄. 이는 subject 불변성 이 아니라 학습량 을 재던 것. **내 이전 "brain_jepa 전이 곡선 이 더 평평" 주장 은 이 혼입 을 읽은 것 이라 철회.**
+- 학습량 을 within 과 동일(1748) 로 맞춰 재측정. ROI within +0.307 / matched-LOSO **+0.221** / fair retention **0.721**. **35 개 BFM 중 matched-LOSO 로 ROI 를 이긴 것 0 개, 0.03 이내 근접 0 개.** 최상위 brain_jepa_resting_pad-zero 도 +0.173 (−0.048), 공정 retention 0.714 로 ROI 와 동급 이하.
+- **판정. Cross-subject 일반화 는 frozen BFM 을 정당화 하지 못함.**
+
+**부수 관측.** (a) 데이터 효율 도 전망 어두움. 학습 4 배 이득 이 ROI +0.013 vs BFM(resting) +0.032~0.036 으로 BFM 이 더 데이터-hungry (효율적 이면 반대 여야 함). (b) 사전학습 자체 는 유효. 동일 아키텍처 resting vs scratch 를 matched 로 비교 시 resting 이 일관 승 (brain_jepa 0.173 vs 0.091). 단 ROI 보다 낮음. **유력 원인 = 도메인 불일치** (BFM 은 resting-state 사전학습, 우리 과제 는 naturalistic video-evoked).
+
+**남은 정당화 후보.** (1 cross-subject) 음성, (2 데이터효율) 전망 어두움, **(3 finetune) 미검증**, **(4 fusion NV1) 구조적 으로 ridge 불가 (ridge 출력 = 34D 숫자, LLM 안 에서 video/caption 과 통합 불가)**. Finetune 후보 1 순위 = brain_jepa (frozen 최고 + ckpt 보유 + ROI 기반 경량). Negative 여도 "frozen 35 종 × 전 해상도 × 비선형 × finetune 전부 봤는데 천장 0.32" 는 BFM 평가 문헌 기여.
+
+**Files.** `project/scripts/{spatial_resolution_ladder,loso_representation_comparison,loso_matched_retention}.py` + `.sh`, 결과 JSON 3 개 `project/shared/results/`.
+
+---
+
+## 2026-07-13. 스펙 1-3 단계 Acceptance 감사 통과 + 라벨 정규화 DECIDED 조항 수정 (log1p_z)
+
+**Decision 1. 스펙 build 1-3 단계 재사용 확정.** `implementation_spec_20260702` §5 / §7 / §9 / 부록 A 의 Acceptance 를 실측 감사 (`project/scripts/audit_spec_stage123.py`). **17/17 PASS.** 34 감정 순서 부록 A 와 정확 일치, 라벨 = crowd proportion [0,1] (zero 73.8%, row-sum 1.71), z-score 가 train 통계 로만 fit (test 통계 0/1 아님 확인), split clip-level 누출 0 (union 2185, test 220 이 5 subject 동일), 지표 함수 7 종 전부 존재 + Pearson/CCC/Spearman 헤드라인 반환, B1 ridge 34D 리포트 존재. **data / labels / caption_map / fmri_adapter / metrics / losses / baseline 은 그대로 재사용**, models / train / config (스펙 4-8 단계) 만 fresh 로 구축.
+
+**Decision 2. 라벨 정규화 = `log1p_z` 를 canonical 로 확정 (스펙 §5-2 DECIDED 수정).** 스펙 문자 는 순수 z-score `z=(raw-mu)/std` 이나 우리 기본값 `norm_stats/cowen34_train.pt` 은 `mode='log1p_z'` 였음. 감사 에서 발견.
+
+- **유지 근거.** (a) 라벨 이 crowd proportion 이고 73.8% 가 0 인 heavy-tail 이라 log1p 가 꼬리 압축. (b) primary metric 중 rare-emotion recovery (스펙 §9-2, architecture §8.6) 와 정합. 순수 z-score 는 높은 비율 소수 감정 이 profile 상관 을 지배 하여 rare emotion 이 묻힘. (c) build_log Cycle 12 에서 학습상 이점 기록. (d) 기존 측정치 (ridge pooled 0.294 / within 0.305 / LOSO 0.232, Stage 0 ceiling 0.313) 가 모두 이 공간 값 이라 comparability 보존.
+- **조치.** `labels.norm_mode` 를 config 로 노출 (스펙 "OPEN 은 config 로" 원칙). 순수 z-score (`cowen34_train_zscore.pt`) 는 향후 sensitivity check 로 1 회 비교.
+- **주의.** 이후 모든 리포트 는 "log1p_z 공간" 임을 명시. raw 복원 은 expm1 역변환.
+
+**Decision 3. E3 (BFM) finetune 대표 = Brain-JEPA.** `external/checkpoints/swift/` 가 빈 디렉토리 로 확인 되어 SwiFT in-loop finetune 불가. Brain-JEPA (`jepa-ep300.pth`, 1.5GB) 와 NeuroSTORM ckpt 는 보유. Brain-JEPA 는 ROI 기반 이라 SwiFT 의 volume in-loop 대비 훨씬 가벼워 LoRA finetune 이 현실적. **E3 frozen 은 기존 precomputed 임베딩 35 variant (SwiFT 포함) 그대로 사용**, E3 finetune 만 Brain-JEPA. 스펙 §4 OPEN ("BFM 선택 은 config 의 encoder.pretrained_ckpt") 범위 내.
+
+---
+
+## 2026-07-09. Stage 0 noise ceiling. ROI-mean 은 R0 (Case I). sqrt(ISC) 방법 철회 + method-critic 반영
+
+**Decision.** Stage 0 decoding noise ceiling 을 emotion-space (34D-profile Pearson) 로 재정의 하고 실측. 결과 = ROI-mean 표현 에서 R0 (Case I) 확정, 단 scope 는 ROI-mean 한정.
+
+**방법 철회 + 재작성.** 최초 제안 (subjects-as-repeats 의 sqrt(R) ROI-space attenuation) 은 emovi-method-critic adversarial review 에서 fatal 판정. 근거 두 가지. (a) ROI-space 상관 (0.15-0.24) 을 34D-profile 지표 에서 빼면 단위 불일치 (과거 "ICC 0.54 continuous ceiling" 철회 와 동종 오류). (b) sqrt(R) 은 loose upper bound 라 항상 ridge 위 (Case III) 로만 나와 R0 을 구조적 으로 못 잡음. Critic 은 우리 자신 의 이전 기록 (design_plan_0707 "ISC 는 decoding ceiling 아님") 을 되살린 self-contradiction 도 지적. 반사적 동의 아님, 자체 검증 후 수용.
+
+**실측 (ROI-mean, ridge 와 동일 파이프라인).**
+- ridge pooled 0.294 / within 0.307 / LOSO 0.232.
+- kernel ridge (RBF, 비선형) within 0.313. flex−linear = +0.006. **비선형성 이 ROI-mean 에서 아무 것 도 못 짜냄 = 포화.**
+- inter-subject decoding 합의 0.678 은 ceiling 아님. Decoder 들 이 서로 (0.678) 는 일치 하지만 truth 와 는 0.307 만 일치 (gap +0.371). 공유 label 구조 로 회귀 한 inflation. critic 이 예측 한 실패 모드 그대로. **anchor A 실격.**
+- Operative ceiling (kernel saturation) 0.313, ridge 대비 headroom +0.019 → **Case I (R0 realized)**.
+
+**해석.** ROI-mean 위 에서 "어느 encoder 가 best 인가" 는 무의미 (E1 raw ROI / E2 ridge 는 이미 ~0.31 천장). 해커톤 의 E2 0.328 ≈ ridge 0.30 은 학습 실패 가 아니라 genuine ceiling effect. **Framework 의 headroom 은 (a) richer brain representation (voxel / temporal, E3/E4) 또는 (b) multi-modal fusion (NV1) 에서 만 나올 수 있음.** Case I 은 architecture §8.7.2 상 negative outcome 도 R0 실증 으로 publishable.
+
+**Pending gate (다음 Stage 0 확장).** Richer-representation ceiling 측정. E3 BFM 임베딩 (이미 추출됨) + ROI timeseries (47 TR 시간 정보) 에 동일 saturation test. Phase 1 에서 frozen BFM + ridge 가 ~0.30 이던 것 은 BFM 도 포화 가능성 시사. Timeseries 는 미측정. 이 결과 가 encoder ladder (E3/E4) 진행 여부 를 gate.
+
+**Files.** `project/scripts/stage0_decoding_ceiling.py` + `.sh`, `project/shared/results/noise_ceiling/decoding_ceiling.json`. 기존 `brain_isc.json` / `ridge_subject_regimes.json` 은 유지 (덮어쓰기 없음).
+
+---
+
 ## 2026-07-07 (3). Stimulus 수 = 2185 원본 실측 최종 확정 + Du 그룹 4편 PDF 원문 확인
 
 **Decision.** 사용자 요청 ("stimulus 수 확정, 무조건 Horikawa 에 맞춘다") 에 따라 Horikawa 배포 원본 label 파일 을 직접 실측 하여 **논문 서술 이 아닌 raw data 로 확정**.

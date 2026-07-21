@@ -1,0 +1,12 @@
+run: {name: cpu_teacher}
+encoder: {type: ridge, adapt: frozen}
+projector: {type: mlp, n_tokens: 8}
+video: {dim: 1408, n_tokens: 8, path: project/shared/data/stimulus_features/vjepa2_pretrained.npy}
+backbone: {type: stub, hidden_dim: 128}
+head: {name: linear34}
+modalities: {brain: true, video: true, caption: true}
+data: {brain_source: roi_mean}
+loss: {lambda_hard: 1.0}
+train: {device: cpu, seed: 0, epochs: 1, batch_size: 8, lr: 1.0e-3,
+        max_train_batches: 5, max_eval_batches: 3,
+        teacher_ckpt: project/output/checkpoints/cpu_teacher.pt}

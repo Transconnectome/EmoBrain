@@ -1,0 +1,25 @@
+# E4-frozen. Image-pretrained ViT on an fMRI grid (fMRI-as-image), ViT frozen.
+# fMRI 450 -> 22x22 grid -> 224 upsample -> 3ch -> ViT (frozen) -> CLS(768)
+#   -> projector -> Qwen -> 34D. Tests whether an image prior transfers to fMRI
+#   with no adaptation (the pure fMRI-as-image question).
+encoder: {name: vit_fmri, hf_model: google/vit-base-patch16-224, grid: 22, frozen: true, dtype: float32}
+projector: {name: mlp, n_tokens: 8}
+backbone:
+  name: qwen
+  hf_model: Qwen/Qwen2.5-3B-Instruct
+  dtype: bfloat16
+  lora: {r: 16, lora_alpha: 32, lora_dropout: 0.05, target_modules: [q_proj, v_proj]}
+head: {name: linear34}
+modalities: {brain: true, video: false, caption: false}
+data: {fmri_mode: mean, brain_source: roi_mean}
+train:
+  device: cuda
+  seed: 0
+  epochs: 3
+  batch_size: 8
+  lr: 1.0e-4
+  weight_decay: 0.01
+  max_train_batches: null
+  max_eval_batches: null
+  log_every: 100
+  out_json: project/output/ladder_e4_vit.json

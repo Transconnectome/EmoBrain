@@ -15,6 +15,109 @@ Spec §12 build order 기준.
 
 ---
 
+## 2026-07-13. Cycle 22. 스펙 1-3 Acceptance 감사 + Horikawa 전처리 QC/QA
+
+**What.** (a) 실험 시작 전 스펙 build 1-3 단계 재사용 가능 여부 를 Acceptance 로 실측 감사. (b) 우리가 실제 학습 에 쓰는 Horikawa 전처리 데이터 의 무결성 QC 와 시간평균 정보손실 진단.
+
+**Files.** `project/scripts/audit_spec_stage123.py` + `.sh`, `project/scripts/qc_horikawa_data.py` + `.sh`. 출력 `project/shared/results/spec_stage123_audit.json`, `project/shared/results/qc/horikawa_data_qc.json`.
+
+**감사 결과 (17/17 PASS).** 34 감정 순서 부록 A 일치, 라벨 crowd proportion [0,1] (zero 73.8%, row-sum 1.71), z-score train-only fit, split 누출 0 (test 220 이 5 subject 공통), 지표 7 종 + Pearson/CCC/Spearman, B1 ridge 리포트 존재. → **data / labels / caption_map / fmri_adapter / metrics / losses / baseline 재사용 확정.** 단 기본 normalizer 가 `log1p_z` 로 스펙 §5-2 (순수 z-score) 이탈 발견 → decision log 2026-07-13 에서 log1p_z 를 canonical 로 확정 + config 노출.
+
+**QC 결과 (0 FAIL, 실질 WARN 0).** NaN/Inf 0 (ROI·볼륨·raw), 자극 5×2185 결측 0, **roi_mean = 마스크된 시간평균 정확 일치 (9.5e-08)**, 죽은 ROI 0, 이상치 |z|>5 가 0.02% 미만, subject 자극 순서 동일 + ISC +0.238 (기존 0.235 재현), 볼륨 shape 일관 / NaN 0 / global_stats 40/40 일치 / brain mask 23%. 초기 WARN 2 건 은 전부 설명 됨. 볼륨 dir 10980 = 5×2196 (11 repeat 포함), 프레임 수 편차 는 `n_frame == original_T == valid_TR` 일치율 100% 로 자극 길이 그 자체.
+
+**핵심 진단. 시간평균 은 신호 를 안 버렸다.** roi_mean (450) test profile pearson **+0.2961** vs 시간요약 mean+std+max+min (1800) **+0.2854** (delta −0.011). 시간 정보 를 4 배 늘려도 디코딩 이 나아지지 않음. → **Stage 0 R0 (ROI-mean 천장 0.31) 이 전처리 아티팩트 가 아님 을 실증.** "시간축 을 버려서 그렇다" 는 반론 차단. 단 이는 hand-crafted 시간요약 에 한정 이며 학습된 시간 모델 (SwiFT 4D, Brain-JEPA) 은 미배제 (E3 finetune 이 시험 대상).
+
+**남은 headroom 후보 (좁혀짐).** 시간 해상도 배제 → **공간 해상도 (450 ROI 가 brain voxel 약 12.5 만 개 를 278 배 압축)** 가 최유력, 그 다음 학습된 encoder (E3 finetune), fusion 축.
+
+## 2026-07-21. Cycle 24. Architecture 전체 세팅 (스펙 §6-8, project/code) — swappable encoder × Qwen3-VL × teacher/student
+
+**What.** 사용자 지시 "architecture 전체 세팅". 탐색 종료, 스펙 §6-8 을 `project/code/` 에 구축. Encoder 라인업 재정의 (ridge baseline / ViT Encoder1 / BFM Encoder2, simple projection 폐기).
+
+**Files.**
+- `brain_encoder/`. `base.py` (계약 + adapt 축 frozen/lora/full), `registry.py` (swap 팩토리), `e2_ridge_encoder.py` (등록명 `ridge`), `e_vit.py` (ViT, frozen/LoRA), `e_bfm.py` (Brain-JEPA/SwiFT, frozen=precomputed 임베딩 실구현 / finetune=명시적 NotImplementedError). `e1_projection.py` 삭제.
+- `adapters/projector.py` (MLP + Q-Former, per-encoder/per-modality).
+- `fusion/`. `prompt.py` (Question/Caption 필드 §8-3 + token order §7.2), `backbone.py` (계약 + stub), `backbone_qwen.py` (Qwen3-VL-4B, LoRA), `model.py` (EmoBrainModel, modality flag 로 teacher/student 통합), `head.py` (Linear34 z-space), `build.py` (config 팩토리).
+- `losses.py` (supervised + distillation mse/kl, curriculum active_mask).
+- `training/trainer.py` + `.sh` (config-driven, Track A direct).
+- `configs/` 6 종 (_cpu_smoke, ridge/vit/bfm_jepa/bfm_swift student, ridge teacher).
+
+**검증 (CPU).** (1) 인코더 3 종 교체 = 동일 배치 → (B,34), ridge(D_enc 34)/vit(768)/bfm(768) 이 하류 동일. (2) frozen/lora 축 = vit frozen projector 만 1.22M vs vit lora +ViT q,v 590k = 1.81M, frozen 시 grad 0. (3) teacher 폼 video+caption+brain+question 조립 정상. (4) loss supervised(full/mask)/distill(mse/kl)/total 작동. (5) bfm finetune 명시적 에러. (6) **end-to-end trainer 실데이터 (8740 train/1085 val) 1 epoch 통과** (stub backbone, 배선 검증).
+
+**Runnable.** Track A direct 는 지금 실행 가능 (모든 encoder × modality). GPU config = Qwen3-VL-4B (다운로드 완료). **미구현 = (a) BFM in-loop finetune (Brain-JEPA/SwiFT forward 통합), (b) Track B distillation soft-label 캐싱, (c) video/caption dropout 학습 전략.** 이는 다음 사이클.
+
+## 2026-07-21 (3). Cycle 26. Track B distillation 배선 (스펙 §8.6.1 offline 3 단계)
+
+**What.** Track B 를 코드로 완성 (실행 은 GPU). 이전 = distillation loss 함수 만 있고 trainer 는 lambda_dist=0.
+
+**Files.**
+- `training/train_teacher.py` + `.sh`. teacher (brain+video+caption) 를 34D 라벨 로 학습, best val 시점 weight 를 checkpoint 저장.
+- `training/cache_soft_labels.py` + `.sh`. 얼린 teacher 를 train+val 전 자극 에 forward → raw 34D (softmax 없음, §8.4) 를 `(subject|stim)` 키 로 `teacher_soft_labels/<tag>/soft_labels.pt` 저장.
+- `training/train_student_distill.py` + `.sh`. student (brain-only, 추론 form) 가 캐시 를 조회 → `L_main + lambda·L_distill`. 캐시 miss 는 active_mask 로 distill 만 제외.
+- `trainer.make_collate` 에 subject 추가 (soft-label 키). configs `_cpu_teacher`, `_cpu_student_distill`, `ridge_student_distill_qwen`, `ridge_teacher_qwen` (teacher_ckpt/run.name).
+
+**검증 (CPU stub, end-to-end 3 단계).** teacher 학습 → checkpoint 저장 → soft-label 9825 개 (8740 train + 1085 val) 캐싱 → student 가 캐시 로드 후 distill loss 로 학습. student loss Track A ~1.2 → Track B 56.8 = **distill 항 실제 engage 확인** (stub teacher 랜덤 출력 이라 값 큼, 배선 검증). 음수 pearson 은 랜덤 stub 5 배치 라 예상.
+
+**남은 것.** BFM in-loop finetune, caption/video dropout, distillation 검증 A/B (variance partitioning + brain-ablated student, §8.9.2). Context lift = student-distill − Track A direct (둘 다 brain-only) 는 GPU 실행 후 산출.
+
+## 2026-07-21 (2). Cycle 25. 마커 토큰 + CCC loss + verbalize(alpha) layer
+
+**What.** Cycle 24 architecture 정련 3 건.
+
+**1. 세그먼트 마커 토큰 (red-team C4, 스펙 §6-5).** `fusion/model.py` 에 fresh learnable `<seg_start>`/`<seg_end>` (brain/video/caption/question 각 2 개, 총 8 개). 이전 조립 은 순서 로만 암묵 구분. 검증 = 각 세그먼트 +2 토큰, 출력 (B,34) 유지.
+
+**2. CCC loss (스펙 §9-1 headline 정렬).** `losses.py` 에 per-clip `ccc_loss` (1 − CCC over 34 emotions per clip). config `loss.hard_kind: mse|huber|ccc|mse+ccc` + `ccc_weight`. Trainer 연결. 검증 = 완벽예측 0, **스케일 절반(Pearson=1) 0.207** (MSE/correlation 이 못 잡는 진폭 miscalibration 을 CCC 가 잡음, Pearson 0.30 vs CCC 0.17 격차 의 직접 대응). 기본값 은 mse 유지 (34D sparse 에서 CCC 우위 는 GPU A/B 로 실측 후 결정).
+
+**3. verbalize alpha layer (`evaluation/verbalize.py`).** 34D z 예측 → expm1 역변환 → 상위 감정 → 템플릿 문장. 학습 없는 순수 후처리. 공존(bittersweet) 보존 (softmax 없음). 검증 = 실제 라벨 로 정확한 문장 생성.
+- **위치 정직화.** 이는 편의/발표 layer 이지 decoder/기여 아님. "자연어 디코딩" framing 금지. 자연어 생성 을 진짜 decoder 로 하는 beta 경로 (EmoMind 식 = 34D condition → LLM caption 생성) 는 **EmoMind 과 정면 중복 이라 미채택** (decision log 2026-07-21). D1 이 실패 한 것 은 "매핑 을 생성 으로 학습" 이고 EmoMind 도 이를 피함 (stage1 ridge + stage2 rewriter).
+
+## 2026-07-13. Cycle 23. tylee `Horikawa_Haka` NIfTI 데이터 QC + Qwen3-VL-4B 확보
+
+**What.** tylee 권한 개방 후 `/pscratch/sd/t/tylee/Horikawa_Haka` QC. 우리가 그동안 "nii 없음" 으로 알던 것 의 정정. 여기 **`.nii.gz` 11,285 개** 존재.
+
+**구조.** `img/sub-0X/sub-0X_stimulus-N.nii.gz` (자극당 4D 볼륨 1 개) + `meta/` (horikawa_meta_data_with_dimension_binary.csv, semantic_features.csv, vision_features.csv, splits/).
+
+**개수 정합 (초기 불일치 는 해소).** subject 당 2257 파일 = `stimulus-N.nii.gz` 2197 개 (N=0..2196) + `stimulus-0_vN.nii.gz` 60 개. **stimulus-0 = rest/fixation 블록 (총 61 개)**, 실제 자극 은 1~2196 = 전체 presentation 수 와 정확히 일치. 우리 canonical 2185 는 전부 포함, 추가 12 개 = rest + 11 repeat. **데이터 문제 아님.**
+
+**품질 (30 샘플 × 5 subject).** 공간 shape (97,115,97) 단일, 2mm 등방, affine 일관. TR 5/7/9/11 가변 (영상 길이 반영). **NaN/Inf 0.** brain mask 22.5~23.9%.
+
+**정규화 확답.** tylee 볼륨 은 **파일 자체 가 z-score** (brain mean 0.02, std 0.95, 값 −5.8~6.1). 우리 `.pt` 는 raw (비음수) 로 저장 하고 SwiFT 로드 시 `znorm_minback` 적용. **두 파이프라인 다 정규화 되어 있고 단계 만 다름.** "볼륨 normalization 누락" 우려 는 해소.
+
+**두 파이프라인 비교.** tylee 97×115×97 @2mm (약 108 만 voxel, z-score 완료, 표준 NIfTI) vs ours 74×91×81 (약 55 만, raw, 프레임별 .pt). **tylee 가 해상도 약 2 배 + 표준 포맷.**
+
+**의미.** Cycle 22 에서 시간축 은 무죄 로 판명 됐고 남은 용의자 는 공간 해상도 (450 ROI = voxel 약 12.5 만 개 의 278 배 압축). **tylee nii 가 그 가설 을 시험할 최적 재료** (전체 voxel 격자 + z-score + 표준 포맷). voxel 수준 디코딩 이 0.31 을 넘는지 가 R0 의 범위 를 결정.
+
+**부수.** Qwen3-VL-4B-Instruct 를 `/pscratch/sd/s/sjmoon/hf_cache` 에 다운로드 완료 (계산노드 오프라인 대비).
+
+## 2026-07-09. Cycle 21. Stage 0 emotion-space decoding noise ceiling (critic-revised)
+
+**What.** Stage 0 gate 의 decoding noise ceiling 을 34D-profile Pearson 자 위 에서 계산. 이전 sqrt(ISC) ROI-space 방법 은 철회 (wrong units + Case I 못 잡음). emovi-method-critic (2026-07-09) 판정 반영 하여 in-units 2-anchor 보수적 구성 으로 재작성.
+
+**Files.**
+- `project/scripts/stage0_decoding_ceiling.py` + `.sh` (신규). anchor A (inter-subject decoding 합의) + anchor B (representation saturation, kernel vs linear ridge) + 11-repeat 서술 + inflation 진단 + Case 판정.
+- 출력 `project/shared/results/noise_ceiling/decoding_ceiling.json` (신규, 덮어쓰기 없음).
+- 재사용 = FmriAdapter roi_mean, Cowen34 z-score, horikawa_split (test 220 자극 subject 공통 확인), profile_correlation. ridge 0.294 와 동일 파이프라인.
+
+**Result (ROI-mean).** ridge pooled 0.294 / within 0.307. kernel ridge within 0.313 (flex−linear +0.006). anchor A inter-subject 합의 0.678 인데 decoder-vs-truth 0.307 (gap +0.371) → **anchor A 는 shared-label-structure inflation, ceiling 실격** (critic 예측 적중). Operative ceiling (B) 0.313, headroom +0.019 → **Case I (R0), ROI-mean 한정**.
+
+**판정.** ROI-mean 표현 은 포화 (~0.31). E1/E2 는 이 천장 에 갇힘. E3(BFM)/E4(VLM) 는 richer input 이라 이 천장 에 안 묶임 → richer-rep ceiling 측정 이 pending gate. Smoke = 전 컴포넌트 CPU 통과, 11-repeat 0.088 재현.
+
+## 2026-07-08. Cycle 20. E3 (frozen BFM) 경로 — SwiFT/JEPA/NeuroSTORM 배관
+
+**What.** encoder ladder 확장. E1(raw ROI) 옆에 E3(frozen BFM). 핵심 = encoder 새로 안 짜고 **dataset 이 내주는 brain 벡터만 교체** (raw ROI 450 → frozen BFM 임베딩). Phase 1 임베딩 35 variant (SwiFT 20 / brain_jepa 8 / neurostorm 6 / roi 1) 이 `project/shared/output/embeddings/<variant>/sub-XX.pt` 에 (2185, dim) 로 이미 존재 (추출 불필요).
+
+**Files.**
+- `project/data/bfm_source.py` (BFMSource. variant .pt 로드 = embeddings(2185,dim)+stim_num, `get(subject,stim)` 로 임베딩. FmriAdapter 와 동일 인터페이스).
+- `project/data/datasets.py` (`brain_source` 파라미터. roi_mean→FmriAdapter, 아니면 BFMSource variant).
+- `project/models/encoders/identity.py` (frozen 벡터 passthrough, 학습 param 0 = "projector 만"). `build.py` 등록.
+- `project/training/train.py` (config data.brain_source 를 dataset 에 전달).
+- configs. `trackA_e3_swift_stub_cpu.yaml` (smoke), `trackA_e3_{swift,jepa,neurostorm}_qwen.yaml` (dim 768/768/288).
+
+**CPU stub smoke.** enc=identity, trainable 627k (projector+stub+head, encoder 0). SwiFT 768 배관 흐름 확인 (에러 0). val ~0 (예상. identity encoder + tiny 무작위 stub 은 frozen BFM 못 읽음. E1-stub 이 0.17 인 건 trainable MLP encoder 덕분). **E3 판정은 Qwen 에서** (Phase 1 ridge 는 이 임베딩으로 ~0.30 → 신호 있음).
+
+**Meaning.** 35 variant 이 config 스왑 (brain_source + encoder.dim). E1(raw) vs E3(frozen BFM) = "사전학습 BFM 이 raw ROI 보다 낫나". 다음 = E3 Qwen 3종 GPU 실행 → E1(0.25)/ridge(0.30) 대비. E2(ridge latent)/E4(fine-tune)는 이후.
+
+---
+
 ## 2026-07-08. Cycle 19. Qwen backbone 첫 가동 (GPU, E1+LoRA end-to-end 학습 확인)
 
 **What.** stub → 실제 Qwen2.5-3B-Instruct backbone. E1(MLP) + LoRA(attention) + projector + head 를 GPU 에서 학습. peft 0.19.1 설치. NERSC offline 대응 (login predownload → HF_HOME scratch cache → bash/GPU 실행, 사용자 salloc GPU 노드).

@@ -1,0 +1,30 @@
+# Track A encoder ladder. Projector + token budget are FIXED (control); only
+# the encoder + input vary. # E3 frozen SwiFT NewE36
+encoder:
+  name: identity
+  dim: 288
+projector:
+  name: mlp
+  n_tokens: 8
+backbone:
+  name: qwen
+  hf_model: Qwen/Qwen2.5-3B-Instruct
+  dtype: bfloat16
+  lora: {r: 16, lora_alpha: 32, lora_dropout: 0.05, target_modules: [q_proj, k_proj, v_proj, o_proj]}
+head:
+  name: linear34
+modalities: {brain: true, video: false, caption: false}
+data:
+  fmri_mode: mean
+  brain_source: swift_NewE36_SL20_resting_pad-zero
+train:
+  device: cuda
+  seed: 0
+  epochs: 3
+  batch_size: 8
+  lr: 1.0e-4
+  weight_decay: 0.01
+  max_train_batches: null
+  max_eval_batches: null
+  log_every: 100
+  out_json: project/output/ladder_e3_swift36.json

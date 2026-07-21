@@ -34,7 +34,15 @@ from project.evaluation.metrics import compute_metrics  # noqa: E402
 from project.models.build import build_model  # noqa: E402
 from project.models.losses.supervised import supervised_loss  # noqa: E402
 from project.models.prompt import TRACK_A_QUESTION  # noqa: E402
-from project.training.collate import make_collate  # noqa: E402
+from project.training.collate import make_fusion_collate  # noqa: E402
+
+
+def forward_batch(model, b):
+    return model(
+        fmri=b.get("fmri"), video=b.get("video"),
+        caption_ids=b.get("caption_ids"), caption_mask=b.get("caption_mask"),
+        text_ids=b.get("text_ids"), text_mask=b.get("text_mask"),
+    )
 
 
 def seed_all(seed: int) -> None:
@@ -61,7 +69,7 @@ def evaluate(model, loader, device, normalizer, max_batches=None) -> dict:
         if max_batches and i >= max_batches:
             break
         b = move(batch, device)
-        p = model(fmri=b["fmri"], text_ids=b["text_ids"], text_mask=b["text_mask"])
+        p = forward_batch(model, b)
         preds.append(p.float().cpu().numpy())
         labels.append(b["label"].cpu().numpy())
     pred = np.concatenate(preds)
@@ -84,10 +92,19 @@ def main() -> None:
     n_train = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"[model] trainable params = {n_train:,}")
 
-    fmri_mode = cfg.get("data", {}).get("fmri_mode", "mean")
-    train_ds = HorikawaDataset(split="train", fmri_mode=fmri_mode)
-    val_ds = HorikawaDataset(split="val", fmri_mode=fmri_mode)
-    collate = make_collate(TRACK_A_QUESTION, model.backbone)
+    data_cfg = cfg.get("data", {})
+    fmri_mode = data_cfg.get("fmri_mode", "mean")
+    brain_source = data_cfg.get("brain_source", "roi_mean")
+    mods = cfg.get("modalities", {"brain": True})
+    cap_mode = "human" if mods.get("caption") else "off"
+    train_ds = HorikawaDataset(split="train", fmri_mode=fmri_mode,
+                               brain_source=brain_source, caption_mode=cap_mode)
+    val_ds = HorikawaDataset(split="val", fmri_mode=fmri_mode,
+                             brain_source=brain_source, caption_mode=cap_mode)
+    video_npy = None
+    if mods.get("video"):
+        video_npy = np.load(REPO_ROOT / cfg["video"]["path"])
+    collate = make_fusion_collate(TRACK_A_QUESTION, model.backbone, video_npy)
     train_loader = DataLoader(train_ds, batch_size=int(tr["batch_size"]),
                               shuffle=True, collate_fn=collate)
     val_loader = DataLoader(val_ds, batch_size=int(tr["batch_size"]),
@@ -116,8 +133,7 @@ def main() -> None:
             if max_tb and i >= max_tb:
                 break
             b = move(batch, device)
-            pred = model(fmri=b["fmri"], text_ids=b["text_ids"],
-                         text_mask=b["text_mask"])
+            pred = forward_batch(model, b)
             loss = supervised_loss(pred, b["label"])
             opt.zero_grad()
             loss.backward()
@@ -168,6 +184,21 @@ def main() -> None:
             print(f"[val] OVERFIT after epoch {best['epoch']}: last pearson "
                   f"{last['val_pearson']:+.4f} < best {best['val_pearson']:+.4f} "
                   f"=> early stopping / regularize")
+
+    # human-readable output. the head emits 34 scores; show top-3 emotion NAMES
+    # per stimulus (predicted vs true) so the model's output is inspectable.
+    from project.models.prompt import emotion_names  # noqa: E402
+    names = emotion_names()
+    model.eval()
+    b = move(next(iter(val_loader)), device)
+    with torch.no_grad():
+        pr = forward_batch(model, b).float().cpu().numpy()
+    tl = b["label"].cpu().numpy()
+    print("\n[output] val stimulus -> top-3 predicted emotions  (vs true top-3)")
+    for i in range(min(6, len(pr))):
+        tp = [names[j] for j in pr[i].argsort()[::-1][:3]]
+        tt = [names[j] for j in tl[i].argsort()[::-1][:3]]
+        print(f"  stim {b['stim_num'][i]:>4}: pred {tp}  |  true {tt}")
 
 
 if __name__ == "__main__":

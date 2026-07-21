@@ -1,0 +1,11 @@
+encoder: {type: ridge, adapt: frozen}
+projector: {type: mlp, n_tokens: 8}
+backbone: {type: stub, hidden_dim: 128}
+head: {name: linear34}
+modalities: {brain: true}
+data: {brain_source: roi_mean,
+       soft_labels: project/shared/output/teacher_soft_labels/cpu_teacher/soft_labels.pt}
+loss: {lambda_hard: 1.0, lambda_dist: 1.0}
+train: {device: cpu, seed: 0, epochs: 1, batch_size: 8, lr: 1.0e-3,
+        max_train_batches: 5, max_eval_batches: 3, teacher_ckpt: project/output/checkpoints/cpu_teacher.pt,
+        out_json: project/output/cpu_student_distill.json}
