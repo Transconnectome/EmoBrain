@@ -1,0 +1,91 @@
+{
+  "metric": "per-clip 34D profile Pearson (same axis as ridge)",
+  "scope": "ROI-mean representation only (E1/E2/ridge). E3 (BFM) / E4 (VLM) read richer inputs and are NOT bounded by this ceiling.",
+  "ridge_pooled": 0.294,
+  "ridge_loso": 0.232,
+  "upper_A_inter_subject": {
+    "ceiling_loo": 0.6782309447555216,
+    "ceiling_loo_ci95": [
+      0.6543003882694576,
+      0.7012205550693994
+    ],
+    "ceiling_optimistic_fullmean": 0.7953761445236348,
+    "n_test_stim": 220,
+    "per_subject_loo": [
+      0.7085966402191544,
+      0.650218538155124,
+      0.6971504785161846,
+      0.6827128839417006,
+      0.6524761829454446
+    ]
+  },
+  "upper_B_representation_saturation": {
+    "linear_ridge_within": 0.307280962850246,
+    "kernel_ridge_within": 0.3132537500061675,
+    "flex_minus_linear": 0.005972787155921533,
+    "per_subject_linear": [
+      0.3260704829480894,
+      0.2900734445601705,
+      0.3182575259285432,
+      0.31169289574226866,
+      0.29031046507215824
+    ],
+    "per_subject_kernel": [
+      0.33584409340262045,
+      0.2953238351625105,
+      0.3264219976470875,
+      0.31296002142706475,
+      0.2957188023915545
+    ],
+    "kernel_hparams": [
+      [
+        0.1,
+        0.001
+      ],
+      [
+        1.0,
+        0.01
+      ],
+      [
+        0.1,
+        0.001
+      ],
+      [
+        1.0,
+        0.01
+      ],
+      [
+        0.1,
+        0.001
+      ]
+    ]
+  },
+  "repeat_reliability_descriptive": {
+    "single_trial_retest_mean": 0.1564507462507622,
+    "single_trial_retest_median": 0.13685540854930878,
+    "n_pairs": 55,
+    "note": "11 stim x 2 presentations, single trial. Too thin for a formal analytical ceiling; descriptive evidence of weak single-trial signal."
+  },
+  "inflation_diagnostic": {
+    "inter_subject_agreement": 0.6782309447555216,
+    "decoder_vs_truth": 0.307280962850246,
+    "inflation_gap": 0.3709499819052756,
+    "A_disqualified_as_ceiling": true,
+    "reading": "decoders agree with EACH OTHER far more than with the TRUTH => anchor A is shared-label-structure inflation, not a truth ceiling. Gate on anchor B instead."
+  },
+  "gate": {
+    "ceiling_used": "upper_B kernel-ridge saturation (truth-aligned, operative ceiling of the ROI-mean representation)",
+    "operative_ceiling": 0.3132537500061675,
+    "flexibility_delta_over_linear": 0.005972787155921533,
+    "headroom_vs_ridge_pooled": 0.019253750006167525,
+    "case": "I (R0 realized -> reframe; ceiling ~ ridge)",
+    "thresholds": "I<0.05, II 0.05-0.15, III>0.15",
+    "note": "R0 test is on ROI-mean; a real headroom, if any, must come from richer brain representations (voxel / temporal), whose ceiling is not measured here."
+  },
+  "caveats": [
+    "ROI-mean decoding ceiling only; E3 (BFM) / E4 (VLM) richer inputs are not bounded by it.",
+    "anchor A (0.68) is inflated by shared label structure (agreement with other decoders, not with truth); disqualified as a ceiling.",
+    "sqrt(ISC) ROI-space ceiling was retracted (wrong units, cannot detect R0).",
+    "kernel-ridge grid is not exhaustive; the near-zero flexibility delta is consistent with saturation but is not a proof that no nonlinear readout exists on ROI-mean."
+  ]
+}

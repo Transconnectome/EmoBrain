@@ -1,0 +1,104 @@
+[
+  {
+    "clause": "A",
+    "name": "34 emotion order",
+    "pass": true,
+    "detail": "34 emotions, exact match with spec Appendix A"
+  },
+  {
+    "clause": "B",
+    "name": "labels are crowd proportions",
+    "pass": true,
+    "detail": "range [0.000, 1.000], zero=73.8%, mean row-sum=1.71 (spec: 0-1 proportion, ~74% zero, ~1.7)"
+  },
+  {
+    "clause": "C",
+    "name": "z-score acceptance [cowen34_train_log1p_z.pt]",
+    "pass": true,
+    "detail": "train per-emotion mean in [-0.000,+0.000] std in [1.000,1.000] (spec: ~0 / ~1)"
+  },
+  {
+    "clause": "C",
+    "name": "train-only fit [cowen34_train_log1p_z.pt]",
+    "pass": true,
+    "detail": "test mean/std = [-0.088,+0.075] / [0.755,1.210] (exactly 0/1 would mean test refit)"
+  },
+  {
+    "clause": "C",
+    "name": "z-score acceptance [cowen34_train.pt]",
+    "pass": true,
+    "detail": "train per-emotion mean in [-0.000,+0.000] std in [1.000,1.000] (spec: ~0 / ~1)"
+  },
+  {
+    "clause": "C",
+    "name": "train-only fit [cowen34_train.pt]",
+    "pass": true,
+    "detail": "test mean/std = [-0.088,+0.075] / [0.755,1.210] (exactly 0/1 would mean test refit)"
+  },
+  {
+    "clause": "C",
+    "name": "z-score acceptance [cowen34_train_zscore.pt]",
+    "pass": true,
+    "detail": "train per-emotion mean in [-0.000,+0.000] std in [1.000,1.000] (spec: ~0 / ~1)"
+  },
+  {
+    "clause": "C",
+    "name": "train-only fit [cowen34_train_zscore.pt]",
+    "pass": true,
+    "detail": "test mean/std = [-0.084,+0.076] / [0.713,1.231] (exactly 0/1 would mean test refit)"
+  },
+  {
+    "clause": "C",
+    "name": "norm_stats files present",
+    "pass": true,
+    "detail": "['cowen34_train.pt', 'cowen34_train_log1p_z.pt', 'cowen34_train_zscore.pt']"
+  },
+  {
+    "clause": "D",
+    "name": "clip-level split, no leakage",
+    "pass": true,
+    "detail": "overlaps={'train&val': 0, 'train&test': 0, 'val&test': 0}, sizes={k: len(v) for k, v in sets.items()}, union=2185"
+  },
+  {
+    "clause": "D",
+    "name": "test stimuli identical across subjects",
+    "pass": true,
+    "detail": "5 subjects, test size=220"
+  },
+  {
+    "clause": "E",
+    "name": "metric functions present",
+    "pass": true,
+    "detail": "required=7, missing=none"
+  },
+  {
+    "clause": "E",
+    "name": "headline Pearson+CCC+Spearman",
+    "pass": true,
+    "detail": "profile_correlation returns ['pearson_mean', 'ccc_mean', 'spearman_mean'] (spec 9-1 requires all three)"
+  },
+  {
+    "clause": "E",
+    "name": "compute_metrics runs",
+    "pass": true,
+    "detail": "all families execute on smoke input"
+  },
+  {
+    "clause": "F",
+    "name": "B1 ridge on 34D metric",
+    "pass": true,
+    "detail": "profile pearson within=0.305 pooled=0.294 loso=0.232"
+  },
+  {
+    "clause": "F",
+    "name": "E2 ridge encoder artifact distinct from B1",
+    "pass": true,
+    "detail": "present ridge_encoder.pt (E2 = via LLM, B1 = no LLM; spec forbids conflating them)"
+  },
+  {
+    "clause": "G",
+    "name": "caption_map module",
+    "pass": true,
+    "detail": "present (spec 5-4 MindCaptioning mapping)"
+  }
+]

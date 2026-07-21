@@ -1,0 +1,43 @@
+{
+  "ridge_roi450_reference": {
+    "within": 0.307,
+    "kernel_within": 0.313,
+    "pooled": 0.294
+  },
+  "subjects": {
+    "sub-01": {
+      "block8_16mm": {
+        "n_features": 722,
+        "test_profile_pearson": 0.295833120400422,
+        "alpha": 100.0
+      },
+      "block4_8mm": {
+        "n_features": 4559,
+        "test_profile_pearson": 0.31866748523846483,
+        "alpha": 1000.0
+      },
+      "block2_4mm": {
+        "n_features": 32188,
+        "test_profile_pearson": 0.31929328840914417,
+        "alpha": 10000.0
+      },
+      "block1_2mm": {
+        "n_features": 241089,
+        "test_profile_pearson": 0.29186700870209686,
+        "alpha": 1000000.0
+      }
+    }
+  },
+  "summary": {
+    "means": {
+      "block8_16mm": 0.295833120400422,
+      "block4_8mm": 0.31866748523846483,
+      "block2_4mm": 0.31929328840914417,
+      "block1_2mm": 0.29186700870209686
+    },
+    "finest_minus_coarsest": -0.003966111698325114,
+    "best_rung": "block2_4mm",
+    "best": 0.31929328840914417,
+    "beats_roi450_kernel": false
+  }
+}
