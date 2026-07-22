@@ -1,0 +1,146 @@
+{
+  "generated_utc": "2026-07-22T11:32:56.014998+00:00",
+  "policy": "Corrected Brain-JEPA only for shared/cortical panels; no legacy fallback.",
+  "panels": {
+    "framework": {
+      "status": "complete",
+      "files": [
+        {
+          "path": "study1/results/poster_export/CCN_POSTER_HANDOFF/figure_1_framework.png",
+          "size_bytes": 259267,
+          "modified_utc": "2026-07-22T11:32:56+00:00"
+        },
+        {
+          "path": "study1/results/poster_export/CCN_POSTER_HANDOFF/figure_1_framework.pdf",
+          "size_bytes": 26002,
+          "modified_utc": "2026-07-22T11:32:57+00:00"
+        }
+      ]
+    },
+    "corrected_shared": {
+      "status": "complete",
+      "evidence_status": "permutation-confirmed",
+      "source": "/pscratch/sd/s/sjmoon/EmoBrain/archive/v5_direction_split_20260628/dir3_ccn/study1/data/corrected_reanalysis/shared_alignment_confirm/brain_alignment_vjepa2_pretrained.npz",
+      "n_perm": 1000,
+      "positive_r2_count": 4,
+      "fdr_count": 4,
+      "top_raw_r2": [
+        {
+          "pc": 1,
+          "r2": 0.29358884877130914,
+          "pearson_r": 0.583504974217807
+        },
+        {
+          "pc": 3,
+          "r2": 0.22248113476031905,
+          "pearson_r": 0.5393699912422162
+        },
+        {
+          "pc": 2,
+          "r2": 0.10981277447804214,
+          "pearson_r": 0.438477720884774
+        },
+        {
+          "pc": 4,
+          "r2": 0.04948508272124823,
+          "pearson_r": 0.385158183459239
+        },
+        {
+          "pc": 5,
+          "r2": -0.04434735080609664,
+          "pearson_r": 0.30525207124508524
+        }
+      ],
+      "files": [
+        {
+          "path": "study1/results/poster_export/CCN_POSTER_HANDOFF/figure_2_corrected_shared_channel.png",
+          "size_bytes": 212555,
+          "modified_utc": "2026-07-22T11:32:58+00:00"
+        },
+        {
+          "path": "study1/results/poster_export/CCN_POSTER_HANDOFF/figure_2_corrected_shared_channel.pdf",
+          "size_bytes": 23923,
+          "modified_utc": "2026-07-22T11:32:58+00:00"
+        }
+      ]
+    },
+    "content_affect": {
+      "status": "complete",
+      "source": "/pscratch/sd/s/sjmoon/EmoBrain/archive/v5_direction_split_20260628/dir3_ccn/study1/results/content_affect_partition",
+      "video_content_mean_r2": 0.0589965370870061,
+      "contrasts": {
+        "unique_e34_vc": {
+          "mean_delta_r2": 0.0012629104745536,
+          "cortical_q_fdr": 0.0047873558570244,
+          "transmodal_minus_visual": 0.0007511181324855,
+          "hierarchy_q_fdr": 0.0309825736739944
+        },
+        "fine_grained_vs_av": {
+          "mean_delta_r2": 0.0007143124452311,
+          "cortical_q_fdr": 0.0052912205392673,
+          "transmodal_minus_visual": 0.0005760510626317,
+          "hierarchy_q_fdr": 0.0309825736739944
+        },
+        "resolution_34d_vs_2d": {
+          "mean_delta_r2": 0.0008978630003159,
+          "cortical_q_fdr": 0.0050129708967542,
+          "transmodal_minus_visual": 0.0005841791304126,
+          "hierarchy_q_fdr": 0.0394819659555868
+        }
+      },
+      "files": [
+        {
+          "path": "study1/results/poster_export/CCN_POSTER_HANDOFF/figure_3_content_affect_partition.png",
+          "size_bytes": 257733,
+          "modified_utc": "2026-07-22T11:32:59+00:00"
+        },
+        {
+          "path": "study1/results/poster_export/CCN_POSTER_HANDOFF/figure_3_content_affect_partition.pdf",
+          "size_bytes": 25416,
+          "modified_utc": "2026-07-22T11:32:59+00:00"
+        },
+        {
+          "path": "study1/results/poster_export/CCN_POSTER_HANDOFF/figure_3b_content_affect_brain_maps.png",
+          "size_bytes": 1621558,
+          "modified_utc": "2026-07-22T04:52:23+00:00"
+        },
+        {
+          "path": "study1/results/poster_export/CCN_POSTER_HANDOFF/figure_3b_content_affect_brain_maps.pdf",
+          "size_bytes": 195757,
+          "modified_utc": "2026-07-22T04:52:24+00:00"
+        }
+      ]
+    },
+    "corrected_cortex": {
+      "status": "complete",
+      "source": "/pscratch/sd/s/sjmoon/EmoBrain/archive/v5_direction_split_20260628/dir3_ccn/study1/results/corrected_reanalysis/cortical_transformation",
+      "files": [
+        {
+          "path": "study1/results/poster_export/CCN_POSTER_HANDOFF/figure_4_corrected_cortical_networks.png",
+          "size_bytes": 272756,
+          "modified_utc": "2026-07-22T11:33:00+00:00"
+        },
+        {
+          "path": "study1/results/poster_export/CCN_POSTER_HANDOFF/figure_4_corrected_cortical_networks.pdf",
+          "size_bytes": 30356,
+          "modified_utc": "2026-07-22T11:33:00+00:00"
+        },
+        {
+          "path": "study1/results/poster_export/CCN_POSTER_HANDOFF/figure_4b_corrected_cortical_brain_maps.png",
+          "size_bytes": 1220506,
+          "modified_utc": "2026-07-22T09:32:45+00:00"
+        },
+        {
+          "path": "study1/results/poster_export/CCN_POSTER_HANDOFF/figure_4b_corrected_cortical_brain_maps.pdf",
+          "size_bytes": 150686,
+          "modified_utc": "2026-07-22T09:32:46+00:00"
+        }
+      ]
+    },
+    "encoder_consensus": {
+      "status": "missing",
+      "expected": "full brain-encoder consensus",
+      "files": []
+    }
+  }
+}
