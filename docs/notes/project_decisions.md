@@ -21,6 +21,19 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 **Encoder 결정 영향.** 이 프레이밍 + sin/cos 재생성 으로 Brain-JEPA 가 방어 가능 한 encoder 로 복귀. 사용자 제약 (encoder = BFM 또는 ViT, raw ROI/ridge 는 baseline) 과 정합. [REQUIRED] (아래) 검증 은 (a) sin/cos 재생성 (b) pretrained>scratch 전달 근거 (c) short-window transfer 프레이밍 으로 충족 방향.
 
+**무엇이 바뀌고 무엇이 native 인가 (3 층위 구분, 부수적 이지만 명확화).** "16 TR input 을 우리 가 바꿨나" 혼동 정리. Brain-JEPA `patch_size=16` = **1 time patch = 16 TR** (native). 사전학습 = 160 TR = 16 TR patch 10 개. 우리 = 16 TR = patch 1 개.
+
+| 항목 | Brain-JEPA native | 우리 | 변경 |
+|---|---|---|---|
+| patch 크기 (1 patch = 몇 TR) | 16 TR | 16 TR | **안 바꿈 (native)** |
+| time patch 개수 | 10 (160 TR) | **1 (16 TR)** | 줄임 (자극 짧아서) |
+| 16 TR 창 의 내용 | 실제 신호 | **~6 TR 실신호 + ~10 TR padding** | crop/pad (내용 대부분 가짜) |
+| position code (sin/cos) | 10-patch 용 | 1-patch 용 (평균→재생성 권장) | 축소 (부수, 영향 작음) |
+
+- **창 크기 16 TR 은 native**, 우리 가 만든 게 아님. 우리 가 "억지로 바꾼" 것 은 position code 하나 (그것 도 저자 downstream 코드 답습).
+- 진짜 정보 손실 은 position 이 아니라 **(1) patch 1 개 만 씀 + (2) 16 TR 창 의 62% 가 padding** (자극 median 6 TR). 이 둘 이 "시간 표현 못 씀, 공간 조직 만 전달" 결론 의 근거 (실신호 6 TR + padding 지배 = 시간 궤적 없음).
+- 즉 position code 논쟁 은 부수적, 핵심 은 "1 patch + padding 지배" 라는 데이터 성질.
+
 ---
 
 ## 2026-07-21 (3). [REQUIRED] BFM config-mismatch 검증 의무 (리뷰어 방어)
