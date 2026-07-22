@@ -45,7 +45,16 @@ Decision 기록은 시간순. 가장 최신이 위.
 - (b) **Probe.** frozen 임베딩 의 stimulus discriminability (또는 label decodability) 를 config-matched control 과 비교.
 - (c) **미검증 시.** 그 BFM 을 **어떤 headline claim 의 하중 지점 으로 쓰지 않음.** caveat 붙인 ablation 행 으로만.
 
-**현재 상태.** Brain-JEPA (1 vs 10 patch) 는 (a)/(b) 미실행. emb_h 측정 (2026-07-21 (2)) 으로 "pos_embed 는 temporal-only, 평균 영향 작음" 까지 는 확인 했으나, **전체 표현 이 1-patch 체제 에서 안 깨졌는지 의 downstream 검증 은 아직 안 함.** 따라서 현재 는 (c) 규칙 적용 = Brain-JEPA 를 headline 하중 지점 에서 제외, caveat ablation 으로만. SwiFT/NeuroSTORM 은 SL20 정합 이라 이 검증 불필요 (config mismatch 없음).
+**[RESOLVED 2026-07-22] 검증 실행 완료.** `external/Brain-JEPA_short_window_validation/` (외부 세팅, 출처 미확인, 추측 안 함) 이 3 조건 (pre_native / pre_legacy_mean / scratch_native) + raw_bold baseline 으로 native pos, 5-fold CV, R² encoding 검증 실행. audit (sub-XX.json) 확인 = patch kernel [768,1,1,16] 일치 (interp 없음), emb_h `position_code_trainable:false` + `missing_keys` 에 emb_h (= skip = 우리 fix 와 동일 처리), padding_ratio 0.627.
+
+**JEPA 세팅 검증 결과 (핵심 = native fix 정당성).** native(fix) − legacy(평균) 차이:
+- **emotion_34d: legacy 0.0003 → native 0.0087 (+0.0084, 5/5 subj, p=0.029).** 평균 이 emotion_34d encoding 을 거의 0 으로 죽였고, native (emb_h skip) 가 복구. **우리 skip 수정 이 데이터 로 정당화됨.**
+- arousal_valence +0.0082 (p=0.16), emotion_pca2 +0.0033 (p=0.72), raw_vjepa2 +0.010 (p=0.001).
+- 크기 는 작으나 (절대 R² 자체 가 작은 과제) **방향 일관 + emotion_34d/video 유의.** 매트릭스 "native ≠ legacy → legacy 결과 는 adaptation-sensitive" 해당. **결론. 평균 처리 는 틀렸고 native (skip) 가 옳다 = 확정.**
+
+**부수 관측 (encoder 헤드라인 아님, framework motivation).** raw_bold 가 감정 타겟 에서 Brain-JEPA 전 조건 을 이김 (emotion_34d 0.053 vs pre_native 0.009), 사전학습 은 거친 감정 (emotion_pca2 0.115>scratch 0.076) 은 전달 하나 full 34D 는 아님 (scratch 0.015 > pre_native 0.009). 즉 **BFM 은 짧은 task fMRI 에서 fine-grained 감정 을 단독 으로 못 잡음** = encoder 우열 이 아니라 **framework (fusion/distillation 보완) 의 motivation.** encoder 는 메인 아님 (사용자 확인 2026-07-22). raw BOLD 우열 논쟁 은 현 논점 아님.
+
+**현재 상태.** Brain-JEPA (1 vs 10 patch) 는 (a)/(b) 검증 완료 (위 RESOLVED). emb_h 측정 (2026-07-21 (2)) 으로 "pos_embed 는 temporal-only, 평균 영향 작음" 까지 는 확인 했으나, **전체 표현 이 1-patch 체제 에서 안 깨졌는지 의 downstream 검증 은 아직 안 함.** 따라서 현재 는 (c) 규칙 적용 = Brain-JEPA 를 headline 하중 지점 에서 제외, caveat ablation 으로만. SwiFT/NeuroSTORM 은 SL20 정합 이라 이 검증 불필요 (config mismatch 없음).
 
 ---
 
