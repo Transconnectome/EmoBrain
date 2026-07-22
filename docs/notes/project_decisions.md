@@ -4,6 +4,25 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 ---
 
+## 2026-07-21 (4). Brain-JEPA emb_h = 고정 sin/cos 검증 + 올바른 처리(재생성) + short-window transfer 프레이밍 확정
+
+**검증 (Brain-JEPA 소스).** `src/models/vision_transformer.py:34-36` = `emb_h = nn.Parameter(..., requires_grad=False)` + `get_1d_sincos_pos_embed_from_grid`. **emb_h 는 학습 table 이 아니라 고정 sinusoidal positional code.** (외부 GPT 지적 확인. 우리 경험 테스트 cos 0.428 은 convention 불일치 탓, sin/cos 아님 증거 아님. 소스 확정적.)
+
+**정정 1 (출처).** 10→1 평균 은 **우리 발명 아님. Brain-JEPA 저자 downstream 추출 코드** (`downstream_tasks/main_embedding_extraction.py:168` `ckpt_emb_reshaped.mean(dim=1)`) 를 우리 `_lib/brain_jepa.py` 가 복사. 이전 "우리 가 임의로 건드림" 서술 정정 = 저자 downstream 편의 처리 를 따른 것. (단 이상적 처리 는 아님.)
+
+**정정 2 (올바른 처리).** 고정 sin/cos 이므로 1-patch grid 에는 **그 grid 용 sin/cos 재생성** 이 표준 (평균 아님). 효과 는 작지만 (pos_embed 영향 자체 가 작음, 2026-07-21 (2)) 방어력 이 다름. 재추출 은 GPU 복귀 후 (extraction 코드 수정 → re-extract).
+
+**핵심 (변하지 않음).** position code 를 고쳐도 모델 복구 아님. 진짜 변화 는 **temporal token 이 1 개** 라는 사실. 따라서 전달 되는 것 은 장기 temporal dynamics 가 아니라 **spatial network organization** (gradient positioning + 공간 attention). pretrained(resting 0.173) > scratch(0.091) 가 전달 의 근거.
+
+**논문 프레이밍 (확정, 반드시 이 표현).**
+- 허용. "We applied the pretrained encoder to a shorter temporal grid while preserving its native 16-TR patchification and regenerating the fixed sinusoidal positional code for the resulting one-patch input."
+- 제한. "The resulting representation should be regarded as a **short-window transfer of Brain-JEPA**, rather than a representation of the model's native long-range temporal dynamics."
+- 금지. "native Brain-JEPA inference" 라 부르지 않음. 전달 을 **spatial organization** 으로 귀속, long-range temporal dynamics 로 주장 금지.
+
+**Encoder 결정 영향.** 이 프레이밍 + sin/cos 재생성 으로 Brain-JEPA 가 방어 가능 한 encoder 로 복귀. 사용자 제약 (encoder = BFM 또는 ViT, raw ROI/ridge 는 baseline) 과 정합. [REQUIRED] (아래) 검증 은 (a) sin/cos 재생성 (b) pretrained>scratch 전달 근거 (c) short-window transfer 프레이밍 으로 충족 방향.
+
+---
+
 ## 2026-07-21 (3). [REQUIRED] BFM config-mismatch 검증 의무 (리뷰어 방어)
 
 **Requirement (필수, 논문 전 반드시).** 사전학습 config 와 다른 세팅 으로 BFM 을 쓰면 (예: Brain-JEPA 를 10 time patch 학습 인데 1 patch 로 사용, pos_embed 평균), **그 표현 이 config 변경 으로 깨지지 않았음 을 검증** 하거나 **명시적 limitation 으로 보고** 해야 함. 리뷰어 는 반드시 물음. "왜 1 patch 냐, 그 표현 이 안 깨진 걸 검증 했냐."
