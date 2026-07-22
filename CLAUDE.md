@@ -1,67 +1,42 @@
-# EmoBrain Claude Instructions
+# EmoBrain Canonical Rules
 
-Read `CONTEXT_EMOBRAIN.md` first. Active spine narrative 는 `Paper/framework_EN.md` + `Paper/framework_KR.md`, architecture spec 은 `docs/notes/architecture_design_20260629.md`, ground-level action 은 `ACTION_PLAN.md`.
+## Scope
 
-Project name = EmoBrain (2026-06-08 rename, path preserved). Repo path `/pscratch/sd/s/sjmoon/EmoBrain/`. 이전 framing 은 `archive/` 아래 보존.
+- Canonical code: `project/code/`
+- Canonical backbone: `Qwen/Qwen3-VL-4B-Instruct`
+- Canonical encoders: E1 ViT and E2 BFM only
+- E2 variants: corrected Brain-JEPA and matched-length SwiFT
+- Output: 34 independent `log1p_z` emotion scores; no softmax across emotions
+- Full GPU jobs are run by the user. Provide a single absolute `bash ...sh` command.
 
-## Operating Rules
+## Prohibited Paths
 
-- Root .md 파일 새로 만들지 않음. 7 개 (README.md, README_KR.md, CONTEXT_EMOBRAIN.md, ONBOARDING.md, CLAUDE.md, CODEX.md, ACTION_PLAN.md) 로 유지.
-- Forward plan / phase report 은 `docs/` 와 `docs/reports/` 에만 추가.
-- Narrative 는 `Paper/framework_EN.md`, `framework_KR.md`.
-- Methodology 는 `Paper/methodology.md`.
-- Decision log 는 `docs/notes/project_decisions.md` (chronological, 최신 위).
-- 실험 코드는 single unified pipeline. `project/code/{adapters,brain_encoder,vision_encoder,caption_loader,fusion,training,evaluation}/` (main). 공통 자원은 `project/shared/code/{probes,bfm_embeddings,ssl_pretrain,analysis,tools}/`.
-- 입력 데이터 (splits, target matrix) 는 `project/shared/data/`.
-- 추출된 features / log 는 `project/shared/output/`.
-- 분석 결과 (CSV, figure, slide text) 는 `project/shared/results/`.
-- 모델 checkpoint 는 `external/checkpoints/` 또는 `project/output/checkpoints/`.
-- 추출된 raw data / checkpoint / output 덮어쓰지 않음.
-- Sbatch 명령은 사용자 사전 승인 필수. 모든 .py 는 .sh 동반. Bash 명령은 절대경로.
+- Do not add a task-supervised target-space encoder.
+- Do not add a raw+BFM dual branch as the main architecture.
+- Do not use `project/legacy/qwen25/` for new experiments.
+- Do not present legacy output JSON files as Qwen3-VL-4B results.
+- Do not modify CCN when working on the main EmoBrain framework.
 
-## Scientific Rules
+## Brain-JEPA
 
-- EmoBrain 은 active brain decoding for emotion 의 model-development project. Emotion theory paper 아님.
-- **Single project, 5 novelty framing** (2026-06-29 pivot). NV0 LLM-based brain emotion decoder (framing axis) + NV1 3-modality LLM fusion + NV2 MindCaptioning bridge + NV3 modular brain encoder + NV4 34-distribution curriculum. 자세히 `Paper/framework_EN.md`, `CONTEXT_EMOBRAIN.md`.
-- 이전 Three Directions (D1 BrainVLM + D2 fMRI-LM + D3 CCN) framing 은 폐기 (2026-06-29). `archive/v5_direction_split_20260628/` 에 보존.
-- **Core novelty**. Framework 자체 (multi-modal LLM fusion + modular brain encoder + 34-distribution curriculum) 와 "emotion 은 high-dimensional 이다" (34D distribution + V/A continuous output). "어떤 encoder 가 제일 좋은가" 가 spine 이 아님.
-- **Red-team 완료 (2026-06-30)**. 4 panel (Architecture / Training stability / Inference paradigm / RoPE position-shift) 로 7 blocker + 12 redesign recommendation. `docs/notes/redteam_review_20260630.md`. Training start 전 Week 0 engineering sprint 로 blocker resolve.
-- Background benchmark (Phase 1) 의 frozen BFM (SwiFT NewE96 + 5 변종, Brain-JEPA, NeuroSTORM) 은 ROI ridge baseline 못 넘음을 확정. EmoBrain framing 의 motivation evidence. `docs/reports/phase1_audit_20260604/`.
-- Stimulus 수 = **2185 unique canonical** (Horikawa 원본 실측 확정 2026-07-07). Horikawa 배포 label `categcontinuous.mat` = (2196, 34) 인데 unique row = **2185**, 나머지 **11 은 정확히 repeat** (presentation 2185~2195 이 0~10 을 재제시 하는 reliability check). fmri_raw.npy 축 = (5, 2196, 450). 우리 canonical = 2185 unique, label CSV / split(10925=5×2185) / ROI pt 모두 2185. 5 subject × 2185 stim pooled 이 primary paradigm. **논문마다 다른 게 아님** — Du 그룹 은 dedup 없이 2196 전체 를 학습 하고 (MICCAI 는 "2181+15" 로 부정확 서술), 원본 raw data 는 2185+11 로 확정적. 11 repeat 는 버리지 말고 **intra-subject test-retest noise ceiling** 으로 활용 (Stage 0).
-- Claim 과 measured result 분리. Over-claim 금지.
-- 약어 (BFM, VLM, LLM, ROI, RSA, CKA) 첫 등장 시 풀어쓰기.
-- **Baseline 의무**. 모든 task 결과는 standard baseline suite (chance / ROI mean + Ridge / Phase 1 best BFM frozen reference / Video baseline) 와 함께 reporting. Baseline 없는 result 는 unreliable. 자세히 `ACTION_PLAN.md` §S11.1.
-- **Noise ceiling 의무**. 모든 main claim 은 Stage 0 noise ceiling (inter-rater agreement, inter-subject brain similarity, ISC + repeated-trial + Lage-Castellanos analytical) 로 anchor. Ceiling 대비 gap_filled = (best_encoder - ridge) / (noise_ceiling - ridge) 가 primary metric.
-- Reference 인용 전 파일 실체 read 로 author/title/journal/DOI verify.
+Use `brain_jepa_pretrained_native_mean`, imported from the validated native
+one-patch condition with:
 
-## Style Rules
-
-- 응답 언어 한국어 (기술적 고유명사 코드/논문 제목/경로 는 영어 유지 가능).
-- Em dash (—) 사용 금지. 괄호/comma/문장 재구성 으로 대체.
-- 학술 산문 에서 colon 회피. 자연스러운 절 로 재작성.
-- No sycophancy. 사용자 반박 시 자체 evaluation 후 답변. 반사적 동의 금지. 증거 강도 에 맞는 claim 강도.
-- 결과 summary 는 숫자 만 나열 하지 말고 "무엇을 의미 하는가" 단락 필수.
-- 코드 제시 전 4 항목 pre-framing (what / process / expected outcome / narrative role).
-
-## Implementation CAUTION (from `docs/notes/implementation_spec_20260702.md` §14)
-
-Code 구현 시 반드시 지켜야 할 항목. 이 규칙 위반 은 framework claim 을 무너뜨림.
-
-- 34D 출력 에 softmax 사용 금지. 감정 공존 (bittersweet) 이 사라짐.
-- Test / val 통계 로 z-score 정규화 금지. Train 통계 만.
-- 텍스트 (caption, question) 에 projector 붙이지 금지. Tokenizer 만.
-- Video embedding 은 고차 layer 사용. 초기 layer 금지 (감정 관련 시각 정보 는 고차 layer 에 있음).
-- Caption 을 question 안 문자열 로 합치지 금지. 별도 field.
-- Frozen 과 fine-tune 은 encoder 종류 와 무관 한 독립 축. Config 로 제어.
-- E4 (ViT fine-tune) 을 full fine-tune 으로 실행 금지. Default LoRA / partial.
-- Student 최종 평가 는 brain + question 만 인 추론 form 으로.
-- Cross-subject 결과 를 cross-stimulus 로 서술 금지. MindCaptioning 은 subject 겹치지 않지만 stimulus 는 겹침.
-- E2 ridge encoder (LLM 경유) 와 B1 ridge (LLM 없음) 혼동 금지. Framework 그래프 에 B1 없음.
-
-## Required Checks
-
-문서 구조 변경 후.
 ```bash
-python3 tools/check_md_completeness.py
-python3 tools/build_project_status.py
+bash /pscratch/sd/s/sjmoon/EmoBrain/project/scripts/import_corrected_brain_jepa.sh
 ```
+
+Describe it as short-window transfer. The 16-TR patch size is native, but the
+input has one temporal patch and does not support claims about native long-range
+Brain-JEPA dynamics.
+
+## Training Order
+
+1. E1 ViT direct brain-only student.
+2. E2 Brain-JEPA and SwiFT direct brain-only students.
+3. Best defensible E2 teacher with brain + V-JEPA2 + human caption.
+4. Cache teacher 34D outputs for train/val.
+5. Train the same E2 brain-only student with hard + distillation MSE.
+6. Student-side ablations and neuroscientific analyses follow after the core run.
+
+Always select checkpoints on val and report the untouched stimulus-held-out test.

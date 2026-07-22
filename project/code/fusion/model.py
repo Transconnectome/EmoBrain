@@ -18,8 +18,26 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
+from torch.nn.utils.rnn import pad_sequence
 
 from project.code.fusion.prompt import question_text, caption_field, token_order
+
+
+def compact_valid_tokens(embeds: torch.Tensor, mask: torch.Tensor):
+    """Remove internal padding and pad only at each sequence's right edge."""
+    if embeds.shape[:2] != mask.shape:
+        raise ValueError(
+            f"embed/mask shape mismatch: {tuple(embeds.shape)} vs {tuple(mask.shape)}"
+        )
+    rows = [row[row_mask.bool()] for row, row_mask in zip(embeds, mask)]
+    if any(row.shape[0] == 0 for row in rows):
+        raise ValueError("every sequence must contain at least one valid token")
+    packed = pad_sequence(rows, batch_first=True)
+    lengths = torch.tensor([row.shape[0] for row in rows], device=mask.device)
+    packed_mask = (
+        torch.arange(packed.shape[1], device=mask.device)[None, :] < lengths[:, None]
+    ).to(mask.dtype)
+    return packed, packed_mask
 
 
 class EmoBrainModel(nn.Module):
@@ -93,5 +111,6 @@ class EmoBrainModel(nn.Module):
 
         embeds = torch.cat(segs, dim=1)
         mask = torch.cat(masks, dim=1)
+        embeds, mask = compact_valid_tokens(embeds, mask)
         pooled = self.backbone(embeds, mask).to(self.head.fc.weight.dtype)
         return self.head(pooled)                       # (B, 34) z-space

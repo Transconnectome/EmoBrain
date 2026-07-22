@@ -1,4 +1,4 @@
-"""Encoder 1. Image-pretrained ViT on fMRI (spec §6-2 E4 slot, renamed).
+"""E1. Image-pretrained ViT adapted to an fMRI ROI grid.
 
 fMRI ROI vector -> square grid -> upsample 224 -> 3 channels -> pretrained ViT ->
 CLS embedding. The image prior is a stretch for fMRI by design; whether a little

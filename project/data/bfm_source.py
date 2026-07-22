@@ -2,7 +2,7 @@
 
 Serves precomputed FROZEN embeddings (SwiFT / Brain-JEPA / NeuroSTORM) as the
 brain input, mirroring FmriAdapter.get so HorikawaDataset can swap ROI mean for
-any BFM variant by name (data config brain_source). This is the E3 encoder path:
+any BFM variant by name (data config brain_source). This is the E2 encoder path:
 the "encoder" is the frozen foundation model, so only the downstream projector
 trains (identity encoder).
 
@@ -34,10 +34,37 @@ class BFMSource:
         self._stim_index: dict[str, dict[int, int]] = {}
         for subj in SUBJECTS:
             path = root / variant / f"{subj}.pt"
+            if not path.exists():
+                hint = ""
+                if variant == "brain_jepa_pretrained_native_mean":
+                    hint = (
+                        " Run: bash /pscratch/sd/s/sjmoon/EmoBrain/project/scripts/"
+                        "import_corrected_brain_jepa.sh"
+                    )
+                raise FileNotFoundError(f"missing BFM embedding {path}.{hint}")
             d = torch.load(path, map_location="cpu", weights_only=False)
-            self._emb[subj] = d["embeddings"].float()          # (2185, dim)
+            if variant == "brain_jepa_pretrained_native_mean":
+                prov = d.get("provenance")
+                if prov is None:
+                    raise ValueError(f"corrected Brain-JEPA file lacks provenance: {path}")
+                expected = {
+                    "initialization": "pretrained",
+                    "position_policy": "native",
+                    "input_perturbation": "mean",
+                    "n_stimuli": 2185,
+                }
+                bad = {k: (prov.get(k), v) for k, v in expected.items() if prov.get(k) != v}
+                if bad:
+                    raise ValueError(f"invalid corrected Brain-JEPA provenance in {path}: {bad}")
+            embeddings = d["embeddings"].float()
+            stim_num = d["stim_num"]
+            if embeddings.ndim != 2 or embeddings.shape[0] != 2185:
+                raise ValueError(f"unexpected BFM shape in {path}: {tuple(embeddings.shape)}")
+            if sorted(int(s) for s in stim_num.tolist()) != list(range(1, 2186)):
+                raise ValueError(f"stimulus IDs in {path} are not exactly 1..2185")
+            self._emb[subj] = embeddings
             self._stim_index[subj] = {
-                int(s): i for i, s in enumerate(d["stim_num"].tolist())
+                int(s): i for i, s in enumerate(stim_num.tolist())
             }
         self.dim = int(next(iter(self._emb.values())).shape[1])
 

@@ -126,9 +126,9 @@ class HorikawaDataset(Dataset):
         self._label_z = Cowen34Normalizer.load(norm_stats).transform(raw_labels)
         assert self._label_z.shape == (len(self._samples), C)
 
-        # brain input source. "roi_mean" -> FmriAdapter (450-d ROI mean, E1).
-        # any other name -> BFMSource frozen embedding variant (E3), served
-        # through the same .get(subject, stim, mode) interface.
+        # Brain input source. "roi_mean" supplies the ROI sequence used by E1
+        # ViT; any other name supplies an E2 frozen BFM embedding variant,
+        # served through the same .get(subject, stim, mode) interface.
         if fmri_adapter is not None:
             self._fmri = fmri_adapter
         elif brain_source == "roi_mean":

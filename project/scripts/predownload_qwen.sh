@@ -4,7 +4,6 @@
 #
 # Usage.
 #   bash /pscratch/sd/s/sjmoon/EmoBrain/project/scripts/predownload_qwen.sh
-#   QWEN_MODEL=Qwen/Qwen2.5-1.5B-Instruct bash .../predownload_qwen.sh
 #
 # Pair. project/scripts/predownload_qwen.py
 

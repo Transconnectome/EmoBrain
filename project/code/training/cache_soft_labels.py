@@ -82,8 +82,16 @@ def main():
     tag = cfg.get("run", {}).get("name", "teacher")
     out = REPO_ROOT / "project/shared/output/teacher_soft_labels" / tag / "soft_labels.pt"
     out.parent.mkdir(parents=True, exist_ok=True)
-    soft["_meta"] = {"tag": tag, "modalities": mods, "n": len(soft),
-                     "note": "raw 34D teacher output, no softmax (spec 8.4)"}
+    soft["_meta"] = {
+        "tag": tag,
+        "modalities": mods,
+        "n": len(soft),
+        "teacher_checkpoint": str(ckpt_path),
+        "brain_source": data.get("brain_source"),
+        "key_schema": "subject|stimulus_num",
+        "splits": ["train", "val"],
+        "note": "raw 34D teacher output in log1p_z space; no softmax",
+    }
     torch.save(soft, out)
     print(f"[cache] {len(soft)-1} total -> {out}")
 

@@ -4,7 +4,7 @@ Contract (both stub and Qwen implement it).
     hidden_dim               D_llm
     tokenize(texts)          list[str] -> (ids [B,L], mask [B,L])
     embed_text(ids)          [B,L] -> [B,L,D_llm]      (tokenizer path, no projector)
-    forward(embeds, mask)    [B,S,D_llm] -> [B,D_llm]  (pooled last non-pad token)
+    forward(embeds, mask)    [B,S,D_llm] -> [B,D_llm]  (pooled last valid token)
 
 The stub is a tiny transformer with a hashing tokenizer so the whole assembly
 (encoder x projector x prompt x backbone x head, teacher and student) can be
@@ -20,6 +20,17 @@ import torch
 import torch.nn as nn
 
 _BACKBONES: dict[str, Callable] = {}
+
+
+def last_valid_indices(attention_mask: torch.Tensor) -> torch.Tensor:
+    """Return the final valid position when padding occurs mid-sequence."""
+    if attention_mask.dim() != 2:
+        raise ValueError(f"attention_mask must be (B,S), got {tuple(attention_mask.shape)}")
+    valid = attention_mask.bool()
+    if not valid.any(dim=1).all():
+        raise ValueError("every sample must contain at least one valid token")
+    positions = torch.arange(valid.shape[1], device=valid.device).expand_as(valid)
+    return positions.masked_fill(~valid, -1).max(dim=1).values
 
 
 def register_backbone(name: str):
@@ -72,5 +83,5 @@ class StubBackbone(nn.Module):
         pos = self.pos(torch.arange(S, device=inputs_embeds.device))[None]
         h = self.enc(inputs_embeds + pos,
                      src_key_padding_mask=(attention_mask == 0))
-        last = attention_mask.long().sum(1) - 1
+        last = last_valid_indices(attention_mask)
         return h[torch.arange(B, device=h.device), last]

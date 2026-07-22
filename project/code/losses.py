@@ -1,10 +1,9 @@
-"""Losses (spec §8-1). Per-emotion regression, never softmax/KL over emotions.
+"""Losses for independent, continuous emotion-profile regression.
 
 supervised    L_sup = mean_c (pred - true)^2 over the active target subset
               (curriculum stage). Huber optional (spec OPEN).
 distillation  L_dist = mean_c (student - teacher)^2 on the teacher's 34D output.
-              MSE default (spec: value matching beats KL in reported KD cases);
-              KL is a reshaped per-emotion binary alternative (spec §8-1 OPEN).
+              Teacher outputs stay continuous; no softmax or KL is applied.
 
 active_mask (B, 34) or None selects the curriculum-stage target subset; masked
 emotions get no gradient but the head still emits all 34 (spec §8.3.1).
@@ -63,16 +62,9 @@ def supervised_loss(pred, target, active_mask=None, kind="mse", huber_beta=1.0,
 
 def distillation_loss(student_pred, teacher_pred, active_mask=None, kind="mse",
                       temperature=1.0):
-    if kind == "kl":
-        # per-emotion binary KL (each emotion is an independent Bernoulli logit);
-        # NOT a softmax over the 34, so co-occurrence is preserved.
-        t = temperature
-        s_log = F.logsigmoid(student_pred / t)
-        s_log0 = F.logsigmoid(-student_pred / t)
-        p = torch.sigmoid(teacher_pred / t)
-        kl = p * (torch.log(p.clamp_min(1e-6)) - s_log) + \
-            (1 - p) * (torch.log((1 - p).clamp_min(1e-6)) - s_log0)
-        return _masked_mean(kl, active_mask) * (t * t)
+    del temperature
+    if kind != "mse":
+        raise ValueError(f"distillation kind must be 'mse', got {kind!r}")
     return _masked_mean((student_pred - teacher_pred) ** 2, active_mask)
 
 

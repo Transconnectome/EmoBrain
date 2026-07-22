@@ -159,10 +159,8 @@ def error(pred, target, normalizer=None) -> dict:
     }
 
     if normalizer is not None:
-        mu = _to_np(normalizer.mu)
-        sd = _to_np(normalizer.std)
-        p_raw = p * sd + mu
-        t_raw = t * sd + mu
+        p_raw = _to_np(normalizer.inverse_transform(p))
+        t_raw = _to_np(normalizer.inverse_transform(t))
         draw = p_raw - t_raw
         out["mse_raw"] = float((draw ** 2).mean())
         out["mae_raw"] = float(np.abs(draw).mean())

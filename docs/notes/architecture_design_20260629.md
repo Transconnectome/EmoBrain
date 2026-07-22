@@ -1,4 +1,8 @@
-# EmoBrain Architecture Design
+# EmoBrain Architecture Design (Historical)
+
+> Superseded on 2026-07-22 by
+> `docs/notes/implementation_spec_20260702.md`. This file preserves design
+> history and is not a current implementation contract.
 
 작성 2026-06-29. Single project framework novelty path 의 architectural spec. spine 결정 의 source 는 `project_decisions.md` 의 2026-06-29 entry, narrative 는 `Paper/framework_EN.md` + `framework_KR.md`.
 

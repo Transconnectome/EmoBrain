@@ -4,6 +4,31 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 ---
 
+## 2026-07-22. Canonical reset: Qwen3-VL-4B + E1 ViT / E2 BFM
+
+**Locked.** Active code is `project/code/`. Backbone is fixed to
+`Qwen/Qwen3-VL-4B-Instruct`. Encoder families are E1 ViT and E2 BFM only; E2
+variants are corrected Brain-JEPA and matched-length SwiFT. The task-supervised
+target-space encoder and raw+BFM dual branch are excluded from the architecture.
+
+**Corrected Brain-JEPA.** Validated native-position NPZ files are imported with
+hash and JSON audit provenance as `brain_jepa_pretrained_native_mean`. Canonical
+configs do not read the legacy temporal-mean embedding.
+
+**Distillation.** Core workflow is teacher (brain+video+human description) ->
+provenance-aware train/val soft-label cache -> brain-only student. Both direct
+and distilled students select on val and report untouched stimulus-held-out
+test. Student-side ablations follow the core run.
+
+**Caption wording.** The MindCaptioning paper reports crowdsourced detailed
+visual descriptions and quality checking, but does not specify affect-neutral
+annotation. The canonical term is `human-written descriptive caption`.
+
+**Legacy.** Qwen2.5 code/configs moved to `project/legacy/qwen25/` and are not
+valid current experiments.
+
+---
+
 ## 2026-07-21 (4). Brain-JEPA emb_h = 고정 sin/cos 검증 + 올바른 처리(재생성) + short-window transfer 프레이밍 확정
 
 **검증 (Brain-JEPA 소스).** `src/models/vision_transformer.py:34-36` = `emb_h = nn.Parameter(..., requires_grad=False)` + `get_1d_sincos_pos_embed_from_grid`. **emb_h 는 학습 table 이 아니라 고정 sinusoidal positional code.** (외부 GPT 지적 확인. 우리 경험 테스트 cos 0.428 은 convention 불일치 탓, sin/cos 아님 증거 아님. 소스 확정적.)

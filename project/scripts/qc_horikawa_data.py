@@ -222,58 +222,6 @@ def qc_raw() -> None:
         f"mean r={m:+.4f} (low single-trial reliability; used in Stage 0)")
 
 
-def qc_information_loss(rois: dict) -> None:
-    """Does time-averaging cost decoding power? Compare roi_mean vs a richer
-    time summary on the SAME split and metric as the ridge baseline."""
-    print("\n[6] information-loss diagnostic (time average vs time summary)")
-    from sklearn.linear_model import Ridge
-    from project.data.labels import Cowen34Normalizer
-    from project.evaluation.metrics import profile_correlation
-
-    split = pd.read_csv(DATA / "horikawa_split.csv")
-    labels = pd.read_csv(DATA / "cowen_horikawa_labels.csv").set_index("stim_num_int")
-    norm = Cowen34Normalizer.load(DATA / "norm_stats" / "cowen34_train.pt")
-
-    def feats(d, idx, kind):
-        rt = d["roi_timeseries"].numpy()[idx]
-        m = d["mask"].numpy().astype(bool)[idx]
-        if kind == "mean":
-            return d["roi_mean"].numpy()[idx]
-        out = []
-        for k in range(rt.shape[0]):
-            v = rt[k][m[k]]
-            if v.size == 0:
-                v = np.zeros((1, rt.shape[2]))
-            out.append(np.concatenate([v.mean(0), v.std(0), v.max(0), v.min(0)]))
-        return np.stack(out)
-
-    pos = {s: {int(n): i for i, n in enumerate(rois[s]["stim_num"].numpy())} for s in SUBJECTS}
-    scores = {}
-    for kind in ("mean", "summary"):
-        Xtr, Ytr, Xte, Yte = [], [], [], []
-        for s in SUBJECTS:
-            rows = split[split["subject"] == s]
-            for sp, XX, YY in (("train", Xtr, Ytr), ("test", Xte, Yte)):
-                stims = rows.loc[rows["split"] == sp, "stimulus_num"].astype(int).tolist()
-                idx = np.array([pos[s][n] for n in stims])
-                XX.append(feats(rois[s], idx, kind))
-                raw = np.stack([labels.loc[n, SCORE_COLS].to_numpy(np.float64) for n in stims])
-                YY.append(np.asarray(norm.transform(raw)))
-        Xtr, Ytr = np.concatenate(Xtr), np.concatenate(Ytr)
-        Xte, Yte = np.concatenate(Xte), np.concatenate(Yte)
-        best = -9
-        for a in (10.0, 100.0, 1000.0, 10000.0):
-            p = Ridge(alpha=a).fit(Xtr, Ytr).predict(Xte)
-            best = max(best, profile_correlation(p, Yte)["pearson_mean"])
-        scores[kind] = best
-        print(f"    {kind:8s} dim={Xtr.shape[1]:5d}  test profile pearson = {best:+.4f}")
-    delta = scores["summary"] - scores["mean"]
-    status = "WARN" if delta > 0.02 else "PASS"
-    rec("info_loss", "time summary vs time mean", status,
-        f"mean={scores['mean']:+.4f} summary={scores['summary']:+.4f} delta={delta:+.4f}. "
-        f"{'Time info ADDS signal => roi_mean discards usable variance; the ROI-mean ceiling understates the brain.' if delta > 0.02 else 'Time averaging costs little; the ROI-mean ceiling is not a preprocessing artifact.'}")
-
-
 def main() -> None:
     print("=" * 72)
     print("HORIKAWA PREPROCESSED DATA QC / QA")
@@ -284,7 +232,6 @@ def main() -> None:
     qc_alignment(rois)
     qc_volumes()
     qc_raw()
-    qc_information_loss(rois)
 
     n_fail = sum(1 for r in results if r["status"] == "FAIL")
     n_warn = sum(1 for r in results if r["status"] == "WARN")

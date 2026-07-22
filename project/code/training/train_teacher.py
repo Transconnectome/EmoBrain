@@ -15,6 +15,7 @@ Run.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -58,10 +59,14 @@ def main():
     val_ds = HorikawaDataset(split="val", fmri_mode="mean",
                              brain_source=data.get("brain_source", "roi_mean"),
                              caption_mode="human" if mods.get("caption") else "off")
+    test_ds = HorikawaDataset(split="test", fmri_mode="mean",
+                              brain_source=data.get("brain_source", "roi_mean"),
+                              caption_mode="human" if mods.get("caption") else "off")
     video_npy = np.load(REPO_ROOT / cfg["video"]["path"]) if mods.get("video") else None
     collate = make_collate(video_npy)
     tl = DataLoader(train_ds, batch_size=int(tr["batch_size"]), shuffle=True, collate_fn=collate)
     vl = DataLoader(val_ds, batch_size=int(tr["batch_size"]), shuffle=False, collate_fn=collate)
+    tel = DataLoader(test_ds, batch_size=int(tr["batch_size"]), shuffle=False, collate_fn=collate)
 
     opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad],
                             lr=float(tr["lr"]), weight_decay=float(tr.get("weight_decay", 0.01)))
@@ -89,8 +94,19 @@ def main():
 
     ckpt = REPO_ROOT / tr.get("teacher_ckpt", "project/output/checkpoints/teacher.pt")
     ckpt.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"state_dict": best_state, "config": cfg, "val_pearson": best_v}, ckpt)
-    print(f"[teacher] best val pearson {best_v:+.4f} -> saved {ckpt}")
+    model.load_state_dict(best_state)
+    test_profile = evaluate(model, tel, mods, device, tr.get("max_eval_batches"))
+    torch.save({"state_dict": best_state, "config": cfg, "val_pearson": best_v,
+                "test_profile": test_profile}, ckpt)
+    result = REPO_ROOT / tr.get(
+        "out_json", "project/output/e2_brain_jepa_teacher_qwen3vl4b.json"
+    )
+    result.parent.mkdir(parents=True, exist_ok=True)
+    result.write_text(json.dumps({"config": cfg, "best_val_pearson": best_v,
+                                  "test_profile": test_profile,
+                                  "checkpoint": str(ckpt)}, indent=2))
+    print(f"[teacher] best val={best_v:+.4f} "
+          f"test={test_profile['pearson_mean']:+.4f} -> {ckpt}")
 
 
 if __name__ == "__main__":

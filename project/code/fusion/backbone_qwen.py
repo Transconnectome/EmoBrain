@@ -1,19 +1,19 @@
-"""Real Qwen3-VL backbone (spec §6-6, OPEN llm.backbone).
+"""Canonical Qwen3-VL-4B backbone.
 
 Loaded only when the config selects it. hidden_dim comes from the model config so
 the projector and head adapt automatically. Student uses a frozen LM with LoRA
 (spec §6-6 DECIDED); teacher LoRA vs full is OPEN (config).
 
 Text (caption, question) enters via the tokenizer + embed_tokens here, never the
-projector. Pooling reads the last non-pad token (causal LM); swap only this if a
-dedicated readout token is added later.
+projector. Pooling reads the last valid token, including batches with internal
+padding between multimodal segments.
 """
 
 from __future__ import annotations
 
 import torch
 
-from project.code.fusion.backbone import register_backbone
+from project.code.fusion.backbone import last_valid_indices, register_backbone
 
 
 @register_backbone("qwen")
@@ -27,8 +27,13 @@ class QwenBackbone(torch.nn.Module):
         self.tokenizer = AutoTokenizer.from_pretrained(hf_model)
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
+        if hf_model != "Qwen/Qwen3-VL-4B-Instruct":
+            raise ValueError(
+                "EmoBrain canonical backbone is Qwen/Qwen3-VL-4B-Instruct; "
+                f"got {hf_model!r}"
+            )
         self.lm = self._load_lm(hf_model, dtype)
-        self.hidden_dim = self.lm.config.hidden_size
+        self.hidden_dim = int(self.lm.config.text_config.hidden_size)
         if frozen and not lora:
             for p in self.lm.parameters():
                 p.requires_grad_(False)
@@ -45,13 +50,10 @@ class QwenBackbone(torch.nn.Module):
         model with inputs_embeds and read hidden states, so load the full model
         and use its text stack."""
         import torch as _t
-        from transformers import AutoModelForCausalLM
-        try:
-            return AutoModelForCausalLM.from_pretrained(
-                hf_model, torch_dtype=getattr(_t, dtype))
-        except Exception:
-            from transformers import AutoModel
-            return AutoModel.from_pretrained(hf_model, torch_dtype=getattr(_t, dtype))
+        from transformers import Qwen3VLForConditionalGeneration
+        return Qwen3VLForConditionalGeneration.from_pretrained(
+            hf_model, torch_dtype=getattr(_t, dtype)
+        )
 
     def tokenize(self, texts):
         enc = self.tokenizer(list(texts), padding=True, return_tensors="pt")
@@ -62,7 +64,8 @@ class QwenBackbone(torch.nn.Module):
 
     def forward(self, inputs_embeds, attention_mask):
         out = self.lm(inputs_embeds=inputs_embeds, attention_mask=attention_mask,
-                      output_hidden_states=True)
+                      output_hidden_states=True, use_cache=False,
+                      logits_to_keep=1)
         h = out.hidden_states[-1]
-        last = attention_mask.long().sum(1) - 1
+        last = last_valid_indices(attention_mask)
         return h[torch.arange(h.size(0), device=h.device), last]

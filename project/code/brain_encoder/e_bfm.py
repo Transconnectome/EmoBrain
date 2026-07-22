@@ -1,4 +1,4 @@
-"""Encoder 2. Brain foundation model (spec §6-2 E3 slot).
+"""E2. Brain foundation model.
 
 Two brain foundation models, selectable by config.
     brain_jepa  ROI based (450 parcels), ViT-B, emb 768.

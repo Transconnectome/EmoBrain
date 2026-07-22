@@ -1,7 +1,7 @@
 """Brain encoder contract (implementation_spec_20260702 §6-2).
 
 Every encoder occupies the SAME slot. fMRI goes in, a brain embedding sequence
-comes out, and the projector lifts it to LLM tokens. Swapping E1..E4 is a config
+comes out, and the projector lifts it to LLM tokens. Swapping E1/E2 is a config
 edit and nothing downstream changes.
 
 Contract.
@@ -13,8 +13,8 @@ INDEPENDENT axis from which encoder is used, so it lives here in the base class
 rather than in each encoder.
     frozen : no gradient reaches encoder parameters (linear probing).
     lora   : PEFT adapters on the encoder, base weights frozen.
-    full   : everything trainable. Allowed but never the default; on 10925
-             pooled trials it overfits (E4 mode collapse was observed).
+    full   : everything trainable. Allowed but never the default in the
+             short-window, low-data regime.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ import torch.nn as nn
 
 
 class BrainEncoder(nn.Module, ABC):
-    """Base for E1..E4. Subclasses set self.out_dim and implement _encode()."""
+    """Base for E1/E2. Subclasses set self.out_dim and implement _encode()."""
 
     #: set by every subclass. D_enc.
     out_dim: int

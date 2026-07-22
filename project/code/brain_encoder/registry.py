@@ -6,7 +6,7 @@ and on `.out_dim`.
 
 Usage.
     from project.code.brain_encoder.registry import build_encoder, available
-    enc = build_encoder({"type": "e1_proj", "adapt": "full", "in_dim": 450})
+    enc = build_encoder({"type": "bfm", "model": "brain_jepa", "adapt": "frozen"})
 """
 
 from __future__ import annotations
@@ -37,9 +37,8 @@ def _autoload() -> None:
     INSIDE each encoder's __init__, so importing the module itself is cheap.
     """
     import importlib
-    # lineup (2026-07-20): ridge baseline, ViT (Encoder 1), BFM (Encoder 2).
-    # simple projection (old E1) was discarded.
-    for mod in ("e2_ridge_encoder", "e_vit", "e_bfm"):
+    # Canonical lineup: E1 ViT and E2 BFM.
+    for mod in ("e_vit", "e_bfm"):
         try:
             importlib.import_module(f"project.code.brain_encoder.{mod}")
         except ImportError:

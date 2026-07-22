@@ -29,7 +29,7 @@ from downstream_tasks.models_vit_embedding_extraction import VisionTransformer
 EmoBrain_ROOT = Path("/pscratch/sd/s/sjmoon/EmoBrain")
 ROI_BASE = Path("/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_preprocess_JEPA_ROI/time_series")
 NORM_PARAMS = Path("/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_preprocess_JEPA_ROI/normalization_params.npz")
-CHECKPOINT = EmoBrain_ROOT / "baseline/brain_jepa/jepa-ep300.pth"
+CHECKPOINT = EmoBrain_ROOT / "external/checkpoints/brain_jepa/jepa-ep300.pth"
 CANONICAL_CSV = EmoBrain_ROOT / "data/feelin_canonical_stimuli.csv"
 
 # Constants
@@ -235,7 +235,10 @@ def main():
     ap.add_argument("--num_workers", type=int, default=4)
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--attn_mode", default="normal", choices=["normal", "flash_attn"])
-    ap.add_argument("--out_root", default=str(EmoBrain_ROOT / "output/embeddings"))
+    ap.add_argument("--out_root", default=str(EmoBrain_ROOT / "project/shared/output/embeddings"))
+    ap.add_argument("--out_tag", default="",
+                    help="suffix on the variant dir so re-extraction never overwrites "
+                         "existing embeddings (e.g. _posfix for the emb_h-skip fix).")
     ap.add_argument("--smoke_test_n", type=int, default=None, help="If set, only process N stimuli for smoke test.")
     args = ap.parse_args()
 
@@ -243,7 +246,7 @@ def main():
     np.random.seed(args.seed)
 
     device = torch.device(args.device)
-    out_dir = Path(args.out_root) / f"brain_jepa_{args.init}_pad-{args.padding}"
+    out_dir = Path(args.out_root) / f"brain_jepa_{args.init}_pad-{args.padding}{args.out_tag}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\n=== EmoBrain Brain-JEPA extraction ===")

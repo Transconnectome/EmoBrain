@@ -1,12 +1,8 @@
 """Measure brain cross-subject ISC (noise ceiling estimator).
 
 Uses fMRI ROI mean (5 subj × stim × 450) to compute how consistent brain
-responses are across subjects. Reports on the TEST split (same axis as the B1
-baseline) and also on all stimuli for a fuller picture.
-
-Context. B1 ridge profile pearson was 0.29. This ISC tells us whether that is
-"model-limited" (high ISC, shared signal exists) or "signal-limited" (low ISC,
-brain response is idiosyncratic, R0 risk).
+responses are across subjects. Reports on the TEST split and all stimuli.
+This is a reliability diagnostic, not an emotion-decoding model or ceiling.
 
 Output.
     project/shared/results/noise_ceiling/brain_isc.json
@@ -90,7 +86,6 @@ def main() -> None:
     print("\n" + "=" * 60)
     print("INTERPRETATION")
     print("=" * 60)
-    print(f"  B1 ridge profile pearson (test) = 0.294 (reference)")
     print(f"  spatial ISC (test)              = {r_test['spatial']['mean']:+.4f}")
     print(f"  per-ROI ISC (test)              = {r_test['per_roi_mean']:+.4f}")
     print(f"\n[save] {OUT_DIR / 'brain_isc.json'}")

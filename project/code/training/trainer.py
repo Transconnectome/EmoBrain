@@ -101,10 +101,13 @@ def main():
                                brain_source=brain_source, caption_mode=cap_mode)
     val_ds = HorikawaDataset(split="val", fmri_mode="mean",
                              brain_source=brain_source, caption_mode=cap_mode)
+    test_ds = HorikawaDataset(split="test", fmri_mode="mean",
+                              brain_source=brain_source, caption_mode=cap_mode)
     video_npy = np.load(REPO_ROOT / cfg["video"]["path"]) if mods.get("video") else None
     collate = make_collate(video_npy)
     tl = DataLoader(train_ds, batch_size=int(tr["batch_size"]), shuffle=True, collate_fn=collate)
     vl = DataLoader(val_ds, batch_size=int(tr["batch_size"]), shuffle=False, collate_fn=collate)
+    tel = DataLoader(test_ds, batch_size=int(tr["batch_size"]), shuffle=False, collate_fn=collate)
     print(f"[data] train {len(train_ds)} val {len(val_ds)} brain_source={brain_source}")
 
     opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad],
@@ -112,6 +115,7 @@ def main():
     lam = cfg.get("loss", {})
     max_tb = tr.get("max_train_batches")
     hist = []
+    best_v, best_state = -float("inf"), None
     for epoch in range(int(tr["epochs"])):
         model.train(); train_ds.set_epoch(epoch)
         run, nb = 0.0, 0
@@ -131,14 +135,31 @@ def main():
               f"val pearson={prof['pearson_mean']:+.4f} ccc={prof['ccc_mean']:+.4f}")
         hist.append({"epoch": epoch, "train_loss": run / max(nb, 1),
                      "val_pearson": prof["pearson_mean"], "val_ccc": prof["ccc_mean"]})
+        if prof["pearson_mean"] > best_v:
+            best_v = prof["pearson_mean"]
+            best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+
+    if best_state is None:
+        raise RuntimeError("training produced no checkpoint")
+    model.load_state_dict(best_state)
+    test_profile = evaluate(model, tel, mods, device, tr.get("max_eval_batches"))
 
     out = REPO_ROOT / tr.get("out_json", "project/output/run.json")
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps({"config": cfg, "history": hist}, indent=2))
+    ckpt = REPO_ROOT / tr.get(
+        "checkpoint", f"project/output/checkpoints/{out.stem}.pt"
+    )
+    ckpt.parent.mkdir(parents=True, exist_ok=True)
+    torch.save({"state_dict": best_state, "config": cfg, "val_pearson": best_v,
+                "test_profile": test_profile}, ckpt)
+    out.write_text(json.dumps({"config": cfg, "history": hist,
+                               "best_val_pearson": best_v,
+                               "test_profile": test_profile,
+                               "checkpoint": str(ckpt)}, indent=2))
     if hist:
         best = max(hist, key=lambda h: h["val_pearson"])
         print(f"[done] best epoch {best['epoch']} pearson {best['val_pearson']:+.4f} "
-              f"(B1 ridge no-LLM ref 0.294) -> {out}")
+              f"test={test_profile['pearson_mean']:+.4f} -> {out}")
 
 
 if __name__ == "__main__":

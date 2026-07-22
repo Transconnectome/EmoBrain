@@ -3,8 +3,9 @@
 Two text fields, kept separate so ablation is possible (spec §14).
     Question field   fixed instruction, identical for every clip, so it can never
                      be a shortcut. Includes the 34-category inventory.
-    Caption field    per-clip neutral scene description (teacher only), the real
-                     shortcut risk, hence droppable.
+    Caption field    per-clip human-written visual description (teacher only).
+                     Affect neutrality is not assumed, so this segment remains
+                     independently droppable for shortcut analysis.
 
 Token order (spec §7.2).
     teacher   video, caption, brain, question

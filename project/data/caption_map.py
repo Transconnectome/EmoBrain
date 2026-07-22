@@ -2,9 +2,12 @@
 
 Sources.
     project/shared/data/caption_ck20.csv
-        MindCaptioning-style Cowen-Keltner 2020 human caption.
+        MindCaptioning Cowen-Keltner 2020 human descriptive caption.
         43920 rows = 2196 video × 20 raters. video_id 1-based, matches our
         stim_num (both index Cowen source filenames 0001.mp4 .. 2196.mp4).
+        These captions describe visual content but are not assumed to be
+        affect-neutral; emotion terms are allowed and must be controlled
+        empirically in downstream analyses.
 
     project/shared/data/stimulus_features/captions.json  (SKIPPED for now)
         Our Qwen-VL generated caption. Verified inaccurate on several checked
