@@ -10,7 +10,7 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 **정정 1 (출처) — RE-정정 2026-07-21.** 앞서 "저자 downstream 코드 답습" 이라 적은 것 **틀림.** `external/Brain-JEPA/downstream_tasks/main_embedding_extraction.py` 는 **Brain-JEPA 원저자 코드 아님.** 증거. `sys.path.append("/pscratch/sd/h/heehaw/Brain-JEPA")` (협업자 heehaw scratch 복사본), `make_horikawa_dataset` import (원본 에 없는 Horikawa 로더), 주석 "Horikawa ... 5 TRs per stimulus" + "sub-XX_stimulus_YYY" (우리 자극/naming). **원저자(Dong et al.) 는 긴 fMRI 로 native 10 time patch 를 그냥 씀, 평균 안 함.** 10→1 평균 은 **협업자(heehaw) 가 Horikawa 짧은 자극 용 으로 개조 한 것** 이고 우리 `_lib/brain_jepa.py` 가 복사. 즉 **우리 쪽(collaborator) downstream 개조 이지 저자 관행 아님.** 리뷰어 방어 = "저자 관행 따름" 불가, "우리 가 짧은 자극 용 개조 했고 원칙 은 sin/cos 재생성, short-window transfer 로 본다" 로 정직화. (파일 이름 만 보고 저자 것 으로 넘겨짚은 오류.)
 
-**정정 2 (올바른 처리).** 고정 sin/cos 이므로 1-patch grid 에는 **그 grid 용 sin/cos 재생성** 이 표준 (평균 아님). 효과 는 작지만 (pos_embed 영향 자체 가 작음, 2026-07-21 (2)) 방어력 이 다름. 재추출 은 GPU 복귀 후 (extraction 코드 수정 → re-extract).
+**정정 2 (올바른 처리).** 고정 sin/cos 이므로 1-patch grid 에는 **그 grid 용 sin/cos 재생성** 이 표준 (평균 아님). 원 모델 `GradTs_2dPE.__init__` 이 grid_size 로 부터 emb_h 를 자동 생성 하고, 우리 모델 은 이미 1-patch (crop 16 / patch 16) 로 build 되어 **올바른 1-patch sincos 를 이미 보유.** 즉 별도 재생성 불요, checkpoint emb_h 를 **skip (안 덮어쓰기)** 만 하면 모델 자체 값 = 재생성 값. **[적용됨 2026-07-21] `_lib/brain_jepa.py::load_pretrained` 의 평균 블록 → emb_h/emb_w skip 으로 교체.** 학습 된 gradient positioning (predictor_pos_embed_proj) 는 정상 로드 = 전달 되는 spatial 지식. 효과 자체 는 작음 (pos_embed 영향 작음, 2026-07-21 (2)). **재추출 은 GPU 복귀 후.**
 
 **핵심 (변하지 않음).** position code 를 고쳐도 모델 복구 아님. 진짜 변화 는 **temporal token 이 1 개** 라는 사실. 따라서 전달 되는 것 은 장기 temporal dynamics 가 아니라 **spatial network organization** (gradient positioning + 공간 attention). pretrained(resting 0.173) > scratch(0.091) 가 전달 의 근거.
 
