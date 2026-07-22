@@ -1,0 +1,25 @@
+{
+  "n_stim": 2185,
+  "n_parcels": 400,
+  "n_folds": 5,
+  "n_pca": 100,
+  "max_rank": 20,
+  "shared_rank": 4,
+  "n_shuffles": 0,
+  "seed": 42,
+  "alphas": [
+    0.1,
+    1.0,
+    10.0,
+    100.0,
+    1000.0
+  ],
+  "alpha_cv": 3,
+  "brain_path": "/pscratch/sd/s/sjmoon/EmoBrain/archive/v5_direction_split_20260628/dir3_ccn/study1/data/corrected_reanalysis/brain_jepa_native_1patch.npy",
+  "output_dir": "/pscratch/sd/s/sjmoon/EmoBrain/archive/v5_direction_split_20260628/dir3_ccn/study1/results/corrected_reanalysis/cortical_transformation",
+  "save_predictions": false,
+  "smoke": false,
+  "skip_brain_figure": false,
+  "schaefer_atlas": "/global/homes/s/sjmoon/nilearn_data/schaefer_2018/Schaefer2018_400Parcels_7Networks_order_FSLMNI152_2mm.nii.gz",
+  "root": "/pscratch/sd/s/sjmoon/EmoBrain/archive/v5_direction_split_20260628/dir3_ccn"
+}

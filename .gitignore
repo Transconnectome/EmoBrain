@@ -183,3 +183,14 @@ archive/v5_direction_split_20260628/dir3_ccn/**/*.pyc
 archive/v5_direction_split_20260628/dir3_ccn/**/*.pt
 archive/v5_direction_split_20260628/dir3_ccn/**/*.pth
 archive/v5_direction_split_20260628/dir3_ccn/**/*.ckpt
+archive/v5_direction_split_20260628/dir3_ccn/**/*.npy
+archive/v5_direction_split_20260628/dir3_ccn/**/*.npz
+archive/v5_direction_split_20260628/dir3_ccn/**/*.nii
+archive/v5_direction_split_20260628/dir3_ccn/**/*.nii.gz
+
+# Local/offline CCN transfer bundles and duplicate live watcher exports.
+archive/v5_direction_split_20260628/dir3_ccn/study1/results/poster_export/*.zip
+archive/v5_direction_split_20260628/dir3_ccn/study1/results/poster_export/*.tar.gz
+archive/v5_direction_split_20260628/dir3_ccn/study1/results/poster_export/figure_*
+archive/v5_direction_split_20260628/dir3_ccn/study1/results/poster_export/poster_figure_manifest.*
+archive/v5_direction_split_20260628/dir3_ccn/study1/results/poster_export/CCN_POSTER_HANDOFF/FILE_CHECKSUMS.sha256

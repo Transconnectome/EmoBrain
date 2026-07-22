@@ -1,0 +1,85 @@
+{
+  "description": "Corrected frozen Brain-JEPA, native one-time-patch sin/cos code",
+  "source_directory": "/pscratch/sd/s/sjmoon/EmoBrain/external/Brain-JEPA_short_window_validation/outputs/horikawa_embeddings/init-pretrained_pos-native_input-mean",
+  "canonical_csv": "/pscratch/sd/s/sjmoon/EmoBrain/project/shared/data/feelin_canonical_stimuli.csv",
+  "output_shape": [
+    5,
+    2185,
+    768
+  ],
+  "dtype": "float32",
+  "subjects": [
+    {
+      "subject": "sub-01",
+      "npz_path": "/pscratch/sd/s/sjmoon/EmoBrain/external/Brain-JEPA_short_window_validation/outputs/horikawa_embeddings/init-pretrained_pos-native_input-mean/sub-01.npz",
+      "npz_sha256": "839172b3fae6acf214a7b317b3ba9385ed6660df0abbb4e3588bbcfa1ac84695",
+      "metadata_path": "/pscratch/sd/s/sjmoon/EmoBrain/external/Brain-JEPA_short_window_validation/outputs/horikawa_embeddings/init-pretrained_pos-native_input-mean/sub-01.json",
+      "embedding_shape": [
+        2185,
+        768
+      ],
+      "original_time_min": 5,
+      "original_time_max": 47,
+      "mean_padding_ratio": 0.6270022988319397,
+      "position_code_sha256": "8fb758c8590b5a671fff558632a360685c77acae2066c3f691f2f395a0bbc9e0"
+    },
+    {
+      "subject": "sub-02",
+      "npz_path": "/pscratch/sd/s/sjmoon/EmoBrain/external/Brain-JEPA_short_window_validation/outputs/horikawa_embeddings/init-pretrained_pos-native_input-mean/sub-02.npz",
+      "npz_sha256": "f1bccc10b8e48d873af2b92cf9e3bd4dc27ca19b9685a17fead4fb5cf14b281b",
+      "metadata_path": "/pscratch/sd/s/sjmoon/EmoBrain/external/Brain-JEPA_short_window_validation/outputs/horikawa_embeddings/init-pretrained_pos-native_input-mean/sub-02.json",
+      "embedding_shape": [
+        2185,
+        768
+      ],
+      "original_time_min": 5,
+      "original_time_max": 47,
+      "mean_padding_ratio": 0.6270022988319397,
+      "position_code_sha256": "8fb758c8590b5a671fff558632a360685c77acae2066c3f691f2f395a0bbc9e0"
+    },
+    {
+      "subject": "sub-03",
+      "npz_path": "/pscratch/sd/s/sjmoon/EmoBrain/external/Brain-JEPA_short_window_validation/outputs/horikawa_embeddings/init-pretrained_pos-native_input-mean/sub-03.npz",
+      "npz_sha256": "3e31672378416581e08eac8e83946f4fb5f36bf9043212dca5d15be89da7fd24",
+      "metadata_path": "/pscratch/sd/s/sjmoon/EmoBrain/external/Brain-JEPA_short_window_validation/outputs/horikawa_embeddings/init-pretrained_pos-native_input-mean/sub-03.json",
+      "embedding_shape": [
+        2185,
+        768
+      ],
+      "original_time_min": 5,
+      "original_time_max": 47,
+      "mean_padding_ratio": 0.6270022988319397,
+      "position_code_sha256": "8fb758c8590b5a671fff558632a360685c77acae2066c3f691f2f395a0bbc9e0"
+    },
+    {
+      "subject": "sub-04",
+      "npz_path": "/pscratch/sd/s/sjmoon/EmoBrain/external/Brain-JEPA_short_window_validation/outputs/horikawa_embeddings/init-pretrained_pos-native_input-mean/sub-04.npz",
+      "npz_sha256": "d0c03d13e8b28576874be83fd397c1e5a0e42a0b12a2c90c5f04cd1fadb9fafc",
+      "metadata_path": "/pscratch/sd/s/sjmoon/EmoBrain/external/Brain-JEPA_short_window_validation/outputs/horikawa_embeddings/init-pretrained_pos-native_input-mean/sub-04.json",
+      "embedding_shape": [
+        2185,
+        768
+      ],
+      "original_time_min": 5,
+      "original_time_max": 47,
+      "mean_padding_ratio": 0.6270022988319397,
+      "position_code_sha256": "8fb758c8590b5a671fff558632a360685c77acae2066c3f691f2f395a0bbc9e0"
+    },
+    {
+      "subject": "sub-05",
+      "npz_path": "/pscratch/sd/s/sjmoon/EmoBrain/external/Brain-JEPA_short_window_validation/outputs/horikawa_embeddings/init-pretrained_pos-native_input-mean/sub-05.npz",
+      "npz_sha256": "ff97d9c9933cafe20a5af7e0534ea0a5545846aa8d55184a49896a7c1dd6bb23",
+      "metadata_path": "/pscratch/sd/s/sjmoon/EmoBrain/external/Brain-JEPA_short_window_validation/outputs/horikawa_embeddings/init-pretrained_pos-native_input-mean/sub-05.json",
+      "embedding_shape": [
+        2185,
+        768
+      ],
+      "original_time_min": 5,
+      "original_time_max": 47,
+      "mean_padding_ratio": 0.6270022988319397,
+      "position_code_sha256": "8fb758c8590b5a671fff558632a360685c77acae2066c3f691f2f395a0bbc9e0"
+    }
+  ],
+  "output_path": "/pscratch/sd/s/sjmoon/EmoBrain/archive/v5_direction_split_20260628/dir3_ccn/study1/data/corrected_reanalysis/brain_jepa_native_1patch.npy",
+  "output_sha256": "153495391a2b46f1aa002b3805efa87e1fcb89771de3063ca2ecb5c85b792027"
+}
