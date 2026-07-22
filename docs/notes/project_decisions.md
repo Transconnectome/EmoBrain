@@ -19,7 +19,11 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 **부수 발견.** `_lib/brain_jepa.py` 의 `CHECKPOINT` 경로 = `baseline/brain_jepa/jepa-ep300.pth` (stale). 실제 = `external/checkpoints/brain_jepa/jepa-ep300.pth`. 지금 실행 시 경로 에러. 재현 갭.
 
-**TODO.** (1) SwiFT / NeuroSTORM 추출 도 동일 mismatch (pretraining seq len vs 우리 crop) 있는지 점검. (2) frozen-BJ 를 인용 하는 문서 (build_log Phase1, decision 2026-07-20) 에 이 caveat 명시. (3) checkpoint 경로 수정.
+**TODO.** (1) ~~SwiFT / NeuroSTORM 점검~~ **[RESOLVED 아래]**. (2) frozen-BJ 를 인용 하는 문서 (build_log Phase1, decision 2026-07-20) 에 이 caveat 명시. (3) checkpoint 경로 수정.
+
+**점검 결과 (2026-07-21, RESOLVED).** SwiFT / NeuroSTORM 은 **동일 문제 없음. Brain-JEPA 고유.** 둘 다 NUM_FRAMES=20 이고 checkpoint 가 SL20 (sequence length 20) 사전학습 이라 **입력 길이 = 사전학습 길이 일치**. `load_pretrained` 가 `strict=False` state_dict 로드 만 (module. prefix 처리, 위치 임베딩 reshape/평균/interpolate 없음). 즉 seq-length mismatch weight surgery 는 Brain-JEPA 만. 공통 caveat 는 자극 ~6 TR → 16/20 padding (데이터 한계, spatial_only 통제 로 시간 기여 분리 됨) 이지 weight 수술 아님.
+
+**결론 재고 (finetune 투자 대상).** 이 발견 으로 finetune 1 순위 를 Brain-JEPA → **SwiFT 로 이동 고려.** 근거. (a) SwiFT = whole-brain volume = 아직 미검증 공간 해상도 축 (Brain-JEPA 는 450 ROI = ridge 기질 에 묶임). (b) SwiFT seq-length 정합 (BJ 는 160 vs 16 설계 충돌). (c) SwiFT frozen 결과 는 confound 없음. 단 SwiFT finetune 은 volume in-loop 이라 무거움. Brain-JEPA finetune 은 pos_embed 재학습 으로 수술 confound 를 제거 하는 의미 는 있음. 최종 선택 은 사용자 결정 대기.
 
 ---
 
