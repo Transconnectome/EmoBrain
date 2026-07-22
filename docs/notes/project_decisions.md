@@ -4,6 +4,25 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 ---
 
+## 2026-07-21 (2). Brain-JEPA frozen 추출의 임의적 가중치 수술 발견 (frozen-BJ 결론의 confound)
+
+**Decision.** frozen Brain-JEPA 임베딩 추출 (`project/shared/code/bfm_embeddings/_lib/brain_jepa.py`) 이 사전학습 가중치 를 우리 config 에 맞추려고 **임의 수술** 을 하고 있음을 발견. checkpoint 직접 실측 으로 확정.
+
+**실측 (jepa-ep300.pth encoder state).**
+- `pos_embed_proj.emb_h` = **(4500, 384) = 450 ROI × 10 time patch**. 우리 model config = (450, 384) = 1 time patch.
+- `patch_embed.proj.weight` = (768, 1, 1, 16).
+- `load_pretrained` (line 194-219) 가 **10 개 time-patch position embedding 을 평균 내어 1 개로 축약** (`reshaped.mean(dim=1)`). patch_embed kernel 은 size 다를 때 linear interpolate. strict=False 로드 (missing/unexpected 무시).
+
+**의미.** Brain-JEPA 는 **10 time patch = 160 TR** 의 시간 맥락 으로 사전학습 됐는데, 우리 는 crop_size=(450,16) = **16 TR (1 time patch)** 만 입력 하고 그 모델 이 학습 한 **10 개 시간 위치 임베딩 을 평균 으로 파괴**. 이는 저자 규정 이 아니라 우리 추출 코드 의 선택.
+
+**결론 에 미치는 영향.** "frozen Brain-JEPA < ROI ridge" (2026-07-20 LOSO matched 0.173 vs 0.221) 는 **confound 됨.** 저조 원인 이 (a) 도메인 불일치 (resting vs task-video) 만 이 아니라 (b) **우리 가 시간축 위치 구조 를 뭉갠 것** 일 수 있음. 즉 frozen-BJ 저성능 을 "Brain-JEPA 자체 한계" 로 서술 하면 over-claim. finetune 은 이 위치 임베딩 을 재적응 시키므로 **finetune 이 정직한 재검증 인 추가 근거**.
+
+**부수 발견.** `_lib/brain_jepa.py` 의 `CHECKPOINT` 경로 = `baseline/brain_jepa/jepa-ep300.pth` (stale). 실제 = `external/checkpoints/brain_jepa/jepa-ep300.pth`. 지금 실행 시 경로 에러. 재현 갭.
+
+**TODO.** (1) SwiFT / NeuroSTORM 추출 도 동일 mismatch (pretraining seq len vs 우리 crop) 있는지 점검. (2) frozen-BJ 를 인용 하는 문서 (build_log Phase1, decision 2026-07-20) 에 이 caveat 명시. (3) checkpoint 경로 수정.
+
+---
+
 ## 2026-07-21. Fusion 전략 2 갈래 (future) + 마커 토큰 반영 + loss 재검토
 
 **Decision 1. 마커 토큰 반영 (즉시).** EmoBrainModel 조립 에 세그먼트 경계 마커 (`<brain_start>`/`<brain_end>` 등, red-team C4, 스펙 §6-5) 를 fresh learnable embedding 으로 추가. 4 세그먼트 (brain/video/caption/question) 각각 start/end 로 감쌈. 이전 조립 은 순서 로만 암묵 구분 했음.

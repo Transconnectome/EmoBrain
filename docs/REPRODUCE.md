@@ -147,3 +147,12 @@ Baselines: chance, ROI-mean + ridge (pooled ~0.294), frozen-BFM reference.
    submodules (SwiFT-v2 URL is known).
 3. **Checkpoint sources** to record per model (currently local only).
 4. **BFM in-loop fine-tune** not implemented (frozen extraction only).
+5. **Brain-JEPA frozen extraction applies arbitrary weight surgery.** The
+   checkpoint's ROI position embedding is (4500, 384) = 450 ROI x 10 time
+   patches (pretrained on ~160 TR); our crop is 16 TR = 1 time patch, so
+   `_lib/brain_jepa.py::load_pretrained` averages the 10 time-patch position
+   embeddings into 1 and interpolates the patch kernel. This is our choice, not
+   the authors'; it confounds the "frozen Brain-JEPA < ridge" result (see
+   project_decisions 2026-07-21 (2)). Also the hardcoded `CHECKPOINT` path is
+   stale (`baseline/...` vs actual `external/checkpoints/...`). Check whether
+   SwiFT / NeuroSTORM extraction has the same seq-length mismatch.
