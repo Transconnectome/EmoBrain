@@ -4,6 +4,19 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 ---
 
+## 2026-07-21 (3). [REQUIRED] BFM config-mismatch 검증 의무 (리뷰어 방어)
+
+**Requirement (필수, 논문 전 반드시).** 사전학습 config 와 다른 세팅 으로 BFM 을 쓰면 (예: Brain-JEPA 를 10 time patch 학습 인데 1 patch 로 사용, pos_embed 평균), **그 표현 이 config 변경 으로 깨지지 않았음 을 검증** 하거나 **명시적 limitation 으로 보고** 해야 함. 리뷰어 는 반드시 물음. "왜 1 patch 냐, 그 표현 이 안 깨진 걸 검증 했냐."
+
+**허용 되는 검증 (셋 중 하나 이상).**
+- (a) **Ablation.** averaged-pos-embed vs single-selected-pos-embed vs config-matched 추출 의 downstream 성능 비교. 차이 작으면 "표현 보존" 근거.
+- (b) **Probe.** frozen 임베딩 의 stimulus discriminability (또는 label decodability) 를 config-matched control 과 비교.
+- (c) **미검증 시.** 그 BFM 을 **어떤 headline claim 의 하중 지점 으로 쓰지 않음.** caveat 붙인 ablation 행 으로만.
+
+**현재 상태.** Brain-JEPA (1 vs 10 patch) 는 (a)/(b) 미실행. emb_h 측정 (2026-07-21 (2)) 으로 "pos_embed 는 temporal-only, 평균 영향 작음" 까지 는 확인 했으나, **전체 표현 이 1-patch 체제 에서 안 깨졌는지 의 downstream 검증 은 아직 안 함.** 따라서 현재 는 (c) 규칙 적용 = Brain-JEPA 를 headline 하중 지점 에서 제외, caveat ablation 으로만. SwiFT/NeuroSTORM 은 SL20 정합 이라 이 검증 불필요 (config mismatch 없음).
+
+---
+
 ## 2026-07-21 (2). Brain-JEPA frozen 추출의 임의적 가중치 수술 발견 (frozen-BJ 결론의 confound)
 
 **Decision.** frozen Brain-JEPA 임베딩 추출 (`project/shared/code/bfm_embeddings/_lib/brain_jepa.py`) 이 사전학습 가중치 를 우리 config 에 맞추려고 **임의 수술** 을 하고 있음을 발견. checkpoint 직접 실측 으로 확정.
