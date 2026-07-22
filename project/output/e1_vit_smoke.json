@@ -1,0 +1,79 @@
+{
+  "config": {
+    "run": {
+      "name": "e1_vit_smoke"
+    },
+    "encoder": {
+      "type": "vit",
+      "hf_model": "google/vit-base-patch16-224",
+      "grid": 22,
+      "adapt": "lora",
+      "lora": {
+        "r": 16,
+        "lora_alpha": 32,
+        "lora_dropout": 0.05
+      }
+    },
+    "projector": {
+      "type": "mlp",
+      "n_tokens": 16
+    },
+    "backbone": {
+      "type": "qwen",
+      "hf_model": "Qwen/Qwen3-VL-4B-Instruct",
+      "dtype": "bfloat16",
+      "frozen": true,
+      "lora": {
+        "r": 16,
+        "lora_alpha": 32,
+        "lora_dropout": 0.05,
+        "target_modules": [
+          "q_proj",
+          "v_proj"
+        ]
+      }
+    },
+    "modalities": {
+      "brain": true,
+      "video": false,
+      "caption": false
+    },
+    "data": {
+      "brain_source": "roi_mean"
+    },
+    "loss": {
+      "hard_kind": "mse",
+      "lambda_hard": 1.0
+    },
+    "train": {
+      "device": "cuda",
+      "seed": 0,
+      "epochs": 1,
+      "batch_size": 8,
+      "lr": 0.0001,
+      "weight_decay": 0.01,
+      "max_train_batches": 3,
+      "max_eval_batches": 2,
+      "out_json": "project/output/e1_vit_smoke.json"
+    }
+  },
+  "history": [
+    {
+      "epoch": 0,
+      "train_loss": 27.07432746887207,
+      "val_pearson": 0.005117481589691358,
+      "val_ccc": 0.0005671348102532087
+    }
+  ],
+  "best_val_pearson": 0.005117481589691358,
+  "test_profile": {
+    "pearson_mean": 0.025813373246740948,
+    "pearson_median": -0.0011457401609057771,
+    "spearman_mean": -0.09583651642475172,
+    "cosine_mean": 0.02447492893008611,
+    "ccc_mean": 0.020336213707671844,
+    "n_used": 16,
+    "n_skipped": 0
+  },
+  "checkpoint": "/pscratch/sd/s/sjmoon/EmoBrain/project/output/checkpoints/e1_vit_smoke.pt"
+}
