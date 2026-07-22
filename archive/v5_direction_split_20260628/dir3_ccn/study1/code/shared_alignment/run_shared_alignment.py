@@ -1,5 +1,5 @@
 """
-Exp 29 (refactored) — M1 brain-aligned subspace identification (generic, any model).
+Shared-alignment module: identify model dimensions predictable from Brain-JEPA.
 
 For a given video model (V-JEPA2, CLIP, DINOv2, VideoMAE, untrained, supervised):
   1. PCA on model embedding → 100 PCs (variance-based)
@@ -19,12 +19,8 @@ Multi-variant: sequential CV vs shuffled CV (tests CV leakage robustness).
 Stimulus: 2185 canonical (Horikawa repeat clips excluded).
 
 Usage:
-  python 29_m1_brain_alignment.py --model vjepa2_pretrained
-  python 29_m1_brain_alignment.py --model clip_pretrained
-  python 29_m1_brain_alignment.py --model dinov2_pretrained
-  python 29_m1_brain_alignment.py --model videomae_pretrained
-  python 29_m1_brain_alignment.py --model vjepa2_scratch        # untrained
-  python 29_m1_brain_alignment.py --model clip_scratch
+  python run_shared_alignment.py --model vjepa2_pretrained
+  python run_shared_alignment.py --model clip_pretrained
 """
 
 import argparse
@@ -45,10 +41,17 @@ N_PERM = 1000
 ALPHA = 0.05
 SEED = 42
 
-EMBED_DIR = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/raw/video_embeddings")
-BRAIN_PATH = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/raw/brain_embeddings/brain_jepa_embeddings.npy")
-OUTPUT_DIR = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/study1/data")
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+def find_project_root():
+    for candidate in Path(__file__).resolve().parents:
+        if (candidate / "CLAUDE.md").is_file() and (candidate / "study1").is_dir():
+            return candidate
+    raise RuntimeError("Could not locate the CCN project root")
+
+
+ROOT = find_project_root()
+EMBED_DIR = ROOT / "data/raw/video_embeddings"
+DEFAULT_BRAIN_PATH = ROOT / "data/raw/brain_embeddings/brain_jepa_embeddings.npy"
+DEFAULT_OUTPUT_DIR = ROOT / "study1/data/shared_alignment"
 
 MODEL_PATHS = {
     'vjepa2_pretrained':  'emovis_vjepa2_pretrained.npy',
@@ -75,14 +78,27 @@ def fdr_bh(pvals):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--model', required=True, choices=list(MODEL_PATHS.keys()))
+    ap.add_argument('--brain-path', type=Path, default=DEFAULT_BRAIN_PATH)
+    ap.add_argument('--output-dir', type=Path, default=DEFAULT_OUTPUT_DIR)
+    ap.add_argument('--n-perm', type=int, default=N_PERM)
+    ap.add_argument('--n-pc', type=int, default=N_PC)
+    ap.add_argument('--n-test-pcs', type=int, default=20)
     args = ap.parse_args()
 
-    print(f"=== Exp 29 M1 brain alignment: model={args.model}, n_stim={N_STIM}, n_pc={N_PC} ===\n")
+    if args.n_perm < 0:
+        raise ValueError("--n-perm must be non-negative")
+    if args.n_pc < 1 or args.n_test_pcs < 1:
+        raise ValueError("--n-pc and --n-test-pcs must be positive")
+    n_pc = args.n_pc
+    output_dir = args.output_dir.resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print(f"=== Shared alignment: model={args.model}, n_stim={N_STIM}, n_pc={n_pc} ===\n")
 
     # Load
     print("Loading data...")
     embed = np.load(EMBED_DIR / MODEL_PATHS[args.model]).astype(np.float64)
-    brain_raw = np.load(BRAIN_PATH).astype(np.float64)
+    brain_raw = np.load(args.brain_path).astype(np.float64)
     print(f"  Model embed: {embed.shape}, Brain raw: {brain_raw.shape}")
 
     # Slice to 2185 canonical
@@ -94,8 +110,8 @@ def main():
     print(f"  After slice: model={embed.shape}, brain={brain.shape}")
 
     # PCA
-    print(f"\nFitting PCA ({N_PC} components)...")
-    pca = PCA(n_components=N_PC, random_state=SEED)
+    print(f"\nFitting PCA ({n_pc} components)...")
+    pca = PCA(n_components=n_pc, random_state=SEED)
     pcs = pca.fit_transform(embed)
     print(f"  Cumulative variance: {pca.explained_variance_ratio_.cumsum()[-1]:.4f}")
 
@@ -109,10 +125,10 @@ def main():
     print("\nComputing observed R² across 4 variants × multi-metric...")
     variants = {}
     for cv_name, cv_obj in [('seq', cv_seq), ('shuf', cv_shuf)]:
-        r2_raw = np.zeros(N_PC)
-        pearson = np.zeros(N_PC)
-        spearman = np.zeros(N_PC)
-        for k in range(N_PC):
+        r2_raw = np.zeros(n_pc)
+        pearson = np.zeros(n_pc)
+        spearman = np.zeros(n_pc)
+        for k in range(n_pc):
             y = pcs[:, k]
             y_pred = np.zeros_like(y)
             r2_folds = []
@@ -135,31 +151,33 @@ def main():
                   f"pearson={pearson[k]:+.4f}, spearman={spearman[k]:+.4f}")
 
     # ── Permutation test (raw and clipped null) on top-20 by raw R² (shuf CV) ──
-    print(f"\nPermutation test (n={N_PERM}) on top 20 PCs...")
-    top_pcs = np.argsort(-variants['shuf']['r2_raw'])[:20]
+    n_test_pcs = min(args.n_test_pcs, n_pc)
+    print(f"\nPermutation test (n={args.n_perm}) on top {n_test_pcs} PCs...")
+    top_pcs = np.argsort(-variants['shuf']['r2_raw'])[:n_test_pcs]
     print(f"  Test PCs (1-indexed): {sorted(top_pcs+1)}")
 
     for cv_name, cv_obj in [('seq', cv_seq), ('shuf', cv_shuf)]:
         v = variants[cv_name]
-        null_raw  = np.zeros((N_PC, N_PERM))
-        null_clip = np.zeros((N_PC, N_PERM))
-        p_raw  = np.ones(N_PC)
-        p_clip = np.ones(N_PC)
+        null_raw = np.zeros((n_pc, args.n_perm))
+        null_clip = np.zeros((n_pc, args.n_perm))
+        p_raw = np.full(n_pc, np.nan if args.n_perm == 0 else 1.0)
+        p_clip = np.full(n_pc, np.nan if args.n_perm == 0 else 1.0)
         for idx, k in enumerate(top_pcs):
             target = pcs[:, k]
-            for p in range(N_PERM):
+            for p in range(args.n_perm):
                 target_perm = rng.permutation(target)
                 scores = cross_val_score(model_pipeline, brain, target_perm, cv=cv_obj, scoring='r2')
                 null_raw[k, p]  = scores.mean()
                 null_clip[k, p] = max(scores.mean(), 0.0)
-            p_raw[k]  = np.mean(null_raw[k]  >= v['r2_raw'][k])
-            p_clip[k] = np.mean(null_clip[k] >= v['r2_clipped'][k])
-            if (idx+1) % 5 == 0:
+            if args.n_perm:
+                p_raw[k] = (1 + np.sum(null_raw[k] >= v['r2_raw'][k])) / (1 + args.n_perm)
+                p_clip[k] = (1 + np.sum(null_clip[k] >= v['r2_clipped'][k])) / (1 + args.n_perm)
+            if (idx + 1) % 5 == 0 and args.n_perm:
                 print(f"  [{cv_name} {idx+1}/20] PC{k+1}: p_raw={p_raw[k]:.4f}, p_clip={p_clip[k]:.4f}")
         v['p_raw']  = p_raw
         v['p_clip'] = p_clip
-        v['q_raw']  = fdr_bh(p_raw)
-        v['q_clip'] = fdr_bh(p_clip)
+        v['q_raw'] = fdr_bh(p_raw) if args.n_perm else np.full(n_pc, np.nan)
+        v['q_clip'] = fdr_bh(p_clip) if args.n_perm else np.full(n_pc, np.nan)
         v['null_raw_dist']  = null_raw
         v['null_clip_dist'] = null_clip
 
@@ -168,7 +186,7 @@ def main():
     for cv_name in ['seq', 'shuf']:
         v = variants[cv_name]
         sig_clip = np.where(v['q_clip'] < ALPHA)[0] + 1
-        sig_raw  = np.where(v['q_raw']  < ALPHA)[0] + 1
+        sig_raw = np.where(v['q_raw'] < ALPHA)[0] + 1
         print(f"  CV={cv_name}:")
         print(f"    clipped null (original method): PCs {sorted(sig_clip)} ({len(sig_clip)} PCs)")
         print(f"    raw null     (no artifact):     PCs {sorted(sig_raw)}  ({len(sig_raw)} PCs)")
@@ -178,8 +196,9 @@ def main():
     save_dict = {
         'model_name': args.model,
         'n_stim': N_STIM,
-        'n_pc': N_PC,
-        'n_perm': N_PERM,
+        'n_pc': n_pc,
+        'n_perm': args.n_perm,
+        'brain_path': str(args.brain_path.resolve()),
         'cumulative_variance': pca.explained_variance_ratio_.cumsum(),
         'pcs': pcs,
     }
@@ -191,7 +210,7 @@ def main():
         save_dict[f'{cv_name}_null_raw_dist'] = v['null_raw_dist']
         save_dict[f'{cv_name}_null_clip_dist'] = v['null_clip_dist']
 
-    out_path = OUTPUT_DIR / f'exp29_m1_brain_alignment_{args.model}.npz'
+    out_path = output_dir / f'brain_alignment_{args.model}.npz'
     np.savez(out_path, **save_dict)
     print(f"\nSaved → {out_path}\nDone.")
 

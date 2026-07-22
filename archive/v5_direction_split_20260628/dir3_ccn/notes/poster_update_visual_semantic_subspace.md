@@ -1,8 +1,31 @@
-# CCN Poster Development - An Affective Bottleneck Between Foundation Models
+# CCN Poster Development - Cortical Transformation of Foundation-Model Representations
 
 **Scope.** This document applies only to the CCN analysis in `dir3_ccn`. EmoViS and the other EmoBrain projects remain separate.
 
-**Status.** New poster-development direction. The accepted CCN camera-ready analysis is retained as the starting observation, but the poster story may incorporate new analyses within the existing video-foundation-model / brain-foundation-model framework.
+**Status.** New poster-development direction. The accepted CCN camera-ready analysis is retained as the starting observation, but the poster story may incorporate new analyses within the existing video-foundation-model / brain-foundation-model framework. Legacy Brain-JEPA-dependent results are provisional pending the temporal-position audit below.
+
+## Brain-Encoder Validity Gate (2026-07-21)
+
+Brain-JEPA was pretrained with 160 TR (10 temporal patches), while the CCN input has
+16 TR (one temporal patch). The legacy extraction averaged the checkpoint's 10
+temporal position codes. Code inspection shows that this tensor is fixed sin/cos
+code (`requires_grad=False`), not a learned positional table. The patch kernel is
+already matched at 16 TR.
+
+The corrected frozen condition therefore does not require task finetuning: omit the
+mismatched checkpoint position tensor and retain the native one-patch sin/cos code
+created by the model. This removes arbitrary averaging while preserving independent
+pretraining. It does not erase the broader one-patch versus 10-patch architecture
+shift, which remains a limitation.
+
+Poster claims must pass three gates:
+
+1. corrected frozen Brain-JEPA does not reverse the shared-geometry result;
+2. the result replicates in matched-window SwiFT SL20 and NeuroSTORM;
+3. pretrained encoders exceed their scratch controls on held-out stimuli.
+
+The raw-BOLD content-affect partition is independent of this gate. The shared-rank
+estimate, shared cortical map, and `E34 | shared` result are not.
 
 ---
 
@@ -11,9 +34,9 @@
 The following elements remain fixed:
 
 1. V-JEPA2 provides video foundation model embeddings for emotional videos.
-2. Brain-JEPA provides brain foundation model embeddings for the corresponding fMRI responses.
+2. Independently pretrained brain foundation models provide embeddings for the corresponding fMRI responses; corrected frozen Brain-JEPA, SwiFT SL20, and NeuroSTORM test encoder generality.
 3. The two foundation models were trained independently and without emotion-label supervision.
-4. The scientific object is the relationship between the two embedding spaces, not a competition between EmoViS model families.
+4. The scientific object is the brain-general intersection with V-JEPA2, not a competition between EmoViS model families or dependence on one brain encoder.
 
 The accepted PC1-PC3 result remains useful as preliminary evidence, but the updated poster does not need to treat PCA-defined components as the final shared representation.
 
@@ -41,25 +64,48 @@ Therefore, the updated poster should not make "34 emotion categories" the discov
 
 ## New Central Question
 
-> When independently trained video and brain foundation models represent the same emotional videos, is their shared information diffuse across the full representations, or concentrated in a compact and functionally selective bottleneck?
+Primary research question:
 
-The stronger follow-up question is:
+> **How does the cortical hierarchy transform video-foundation-model representations into affective brain representations?**
 
-> Is this shared bottleneck specifically necessary and sufficient for affectively meaningful information, and what complementary information remains outside it?
+Operational questions:
+
+1. Is the intersection of independently trained video and brain foundation models reproducible across held-out stimuli, subjects, and brain encoders?
+2. Where in cortex is this shared video-brain information expressed?
+3. Where does fine-grained affective information explain brain activity beyond the shared video representation?
+4. Does this video-unexplained affective contribution increase from perceptual to transmodal cortex, and is it richer than arousal-valence alone?
+
+The subspace is therefore an estimator of cross-domain information, not the scientific endpoint. The endpoint is the cortical organization of shared and transformed information.
 
 ---
 
 ## Working Thesis
 
-Primary version:
+Target finding, conditional on the new analyses:
 
-> Brain alignment identifies a compact affective bottleneck within a video foundation model: this bottleneck selectively preserves stimulus-grounded emotion structure, while video-unexplained brain components retain complementary affective information.
+> **The cortex does not uniformly mirror a video foundation model. Shared video-brain information is expressed predominantly in perceptual systems, whereas fine-grained affective information not explained by that shared representation increases toward transmodal cortex.**
 
-More conservative version:
+Conservative version:
 
-> A compact subspace shared by video and brain foundation models is selectively enriched for continuous, fine-grained affective profiles relative to matched model components.
+> A compact representation shared by video and brain foundation models has a non-uniform cortical distribution, and fine-grained affective profiles explain complementary variance in association cortex.
 
-The primary version requires new necessity, sufficiency, and shared-versus-unique analyses. Until those analyses are complete, use the conservative version.
+This claim does not require the cortex to contain 34 discrete emotion modules. The 34 ratings are a continuous high-dimensional profile used to test representational resolution beyond two broad arousal-valence dimensions.
+
+### Preliminary Full-Run Update
+
+The first 2185-stimulus run does not support the simplest perceptual-to-transmodal double dissociation as written above.
+
+- Shared prediction is widespread and is strongest in dorsal-attention cortex at the Yeo-network level; visual cortex is not greater than control/default cortex.
+- Unique 34D variance is positive beyond both the prespecified rank-3 shared representation and the full 100-PC V-JEPA2 control.
+- Unique 34D variance is relatively enriched in control/default versus visual cortex in the current subject-level contrasts.
+- The 34D advantage over A/V is globally positive, while its transmodal enrichment remains weaker.
+- Components 1 through 20 all show positive held-out cross-view correlation under the current estimator, so compact rank 3 is not established.
+
+The updated result-driven working thesis is therefore:
+
+> **A broad visuocognitive channel is shared between video and brain foundation models, while complementary fine-grained affective information is relatively enriched in transmodal cortex.**
+
+This remains provisional until dimensionality selection, repeated splits, multiple-comparison handling, and spatially informed inference are completed.
 
 ---
 
@@ -73,7 +119,7 @@ Question:
 
 > What representational structure is shared across these independently learned domains?
 
-### 2. Cross-Domain Correspondence Is Compact
+### 2. Estimate a Compact Cross-Domain Bottleneck
 
 The accepted analysis provides initial evidence:
 
@@ -86,6 +132,8 @@ The updated analysis should estimate shared dimensionality directly with a cross
 Preferred interpretation:
 
 > Video-brain correspondence is concentrated in a low-rank shared representation.
+
+This result establishes the information channel to be localized. It is not the poster's final biological finding.
 
 ### 3. Emotion Ratings Are Functional Probes
 
@@ -103,7 +151,55 @@ The arousal-valence comparison is retained as a resolution test:
 
 > Is the shared affective information adequately summarized by two broad dimensions, or does it retain a richer multivariate profile?
 
-### 4. Test Representational Necessity and Sufficiency
+### 4. Localize the Shared Channel in Cortex
+
+Use the video-side shared scores, learned without the held-out subject, to predict each parcel's raw BOLD response on held-out stimuli.
+
+```text
+V-JEPA2 + Brain-JEPA from four subjects
+        -> shared latent scores
+        -> held-out subject's 400 cortical parcels
+```
+
+The resulting parcel-wise held-out `R2` map answers where cortex expresses the shared video-brain information. The expected pattern is an empirical question; it must not be described as perceptual before the map is observed.
+
+### 5. Identify Cortical Transformation Beyond the Shared Channel
+
+For every parcel, compare nested encoding models on identical held-out stimuli:
+
+```text
+Shared video-brain scores
+Shared scores + 34D continuous emotion profile
+Shared scores + arousal/valence
+```
+
+Define:
+
+```text
+Unique fine-grained affect = R2(shared + emotion34) - R2(shared)
+Unique A/V affect          = R2(shared + A/V) - R2(shared)
+Fine-grained advantage     = Unique emotion34 - Unique A/V
+```
+
+The first contrast asks where affective information remains after accounting for the shared video channel. The second contrast asks whether that contribution requires a richer profile than arousal-valence. These are encoding-model variance increments, not evidence for discrete emotion categories.
+
+As a stricter control, repeat the unique-affect test beyond the full cross-validated V-JEPA2 PCA representation rather than only beyond the compact shared scores.
+
+### 6. Test the Cortical Hierarchy
+
+Summarize all parcel maps in two independent anatomical coordinate systems:
+
+1. Yeo 7 functional networks
+2. the independently estimated principal functional gradient
+
+The transformation hypothesis predicts a double dissociation:
+
+- shared-channel `R2` is larger toward visual/perceptual cortex
+- unique fine-grained affect and its advantage over A/V increase toward control/default/transmodal cortex
+
+Network and gradient tests turn a collection of parcel maps into a cortical mechanism. Subject-level effects, not parcels treated as independent observations, are the inferential unit.
+
+### 7. Test Representational Necessity and Sufficiency
 
 Compactness and enrichment are descriptive. The stronger claim requires component ablation.
 
@@ -120,7 +216,7 @@ The shared component is affectively selective only if:
 2. Removing the shared component reduces affective prediction more than removing matched random components.
 3. The effect exceeds what can be explained by generic visual and semantic information.
 
-### 5. Decompose Shared and Complementary Information
+### 8. Decompose Shared and Complementary Information
 
 The foundation-model framework allows three operational components:
 
@@ -137,7 +233,7 @@ Video-unexplained brain component
 
 Do not call the last component subjective emotion. With the current dataset, it can only be called a reliable video-unexplained brain component. It becomes affectively meaningful only if it predicts affective targets across held-out stimuli and subjects.
 
-### 6. Interpret the Division of Labor
+### 9. Interpret the Division of Labor
 
 A theoretically informative outcome would be:
 
@@ -211,7 +307,82 @@ Primary statistics:
 
 Use raw cross-validated `R2`, Pearson `r`, and difference scores. Do not use clipped `R2` or the category/A-V ratio as the primary inferential statistic.
 
-### Analysis 3. Shared-Unique Variance Partitioning
+### Analysis 3. Parcel-Wise Shared-Channel Encoding
+
+Goal:
+
+> Localize where the cross-domain bottleneck is expressed in cortex.
+
+Procedure:
+
+1. Leave one subject out of shared-subspace discovery.
+2. Within that loop, fit every PCA and cross-view mapping on training stimuli only.
+3. Use video-side shared scores to predict the held-out subject's raw BOLD response in each of the first 400 cortical parcels.
+4. Concatenate out-of-fold predictions and compute parcel-wise raw `R2`, Pearson `r`, and Spearman `r`.
+5. Retain subject maps separately before calculating a group summary.
+
+Controls:
+
+- shuffled video-brain stimulus correspondence during subspace discovery
+- full V-JEPA2 PCA encoding map
+- top-k V-JEPA2 PCA map with the same rank as the shared representation
+- accepted PC1 and PC1-PC3 maps
+
+Primary output:
+
+- one 400-parcel map per subject and a group-average map
+- Yeo-network summaries with subject-level confidence intervals
+- correspondence with the independent principal cortical gradient
+
+### Analysis 4. Parcel-Wise Unique Affective Variance
+
+Goal:
+
+> Identify where cortex contains affective structure not explained by the shared video representation.
+
+Fit nested encoding models with identical outer folds and regularization selection:
+
+```text
+S       = shared video-brain scores
+S+E34   = shared scores + continuous 34D emotion profile
+S+AV    = shared scores + arousal and valence
+V       = cross-validated full V-JEPA2 PCA scores
+V+E34   = full video scores + continuous 34D emotion profile
+```
+
+Primary contrasts:
+
+```text
+Delta_E34|S  = R2(S+E34) - R2(S)
+Delta_AV|S   = R2(S+AV) - R2(S)
+FG_advantage = Delta_E34|S - Delta_AV|S
+Delta_E34|V  = R2(V+E34) - R2(V)
+```
+
+Interpretation:
+
+- `Delta_E34|S > 0`: the compact shared channel is insufficient to explain all affect-related BOLD variance
+- `FG_advantage > 0`: the complementary effect is better captured by a fine-grained profile than by A/V alone
+- `Delta_E34|V > 0`: the effect survives the stricter full-video control
+
+Use held-out raw `R2` without clipping. Quantify uncertainty across subjects and folds. A positive group map without subject-level consistency is descriptive only.
+
+### Analysis 5. Cortical Gradient and Network Tests
+
+Goal:
+
+> Test whether shared and complementary affective signals follow a perceptual-to-transmodal transformation.
+
+Required summaries:
+
+1. subject-wise Spearman correlation between each parcel map and principal gradient 1
+2. subject-wise Yeo 7 network means
+3. perceptual-versus-transmodal planned contrast
+4. bootstrap confidence intervals over subjects
+
+Spatial autocorrelation must be respected for parcel-level inference. Until a surface spin/null implementation is available, gradient statistics are effect-size summaries and subject-wise tests carry the primary inference.
+
+### Analysis 6. Shared-Unique Variance Partitioning in Embedding Space
 
 Goal:
 
@@ -242,7 +413,7 @@ Reliability requirement for any brain-unique claim:
 - repeat with raw BOLD
 - require held-out stimulus generalization
 
-### Analysis 4. Visual-Semantic Matched-Pair Test
+### Analysis 7. Visual-Semantic Matched-Pair Test
 
 Goal:
 
@@ -265,20 +436,6 @@ Required controls:
 
 This analysis should produce a small set of interpretable video triplets for the poster as well as an aggregate statistical result.
 
-### Analysis 5. Optional Network Localization
-
-Goal:
-
-> Determine whether shared and video-unexplained affective components have different anatomical distributions.
-
-Use the available 450-parcel raw BOLD data grouped into functional networks. For each network, estimate:
-
-- predictability of the shared video component
-- residual affective prediction after removing video-predictable activity
-- relative sensitivity to 34D profiles, A/V, and 14D dimensions
-
-This analysis is optional for the first updated poster draft. It should be added only after Analyses 1-4 are stable.
-
 ---
 
 ## Analysis Priority
@@ -286,9 +443,10 @@ This analysis is optional for the first updated poster draft. It should be added
 ### Must Complete
 
 1. Cross-validated shared-rank estimation
-2. Necessity-sufficiency ablation
-3. Shared-unique variance partitioning
-4. Visual-semantic matched-pair test
+2. Parcel-wise shared-channel encoding
+3. Parcel-wise unique 34D and A/V variance maps
+4. Yeo-network and principal-gradient tests
+5. Necessity-sufficiency ablation
 
 ### Important Controls
 
@@ -298,6 +456,7 @@ This analysis is optional for the first updated poster draft. It should be added
 4. shuffled correspondence null
 5. PC1-only versus PC1-PC3
 6. unclipped metrics and bootstrap intervals
+7. full-video control for unique affective variance
 
 ### Defer Unless Needed
 
@@ -307,6 +466,7 @@ This analysis is optional for the first updated poster draft. It should be added
 - additional category/A-V ratios
 - external datasets
 - layer-wise V-JEPA2 analysis
+- visual-semantic matched-pair analysis, unless the cortical results require an additional stimulus-level control
 
 ---
 
@@ -373,44 +533,49 @@ Message:
 
 > Cross-domain correspondence is concentrated in a compact latent space.
 
-### Figure 3. Necessity and Sufficiency
+### Figure 3. Main Brain Figure - Cortical Transformation
 
-Compare full, shared-only, shared-removed, PCA, random, and shuffled controls across target families.
+Four coordinated panels:
+
+```text
+A. Shared-channel held-out R2 cortical map
+B. Unique 34D affect beyond shared-channel cortical map
+C. Fine-grained advantage over A/V cortical map
+D. Yeo-network bars + principal-gradient relationships
+```
+
+Each panel displays subject-wise uncertainty. Surface maps are descriptive; network and gradient summaries carry the cross-subject statistics.
+
+Message, if supported:
+
+> Shared video-brain information is strongest in perceptual systems, while complementary fine-grained affective information increases toward transmodal cortex.
+
+### Figure 4. Specificity and Controls
+
+Compare compact shared, full video, 34D, A/V, shuffled-correspondence, and rank-matched controls. Include the stricter `Delta_E34|V` result.
 
 Message:
 
-> The shared representation is disproportionately important for fine-grained affective profiles.
+> The cortical effect reflects information beyond the shared or full video representation and is not reproduced by A/V alone.
 
-### Figure 4. Shared and Unique Information
+### Figure 5. Optional Stimulus-Level Interpretation
 
-Show shared, video-unique, and reliable brain-unique contributions for visual, semantic, 34D profile, A/V, and 14D target families.
-
-Message:
-
-> Different aspects of affect occupy shared and complementary representational components.
-
-### Figure 5. Critical Video Pairs
-
-Show representative visual-semantic-matched and emotion-matched triplets with aggregate subject-wise statistics.
-
-Message:
-
-> Affective organization can be tested while explicitly matching stimulus content.
+Use necessity-sufficiency results or visual-semantic matched pairs to interpret what stimulus content drives the cortical transformation. This figure is secondary to the brain map.
 
 ---
 
 ## Title Options
 
-Primary, if necessity and sufficiency succeed:
+Primary, if the cortical hierarchy result succeeds:
 
-1. **An Affective Bottleneck Between Video and Brain Foundation Models**
+1. **From Shared Video Features to Affective Brain Geometry Across the Cortical Hierarchy**
 
-Conservative alternatives:
+Alternatives:
 
-2. **A Compact Shared Representation Between Video and Brain Foundation Models**
-3. **Decomposing Shared and Brain-Specific Affective Representations Across Foundation Models**
-4. **What Do Video and Brain Foundation Models Share When Watching Emotional Videos?**
-5. **A Low-Rank Bridge Between Video and Brain Representations of Emotional Events**
+2. **Cortical Transformation of Emotional Video Representations Across Foundation Models**
+3. **Where Video and Brain Foundation Models Converge and Diverge in Cortex**
+4. **A Compact Video-Brain Bottleneck Reveals Hierarchical Affective Transformation**
+5. **The Brain's Emotion Geometry Is Grounded in What Is Seen and Transformed Across Cortex**
 
 ---
 
@@ -426,7 +591,7 @@ Conservative alternatives:
 
 ### Poster Target Claim
 
-> The shared representation is selectively necessary and sufficient for stimulus-grounded affective information relative to matched visual-model components.
+> Shared video-brain information and complementary fine-grained affective information have distinct distributions along the cortical hierarchy.
 
 ### Requires Reliable Unique-Variance Results
 
@@ -445,4 +610,4 @@ Conservative alternatives:
 
 ## One-Sentence Takeaway
 
-> 두 독립적인 video/brain foundation model의 교집합은 단순히 작기만 한 것이 아니라, 감정적으로 의미 있는 정보를 선택적으로 보존하는 affective bottleneck일 수 있으며, 새로운 분석은 그 bottleneck의 필요성, 충분성, 그리고 brain 쪽의 보완적 정보를 직접 검증한다.
+> 두 독립적인 video/brain foundation model의 compact한 교집합은 cortex 전체에 균일하게 복제되지 않으며, perceptual system의 shared video information에서 transmodal cortex의 video-unexplained fine-grained affective information으로 이어지는 계층적 변환을 검증한다.

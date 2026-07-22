@@ -1,5 +1,11 @@
 # CCN_Emotion Project Instructions
 
+> **Validity gate (2026-07-21):** Legacy Brain-JEPA embeddings used a mean of 10
+> fixed temporal sin/cos codes for a one-patch input. Treat all Brain-JEPA-dependent
+> claims in this file as historical/provisional until the corrected frozen and
+> cross-encoder analyses in `study1/code/brain_encoder_validation/` finish. Direct
+> raw-BOLD content-affect partitioning is unaffected.
+
 ## Project Identity
 
 CCN_Emotion is the project behind the **CCN 2026 accepted abstract**
@@ -18,7 +24,7 @@ The two projects are complementary, not redundant. CCN_Emotion narrows in on the
 
 ---
 
-## Folder Structure (confirmed 2026-05-26)
+## Folder Structure (reorganized 2026-07-21)
 
 ```
 CCN_Emotion/
@@ -40,14 +46,24 @@ CCN_Emotion/
 │       ├── semantic_features.csv
 │       └── vision_features.csv
 ├── logs/                            ← project-wide SLURM logs
-├── study1/                          ← MAIN PAPER: V-JEPA2 brain-predictable subspace
-│   ├── code/                        ← .py + .sh + .md (each .py has a .md)
+├── study1/                          ← MAIN POSTER/PAPER WORKSTREAM
+│   ├── README.md
+│   ├── code/
+│   │   ├── shared_alignment/        ← supporting shared-channel screen
+│   │   ├── affective_characterization/ ← 34D and A/V functional probes
+│   │   ├── cortical_transformation/ ← primary LOSO cortical analysis
+│   │   ├── content_affect_partition/ ← no-PCA content and affect controls
+│   │   └── archive/                 ← legacy, robustness, figures, extraction
+│   ├── data/
+│   │   ├── shared_alignment/
+│   │   ├── affective_characterization/
 │   │   └── archive/
-│   │       └── superseded_root/     ← old V-JEPA2-vs-CLIP CKA workstream
-│   ├── data/                        ← intermediate RSMs, PC projections, ridge weights
+│   ├── archive/reports/             ← dated RESULTS_EXP notes
 │   ├── logs/
-│   └── results/                     ← figures, npz outputs
-│       └── figures/
+│   └── results/
+│       ├── accepted_abstract/
+│       ├── cortical_transformation/
+│       └── archive/legacy_figures/
 └── study2_thesis/                   ← parallel thesis workstream
     ├── code/, data/, results/, logs/, storyline/, reference/, figures/
 ```
@@ -57,6 +73,8 @@ CCN_Emotion/
 - Scripts must live in `study{N}/code/`. No scripts at repo root.
 - Every new `.py` must have a matching `{script_name}.md` next to it documenting purpose, inputs, outputs, parameters.
 - Every new `.py` must have a matching `{script_name}.sh` SLURM submission script.
+- Active scripts use scientific names, not experiment numbers. Do not add new `expXX` or numbered scripts.
+- Active code must not import from `study1/code/archive/`.
 - `data/raw/` = raw inputs only. Never write derived data here.
 - `study{N}/data/` = intermediate processed data (RSMs, PCs, predictions).
 - `study{N}/results/` = final analysis outputs (figures, tables, .npz with statistical tests).
@@ -65,7 +83,21 @@ CCN_Emotion/
 
 ---
 
-## Current Narrative (confirmed 2026-05-26)
+## Current Poster Narrative (updated 2026-07-21)
+
+Primary question:
+
+> **How does the cortical hierarchy transform video-foundation-model representations into affective brain representations?**
+
+The shared V-JEPA2/Brain-JEPA subspace is now a method for estimating cross-domain information, not the final scientific endpoint. The primary analysis maps where this shared channel predicts raw BOLD and where continuous fine-grained affective profiles explain complementary variance beyond shared and full-video representations.
+
+Target claim, only if supported by held-out subject and stimulus analyses:
+
+> Shared video-brain information is expressed preferentially in perceptual systems, whereas video-unexplained fine-grained affective information increases toward transmodal cortex.
+
+See `notes/poster_update_visual_semantic_subspace.md` for the poster specification and `notes/long_term_research_roadmap.md` for the research program.
+
+## Accepted Abstract Narrative (historical baseline, 2026-05-26)
 
 The core finding of the CCN paper is that **a compact subspace (3 PCs) of V-JEPA2 video representations is linearly predictable from Brain-JEPA fMRI representations, and this subspace carries categorical emotion structure better than dimensional (V-A) structure (ratio 1.44 vs 1.26 in the full V-JEPA2 space, stable across 5 subjects).**
 
@@ -248,4 +280,4 @@ Camera-ready work plan: see `notes/camera_ready_plan.md` (to be drafted after re
 - Accepted PDF: moved to `Paper/ccn2026_accepted.pdf`.
 - `CowenEmotionVideos.zip` (1.7GB redundant with unzipped `videos/`): moved to `data/raw/` and may be deleted after verification.
 
-The old V-JEPA2-vs-CLIP CKA results (in `study1/code/archive/superseded_root/`) are **not** the CCN 2026 paper. The CCN paper is the brain-predictable subspace analysis, currently spread across `study1/code/` (scripts 01-28) and `study1/data/` + `study1/results/figures/`.
+The old V-JEPA2-vs-CLIP CKA results are **not** the CCN 2026 paper. Historical numbered analyses now live under `study1/code/archive/`; active work is limited to the three named modules documented in `study1/README.md`.

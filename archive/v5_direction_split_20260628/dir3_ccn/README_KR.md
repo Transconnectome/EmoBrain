@@ -1,5 +1,12 @@
 # CCN_Emotion
 
+> **2026-07-21 타당성 메모:** 기존 Brain-JEPA 추출은 16-TR 입력에 맞추는
+> 과정에서 10개의 고정 temporal sin/cos code를 평균했다. 아래의
+> Brain-JEPA 의존 결과는 corrected frozen extraction과 SwiFT/NeuroSTORM 재현이
+> 끝날 때까지 historical/provisional이다. V-JEPA2와 visual-semantic feature를
+> 직접 통제하는 raw-BOLD 분석은 영향을 받지 않는다. `STATUS.md`와
+> `study1/code/brain_encoder_validation/`을 참고한다.
+
 **자기지도 비디오 모델의 brain-predictable 부분공간에서의 fine-grained emotion structure.**
 
 CCN 2026 accepted poster (Moon, 2026년 8월, 뉴욕). Camera-ready 마감 2026-06-11 AoE.
@@ -10,11 +17,13 @@ CCN 2026 accepted poster (Moon, 2026년 8월, 뉴욕). Camera-ready 마감 2026-
 
 현재 포스터 개발의 중심 framing 은 `notes/poster_update_visual_semantic_subspace.md` 에 정리.
 
-**Working title.** *The Brain's Emotion Geometry Is Grounded in What Is Seen and Understood*
+**Working title.** *From Shared Video Features to Affective Brain Geometry Across the Cortical Hierarchy*
 
-**Core claim.** 감정 영상에 대한 뇌 표상은 단순한 arousal-valence 축보다, 영상의 시각적·의미적 내용이 만들어내는 fine-grained emotion structure 와 더 잘 맞는다. 즉 감정 category 는 독립적인 hard label 이라기보다, visual-semantic content 가 압축된 고차원 profile 로 보는 게 더 설명력이 있다.
+**Research question.** Video foundation model 과 brain foundation model 이 공유하는 정보는 cortex 어디에 나타나며, video representation 으로 설명되지 않는 fine-grained affective information 은 cortical hierarchy 어디에서 추가되는가?
 
-이 업데이트는 EmoViS 의 across-model visual-semantic grounding 결과를 넓은 배경으로 쓰되, CCN 의 핵심인 **V-JEPA2 brain-aligned subspace** 를 포스터의 중심 mechanism 으로 유지한다. 따라서 이 포스터는 "EmoViS 확장판" 이 아니라, **brain 이 V-JEPA2 내부의 어떤 compact visual subspace 를 읽고, 그 subspace 가 왜 fine-grained emotion profile 을 보존하는가**를 묻는 CCN subspace poster 로 유지한다.
+**Target claim.** Cortex 는 video foundation model 을 균일하게 복제하지 않는다. Shared video-brain information 은 perceptual system 에서, 그 정보만으로 설명되지 않는 fine-grained affective variance 는 transmodal cortex 에서 상대적으로 증가하는지를 검증한다.
+
+Subspace 는 scientific finding 자체가 아니라 cross-domain information 을 추정하는 도구다. 34 emotion score 는 hard category 가 아니라 continuous high-dimensional profile 로 사용한다. 세부 분석은 `notes/poster_update_visual_semantic_subspace.md`, 장기 발전 방향은 `notes/long_term_research_roadmap.md`에 정리되어 있다.
 
 ---
 
@@ -138,14 +147,20 @@ CCN_Emotion/
 │       ├── semantic_features.csv
 │       └── vision_features.csv
 ├── logs/                        프로젝트 공통 SLURM 로그
-├── study1/                      메인 페이퍼: V-JEPA2 brain-predictable subspace
-│   ├── code/                    active 스크립트 12 개 + RESULTS_EXP*.md + experiment spec
-│   │   └── archive/             figure generator + superseded 탐색 스크립트
-│   │       ├── README.md        archive 안에 뭐가 왜 있는지
-│   │       └── extraction_infra/  재사용 가능한 추출/로더 스크립트
-│   ├── data/                    중간 RSM, PC projection, ridge weight
+├── study1/                      메인 포스터/페이퍼 워크스트림
+│   ├── README.md                active pipeline 진입점
+│   ├── code/
+│   │   ├── shared_alignment/
+│   │   ├── affective_characterization/
+│   │   ├── cortical_transformation/
+│   │   └── archive/             legacy/robustness/figure/extraction
+│   ├── data/                    module별 intermediate + archive
+│   ├── archive/reports/         과거 RESULTS_EXP 문서
 │   ├── logs/
-│   └── results/figures/         51 개 figure (paper Fig 1-2 + exp14-19 supplementary)
+│   └── results/
+│       ├── accepted_abstract/
+│       ├── cortical_transformation/
+│       └── archive/legacy_figures/
 └── study2_thesis/               평행 thesis chapter 워크스트림 (별도 scope)
     ├── code/                    ch1, ch2 분석 (Glasser parcellation, ROI decoding, gradient, VP)
     ├── data/, results/, figures/, logs/, reference/, storyline/
@@ -164,7 +179,7 @@ CCN_Emotion/
 재구성:
 - 워크스트림 B → `study1/` (CCN 페이퍼).
 - 워크스트림 C → `study2_thesis/`.
-- 워크스트림 A 분석 스크립트 + 파생 결과 ~226 MB (`cka_results/`, `subject_blocks/`, `raw_fmri_outputs/`, 옛 `figures/`) → 사용자 지시로 삭제. 워크스트림 A 의 추출 인프라 (V-JEPA2 다운로드, embedding 추출, CLIP 추출, layer-wise 추출) 는 재사용 가치 있어서 `study1/code/archive/extraction_infra/` 에 보존.
+- 워크스트림 A 분석 스크립트 + 파생 결과 ~226 MB (`cka_results/`, `subject_blocks/`, `raw_fmri_outputs/`, 옛 `figures/`)는 사용자 지시로 삭제. 재사용 가능한 추출 인프라는 `study1/code/archive/extraction/`에 보존.
 - Raw 입력 `data/raw/` 로 통합.
 - Accept 된 PDF → `Paper/ccn2026_accepted.pdf`.
 - One-time metadata helper 와 `CowenEmotionVideos.zip` (1.7 GB, unzip 된 `videos/` 와 중복) → 삭제.

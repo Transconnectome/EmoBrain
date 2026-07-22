@@ -1,6 +1,6 @@
-# Exp 29 — M1 brain-aligned subspace (generic, all models)
+# Shared Alignment
 
-**Role**: M1 of M1/M2/M3 framework. Brain-aligned PC identification, applicable to any video model.
+**Role**: Identify model dimensions recoverable from Brain-JEPA. This is shared-channel discovery, not a standalone emotion claim.
 
 ## What it does
 
@@ -34,20 +34,20 @@ videomae_pretrained videomae_scratch
 
 ```bash
 # V-JEPA2 primary
-sbatch 29_m1_brain_alignment.sh vjepa2_pretrained
+sbatch run_shared_alignment.sh vjepa2_pretrained
 
 # CLIP primary
-sbatch 29_m1_brain_alignment.sh clip_pretrained
+sbatch run_shared_alignment.sh clip_pretrained
 
 # Pillar 3 baselines (architecture comparison)
-sbatch 29_m1_brain_alignment.sh vjepa2_scratch
-sbatch 29_m1_brain_alignment.sh dinov2_pretrained
-sbatch 29_m1_brain_alignment.sh videomae_pretrained
+sbatch run_shared_alignment.sh vjepa2_scratch
+sbatch run_shared_alignment.sh dinov2_pretrained
+sbatch run_shared_alignment.sh videomae_pretrained
 ```
 
 ## Output
 
-`study1/data/exp29_m1_brain_alignment_{model}.npz` with per-CV-variant:
+`study1/data/shared_alignment/brain_alignment_{model}.npz` with per-CV-variant:
 - `{cv}_r2_raw`, `{cv}_r2_clipped` — observed R²
 - `{cv}_pearson_r`, `{cv}_spearman_r`
 - `{cv}_p_raw`, `{cv}_p_clip` — permutation p-values

@@ -1,6 +1,6 @@
-# Exp 30 — M2 emotion-encoding subspace (generic, all models)
+# Affective Characterization
 
-**Role**: M2 of M1/M2/M3 framework. Emotion-encoding PC identification, applicable to any video model.
+**Role**: Characterize video-model dimensions with continuous fine-grained emotion profiles and broad affective dimensions.
 
 ## What it does
 
@@ -32,23 +32,24 @@ Metrics per PC:
 ## Inputs
 
 - `data/raw/video_embeddings/emovis_{model}.npy` (2185, *)
-- `data/raw/raw_fmri/horikawa_meta_data_with_dimension_binary.csv` for emotion ratings (sliced to 2185)
+- `data/raw/feature/categcontinuous.mat` for the continuous 34D emotion profile
+- `data/raw/feature/dimension.mat` for arousal and valence
 
 ## Usage
 
 ```bash
-sbatch 30_m2_emotion_encoding.sh vjepa2_pretrained
-sbatch 30_m2_emotion_encoding.sh clip_pretrained
-sbatch 30_m2_emotion_encoding.sh dinov2_pretrained
-sbatch 30_m2_emotion_encoding.sh videomae_pretrained
+sbatch run_affective_characterization.sh vjepa2_pretrained
+sbatch run_affective_characterization.sh clip_pretrained
+sbatch run_affective_characterization.sh dinov2_pretrained
+sbatch run_affective_characterization.sh videomae_pretrained
 # Pillar 3 baselines:
-sbatch 30_m2_emotion_encoding.sh vjepa2_scratch
-sbatch 30_m2_emotion_encoding.sh clip_scratch
+sbatch run_affective_characterization.sh vjepa2_scratch
+sbatch run_affective_characterization.sh clip_scratch
 ```
 
 ## Output
 
-`study1/data/exp30_m2_emotion_encoding_{model}.npz` with:
+`study1/data/affective_characterization/affective_characterization_{model}.npz` with:
 - `cont_*` — 7 continuous metrics × 100 PCs × 36 targets
 - `cat_*` — 8 categorical metrics × 100 PCs
 - `cat_mean_r2`, `av_mean_r2` — per-PC mean R² for emotion categories vs arousal-valence
@@ -59,7 +60,7 @@ sbatch 30_m2_emotion_encoding.sh clip_scratch
 For each PC, multiple measures of "how much emotion info is in this PC."
 Top emotion-encoding PCs by `top1_acc` or `auc_ovr_macro` define the **emotion-encoding subspace (M2)**.
 
-Comparison with M1 (Exp 29) brain-aligned PCs → M3 overlap (Exp 32).
+Compare these profiles with the shared-alignment output for descriptive screening. The active cortical-transformation module performs its own leakage-controlled shared-space analysis.
 
 ## Expected pattern from EmoBrain
 

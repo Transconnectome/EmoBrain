@@ -1,5 +1,5 @@
 """
-Exp 30 (refactored) — M2 emotion-encoding subspace (generic, any model).
+Affective-characterization module for video-model dimensions.
 
 For a given video model PC, measure how well it encodes emotion ratings:
   - Continuous regression on 34 category scores + arousal + valence
@@ -11,8 +11,8 @@ For a given video model PC, measure how well it encodes emotion ratings:
 Stimulus: 2185 canonical.
 
 Usage:
-  python 30_m2_emotion_encoding.py --model vjepa2_pretrained
-  python 30_m2_emotion_encoding.py --model clip_pretrained
+  python run_affective_characterization.py --model vjepa2_pretrained
+  python run_affective_characterization.py --model clip_pretrained
   ...
 """
 
@@ -29,8 +29,8 @@ from sklearn.metrics import (
     mean_absolute_error, mean_squared_error, explained_variance_score, r2_score,
 )
 from sklearn.decomposition import PCA
+import scipy.io as sio
 from scipy.stats import pearsonr, spearmanr
-import pandas as pd
 from pathlib import Path
 
 warnings.filterwarnings('ignore', category=UserWarning)
@@ -40,19 +40,28 @@ N_STIM = 2185
 N_PC = 100
 SEED = 42
 
-EMBED_DIR = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/data/raw/video_embeddings")
-META_PATH = Path("/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/horikawa_meta_data_with_dimension_binary.csv")
-OUTPUT_DIR = Path("/pscratch/sd/s/sjmoon/EmoBrain/project/dir3_ccn/study1/data")
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+def find_project_root():
+    for candidate in Path(__file__).resolve().parents:
+        if (candidate / "CLAUDE.md").is_file() and (candidate / "study1").is_dir():
+            return candidate
+    raise RuntimeError("Could not locate the CCN project root")
 
-EMOTION_LABELS = [
-    'Admiration', 'Adoration', 'Aesthetic appreciation', 'Amusement', 'Anger',
-    'Anxiety', 'Awe', 'Awkwardness', 'Boredom', 'Calmness', 'Confusion',
-    'Contempt', 'Craving', 'Disgust', 'Empathic pain', 'Entrancement',
-    'Excitement', 'Fear', 'Horror', 'Interest', 'Joy', 'Nostalgia', 'Relief',
-    'Romance', 'Sadness', 'Satisfaction', 'Sexual desire', 'Surprise',
-    'Sympathy', 'Triumph', 'Uncomfortable', 'Annoyance', 'Envy', 'Guilt'
-]
+
+def load_feature(root, name):
+    obj = sio.loadmat(
+        root / "data/raw/feature" / f"{name}.mat",
+        squeeze_me=True,
+        struct_as_record=False,
+    )["L"]
+    values = np.asarray(obj.feat, dtype=np.float64)[:N_STIM]
+    labels = [str(label).replace("_", " ") for label in np.asarray(obj.featname).tolist()]
+    return values, labels
+
+
+ROOT = find_project_root()
+EMBED_DIR = ROOT / "data/raw/video_embeddings"
+OUTPUT_DIR = ROOT / "study1/data/affective_characterization"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 MODEL_PATHS = {
     'vjepa2_pretrained':  'emovis_vjepa2_pretrained.npy',
@@ -70,18 +79,16 @@ def main():
     ap.add_argument('--model', required=True, choices=list(MODEL_PATHS.keys()))
     args = ap.parse_args()
 
-    print(f"=== Exp 30 M2 emotion encoding: model={args.model}, n_stim={N_STIM}, n_pc={N_PC} ===\n")
+    print(f"=== Affective characterization: model={args.model}, n_stim={N_STIM}, n_pc={N_PC} ===\n")
 
     # Load
     print("Loading data...")
     embed = np.load(EMBED_DIR / MODEL_PATHS[args.model]).astype(np.float64)
-    meta = pd.read_csv(META_PATH)
-    meta['stim_idx'] = meta['stimulus_num'].str.extract(r'(\d+)').astype(int) - 1
-    meta = meta.sort_values('stim_idx').reset_index(drop=True)
-    score_cols = [f"score_{i}" for i in range(34)]
-    emotion_scores = meta[score_cols].values.astype(np.float64)
-    arousal = meta['arousal_score'].values.astype(np.float64)
-    valence = meta['valence_score'].values.astype(np.float64)
+    emotion_scores, emotion_labels = load_feature(ROOT, "categcontinuous")
+    dimensions, dimension_labels = load_feature(ROOT, "dimension")
+    dimension_lookup = {name.lower(): i for i, name in enumerate(dimension_labels)}
+    arousal = dimensions[:, dimension_lookup["arousal"]]
+    valence = dimensions[:, dimension_lookup["valence"]]
 
     # Slice to 2185 canonical
     if embed.shape[0] > N_STIM:
@@ -104,7 +111,7 @@ def main():
     cv = KFold(n_splits=5, shuffle=True, random_state=SEED)
     n_targets = 36
     all_targets = np.column_stack([emotion_scores, arousal, valence])
-    target_names = EMOTION_LABELS + ['Arousal', 'Valence']
+    target_names = emotion_labels + ['Arousal', 'Valence']
 
     cont = {k: np.zeros((N_PC, n_targets)) for k in
             ['r2_raw', 'r2_clipped', 'pearson_r', 'spearman_r', 'mae', 'rmse', 'explained_variance']}
@@ -134,7 +141,7 @@ def main():
             print(f"  PC{k+1}: cat R²={cr:.4f} (Pearson={cp:.4f}), AV R²={ar:.4f}")
 
     # Save intermediate
-    np.savez(OUTPUT_DIR / f'exp30_cont_intermediate_{args.model}.npz', **cont)
+    np.savez(OUTPUT_DIR / f'continuous_metrics_{args.model}.npz', **cont)
     print(f"  Intermediate continuous saved.")
 
     # ── Categorical decoding ─────────────────────────────────────────────────
@@ -221,7 +228,7 @@ def main():
         'cumulative_variance': pca.explained_variance_ratio_.cumsum(),
         'pcs': pcs,
     }
-    out_path = OUTPUT_DIR / f'exp30_m2_emotion_encoding_{args.model}.npz'
+    out_path = OUTPUT_DIR / f'affective_characterization_{args.model}.npz'
     np.savez(out_path, **save_dict)
     print(f"\nSaved → {out_path}\nDone.")
 

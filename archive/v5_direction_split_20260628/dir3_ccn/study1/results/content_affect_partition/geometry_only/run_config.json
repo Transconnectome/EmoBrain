@@ -1,0 +1,19 @@
+{
+  "n_stim": 2185,
+  "n_parcels": 400,
+  "n_folds": 5,
+  "alphas": [
+    0.01,
+    0.1,
+    1.0,
+    10.0
+  ],
+  "inner_fraction": 0.2,
+  "seed": 42,
+  "output_dir": "/pscratch/sd/s/sjmoon/EmoBrain/archive/v5_direction_split_20260628/dir3_ccn/study1/results/content_affect_partition/geometry_only",
+  "schaefer_atlas": null,
+  "skip_brain_figure": false,
+  "geometry_only": true,
+  "smoke": false,
+  "root": "/pscratch/sd/s/sjmoon/EmoBrain/archive/v5_direction_split_20260628/dir3_ccn"
+}

@@ -1,12 +1,25 @@
 # CCN_Emotion
 
+> **2026-07-21 validity note:** The legacy Brain-JEPA extraction averaged 10 fixed
+> temporal sin/cos codes into one for a 16-TR input. Brain-JEPA-dependent findings
+> below are historical/provisional until corrected frozen extraction and
+> SwiFT/NeuroSTORM replication are complete. Raw-BOLD analyses conditioned directly
+> on V-JEPA2 and visual-semantic features are unaffected. See `STATUS.md` and
+> `study1/code/brain_encoder_validation/`.
+
 **Fine-grained emotion structure in the brain-predictable subspace of a self-supervised video model.**
 
 CCN 2026 accepted poster (Moon, August 2026, New York). Camera-ready deadline 2026-06-11 AoE.
 
 ---
 
-## Central positioning (locked 2026-05-26)
+## Current poster direction (2026-07-21)
+
+> **How does the cortical hierarchy transform video-foundation-model representations into affective brain representations?**
+
+The shared V-JEPA2/Brain-JEPA subspace is an estimator of cross-domain information. The primary poster analysis localizes that shared channel in raw BOLD and tests where continuous fine-grained affective profiles add variance beyond shared and full-video representations. See `notes/poster_update_visual_semantic_subspace.md` and `notes/long_term_research_roadmap.md`.
+
+## Accepted-abstract positioning (historical, 2026-05-26)
 
 **Brain validation of the affectless machines hypothesis** (Conwell et al., 2025; Bao et al., 2024).
 
@@ -126,14 +139,17 @@ CCN_Emotion/
 │       ├── semantic_features.csv
 │       └── vision_features.csv
 ├── logs/                        project-wide SLURM logs
-├── study1/                      main paper: V-JEPA2 brain-predictable subspace
-│   ├── code/                    12 active scripts + RESULTS_EXP*.md + experiment specs
-│   │   └── archive/             figure generators + superseded exploratory scripts
-│   │       ├── README.md        what is in archive and why
-│   │       └── extraction_infra/  reusable extraction/loader scripts
-│   ├── data/                    intermediate RSMs, PC projections, ridge weights
+├── study1/                      main poster/paper workstream
+│   ├── README.md                active pipeline overview
+│   ├── code/
+│   │   ├── shared_alignment/
+│   │   ├── affective_characterization/
+│   │   ├── cortical_transformation/
+│   │   └── archive/             legacy, robustness, figures, extraction
+│   ├── data/                    module outputs + archived intermediates
+│   ├── archive/reports/         historical result reports
 │   ├── logs/
-│   └── results/figures/         51 figures (paper Figs 1-2 + exp14-19 supplementary)
+│   └── results/                 accepted abstract, cortical analysis, archive
 └── study2_thesis/               parallel thesis chapter workstream (separate scope)
     ├── code/                    ch1, ch2 analyses (Glasser parcellation, ROI decoding, gradient, VP)
     ├── data/, results/, figures/, logs/, reference/, storyline/
@@ -152,7 +168,7 @@ Before this date the directory had three workstreams tangled at the root:
 Reorganization:
 - Workstream B → `study1/` (this is the CCN paper).
 - Workstream C → `study2_thesis/`.
-- Workstream A analysis scripts and ~226 MB of derived outputs (`cka_results/`, `subject_blocks/`, `raw_fmri_outputs/`, old `figures/`) → deleted on user instruction. Workstream A's extraction infrastructure (V-JEPA2 download, embedding extraction, CLIP extraction, layer-wise extraction) → kept under `study1/code/archive/extraction_infra/` for reuse.
+- Workstream A analysis scripts and ~226 MB of derived outputs (`cka_results/`, `subject_blocks/`, `raw_fmri_outputs/`, old `figures/`) were deleted on user instruction. Reusable extraction utilities are retained under `study1/code/archive/extraction/`.
 - Raw inputs consolidated under `data/raw/`.
 - Accepted PDF → `Paper/ccn2026_accepted.pdf`.
 - One-time metadata helpers and the `CowenEmotionVideos.zip` (1.7 GB redundant copy of the unzipped `videos/`) → deleted.

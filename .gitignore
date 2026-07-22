@@ -143,3 +143,43 @@ archive/**
 !archive/.gitkeep
 !archive/**/STATUS.md
 !archive/**/.gitkeep
+
+# CCN is an active subproject inside archive. Track its source, documentation,
+# and derived result summaries while keeping raw/model data and runtime outputs
+# local. These exceptions come after the broad archive rule above.
+!archive/v5_direction_split_20260628/
+!archive/v5_direction_split_20260628/dir3_ccn/
+!archive/v5_direction_split_20260628/dir3_ccn/*.md
+!archive/v5_direction_split_20260628/dir3_ccn/Paper/
+!archive/v5_direction_split_20260628/dir3_ccn/Paper/**
+!archive/v5_direction_split_20260628/dir3_ccn/notes/
+!archive/v5_direction_split_20260628/dir3_ccn/notes/**
+!archive/v5_direction_split_20260628/dir3_ccn/code/
+!archive/v5_direction_split_20260628/dir3_ccn/code/**
+!archive/v5_direction_split_20260628/dir3_ccn/study1/
+!archive/v5_direction_split_20260628/dir3_ccn/study1/code/
+!archive/v5_direction_split_20260628/dir3_ccn/study1/code/**
+!archive/v5_direction_split_20260628/dir3_ccn/study1/results/
+!archive/v5_direction_split_20260628/dir3_ccn/study1/results/**
+!archive/v5_direction_split_20260628/dir3_ccn/study1/archive/
+!archive/v5_direction_split_20260628/dir3_ccn/study1/archive/**
+!archive/v5_direction_split_20260628/dir3_ccn/study2_thesis/
+!archive/v5_direction_split_20260628/dir3_ccn/study2_thesis/code/
+!archive/v5_direction_split_20260628/dir3_ccn/study2_thesis/code/**
+!archive/v5_direction_split_20260628/dir3_ccn/study2_thesis/figures/
+!archive/v5_direction_split_20260628/dir3_ccn/study2_thesis/figures/**
+!archive/v5_direction_split_20260628/dir3_ccn/study2_thesis/results/
+!archive/v5_direction_split_20260628/dir3_ccn/study2_thesis/results/**
+!archive/v5_direction_split_20260628/dir3_ccn/study2_thesis/storyline/
+!archive/v5_direction_split_20260628/dir3_ccn/study2_thesis/storyline/**
+
+# CCN-local exclusions re-applied after the exceptions above.
+archive/v5_direction_split_20260628/dir3_ccn/**/__pycache__/
+archive/v5_direction_split_20260628/dir3_ccn/**/runtime_cache/
+archive/v5_direction_split_20260628/dir3_ccn/**/logs/
+archive/v5_direction_split_20260628/dir3_ccn/**/output_*/
+archive/v5_direction_split_20260628/dir3_ccn/**/smoke/
+archive/v5_direction_split_20260628/dir3_ccn/**/*.pyc
+archive/v5_direction_split_20260628/dir3_ccn/**/*.pt
+archive/v5_direction_split_20260628/dir3_ccn/**/*.pth
+archive/v5_direction_split_20260628/dir3_ccn/**/*.ckpt

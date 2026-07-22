@@ -1,0 +1,19 @@
+{
+  "n_stim": 2185,
+  "n_parcels": 400,
+  "n_folds": 5,
+  "alphas": [
+    0.01,
+    0.1,
+    1.0,
+    10.0
+  ],
+  "inner_fraction": 0.2,
+  "seed": 42,
+  "output_dir": "/pscratch/sd/s/sjmoon/EmoBrain/archive/v5_direction_split_20260628/dir3_ccn/study1/results/content_affect_partition",
+  "schaefer_atlas": "/global/homes/s/sjmoon/nilearn_data/schaefer_2018/Schaefer2018_400Parcels_7Networks_order_FSLMNI152_2mm.nii.gz",
+  "skip_brain_figure": false,
+  "geometry_only": false,
+  "smoke": false,
+  "root": "/pscratch/sd/s/sjmoon/EmoBrain/archive/v5_direction_split_20260628/dir3_ccn"
+}
