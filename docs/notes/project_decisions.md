@@ -23,6 +23,8 @@ Decision 기록은 시간순. 가장 최신이 위.
 
 **점검 결과 (2026-07-21, RESOLVED).** SwiFT / NeuroSTORM 은 **동일 문제 없음. Brain-JEPA 고유.** 둘 다 NUM_FRAMES=20 이고 checkpoint 가 SL20 (sequence length 20) 사전학습 이라 **입력 길이 = 사전학습 길이 일치**. `load_pretrained` 가 `strict=False` state_dict 로드 만 (module. prefix 처리, 위치 임베딩 reshape/평균/interpolate 없음). 즉 seq-length mismatch weight surgery 는 Brain-JEPA 만. 공통 caveat 는 자극 ~6 TR → 16/20 padding (데이터 한계, spatial_only 통제 로 시간 기여 분리 됨) 이지 weight 수술 아님.
 
+**심각도 하향 정정 (2026-07-21, checkpoint emb_h 실측 후).** 앞 "significant confound" 는 과장. emb_h (4500,384) 실측 결과 **주기 10 = 순수 시간 위치 임베딩, 450 ROI 에 동일 복제** (450 축 std=0, 10 개 시간 위치 는 cos 1.0→0.70 으로 구별됨). 즉 emb_h 에 ROI/gradient positioning 정보 없음 → 평균 이 ROI 공간 구조 를 파괴 하지 않음 (이전 서술 오류 정정). 우리 입력 은 1 time patch 라 모든 토큰 이 같은 시간 → 원래 도 같은 시간 임베딩 받아야 함. 평균 은 "10 개 중 어느 시간 위치" 선택 을 centroid 로 한 것 이고, 전 토큰 공유 상수 라 LayerNorm 후 상당 상쇄. **pos_embed 평균 자체 영향 = 작음.** frozen-BJ 저성능 의 실제 주원인 순위 = (1) ROI 기질(ridge 천장), (2) 도메인 불일치(resting vs task), (3) 설계 시간길이 미달(6 TR vs 160), (4) pos_embed 평균(작음). 진짜 문제 는 수술 이 아니라 **6 TR 로는 BJ 의 긴-시간 강점 을 못 씀** (데이터 한계). finetune 으로 pos_embed 고쳐도 6 TR 입력 이라 BJ 시간 표현 은 안 살아남 → "ROI 먹는 pretrained ViT 튜닝" 에 수렴. BJ 강점 살리려면 자극 이어붙여 진짜 긴 시퀀스 필요 (데이터 연속성 확인 선행).
+
 **결론 재고 (finetune 투자 대상).** 이 발견 으로 finetune 1 순위 를 Brain-JEPA → **SwiFT 로 이동 고려.** 근거. (a) SwiFT = whole-brain volume = 아직 미검증 공간 해상도 축 (Brain-JEPA 는 450 ROI = ridge 기질 에 묶임). (b) SwiFT seq-length 정합 (BJ 는 160 vs 16 설계 충돌). (c) SwiFT frozen 결과 는 confound 없음. 단 SwiFT finetune 은 volume in-loop 이라 무거움. Brain-JEPA finetune 은 pos_embed 재학습 으로 수술 confound 를 제거 하는 의미 는 있음. 최종 선택 은 사용자 결정 대기.
 
 ---
