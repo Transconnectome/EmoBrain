@@ -1,5 +1,11 @@
 # EmoBrain Build Log
 
+> **참고 (2026-08-19 문서 정리).** 이 로그는 append-only 역사 기록이다. 아래 옛 항목들이
+> 가리키는 문서 상당수(`direction_v6_labelquery_*`, `implementation_spec_*`, `ONBOARDING.md`,
+> `ACTION_PLAN.md`, `Paper/*`, `architecture_design_*`, `report_0707.md` 등)는
+> **`docs/archive/` 로 이동**했다. 경로만 바뀌었고 내용은 그대로다. 현행 논증은
+> `docs/paper_logic_merged.md`.
+
 각 코드 사이클 완료 (파일 구현 + sanity 통과) 시 상단 append.
 결정 사항 은 `project_decisions.md` 별도.
 
@@ -14,6 +20,20 @@ Spec §12 build order 기준.
 8. eval 확장
 
 ---
+
+## 2026-08-17. Cycle 26. LLM-free label-query decoder + pivot grounding
+
+**What.** LLM backbone 제거 pivot 의 코드 본체 구현 + reference grounding. 상세 결정 = decisions 2026-08-17, 방향 = `docs/direction_v6_labelquery_20260817.md`.
+
+**Files.**
+- `project/code/decoder/label_query_decoder.py` — `LabelQueryDecoder`. N 감정 query(semantic-init 지원, 학습가능) → nn.TransformerDecoder(self-attn 감정관계 + cross-attn brain+video+caption 통합) → 공유 Linear(D→1) → per-emotion log1p_z. brain=per-ROI token(value+ROI pos), video/caption=modality-type embed. ~3.8M param.
+- `project/scripts/train_label_query.py` + `.sh` — brain-only + 3-modal 학습, ridge0.294/cheap0.533/LLM0.553 head-to-head. (random-init query 버전; semantic-init·dropout·consistency·masking 은 grounding 반영해 추가 예정.)
+- `project/scripts/cheap_fusion_and_floor.py` + `.sh` — Arm A 결과: floor 0.002, ridge_brain 0.294, brain-shuffle 0.002(leakage 없음), stimulus 0.493, mlp_fusion 0.533, brain marginal +0.028.
+- `docs/reference/label_query_pivot_grounding.md` — Query2Label/C-Tran/DETR, LUPI, supramodal 감정, cross-dataset landscape, appraisal>labels 역풍 검증.
+
+**Sanity.** CPU stub smoke 통과 — brain-only/3-modal/semantic-init/가변라벨(15) 전부 정상 shape, grad 흐름 OK, 기존 pooled(A) 경로 무회귀. train_label_query 2-epoch end-to-end smoke 통과(GPU).
+
+**남음.** decoder 에 (1) semantic-init(감정단어 임베딩), (2) modality dropout, (3) cross-modal 일관성, (4) label masking 추가해 학습전략 마감 → same-dataset sanity(ridge 0.294 넘기) → cross-taxonomy 전이.
 
 ## 2026-07-13. Cycle 22. 스펙 1-3 Acceptance 감사 + Horikawa 전처리 QC/QA
 

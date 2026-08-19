@@ -1,4 +1,4 @@
-# FEEL Scripts
+# EmoBrain Scripts
 
 Scripts here support project operations across the repository. Initial runnable
 experiments should live under `project/shared/code/`.
@@ -8,7 +8,7 @@ experiments should live under `project/shared/code/`.
 | Script | Purpose |
 |---|---|
 | `check_md_completeness.py` | checks required docs, old broken references, dataset entry fields, and trigger/workflow presence |
-| `build_project_status.py` | writes `docs/reports/status/PROJECT_STATUS.md` from git/docs state |
+| `build_project_status.py` | (미사용) 옛 `docs/reports/status/PROJECT_STATUS.md` 생성기. 그 산출물은 2026-08-19 정리에서 삭제됨 |
 | `generate_experiment_cards.py` | creates experiment-card skeletons from templates |
 
 Runnable setup/experiment scripts live in `project/shared/code/`, not here.

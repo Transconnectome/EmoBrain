@@ -1,6 +1,6 @@
 # Red-Team / Blue-Team Review Workflow
 
-Purpose: stress-test FEEL claims, model plans, and experiment designs
+Purpose: stress-test EmoBrain claims, model plans, and experiment designs
 before they become project narrative.
 
 ## Reviewer Personas
@@ -24,7 +24,7 @@ before they become project narrative.
    - rewrite the claim,
    - add missing experiment or citation,
    - downgrade overclaim when evidence is not available.
-4. Record outcome using `docs/templates/review_card.md`.
+4. Record outcome using `docs/archive/templates/review_card.md`.
 5. Update canonical docs only after the review changes the project direction.
 
 ## Output Format

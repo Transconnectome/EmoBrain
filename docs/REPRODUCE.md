@@ -1,3 +1,13 @@
+> ⚠️ **부분적으로 역사 기록이다. 읽기 전에 확인할 것.**
+>
+> **유효한 부분** — §0 외부 선행조건, §1 전처리(원시 BOLD → ROI time-series), §2 라벨·분할·정규화,
+> §3 BFM 임베딩 추출, Brain-JEPA `emb_h` forensic 결론, Known gaps. 데이터 파이프라인은 그대로다.
+>
+> **폐기된 부분** — §4 의 **Track A / Track B Qwen3-VL 학습 경로.** LLM backbone 은
+> `CLAUDE.md` 가 금지한다. 현행 canonical run 은
+> `bash /pscratch/sd/s/sjmoon/EmoBrain/project/scripts/train_label_query.sh` 이고
+> 모델 명세는 `project/README.md`, 논증은 `docs/paper_logic_merged.md` 이다.
+
 # Reproducing EmoBrain from raw fMRI
 
 End-to-end path from Horikawa raw BOLD to a trained emotion decoder. Each step
@@ -97,6 +107,10 @@ bash project/shared/code/probes/extract_roi_features.sh
 ```
 
 ## 4. Training `[REPO]`
+
+> ⚠️ **아래 Track A / Track B 는 폐기된 Qwen3-VL 경로다. 실행하지 않는다.**
+> 현행: `bash project/scripts/train_label_query.sh`
+
 
 Config-driven; swapping the brain encoder is one config line. GPU (Qwen3-VL-4B).
 

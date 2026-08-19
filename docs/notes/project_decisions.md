@@ -1,10 +1,82 @@
 # EmoBrain Project Decisions Log
 
+> **참고 (2026-08-19 문서 정리).** 이 로그는 append-only 역사 기록이다. 아래 옛 항목들이
+> 가리키는 문서 상당수(`direction_v6_labelquery_*`, `implementation_spec_*`, `ONBOARDING.md`,
+> `ACTION_PLAN.md`, `Paper/*`, `architecture_design_*`, `report_0707.md` 등)는
+> **`docs/archive/` 로 이동**했다. 경로만 바뀌었고 내용은 그대로다. 현행 논증은
+> `docs/paper_logic_merged.md`.
+
 Decision 기록은 시간순. 가장 최신이 위.
 
 ---
 
+## 2026-08-19. 프레임 재정립: 감정-시각-의미 관계 / EmoViS 통합 / 가설 H1–H4
+
+**논증 문서 신설.** `docs/paper_logic_merged.md` 가 authoritative. 대전제·RQ·가설·모델의 자리.
+
+**대전제 확정 (4).** (1) 감정 경험은 고차원 — 자극 하나 → 여러 감정의 혼합 프로파일, 분석 단위는
+범주가 아니라 프로파일. (2) 프로파일들이 자극 간에 만드는 구조는 상당 부분 시각-의미 내용이 만드는
+구조. (3) 감정 단어 하나에 대응하는 고유한 뇌 표상이 따로 있는 것이 아님. (4) 감정 전용 영역이 아니라
+시각-의미 처리가 어디서·어떻게 감정 프로파일을 지지하는 구조로 조직되는지를 찾음.
+**Main theme = 고차원 감정 공간의 구조는 시각-의미 처리의 구조다.**
+
+**가설 H1–H4 (문장형, 반대 결과도 주장).** H1 시각-의미 설명력이 감정 평정과 대등 · H2 감정 프로파일은
+비슷하나 내용이 다른 쌍에서 뇌 반응이 다름 · H3 시각피질/LOC 를 넘어 TPJ·IPL·precuneus/PCC·mPFC 까지
+이어지며 그 영역은 시각-언어 결합 표상만 부분 설명 · H4 뇌·시각·의미가 한 공간으로 통합되고 같은 읽기가
+세 출처에 작동.
+
+**폐기.** (a) open-vocabulary / cross-taxonomy 전이를 headline novelty 로 삼던 v6 프레임.
+(b) **학습에 없던 감정 zero-shot** — 34축을 나눌 원칙적 기준이 없고 RQ 와 무관. supplementary 시연으로만
+가능. (c) 감정별 sensory:semantic 조성 (EmoViS 에서 0/34 Bonferroni, split reliability −0.95~−1.00).
+(d) 시각 모델 layer→영역 위계 추론 (예측력이 같아도 내부 구조가 정반대인 모델 존재).
+
+**모델의 자리 재정의.** H1–H3 는 encoding/RSA 로 검정되어 모델 불요. **모델의 정당화는 H4 하나** —
+셋의 공동 통합은 쌍별 비교(RSA)가 원리적으로 못 하는 일. H4 검정 = 출처별 단독 작동 / 출처 간 일치
+(각 출처 신뢰도 상한 대비) / 통합의 이득 / **공유 head 를 개별 head 로 교체하는 핵심 통제**.
+
+**문헌 검증 (125편 로컬 + 21편 웹).** 주요 정정 — Cowen &amp; Keltner 는 이산 범주를 주장하지 않으며
+"감정어는 연속 공간의 축 이름"이 그들 입장(우리는 공간을 받고 기저를 다툼). Doerig 2025 원본 미보유였고
+파일명이 실제로는 Muttenthaler et al. Nature 2025. Doerig 의 scrambled-caption r=0.91 때문에 문장
+임베딩을 "의미"라 부르려면 통제 사다리 필수. EmoMind 는 같은 데이터를 쓰며 retrieval-only 에서
+all-34 r≈0 을 보고(코퍼스 성질로 반박 가능하나 경험적 제시 필요). Kauvar 2025 는 iEEG+케타민이며
+동역학 주장이라 우리 내용 주장과 충돌하지 않음(2차 요약은 fMRI+diazepam 으로 잘못 전함).
+> **정정 (같은 날 확인).** 두 논문은 **서로 다른 논문**이다. 뒤섞은-문장 r≈0.91 은 진짜 **Doerig, Kietzmann et al. (2025) Nature Machine Intelligence, DOI 10.1038/s42256-025-01072-0** (PMC12364710) 에 있고, 로컬 PDF 파일명 `Doerig2025_*.pdf` 가 가리키던 것은 **Muttenthaler et al., Nature 647 (2025)** 였다. 파일은 개명했다. 인용은 파일명이 아니라 DOI 로 한다.
+
+**Skerry &amp; Saxe (2015) 확인 완료 (당일 오후).** 원문 확인 결과 **H3 의 경쟁 계정이 아니다.**
+자극이 글로 된 vignette 200개(시각 처리 부재), 과제가 3인칭 감정 귀속, **분석 단위가 감정 범주
+20개(20×20 RDM)** 라 우리 자극수준 질문과 형태가 다르다. 교차검증도 exemplar 단위여서 미학습 감정
+검정이 없다. 선점 위협·방법론 선례·경쟁 계정 모두 아니며, `paper_logic_merged.md` §3 H3 의
+**배경 인용**(그들이 Discussion 에 남긴 "ToM 영역의 감정 정보가 감정 전용인가 범용 의미인가" 미결
+질문)으로만 쓴다. 그들의 tf-idf 통제가 VMPFC 에서 이긴 것은 자극이 곧 단어였기 때문이므로 우리
+caption 임베딩의 bag-of-words 위협 근거가 되지 않는다.
+
+**열린 사항.** 감정 RDM 거리 지표 정본(Euclidean vs cosine).
+
+---
+## 2026-08-17. Pivot: LLM 제거 → label-query decoder + cross-dataset 전이 novelty
+
+**전면 방향 전환.** 상세 = `docs/direction_v6_labelquery_20260817.md`, 근거 = `docs/reference/label_query_pivot_grounding.md`.
+
+**LLM 제거 (측정 근거).** teacher(Qwen3-VL, 3모달) 0.553 vs cheap MLP fusion 0.533 (+0.02 뿐). LLM-as-encoder brain-only student 0.154 < ridge 0.294. LLM 은 backbone 에서 not load-bearing → **제거.** 유용했던 기제(label query 가 feature pooling)는 Query2Label 이고 LLM 불요. LLM 은 필요 시 오프라인 caption enricher 로만 부활 가능.
+
+**Canonical model = LabelQueryDecoder (LLM-free).** N 감정 query(semantic-init, 학습가능) → self-attn(감정↔감정) + cross-attn(brain+video+semantic 통합) → 공유 스칼라 head → log1p_z. brain=per-ROI token, video=V-JEPA2, caption=text-encoder(SBERT/CLIP-text, LLM 아님). ~3.8M param. `project/code/decoder/label_query_decoder.py` 구현·CPU 검증 완료.
+
+**Novelty = 전이, not 성능.** 뇌 marginal +0.028, "자극>뇌"는 near-trivial motivation. 승부는 "한 감정 코드가 새 데이터·새 라벨체계로 일반화되는가".
+
+**RQ 확정 (2 lens).** AI: (1) cross-taxonomy 전이 headline, (2) 관계(감정↔감정 + 감정↔vision/semantic)+통합 학습전략, (3) 해석. NS: (1) cross-regime 전이(presence), (2) 범주 vs 차원 전이. **RQ-NS-3(뇌 고유 +0.028) 드롭** (노이즈 가능 + EmoViS 영역).
+
+**학습전략.** modality dropout + cross-modal 일관성 + label masking(C-Tran) + teacher→student(LUPI). 목표 하나 = modality·label 불변 코드. 전부 named 선행연구 디벨롭.
+
+**경쟁 경계.** "label 관계/semantic 이 돕는다"는 Du/Fu(ML-BVAE/GED/EmoGrowth) 선점. EmoGrowth 는 naive LLM label 이 해롭다고 증명 → semantic query 는 학습가능+masking 으로 규율. 우리 white space = cross-taxonomy 전이(전부 단일데이터·고정라벨).
+
+**EmoBrain/EmoViS.** 별도 논문 2개, 공유 arc("감정은 visual-semantic 이 크게 구성"). EmoViS = 신경 특성화(RSA/위치, 실제 분석·motivation 아님). EmoBrain = 모델+전이. EmoBrain 은 cortical 위치 주장 안 함.
+
+**역풍(필수 대조군).** appraisal>labels (arXiv:2604.27938) — fine-grained 라벨 전이가 차원보다 어려움. dimension-transfer 대조군 필수.
+
+---
+
 ## 2026-07-22. Canonical reset: Qwen3-VL-4B + E1 ViT / E2 BFM
+> **SUPERSEDED 2026-08-17.** LLM backbone 제거 (위 참조). 아래는 역사 기록.
 
 **Locked.** Active code is `project/code/`. Backbone is fixed to
 `Qwen/Qwen3-VL-4B-Instruct`. Encoder families are E1 ViT and E2 BFM only; E2

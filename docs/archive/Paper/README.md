@@ -1,0 +1,30 @@
+> ⚠️ **ARCHIVED — 역사 기록. 현행 문서가 아니다.**
+> 현행 논증 = `docs/paper_logic_merged.md` (대전제 · RQ · 가설 H1–H4). 운영 규칙 = `CLAUDE.md`.
+>
+> 아래 내용 중 다음은 **뒤집혔다.** (a) Qwen3-VL 등 LLM backbone 사용 — 금지.
+> (b) open-vocabulary / cross-taxonomy 전이를 headline novelty 로 삼는 프레임 — 폐기.
+> (c) 학습에 없던 감정 zero-shot — 폐기(원칙적 분할 기준 없음, RQ 와 무관).
+> (d) "EmoBrain 과 EmoViS 는 별도 논문 2편" — 현재는 **한 편의 논문**.
+> (e) "EmoBrain 은 cortical location 을 주장하지 않는다" — 현재 **H3 이 cortical location 주장**이다.
+
+# Paper Folder
+
+> **NOTE 2026-08-17:** framing here predates the label-query pivot. Current direction
+> = `docs/direction_v6_labelquery_20260817.md`; framework_EN/KR + methodology pending
+> rewrite. "FEEL" is an old project name (= EmoBrain).
+
+This folder contains the scientific framing and manuscript/proposal material for FEEL.
+
+## Files
+
+- `framework_EN.md`: canonical English project framework, narrative, and proposal-level framing.
+- `framework_KR.md`: canonical Korean project framework, narrative, and external-facing framing.
+- `methodology.md`: detailed experimental plan.
+
+## Rule
+
+- Keep all project framing in `framework_EN.md` and `framework_KR.md`.
+- Keep detailed experimental design in `methodology.md`.
+- Do not create separate `brief`, `narrative`, or `proposal_outline` files unless explicitly requested.
+- Keep confirmed facts, hypotheses, planned analyses, and actual results clearly separated.
+- FEEL is primarily a model-development project. Emotion theory should be concise and only serve model/dataset/evaluation design.
