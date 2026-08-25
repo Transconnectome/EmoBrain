@@ -43,7 +43,7 @@ def compact_valid_tokens(embeds: torch.Tensor, mask: torch.Tensor):
 class EmoBrainModel(nn.Module):
     def __init__(self, encoder, brain_projector, backbone, head,
                  video_projector=None, modalities: dict | None = None,
-                 use_markers: bool = True):
+                 use_markers: bool = True, query_init=None):
         super().__init__()
         self.encoder = encoder
         self.brain_projector = brain_projector
@@ -52,6 +52,15 @@ class EmoBrainModel(nn.Module):
         self.head = head
         self.modalities = modalities or {"brain": True}
         self._question = question_text()
+
+        # B1 readout. When query_init (n_emotions, D) is given, append learnable
+        # emotion-query tokens (init from each emotion name's embedding) after the
+        # prompt and read each emotion's score from its contextualised state, so
+        # the LLM answers the "score each of these 34 emotions" instruction
+        # instead of a linear probe on a pooled token.
+        self.query_mode = query_init is not None
+        if self.query_mode:
+            self.query_tokens = nn.Parameter(query_init.detach().clone().float())
 
         # Segment boundary markers (red-team C4, spec §6-5). Fresh learnable
         # <seg_start>/<seg_end> embeddings so the LLM knows where each modality
@@ -109,8 +118,25 @@ class EmoBrainModel(nn.Module):
             segs.extend(e_list)
             masks.extend(m_list)
 
+        # B1: append the 34 emotion-query tokens as the final (unwrapped) segment.
+        if self.query_mode:
+            n = self.query_tokens.shape[0]
+            segs.append(self.query_tokens.to(dt)[None].expand(B, -1, -1))
+            masks.append(torch.ones(B, n, device=device, dtype=torch.long))
+
         embeds = torch.cat(segs, dim=1)
         mask = torch.cat(masks, dim=1)
         embeds, mask = compact_valid_tokens(embeds, mask)
+
+        if self.query_mode:
+            n = self.query_tokens.shape[0]
+            h = self.backbone(embeds, mask, pool=False)        # (B, S, D)
+            lengths = mask.sum(1)                               # valid len per row
+            ar = torch.arange(n, device=device)
+            idx = (lengths[:, None] - n) + ar[None, :]          # last n valid = queries
+            bi = torch.arange(B, device=device)[:, None]
+            qh = h[bi, idx].to(self.head.fc.weight.dtype)       # (B, n, D)
+            return self.head(qh)                                # (B, 34) z-space
+
         pooled = self.backbone(embeds, mask).to(self.head.fc.weight.dtype)
         return self.head(pooled)                       # (B, 34) z-space

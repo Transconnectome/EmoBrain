@@ -10,7 +10,7 @@ modalities: {brain: true, video: false, caption: false}
 data: {brain_source: roi_mean}
 loss: {hard_kind: mse, lambda_hard: 1.0}
 train:
-  {device: cuda, seed: 0, epochs: 8, batch_size: 8, lr: 1.0e-4,
+  {device: cuda, seed: 0, epochs: 20, batch_size: 8, lr: 1.0e-4,
    weight_decay: 0.01,
    out_json: project/output/e1_vit_direct_qwen3vl4b.json,
    checkpoint: project/output/checkpoints/e1_vit_direct_qwen3vl4b.pt}

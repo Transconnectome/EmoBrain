@@ -1,7 +1,15 @@
 #!/bin/bash
-# Track B launcher (train_student_distill). HF_HOME set for offline Qwen3-VL. Sbatch needs approval.
-set -euo pipefail
-REPO_ROOT=/pscratch/sd/s/sjmoon/EmoBrain
+# Track B step 3 launcher (train_student_distill). Uses the Qwen env, sets
+# HF_HOME, tees to project/output/<config>.log. GPU node required; user runs this.
+#   bash /pscratch/sd/s/sjmoon/EmoBrain/project/code/training/train_student_distill.sh <config.yaml>
+set -uo pipefail
+ROOT=/pscratch/sd/s/sjmoon/EmoBrain
 export HF_HOME=/pscratch/sd/s/sjmoon/hf_cache
-source /pscratch/sd/s/sjmoon/tribev2/.venv/bin/activate
-python3 "${REPO_ROOT}/project/code/training/train_student_distill.py" --config "${1:?config.yaml required}"
+CFG="${1:?usage: train_student_distill.sh <config.yaml>}"
+NAME=$(basename "$CFG" .yaml)
+LOG="$ROOT/project/output/${NAME}.log"
+mkdir -p "$ROOT/project/output"
+cd "$ROOT"
+/pscratch/sd/s/sjmoon/brainvlm_qwen_env/bin/python -u \
+    project/code/training/train_student_distill.py --config "$CFG" 2>&1 | tee "$LOG"
+echo "[launcher] exit=${PIPESTATUS[0]}  log=$LOG"

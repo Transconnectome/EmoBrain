@@ -78,10 +78,12 @@ class StubBackbone(nn.Module):
     def embed_text(self, token_ids):
         return self.embed(token_ids)
 
-    def forward(self, inputs_embeds, attention_mask):
+    def forward(self, inputs_embeds, attention_mask, pool=True):
         B, S, _ = inputs_embeds.shape
         pos = self.pos(torch.arange(S, device=inputs_embeds.device))[None]
         h = self.enc(inputs_embeds + pos,
                      src_key_padding_mask=(attention_mask == 0))
+        if not pool:
+            return h                       # (B, S, D) full sequence for query readout
         last = last_valid_indices(attention_mask)
         return h[torch.arange(B, device=h.device), last]

@@ -1,0 +1,24 @@
+# E1 ViT teacher (roi_mean brain + V-JEPA2 video + human caption) -> Qwen3-VL-4B.
+# Matched to the cheap-fusion Arm A and to e1_vit_direct: SAME brain input
+# (roi_mean via image-pretrained ViT) and SAME LoRA setup, so the only change
+# vs the direct student is the added video+caption segments. Its cached 34D
+# outputs feed the roi_mean student (e1_vit_student_distill). brain_source here
+# is roi_mean, which the student's brain_source must equal (cache guard).
+run: {name: e1_vit_teacher}
+encoder:
+  {type: vit, hf_model: google/vit-base-patch16-224, grid: 22, adapt: lora,
+   lora: {r: 16, lora_alpha: 32, lora_dropout: 0.05}}
+projector: {type: mlp, n_tokens: 16}
+video:
+  {dim: 1408, type: mlp, n_tokens: 16,
+   path: project/shared/data/stimulus_features/vjepa2_pretrained.npy}
+backbone:
+  {type: qwen, hf_model: Qwen/Qwen3-VL-4B-Instruct, dtype: bfloat16, frozen: true,
+   lora: {r: 16, lora_alpha: 32, lora_dropout: 0.05, target_modules: [q_proj, v_proj]}}
+modalities: {brain: true, video: true, caption: true}
+data: {brain_source: roi_mean, caption_source: mindcaptioning_human}
+loss: {hard_kind: mse, lambda_hard: 1.0}
+train:
+  {device: cuda, seed: 0, epochs: 20, batch_size: 8, lr: 1.0e-4, weight_decay: 0.01,
+   teacher_ckpt: project/output/checkpoints/e1_vit_teacher_qwen3vl4b.pt,
+   out_json: project/output/e1_vit_teacher_qwen3vl4b.json}

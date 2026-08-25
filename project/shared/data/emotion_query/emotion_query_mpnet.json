@@ -1,0 +1,184 @@
+{
+  "encoder": "sentence-transformers/all-mpnet-base-v2",
+  "pooling": "mean over tokens with attention mask, then L2 normalise",
+  "note": "same encoder/pipeline as project/shared/data/stimulus_features/caption_embed.npy",
+  "order_file": "project/shared/data/cowen34_order.txt",
+  "emotions": [
+    "admiration",
+    "adoration",
+    "aesthetic appreciation",
+    "amusement",
+    "anger",
+    "anxiety",
+    "awe",
+    "awkwardness",
+    "boredom",
+    "calmness",
+    "confusion",
+    "contempt",
+    "craving",
+    "disappointment",
+    "disgust",
+    "empathic pain",
+    "entrancement",
+    "envy",
+    "excitement",
+    "fear",
+    "guilt",
+    "horror",
+    "interest",
+    "joy",
+    "nostalgia",
+    "pride",
+    "relief",
+    "romance",
+    "sadness",
+    "satisfaction",
+    "sexual desire",
+    "surprise",
+    "sympathy",
+    "triumph"
+  ],
+  "shape": [
+    34,
+    768
+  ],
+  "nearest_neighbour": {
+    "admiration": [
+      "adoration",
+      0.6658691763877869
+    ],
+    "adoration": [
+      "admiration",
+      0.6658691763877869
+    ],
+    "aesthetic appreciation": [
+      "admiration",
+      0.6000514030456543
+    ],
+    "amusement": [
+      "boredom",
+      0.674951434135437
+    ],
+    "anger": [
+      "contempt",
+      0.7318845987319946
+    ],
+    "anxiety": [
+      "fear",
+      0.7245537042617798
+    ],
+    "awe": [
+      "admiration",
+      0.3520679175853729
+    ],
+    "awkwardness": [
+      "boredom",
+      0.4635358452796936
+    ],
+    "boredom": [
+      "amusement",
+      0.674951434135437
+    ],
+    "calmness": [
+      "anxiety",
+      0.6253895163536072
+    ],
+    "confusion": [
+      "disappointment",
+      0.4192715883255005
+    ],
+    "contempt": [
+      "anger",
+      0.7318845987319946
+    ],
+    "craving": [
+      "sexual desire",
+      0.4681878685951233
+    ],
+    "disappointment": [
+      "disgust",
+      0.6381646394729614
+    ],
+    "disgust": [
+      "contempt",
+      0.6937217712402344
+    ],
+    "empathic pain": [
+      "sympathy",
+      0.5641776323318481
+    ],
+    "entrancement": [
+      "admiration",
+      0.3573209047317505
+    ],
+    "envy": [
+      "admiration",
+      0.6135237812995911
+    ],
+    "excitement": [
+      "joy",
+      0.6743239164352417
+    ],
+    "fear": [
+      "anxiety",
+      0.7245537042617798
+    ],
+    "guilt": [
+      "pride",
+      0.5559254288673401
+    ],
+    "horror": [
+      "fear",
+      0.5730715990066528
+    ],
+    "interest": [
+      "boredom",
+      0.48843586444854736
+    ],
+    "joy": [
+      "excitement",
+      0.6743239164352417
+    ],
+    "nostalgia": [
+      "excitement",
+      0.5416646599769592
+    ],
+    "pride": [
+      "fear",
+      0.6074855923652649
+    ],
+    "relief": [
+      "satisfaction",
+      0.5924891829490662
+    ],
+    "romance": [
+      "sexual desire",
+      0.49293413758277893
+    ],
+    "sadness": [
+      "disappointment",
+      0.6290078163146973
+    ],
+    "satisfaction": [
+      "excitement",
+      0.6084455847740173
+    ],
+    "sexual desire": [
+      "boredom",
+      0.5691072940826416
+    ],
+    "surprise": [
+      "disappointment",
+      0.5990608930587769
+    ],
+    "sympathy": [
+      "sadness",
+      0.6267860531806946
+    ],
+    "triumph": [
+      "joy",
+      0.4965430200099945
+    ]
+  }
+}

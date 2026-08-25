@@ -62,10 +62,12 @@ class QwenBackbone(torch.nn.Module):
     def embed_text(self, token_ids):
         return self.lm.get_input_embeddings()(token_ids)
 
-    def forward(self, inputs_embeds, attention_mask):
+    def forward(self, inputs_embeds, attention_mask, pool=True):
         out = self.lm(inputs_embeds=inputs_embeds, attention_mask=attention_mask,
                       output_hidden_states=True, use_cache=False,
                       logits_to_keep=1)
         h = out.hidden_states[-1]
+        if not pool:
+            return h                       # (B, S, D) full sequence for query readout
         last = last_valid_indices(attention_mask)
         return h[torch.arange(h.size(0), device=h.device), last]

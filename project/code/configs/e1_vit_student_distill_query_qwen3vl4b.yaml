@@ -1,0 +1,22 @@
+# B1 student, brain-only, LLM-native readout (readout: query) + distillation from
+# the B1 teacher. Identical to e1_vit_direct_query except for the added distill
+# MSE, so test(this) - test(e1_vit_direct_query) = the context lift under the
+# LLM-answers-the-prompt design. brain_source must match the teacher cache.
+run: {name: e1_vit_student_distill_query}
+encoder:
+  {type: vit, hf_model: google/vit-base-patch16-224, grid: 22, adapt: lora,
+   lora: {r: 16, lora_alpha: 32, lora_dropout: 0.05}}
+projector: {type: mlp, n_tokens: 16}
+backbone:
+  {type: qwen, hf_model: Qwen/Qwen3-VL-4B-Instruct, dtype: bfloat16, frozen: true,
+   lora: {r: 16, lora_alpha: 32, lora_dropout: 0.05, target_modules: [q_proj, v_proj]}}
+modalities: {brain: true, video: false, caption: false}
+readout: {type: query}
+data:
+  {brain_source: roi_mean,
+   soft_labels: project/shared/output/teacher_soft_labels/e1_vit_teacher_query/soft_labels.pt}
+loss: {hard_kind: mse, lambda_hard: 1.0, lambda_dist: 1.0, distill_kind: mse}
+train:
+  {device: cuda, seed: 0, epochs: 20, batch_size: 8, lr: 1.0e-4, weight_decay: 0.01,
+   out_json: project/output/e1_vit_student_distill_query_qwen3vl4b.json,
+   checkpoint: project/output/checkpoints/e1_vit_student_distill_query_qwen3vl4b.pt}

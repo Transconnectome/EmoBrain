@@ -1,0 +1,21 @@
+# B1 direct baseline. brain-only, LLM-native readout (readout: query), hard label
+# only (no distillation). This is the honest "did the LLM, used properly, beat
+# ridge 0.294 on brain alone" test, and the fair baseline for the B1 student's
+# context lift. Compare against e1_vit_direct (pooled Linear34, 0.154) to isolate
+# what the query readout itself buys.
+run: {name: e1_vit_direct_query}
+encoder:
+  {type: vit, hf_model: google/vit-base-patch16-224, grid: 22, adapt: lora,
+   lora: {r: 16, lora_alpha: 32, lora_dropout: 0.05}}
+projector: {type: mlp, n_tokens: 16}
+backbone:
+  {type: qwen, hf_model: Qwen/Qwen3-VL-4B-Instruct, dtype: bfloat16, frozen: true,
+   lora: {r: 16, lora_alpha: 32, lora_dropout: 0.05, target_modules: [q_proj, v_proj]}}
+modalities: {brain: true, video: false, caption: false}
+readout: {type: query}
+data: {brain_source: roi_mean}
+loss: {hard_kind: mse, lambda_hard: 1.0}
+train:
+  {device: cuda, seed: 0, epochs: 20, batch_size: 8, lr: 1.0e-4, weight_decay: 0.01,
+   out_json: project/output/e1_vit_direct_query_qwen3vl4b.json,
+   checkpoint: project/output/checkpoints/e1_vit_direct_query_qwen3vl4b.pt}
