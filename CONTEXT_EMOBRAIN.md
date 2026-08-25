@@ -5,7 +5,8 @@
 ## 지금 확정된 것
 
 - EmoViS 와 **한 편의 논문**. EmoViS = 뇌 분석(H1–H3), EmoBrain = 모델과 H4.
-- **Main theme**: 고차원 감정 공간의 구조는 시각-의미 처리의 구조다.
+- **Main theme**: 감정 영상을 볼 때 뇌가 만드는 표상 구조는 감정 라벨이 아니라 시각-의미 내용을
+  따르며, 그 조직은 시각피질을 넘어 transmodal 연합피질까지 이어진다.
 - **분석 단위는 감정 범주가 아니라 34차원 프로파일**이고, 자극 간 관계는 프로파일 간 거리다.
 - 모델 = brain + video + caption 을 한 공간에 통합해 34차원 프로파일을 회귀. LLM 없음.
 - **모델의 정당화는 H4 하나.** H1–H3 는 모델 없이 검정된다.
@@ -45,3 +46,7 @@ open-vocabulary / cross-taxonomy 전이를 headline novelty 로 삼는 프레임
 - EmoViS 쪽 미실행 분석 — 클린 3-band banded ridge encoding, `sem_3_semantic_unique`,
   양방향 conflict test(전 임계값 5/10/20% 보고), 숫자 정합(CLIP 0.106 vs 0.137).
 - bag-of-words 통제 사다리 — 단어평균 / 범주어만 / 명사만 / 뒤섞은 문장.
+- **⚠️ cross-dataset 데이터 확보 — H4 의 선결 조건.** H4 에 "다른 데이터셋에서도 재현된다"가 포함되어
+  데이터 없이는 완결 불가. Emo-FilM 은 주석만 로컬, **영상-뇌 데이터 미확보**(git-annex 미설치, 약 132GB).
+  MindCaptioning 은 같은 자극·다른 피험자라 **대체재가 아니다**(피험자 재현 ≠ 일반화).
+- 모델 실험 설계의 통제 항목 — 최소 필수(라벨만 학습한 뇌만 보는 student) 외에는 미확정.

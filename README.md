@@ -12,8 +12,9 @@ them? And where in cortex does that construction happen?
 
 ## English
 
-**Main theme.** The structure of the high-dimensional emotion space is the structure of visual-semantic
-processing.
+**Main theme.** When people watch emotional videos, the representational structure the brain builds
+follows visual-semantic content rather than emotion labels, and that organization extends beyond
+visual cortex into transmodal association cortex.
 
 EmoBrain and its sister project **EmoViS** form **one paper**, not two. EmoViS carries the brain-side
 analysis (H1–H3); EmoBrain carries the model derived from that analysis and the test it makes possible
@@ -52,7 +53,8 @@ as the evidence that justified discarding it. See [`docs/archive/`](docs/archive
 
 ## 한국어
 
-**Main theme.** 고차원 감정 공간의 구조는 시각-의미 처리의 구조다.
+**Main theme.** 감정 영상을 볼 때 뇌가 만드는 표상 구조는, 감정 라벨이 아니라 시각-의미 내용을
+따른다. 그리고 그 조직은 시각피질을 넘어 transmodal 연합피질까지 이어진다.
 
 EmoBrain 과 자매 프로젝트 **EmoViS** 는 **두 편이 아니라 한 편의 논문**이다. EmoViS 가 뇌에서의
 분석(H1–H3)을, EmoBrain 이 그 분석에서 유도된 모델과 그 모델이 가능케 하는 검정(H4)을 맡는다.
