@@ -1,0 +1,154 @@
+{
+  "provenance": {
+    "generated_by": "prereg_v2/code/p1b_event_run_audit.py",
+    "generated_at_utc": "2026-09-23T08:00:29Z",
+    "git_commit": "0bc3a79becf56c7a532980dcef09f5a8a0b36427",
+    "python": "/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python",
+    "asset_registry": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/code/_assets.py",
+    "asset_registry_sha256": "9dc8264b6c79df478c33c4232818edd478489d852a05d90810918fbb2714bb5e",
+    "event_meta_root": "/pscratch/sd/s/sjmoon/EmoViS/data/raw/step7_voxel"
+  },
+  "per_participant": {
+    "sub-01": {
+      "n_presentation_records": 2257,
+      "n_baseline_records": 61,
+      "n_stimulus_presentations": 2196,
+      "n_unique_stimuli": 2196,
+      "n_stimuli_presented_more_than_once": 0,
+      "max_presentations_of_any_stimulus": 1,
+      "n_sessions": 8,
+      "n_runs": 61,
+      "duration_sec_min": 10.0,
+      "duration_sec_max": 94.0,
+      "duration_sec_mean": 12.159380692167577,
+      "n_unresolved_stimulus_names": 0,
+      "data_shape_n_tr_equals_duration_tr": true
+    },
+    "sub-02": {
+      "n_presentation_records": 2257,
+      "n_baseline_records": 61,
+      "n_stimulus_presentations": 2196,
+      "n_unique_stimuli": 2196,
+      "n_stimuli_presented_more_than_once": 0,
+      "max_presentations_of_any_stimulus": 1,
+      "n_sessions": 8,
+      "n_runs": 61,
+      "duration_sec_min": 10.0,
+      "duration_sec_max": 94.0,
+      "duration_sec_mean": 12.159380692167577,
+      "n_unresolved_stimulus_names": 0,
+      "data_shape_n_tr_equals_duration_tr": true
+    },
+    "sub-03": {
+      "n_presentation_records": 2257,
+      "n_baseline_records": 61,
+      "n_stimulus_presentations": 2196,
+      "n_unique_stimuli": 2196,
+      "n_stimuli_presented_more_than_once": 0,
+      "max_presentations_of_any_stimulus": 1,
+      "n_sessions": 8,
+      "n_runs": 61,
+      "duration_sec_min": 10.0,
+      "duration_sec_max": 94.0,
+      "duration_sec_mean": 12.159380692167577,
+      "n_unresolved_stimulus_names": 0,
+      "data_shape_n_tr_equals_duration_tr": true
+    },
+    "sub-04": {
+      "n_presentation_records": 2257,
+      "n_baseline_records": 61,
+      "n_stimulus_presentations": 2196,
+      "n_unique_stimuli": 2196,
+      "n_stimuli_presented_more_than_once": 0,
+      "max_presentations_of_any_stimulus": 1,
+      "n_sessions": 8,
+      "n_runs": 61,
+      "duration_sec_min": 10.0,
+      "duration_sec_max": 94.0,
+      "duration_sec_mean": 12.159380692167577,
+      "n_unresolved_stimulus_names": 0,
+      "data_shape_n_tr_equals_duration_tr": true
+    },
+    "sub-05": {
+      "n_presentation_records": 2257,
+      "n_baseline_records": 61,
+      "n_stimulus_presentations": 2196,
+      "n_unique_stimuli": 2196,
+      "n_stimuli_presented_more_than_once": 0,
+      "max_presentations_of_any_stimulus": 1,
+      "n_sessions": 8,
+      "n_runs": 61,
+      "duration_sec_min": 10.0,
+      "duration_sec_max": 94.0,
+      "duration_sec_mean": 12.159380692167577,
+      "n_unresolved_stimulus_names": 0,
+      "data_shape_n_tr_equals_duration_tr": true
+    }
+  },
+  "participant_stimulus_set_identical": {
+    "sub-01": true,
+    "sub-02": true,
+    "sub-03": true,
+    "sub-04": true,
+    "sub-05": true
+  },
+  "n_stimuli_in_all_participants": 2196,
+  "n_stimuli_in_any_participant": 2196,
+  "timing_integrity": {
+    "n_runs_with_overlapping_presentations": 0,
+    "runs_with_overlap": [],
+    "n_runs_with_duplicate_onsets": 0,
+    "runs_with_duplicate_onsets": [],
+    "n_records_with_missing_onset": 0,
+    "n_records_with_missing_duration": 0
+  },
+  "roi_timeseries_cross_check": {
+    "sub-01": {
+      "n_roi_stimuli": 2185,
+      "n_event_stimuli": 2196,
+      "n_roi_stimuli_absent_from_events": 0,
+      "n_event_stimuli_absent_from_roi": 11,
+      "original_T_matches_event_duration_tr": true,
+      "n_original_T_mismatches": 0
+    },
+    "sub-02": {
+      "n_roi_stimuli": 2185,
+      "n_event_stimuli": 2196,
+      "n_roi_stimuli_absent_from_events": 0,
+      "n_event_stimuli_absent_from_roi": 11,
+      "original_T_matches_event_duration_tr": true,
+      "n_original_T_mismatches": 0
+    },
+    "sub-03": {
+      "n_roi_stimuli": 2185,
+      "n_event_stimuli": 2196,
+      "n_roi_stimuli_absent_from_events": 0,
+      "n_event_stimuli_absent_from_roi": 11,
+      "original_T_matches_event_duration_tr": true,
+      "n_original_T_mismatches": 0
+    },
+    "sub-04": {
+      "n_roi_stimuli": 2185,
+      "n_event_stimuli": 2196,
+      "n_roi_stimuli_absent_from_events": 0,
+      "n_event_stimuli_absent_from_roi": 11,
+      "original_T_matches_event_duration_tr": true,
+      "n_original_T_mismatches": 0
+    },
+    "sub-05": {
+      "n_roi_stimuli": 2185,
+      "n_event_stimuli": 2196,
+      "n_roi_stimuli_absent_from_events": 0,
+      "n_event_stimuli_absent_from_roi": 11,
+      "original_T_matches_event_duration_tr": true,
+      "n_original_T_mismatches": 0
+    }
+  },
+  "repeated_presentation_verdict": {
+    "claimed_repeated_test_stimuli_prereg_v2_D7": 72,
+    "measured_stimuli_presented_more_than_once": 0,
+    "measured_max_presentations_of_any_stimulus": 1,
+    "repeated_test_design_executable": false,
+    "consequence_if_not_executable": "prereg_v2 D7, B9 and action_items A4-2 all require repeated presentations. With none present, split-half repeated-test reliability, the noise ceiling and the label-blind choice between the existing block response and GLMsingle cannot be computed from this derived dataset."
+  }
+}

@@ -1,0 +1,21 @@
+# generated_by	prereg_v2/code/p2_annotation_audit.py
+# generated_at_utc	2026-09-23T08:02:02Z
+# git_commit	0bc3a79becf56c7a532980dcef09f5a8a0b36427
+# python	/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python
+# asset_registry	/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/code/_assets.py
+# asset_registry_sha256	9dc8264b6c79df478c33c4232818edd478489d852a05d90810918fbb2714bb5e
+index	column	n_missing	min	max	mean	std	p01	p99	n_distinct	rating_direction	reverse_coded
+0	arousal_score	0	2.0	8.6667	5.822680320366132	0.9118266388618576	3.4444	7.6667	53	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+1	dominance_score	0	1.7778	7.1111	4.676480137299772	0.7988890934611885	2.7778	6.4444	48	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+2	valence_score	0	1.0	9.0	5.2550218306636145	1.9645597001969268	1.2222	8.4444	73	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+3	approach_score	0	1.0	9.0	4.807374233409612	1.9835031308002602	1.1111	8.2222	72	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+4	attention_score	0	2.4444	8.2222	6.081871441647597	0.8323203347357473	3.7778	7.6667	50	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+5	certainty_score	0	1.4444	7.8889	5.120924210526316	1.1158911511325216	2.648924	7.3333	56	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+6	commitment_score	0	1.2222	8.4444	5.093566864988558	1.187942721454131	2.2222	7.5556	64	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+7	control_score	0	1.0	8.8889	5.528298993135012	1.8617541335826355	1.4444	8.351075999999983	72	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+8	effort_score	0	1.0	8.0	3.4447485583524027	1.3470030774306945	1.2222	7.128875999999984	64	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+9	fairness_score	0	1.2222	8.3333	5.2235949656750575	1.4185906649534923	1.5556	7.6667	65	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+10	identity_score	0	1.1111	8.1111	4.626900594965675	1.1413190439596237	2.0	7.1111	62	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+11	obstruction_score	0	1.0	7.7778	3.6447988100686497	1.0218982295374452	1.6667	6.128875999999984	57	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+12	safety_score	0	1.0	8.5556	4.890515881006865	1.7233363118905483	1.3333	7.8889	68	UNVERIFIED: no local codebook states polarity	UNVERIFIED
+13	upswing_score	0	1.0	8.6667	5.464021372997712	1.6434516741979979	1.4444	8.1111	70	UNVERIFIED: no local codebook states polarity	UNVERIFIED

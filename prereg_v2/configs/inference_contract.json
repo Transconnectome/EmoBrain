@@ -1,0 +1,33 @@
+{
+  "provenance": {
+    "generated_by": "prereg_v2/code/p3c_inference_contract.py",
+    "generated_at_utc": "2026-09-23T08:07:03Z",
+    "git_commit": "0bc3a79becf56c7a532980dcef09f5a8a0b36427",
+    "python": "/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python",
+    "asset_registry": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/code/_assets.py",
+    "asset_registry_sha256": "9dc8264b6c79df478c33c4232818edd478489d852a05d90810918fbb2714bb5e"
+  },
+  "contract": {
+    "inferential_unit": "participant",
+    "generalization_unit": "stimulus",
+    "seeds_are_inferential_samples": false,
+    "stimulus_pairs_are_independent_observations": false,
+    "n_participants_available": 5,
+    "bootstrap": {
+      "scheme": "cluster bootstrap resampling participants with replacement",
+      "why": "prereg_v2 D6 and A3-4 forbid counting stimuli or the 2,556 stimulus pairs as independent samples. A stimulus-level bootstrap over 5 pooled participants is anti-conservative because the residuals of one participant are correlated across stimuli.",
+      "reporting": "per-participant points, seed spread, absolute value and paired difference with an interval, per prereg_v2 M7"
+    },
+    "permutation_null": {
+      "scheme": "joint permutation of stimulus labels within a held-out fold",
+      "constraint": "permutations never cross a participant or fold boundary"
+    },
+    "power_note": "With 5 participants a participant-clustered interval is wide. Any contrast that is significant only under a stimulus-level resampling is not evidence under this contract.",
+    "prohibited": [
+      "grouping stimuli into emotion categories, by top-1 or by threshold",
+      "counting seeds as independent participants",
+      "passing entries of a pairwise matrix as independent rows",
+      "selecting a layer, lambda or architecture on the test fold"
+    ]
+  }
+}

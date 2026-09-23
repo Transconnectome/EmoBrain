@@ -1,0 +1,19 @@
+# generated_by	prereg_v2/code/p0_inventory.py
+# generated_at_utc	2026-09-23T07:52:28Z
+# git_commit	0bc3a79becf56c7a532980dcef09f5a8a0b36427
+# python	/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python
+# asset_registry	/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/code/_assets.py
+# asset_registry_sha256	9dc8264b6c79df478c33c4232818edd478489d852a05d90810918fbb2714bb5e
+asset	declared_role	path	kind	exists	n_files	total_bytes	content_hashed	note
+stimulus_videos	Cowen-Keltner emotional video clips presented in Horikawa fMRI	/pscratch/sd/s/sjmoon/EmoViS/data/raw/CowenEmotionVideos	dir_files	True	2196	1786899045	True	
+labels_emobrain	34 category proportions + 14 affective dimensions per stimulus	/pscratch/sd/s/sjmoon/EmoBrain/project/shared/data/cowen_horikawa_labels.csv	file	True	1	776406	True	
+labels_emovis	same table, EmoViS copy	/pscratch/sd/s/sjmoon/EmoViS/study1/data/master_stimulus_index.csv	file	True	1	776406	True	
+captions_human	MindCaptioning-style human captions, reported as 20 raters per clip	/pscratch/sd/s/sjmoon/EmoBrain/project/shared/data/caption_ck20.csv	file	True	1	3431222	True	
+brain_roi_timeseries	per-subject ROI time series and per-stimulus ROI mean, 450 parcels	/pscratch/sd/s/sjmoon/EmoBrain/project/shared/data/roi_timeseries	dir_files	True	5	964197430	True	
+brain_roi_matrix	(n_subject, n_presentation, 450) ROI matrix	/pscratch/sd/s/sjmoon/EmoViS/data/raw/fmri_raw.npy	file	True	1	19764128	True	
+main_stim_indices	index selecting unique stimuli out of presentations	/pscratch/sd/s/sjmoon/EmoViS/study1/data/main_stim_indices.npy	file	True	1	8868	True	
+brain_voxel_step7	per-stimulus NIfTI in MNI plus per-stimulus and per-run metadata	/pscratch/sd/s/sjmoon/EmoViS/data/raw/step7_voxel	dir_summary	True	22875	70692016580	False	size and count only; extensions .txt=11590, .gz=11285
+horikawa_embedding_root	raw MNI volumes per TR and derived embeddings	/pscratch/sd/s/sjmoon/Horikawa_embedding	dir_summary	True	195849	200673575714	False	size and count only; extensions .pt=129915, .gz=21970, .json=21970, .pkl=21970
+mindcaptioning_ds005191	prereg_v2 D1 PRIMARY cohort, 6 participants, unique stimuli 2180	/pscratch/sd/s/sjmoon/ds005191	absence_check	False	0	0	False	PATH DOES NOT EXIST
+emofilm_ds004872	Emo-FilM; no role in prereg_v2 D1-D8	/pscratch/sd/s/sjmoon/ds004872	dir_summary	True	21258	45815927	False	size and count only; extensions <none>=9982, .gz=7492, .json=3747, .sample=13
+emofilm_local	second local copy of Emo-FilM; role undeclared	/pscratch/sd/s/sjmoon/Emo-FilM	dir_summary	True	5843	31556567	False	size and count only; extensions .json=4669, .tsv=1141, <none>=16, .db-wal=4

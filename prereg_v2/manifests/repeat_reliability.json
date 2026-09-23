@@ -1,0 +1,86 @@
+{
+  "provenance": {
+    "generated_by": "prereg_v2/code/p1c_repeat_reliability.py",
+    "generated_at_utc": "2026-09-23T08:06:17Z",
+    "git_commit": "0bc3a79becf56c7a532980dcef09f5a8a0b36427",
+    "python": "/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python",
+    "asset_registry": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/code/_assets.py",
+    "asset_registry_sha256": "9dc8264b6c79df478c33c4232818edd478489d852a05d90810918fbb2714bb5e"
+  },
+  "n_canonical_stimuli_with_two_presentations": 16,
+  "n_such_stimuli_with_two_annotated_rows": 5,
+  "brain_roi_pattern_repeat_reliability": {
+    "n_observations": 80,
+    "mean_r": 0.1816246606070772,
+    "median_r": 0.20959981548639367,
+    "min_r": -0.44183760293716007,
+    "max_r": 0.6603456271061028,
+    "per_participant_mean_r": {
+      "0": 0.1478,
+      "1": 0.191,
+      "2": 0.2309,
+      "3": 0.1767,
+      "4": 0.1617
+    }
+  },
+  "mismatched_stimulus_null": {
+    "n_observations": 80,
+    "mean_r": -0.010466060843104774,
+    "median_r": 0.008782285358092761,
+    "sd_r": 0.23132159862145774
+  },
+  "repeat_minus_null": 0.19209072145018197,
+  "annotation_repeat_agreement": [
+    {
+      "canonical_stimulus_id": 259,
+      "video_a": 259,
+      "video_b": 866,
+      "profile34_pearson_r": 0.707325675286428,
+      "profile34_max_abs_diff": 0.34285999999999994,
+      "dim14_pearson_r": 0.8781375071210538,
+      "dim14_max_abs_diff": 3.0
+    },
+    {
+      "canonical_stimulus_id": 472,
+      "video_a": 472,
+      "video_b": 859,
+      "profile34_pearson_r": 0.6640552794546213,
+      "profile34_max_abs_diff": 0.46667000000000003,
+      "dim14_pearson_r": 0.9526367937331202,
+      "dim14_max_abs_diff": 0.8889
+    },
+    {
+      "canonical_stimulus_id": 846,
+      "video_a": 846,
+      "video_b": 1673,
+      "profile34_pearson_r": 0.6846492849826081,
+      "profile34_max_abs_diff": 0.16667,
+      "dim14_pearson_r": 0.8457654536944305,
+      "dim14_max_abs_diff": 1.8889000000000005
+    },
+    {
+      "canonical_stimulus_id": 1349,
+      "video_a": 1349,
+      "video_b": 1363,
+      "profile34_pearson_r": 0.9162711309469954,
+      "profile34_max_abs_diff": 0.18182099999999995,
+      "dim14_pearson_r": 0.9469176868817247,
+      "dim14_max_abs_diff": 1.2222999999999997
+    },
+    {
+      "canonical_stimulus_id": 2157,
+      "video_a": 2157,
+      "video_b": 2184,
+      "profile34_pearson_r": 0.2767484906814937,
+      "profile34_max_abs_diff": 0.583337,
+      "dim14_pearson_r": 0.5299382718765516,
+      "dim14_max_abs_diff": 2.7778
+    }
+  ],
+  "annotation_repeat_summary": {
+    "profile34_mean_r": 0.6498099722704292,
+    "profile34_min_r": 0.2767484906814937,
+    "dim14_mean_r": 0.8306791426613762
+  },
+  "reading": "The repeat set is 16 canonical stimuli, of which 5 have two annotated rows. prereg_v2 D7 assumes 72. Whatever the agreement turns out to be, a set this small cannot select a response estimator, cannot fix a noise ceiling with usable precision, and cannot serve as the final held-out evaluation set that B9 reserves it for."
+}

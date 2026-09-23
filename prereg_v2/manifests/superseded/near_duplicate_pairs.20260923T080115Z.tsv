@@ -1,0 +1,26 @@
+# generated_by	prereg_v2/code/p1_stimulus_crosswalk.py
+# generated_at_utc	2026-09-23T08:00:24Z
+# git_commit	0bc3a79becf56c7a532980dcef09f5a8a0b36427
+# python	/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python
+# asset_registry	/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/code/_assets.py
+# asset_registry_sha256	9dc8264b6c79df478c33c4232818edd478489d852a05d90810918fbb2714bb5e
+# decode_side	32
+# ffmpeg_decode	/pscratch/sd/s/sjmoon/swift_PTL2/bin/ffmpeg
+# ffprobe	/usr/bin/ffprobe
+video_a	video_b	signature_r	dhash_hamming	same_decoded_sha256	confirmed_same_content
+6	2191	1.000000238418579	0	True	True
+4	2189	1.0000001192092896	0	True	True
+9	2194	1.0	0	True	True
+472	859	1.0	0	True	True
+2157	2184	1.0	0	True	True
+1	2186	0.9999999403953552	0	True	True
+10	2195	0.9999999403953552	0	True	True
+259	866	0.9999999403953552	0	True	True
+2	2187	0.9999998807907104	0	True	True
+7	2192	0.9999998807907104	0	True	True
+846	1673	0.9999998807907104	0	True	True
+11	2196	0.9999998211860657	0	True	True
+3	2188	0.9999997615814209	0	True	True
+5	2190	0.9999997615814209	0	True	True
+8	2193	0.9999997615814209	0	True	True
+1349	1363	0.9998376369476318	0	False	True
