@@ -1,0 +1,99 @@
+{
+  "provenance": {
+    "generated_by": "prereg_v2/code/q2_derivation_chain.py",
+    "generated_at_utc": "2026-09-28T04:13:08Z",
+    "git_commit": "5baff3177d0960aadd1e575fa5368e32a6dc8894",
+    "python": "/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python",
+    "asset_registry": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/code/_assets.py",
+    "asset_registry_sha256": "9dc8264b6c79df478c33c4232818edd478489d852a05d90810918fbb2714bb5e"
+  },
+  "per_participant": {
+    "sub-01": {
+      "n_recomputed_stimuli": 2196,
+      "n_csv_dirs": 2197,
+      "csv_dirs_not_in_step7": [
+        0
+      ],
+      "step7_stimuli_without_csv": [],
+      "csv_max_abs_diff": 1.0934448235744298e-07,
+      "csv_all_label_order_ok": true,
+      "pt_n_present": 2185,
+      "pt_ts_max_abs_diff": 0.0,
+      "pt_mean_max_abs_diff": 9.536743172944284e-08,
+      "pt_padding_all_zero": true,
+      "fmri_raw_max_abs_diff": 2.384185791015625e-07,
+      "roi_brain_minus_all_mean_abs_median": 0.002974945935420692
+    },
+    "sub-02": {
+      "n_recomputed_stimuli": 2196,
+      "n_csv_dirs": 2197,
+      "csv_dirs_not_in_step7": [
+        0
+      ],
+      "step7_stimuli_without_csv": [],
+      "csv_max_abs_diff": 1.1918640119290558e-07,
+      "csv_all_label_order_ok": true,
+      "pt_n_present": 2185,
+      "pt_ts_max_abs_diff": 0.0,
+      "pt_mean_max_abs_diff": 5.418604076545819e-08,
+      "pt_padding_all_zero": true,
+      "fmri_raw_max_abs_diff": 2.384185791015625e-07,
+      "roi_brain_minus_all_mean_abs_median": 0.006092003779485822
+    },
+    "sub-03": {
+      "n_recomputed_stimuli": 2196,
+      "n_csv_dirs": 2197,
+      "csv_dirs_not_in_step7": [
+        0
+      ],
+      "step7_stimuli_without_csv": [],
+      "csv_max_abs_diff": 1.1907958974433086e-07,
+      "csv_all_label_order_ok": true,
+      "pt_n_present": 2185,
+      "pt_ts_max_abs_diff": 0.0,
+      "pt_mean_max_abs_diff": 9.536743172944284e-08,
+      "pt_padding_all_zero": true,
+      "fmri_raw_max_abs_diff": 2.384185791015625e-07,
+      "roi_brain_minus_all_mean_abs_median": 0.0018513541435822845
+    },
+    "sub-04": {
+      "n_recomputed_stimuli": 2196,
+      "n_csv_dirs": 2197,
+      "csv_dirs_not_in_step7": [
+        0
+      ],
+      "step7_stimuli_without_csv": [],
+      "csv_max_abs_diff": 1.1816406253473133e-07,
+      "csv_all_label_order_ok": true,
+      "pt_n_present": 2185,
+      "pt_ts_max_abs_diff": 0.0,
+      "pt_mean_max_abs_diff": 5.418604076545819e-08,
+      "pt_padding_all_zero": true,
+      "fmri_raw_max_abs_diff": 2.384185791015625e-07,
+      "roi_brain_minus_all_mean_abs_median": 0.0019980615470558405
+    },
+    "sub-05": {
+      "n_recomputed_stimuli": 2196,
+      "n_csv_dirs": 2197,
+      "csv_dirs_not_in_step7": [
+        0
+      ],
+      "step7_stimuli_without_csv": [],
+      "csv_max_abs_diff": 9.780883791776773e-08,
+      "csv_all_label_order_ok": true,
+      "pt_n_present": 2185,
+      "pt_ts_max_abs_diff": 0.0,
+      "pt_mean_max_abs_diff": 5.2981906417670643e-08,
+      "pt_padding_all_zero": true,
+      "fmri_raw_max_abs_diff": 2.384185791015625e-07,
+      "roi_brain_minus_all_mean_abs_median": 0.004001413704827428
+    }
+  },
+  "verdict": {
+    "csv_reproduced": true,
+    "pt_reproduced": true,
+    "fmri_raw_reproduced": true,
+    "tolerance": 0.0001,
+    "fmri_raw_participant_order": "row s of fmri_raw is compared with SUBJECTS[s]"
+  }
+}

@@ -4,6 +4,10 @@ subtitle: "action_items_v1.md A0-*, A1-*, A2-*, A3-* 실행 결과와 Gate 0 판
 date: "2026-09-23"
 ---
 
+> **정정 (2026-09-28).** 전처리 전수검사와 Horikawa et al. (2020) 원문 대조로 이 문서의 네 항목이
+> 정정되었다. video 2186–2196 의 제시 위치, 무음 기술, 반복 72개의 부재 사유, 2,180 의 해석이다.
+> 정정 내용은 [`qc/PREPROC_QC_REPORT.md`](qc/PREPROC_QC_REPORT.md) §5 에 있다. 아래 본문은 작성 시점 그대로 둔다.
+
 # 0. 이 문서의 지위
 
 `action_items_v1.md` 의 Phase 0–3 만 실행한 결과다. 모델은 학습하지 않았다. 모든 수치는
