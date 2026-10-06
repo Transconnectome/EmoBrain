@@ -45,6 +45,8 @@ Teacher training uses brain + video + descriptive captions. The student receives
 Content probes, CKA and selective perturbations are evaluations, not student content-reconstruction losses.
 See the [story](docs/current/01_STORY_AND_DESIGN.md) for rationale and interpretation limits.
 
+[Model figure: training, inference and representation analysis](docs/assets/model_architecture.png)
+
 ### Implementation state
 
 The October design is **not yet implemented end to end** in the inherited code.
@@ -123,6 +125,8 @@ _연구 개요: 개념적 틀과 신경 대응·학습된 관계·정서 예측�
 Teacher는 학습 시 뇌 + 영상 + 서술형 caption을 사용한다. Student는 학습과 추론 모두 뇌만 입력받으며, 학습 중에는 중첩 OOF(out-of-fold) teacher의 **출력 지도**를 받는다.
 내용 probe, CKA, 선택적 교란은 평가용 분석이지 student의 내용 복원 학습 loss가 아니다.
 설계 근거와 해석의 한계는 [연구 스토리](docs/current/01_STORY_AND_DESIGN.md)에 설명되어 있다.
+
+[모델 피규어: 학습·추론·표상 분석](docs/assets/model_architecture.png)
 
 ### 구현 상태
 
