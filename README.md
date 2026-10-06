@@ -35,6 +35,8 @@ _Study plan, not results. Top: the conceptual question connecting scene content,
 
 Personal memories, values, bodily state and individual experience motivate the broader question but are not directly measured or recovered here; the dashed band marks that boundary. The correspondence arrow is a relation to test, not an established mechanism of emotion generation.
 
+Blue, terracotta and sage distinguish Analyses 1, 2 and 3. The expanded Analysis 2 panel shows a candidate brain-query teacher and a separate brain-only student; dashed guidance connects affect outputs, not latent representations. Projector/loss details are omitted, and the illustration does not freeze the architecture.
+
 The figure distinguishes correspondence in measured fMRI from information recoverable in a model and information the model uses. The 2d content-side bridge is a proposed implementation pending feasibility validation, with separate training-set calibration; held-out validation fMRI is an evaluation target, never an input to that prediction path. CKA summarizes geometry similarity, not information use. VA/VAD runs require codebook verification. [Full-size image](docs/assets/study_overview.png) · [Figure source, scope and generation prompt](docs/assets/study_overview.md).
 
 | Analysis | Question |
@@ -115,6 +117,8 @@ _뇌–내용 관계와 규준 정서 프로필 예측 · 최신 설계 반영�
 _실험 결과가 아닌 연구 계획이다. 상단은 장면 내용·뇌 반응 구조·외부 규준 정서 프로필을 연결하는 개념적 질문이고, 하단은 이를 검정하는 세 분석이다. Teacher–student 학습은 보조 도구로 배치했다. 뇌 그림·장면·그래프·막대는 설명용이며 실제 측정 효과·연구 자극·검증된 정서 유사성 사례가 아니다._
 
 개인 기억·가치·신체 상태·개인 경험은 더 넓은 질문의 배경이지만 현재 직접 측정하거나 복원하지 않는다. 점선 영역이 이 범위를 구분한다. 대응 화살표는 검정할 관계이며 확립된 감정 생성 기전이 아니다.
+
+파랑·주황·초록으로 분석 1·2·3을 구분했다. 넓어진 분석 2에는 후보 brain-query teacher와 별도의 brain-only student가 보이며, 점선 지도는 latent 표상이 아니라 정서 출력 사이에 연결된다. Projector와 loss 세부는 생략했고, 그림으로 architecture를 동결한 것은 아니다.
 
 그림은 실제 fMRI와의 대응, 모델에서 읽을 수 있는 정보, 모델이 사용하는 정보를 구분한다. 2d의 content-side bridge는 실행 가능성 검증 전인 구현 제안이며 training 자극을 이용한 별도 calibration이 필요하다. Held-out 검증 뇌는 평가 대상일 뿐 이 예측 경로의 입력이 아니다. CKA는 표상 구조의 유사성을 요약하며 정보 사용을 입증하지 않는다. VA/VAD 실행은 codebook 확인이 필요하다. [원본 크기 이미지](docs/assets/study_overview.png) · [도식 원본·해석 범위·생성 프롬프트](docs/assets/study_overview.md).
 

@@ -19,7 +19,7 @@ Sources: [study design](../current/01_STORY_AND_DESIGN.md), [neural-validation a
 1. **Question:** How do the three analyses provide distinct evidence for the brain–content thesis?
 2. **Alternative explanation:** An architecture-only diagram could imply that better prediction or output distillation alone establishes learned content and neural mechanisms.
 3. **Basis:** The accepted three-analysis design and the 1b/2d amendment linked above, not new experimental evidence.
-4. **Choice:** A large conceptual framework followed by three complementary tests; training is shown as a smaller supporting tool. The previous top-level training strip obscured the whole-study motivation, as the user's feedback identified.
+4. **Choice:** A conceptual framework followed by three color-coded complementary tests. Analysis 2 has extra space for the candidate brain-query teacher and brain-only student while retaining the post-training analyses. Removing the document-title strip allocates space to the science. Training remains a supporting tool, not the top-level research question.
 5. **Revision criterion:** Update the figure if the accepted design changes or if a depicted method fails feasibility review; do not retain obsolete arrows for visual continuity.
 6. **Limits:** No effect sizes, successful outcomes, causal emotion decomposition, individual feelings or confirmed bridge feasibility are claimed.
 
@@ -65,7 +65,7 @@ flowchart TB
 
 The raster is generated with the built-in image-generation tool using the exact prompt below. The Mermaid block is the editable logic source, not a pixel-reproducible renderer. Review is manual for text, arrows, scope and clipping; no automated journal-quality score, print certification or experimental validation is implied.
 
-Selected asset: [study_overview.png](study_overview.png). Redesigned after the user's feedback to prioritize conceptual motivation over training. A targeted correction made fMRI an explicit teacher and student input and removed a misleading student-to-brain output arrow. The final image was visually inspected for complete margins, legible major labels and the specified information boundaries. The response-structure graph, bar heights, scene pictures, brain patches and participant icons are illustrative; their values, affect similarity, localization and counts are not study observations. Full-size viewing is recommended for small annotations. The user-supplied conceptual image was a layout reference only and is not redistributed in this repository. The former asset and prompt remain recoverable from Git history, not as duplicate active files.
+Selected asset: [study_overview.png](study_overview.png). The latest revision removes the title/subtitle/date strip, uses a roomier 4:3 layout and restores muted blue, terracotta and sage analysis colors. Analysis 2 now shows the candidate teacher's participant map, brain queries, frozen video/sentence encoders, content keys/values, fused brain state and affect head; the separate student receives fMRI only. The dashed OOF connector joins output profiles, not hidden states. Encoder-to-token projectors and loss details are omitted for readability; this is not a complete implementation graph and does not freeze D05. The image was visually inspected for complete margins, legible major labels and information-access boundaries. The response graph, bar heights, scenes, brain patches and participant icons are illustrative, not measured values, localization, matched-affect evidence or sample counts. Full-size viewing is recommended for small architecture labels. The reference for this edit is the previous asset in commit `2d94a58`; prior art and prompts remain in Git history without duplicate active files.
 
 ## 📚 한국어
 
@@ -82,7 +82,7 @@ README 그림은 ‘장면 내용과 뇌 반응은 어떻게 관련되고, 그 �
 1. **질문:** 세 분석은 뇌–내용 관계라는 명제에 각각 어떤 근거를 제공하는가?
 2. **대안 설명:** 구조도만 제시하면 예측 성능 향상이나 출력 증류만으로 내용 학습과 신경 기전이 입증된 것처럼 보일 수 있다.
 3. **근거:** 승인된 세 분석과 1b/2d 보강 방향이며, 새로운 실험 결과가 아니다.
-4. **선택 이유:** 큰 개념적 틀 아래 세 검정을 배치하고 학습은 작은 보조 도구로 표시한다. 이전 상단 학습 박스가 전체 연구 동기를 가렸다는 사용자 피드백을 반영했다.
+4. **선택 이유:** 개념적 틀 아래 세 검정을 색상으로 구분한다. 분석 2를 넓혀 후보 brain-query teacher와 brain-only student를 보여주되 학습 후 분석을 유지한다. 제목 줄을 제거해 과학적 내용에 공간을 배정한다. 학습은 여전히 보조 도구이며 최상위 연구 질문을 대체하지 않는다.
 5. **수정 기준:** 승인 설계가 바뀌거나 실행 가능성 검토에서 방법이 제외되면 그림도 수정한다. 모양 유지를 위해 낡은 화살표를 남기지 않는다.
 6. **한계:** 효과 크기, 성공 결과, 감정의 인과적 분해, 개인 감정, bridge 실행 가능성 확정을 주장하지 않는다.
 
@@ -99,84 +99,82 @@ README 그림은 ‘장면 내용과 뇌 반응은 어떻게 관련되고, 그 �
 
 내장 이미지 생성 도구와 아래의 정확한 프롬프트로 PNG를 만든다. 위 Mermaid는 수정 가능한 논리 원본이며 픽셀 단위 재생성기는 아니다. 글자·화살표·범위·잘림을 직접 검수하며, 자동 저널 품질 점수나 인쇄 인증, 실험 검증을 수행했다고 주장하지 않는다.
 
-최종 파일은 [study_overview.png](study_overview.png)다. 사용자 피드백에 따라 학습 절차보다 개념적 동기를 앞세우도록 다시 구성했다. 부분 수정으로 teacher와 student의 fMRI 입력을 명시하고, student가 뇌를 생성하는 것처럼 보이는 화살표를 제거했다. 최종 그림의 여백, 주요 글자, 정보 접근 경계를 직접 확인했다. 반응 구조 그래프·막대·장면·뇌의 색 표시·참가자 아이콘은 설명용이며 실제 값, 정서 유사성, 해부학적 위치, 인원수를 나타내지 않는다. 작은 주석은 원본 크기로 보는 것을 권장한다. 사용자 첨부 개념도는 배치 참고용이며 저장소에 재배포하지 않는다. 이전 그림과 프롬프트는 별도 현행 사본을 만들지 않고 Git 이력에 보존한다.
+최종 파일은 [study_overview.png](study_overview.png)다. 최신 수정은 제목·부제·날짜 줄을 없애고 4:3 지면을 활용하며, 분석별 차분한 파랑·주황·초록을 복원했다. 분석 2에는 teacher의 participant map, brain query, 고정 video/sentence encoder, content key/value, fused brain state, affect head를 표시했다. 별도 student의 입력은 fMRI뿐이며 점선 OOF 지도는 hidden state가 아니라 출력 프로필 사이에 연결된다. 가독성을 위해 encoder–token projector와 loss 세부는 생략했다. 완전한 구현도가 아니며 D05를 동결하지 않는다. 여백, 주요 글자, 정보 접근 경계를 직접 확인했다. 그래프·막대·장면·뇌 색 표시·참가자 아이콘은 설명용이며 실제 값·위치·정서 유사성 근거·표본 수가 아니다. 작은 모델 글자는 원본 크기로 보는 것을 권장한다. 이번 수정의 참조 이미지는 커밋 `2d94a58`의 이전 그림이며, 과거 도안과 프롬프트는 중복 파일 없이 Git 이력에 보존한다.
 
 ## 🔧 Generation prompt / 생성 프롬프트
 
 ```text
-Create a completely redesigned, exceptionally clear full-study neuroscience overview for EmoBrain. The attached image is ONLY a reference for putting CONCEPTUAL FRAMEWORK and a prominent brain BEFORE methodology; do NOT copy its untested constructs or its individualized-experience claims.
+Revise the attached EmoBrain study figure according to these instructions. Preserve the science and conceptual-first hierarchy, but expand the drawing area and substantially enlarge and detail the model inside Analysis 2. Use a spacious landscape 4:3 canvas, preferably 2400 x 1800 pixels. Reflow rather than squeeze. High-resolution editorial neuroscience paper figure, readable at 1400px. White background, dark charcoal/navy sans-serif typography, thin clean arrows. No gradients, neon, drop shadows or dashboard styling.
 
-Scientific editorial style reminiscent of Nature: white background, crisp charcoal/navy Helvetica, restrained muted blue/ochre/sage, thin rules, simple elegant brain line art with small colored response patches, realistic tiny scene illustrations, ample whitespace. No gradient panels, no dashboard cards, no neon, no stock 3D brain CGI. Landscape 3:2, high resolution. Large readable typography. Treat as a journal overview not a conference model architecture. Keep generous safe margins.
+REMOVE COMPLETELY the top 'EmoBrain' title, 'Sensory–semantic content, brain representations and affect' subtitle and the date. Start the figure at 'a  Conceptual framework'. Retain panel headings. Use freed space for content.
+Top conceptual panel occupies about 34% of canvas height. Lower three analysis panels occupy about 64%. Lower widths: Analysis 1 = 23%, Analysis 2 = 53%, Analysis 3 = 24%. Analysis 2 is visibly largest. Colour code ONLY the three analysis panels with muted pastel HEADER bands and fine borders: b Analysis 1 slate BLUE, c Analysis 2 dusty TERRACOTTA/ORANGE, d Analysis 3 SAGE GREEN. Bodies mostly white. The top conceptual panel stays neutral. Avoid decorative boxes except functionally meaningful model modules.
 
-TITLE "EmoBrain"
-SUBTITLE "Sensory–semantic content, brain representations and affect"
-Small date "Study framework · 2026-10-06"
+TOP PANEL a:
+Keep question exactly "How do brain responses relate to scene content, and how are these relations used for affect readout?"
+Keep left 'Emotionally evocative scenes' with birthday and ocean illustrative thumbnails; underneath 'Sensory structure' and 'Objects, actions and situation meaning'.
+Arrow labelled 'Viewing' to a line-art brain labelled 'Brain responses' / 'Multivoxel fMRI patterns', and neighboring abstract dot graph labelled 'High-dimensional response structure'.
+A bidirectional connector labelled 'Correspondence to test' leads to 'Normative affect profiles' with separate schematic '34-D categories' and '14-D ratings' bar profiles. Labels 'Crowdsourced stimulus-level annotations' and 'Not participant self-reports'.
+Beneath these a thin dashed neutral band 'Beyond current measurements: personal memories, values, bodily state and individual emotional experience'. No arrows from this unmeasured band into the brain. Tiny note 'Hypothesis: similar affect can coexist with different scene content and neural representations.'
+Do not infer a fixed shared/individual latent decomposition or emotion-generation mechanism. All art is schematic.
 
-COMPOSITION: Top 45% is a full-width panel a with the scientific idea and central question. Bottom 55% is three aligned panels b, c, d, corresponding to Analysis 1, Analysis 2, Analysis 3. Panel c slightly wider. Main attention should be the top concept, NOT the teacher architecture. NO shared-training header at top.
+BOTTOM LEFT PANEL b:
+Title 'b  Analysis 1' / 'Test correspondence in the brain'
+Question 'Which content explains neural responses?'
+Video and caption small glyphs → 'Held-out encoding' → small fMRI brain.
+Two subsections:
+'1a  Content → fMRI'
+'Low-level controls + video + caption'
+'1b  Content / affect → same fMRI'
+'Shared and conditional prediction'
+Small explanation 'Same held-out responses; common score'
+Bottom label 'Measured brain evidence'
 
-TOP a heading "a  Conceptual framework"
-Central question in bold just below:
-"How do brain responses relate to scene content, and how are these relations used for affect readout?"
+BOTTOM CENTRE PANEL c:
+Title 'c  Analysis 2' / 'Explain learned relations'
+Question 'What is learned, accessible and used?'
+The top half of THIS PANEL is a genuine readable teacher-student model schematic, not just two summary boxes. Put a small heading 'Candidate brain-query model'.
 
-Across this top panel, draw three major groups.
-LEFT group heading "Emotionally evocative scenes". Two small tasteful scene illustrations: people sharing a birthday cake, and a dramatic ocean landscape. Below them two short lines "Sensory structure" and "Objects, actions and situation meaning". Small footnote "Illustrative scenes".
-CENTER group heading "Brain responses". A large anatomically plausible line-art brain, small dispersed blue and ochre response squares on its surface, no named emotion centers. Subtitle "Multivoxel fMRI patterns". Next to brain, within same group, a small sparse cloud of interconnected colored dots, labelled "High-dimensional response structure". Do not depict a settled two-subspace theory or a dimensionality estimate.
-RIGHT group heading "Normative affect profiles". Two tiny generic multibar profiles labelled "34-D categories" and "14-D ratings". These are separate reference spaces, not simultaneous training outputs. Under profiles label "Crowdsourced stimulus-level annotations" and "Not participant self-reports".
-Draw a single solid arrow from scenes to brain labelled "Viewing". Between brain-response structure and normative profiles draw a bidirectional thin arrow labelled "Correspondence to test". A subtle bracket or line under scenes plus brain states "Brain–visual–semantic relations" (not causal mediation).
-Below these groups a small light-grey dashed-border horizontal band titled "Beyond the current measurements". Body "Personal memories, values, bodily state and individual emotional experience". No arrows from this band into the measured model. It is theoretical context, not observed variables or new analyses. Do not claim these are measured or recovered.
-One small note at bottom of panel a: "Hypothesis: similar affect can coexist with different scene content and neural representations."
-Do not claim that emotion equals visual plus semantic input. No 'adaptive balance', 'shared scaffold', 'situated conjunctions' or 'effective dimensionality estimated'.
+TEACHER diagram occupies upper 3 rows of model area:
+Inputs on left with 3 separate horizontal paths:
+'fMRI ROI patterns' → 'Participant map' → 'Brain tokens (Q)'
+'Video' → 'Frozen V-JEPA 2' → 'Video tokens (K,V)'
+'Caption' → 'Frozen sentence encoder' → 'Caption tokens (K,V)'
+These three paths converge on 'Brain-query fusion'. Q comes from brain tokens, keys/values from video and caption tokens. Fusion has a brain residual pathway; if there is room show an elegant labeled residual arrow, otherwise put 'brain residual + content update' inside fusion below its title.
+Fusion outputs 'Fused brain state' → 'Affect head' → 'Teacher profile'. Can place the last 3 blocks on one horizontal line under teacher inputs to avoid microscopic text. NO direct content-to-head skip. Label group 'Teacher · training only'. Show little stacked token blocks on the three paths, not huge pictograms.
+Only video and sentence encoders are marked frozen; teacher fusion and participant maps are not marked frozen.
 
-BOTTOM PANEL b heading "b  Analysis 1" then "Test correspondence in the brain"
-Question italic "Which content explains neural responses?"
-Mini graphic: small VIDEO + CAPTION glyphs point via arrow labelled "Held-out encoding" to small brain.
-Two clear numbered study components:
-"1a  Content → fMRI"
-"Low-level controls + video + caption"
-"1b  Content / affect → same fMRI"
-"Shared and conditional prediction"
-Below a short summary "Measured brain evidence".
-No fake effect maps, quantitative effects, Venn proportions or significance stars.
+STUDENT diagram directly underneath:
+'fMRI ROI patterns' → 'Participant map' → 'Small brain encoder' → 'Student state' → 'Affect head' → 'Student profile'.
+Label 'Student · brain-only training and inference'. No video or caption arrow enters this path. A dashed connector goes from the TEACHER PROFILE to the STUDENT PROFILE with label 'Nested OOF output guidance (training only)'. The guidance must target the OUTPUT comparison, not the student hidden state. If necessary put an 'Output guidance' comparison box between the two profiles and point dashed arrows from both profiles to it. Do not depict latent matching or feature reconstruction losses.
+One short line under the model 'Normative targets supervise both heads; separate model per target'.
+Ensure the arrows actually connect to the correct blocks. Model diagram readable, not every detail forced into tiny text.
 
-BOTTOM PANEL c heading "c  Analysis 2" then "Explain learned relations"
-Question italic "What is learned, accessible and used?"
-Small SUBORDINATE preparation line at top of this lower panel:
-"Brain + video + caption → Teacher"
-"OOF output guidance → Brain-only student"
-Under it tiny label "Training tool, not the scientific conclusion".
-The student has fMRI as its ONLY input; OOF guidance is during training only. Avoid a complex architecture drawing; these two lines occupy less than 15% of panel c.
-Then three compact rows with simple icons, not giant boxes:
-"Brain reliance" / "Content-only controls; brain swaps"
-"Content and geometry" / "Held-out retrieval; CKA"
-"Model use" / "Selective ROI / token perturbation"
-A small italic question "Different content among similar-affect scenes?"
-Then a clearly separated last row:
-"Independent neural validation"
-"Content-derived representation → separate-cohort fMRI"
-Tiny note "Bridge implementation pending validation"
-and "Training-set calibration; test fMRI is evaluation only".
-Caption below panel "Learned model relations + independent brain evidence".
-Do not suggest CKA establishes use or individual feelings.
+UNDER THE MODEL inside this same c panel, draw an 'After training' subsection with 3 compact rows:
+'Brain reliance' — 'Content-only controls; held-out brain swaps'
+'Content and geometry' — 'Frozen probes / retrieval; CKA'
+'Model use' — 'Selective ROI / token perturbation'
+A small italic side callout 'Different content among similar-affect scenes?'
+Then a distinct last subsection 'Independent neural validation':
+'Content-derived representation → separate-cohort fMRI'
+'Bridge implementation pending validation; separate training-set calibration'
+'Test fMRI is evaluation only'
+Bottom label 'Learned relations + independent brain evidence'
+Do not let model graphic remove any of these four analysis components.
 
-BOTTOM PANEL d heading "d  Analysis 3" then "Test affect readout and replication"
-Question italic "Are the relations functionally accessible?"
-Small simple brain icon → small 'Same student' block → generic multi-bar profile. Label "Brain-only inference".
-Text "Separate models: 34-D | 14-D"
-Text "VA-2 / VAD-3 if codebook supports"
-Text "Direct · Full-guided · Shuffled-guided"
-Then small two participant-group icons sharing one VIDEO glyph, label "Different participants, shared stimuli".
-Caption below "Normative prediction + cohort replication".
-No exact participant counts, no joint training, no new-stimulus-distribution claims.
+BOTTOM RIGHT PANEL d:
+Title 'd  Analysis 3' / 'Test affect readout and replication'
+Question 'Are the relations functionally accessible?'
+Small brain → 'Same student' → schematic generic bars.
+Label 'Brain-only inference'
+Text 'Separate models: 34-D | 14-D'
+'VA-2 / VAD-3 if codebook supports'
+'Direct · Full-guided · Shuffled-guided'
+Two simple participant groups with shared video, caption 'Different participants, shared stimuli'
+Bottom label 'Normative prediction + replication'
 
-BOTTOM FOOTER two very legible small lines:
-"Three complementary tests — not a causal chain or an emotion-generation model"
-"Study plan, not results · Probes are evaluations, not training losses · Model perturbation is not neural causality"
+Very bottom two-line footer:
+'Study plan, not results · Probes are evaluations, not training losses'
+'Three complementary tests, not a causal chain · Model perturbation is not neural causality'
 
-All figures, profiles, icons and example scenes are schematic, not evidence. Preserve scientific distinctions. Avoid additional jargon, equations, giant loss boxes, crowded arrow spaghetti or tiny text. Give the scientific concept clear visual priority, with methods as supporting tests below.
-```
-
-### Targeted revision / 부분 수정
-
-```text
-Make one surgical correction to the small training inset inside panel c (Analysis 2) of this image. Preserve EVERYTHING else exactly: the conceptual framework, all brain and scene illustrations, all text, panels b and d, the lower analysis tests, margins and layout. The training inset currently wrongly omits brain as a teacher input and shows a brain after the student, suggesting brain generation. Replace ONLY that inset diagram with this unambiguous two-row schematic, keeping within its existing rectangle. TOP ROW: exact text 'fMRI + video + caption' → a small box 'Teacher'. BOTTOM ROW: exact text 'fMRI only' → a small box 'Student'. Put Teacher directly above Student at the right so one DASHED DOWNWARD arrow goes from Teacher to Student, labelled 'Nested OOF output guidance' and '(training only)' in two short lines to its left or right. Make sure the dashed guidance arrow is visually separate from the solid fMRI input arrow. There must be NO arrow from Student to any brain illustration, NO generated fMRI, and no video/caption input to Student. REMOVE the old video icon, caption icon and output brain icon from this inset. Beneath the inset preserve the italic note 'Training tool, not the scientific conclusion'. Use clean small text rather than decorative icons for this inset. Do not change anything outside this small training inset.
+Keep all panel labels, critical caveats and text uncropped. No giant document title, no date. Keep the conceptual panel recognizably similar to the reference while making the bottom model richer, the overall page roomier and the three analysis colours clear.
 ```

@@ -65,3 +65,8 @@ _2026-10-06 · 2026-10-04 전달본의 후속 버전_
 
 - English: Replaced the method-first image after user feedback. Panel a now presents the conceptual motivation; panels b–d show the three complementary analyses. Training moved into a small Analysis 2 inset. Personal experience and unmeasured individual factors are explicitly out of measurement scope. Updated both README captions, figure source/prompt and amendment figure status. No new scientific analysis or result was added; earlier art remains in Git history.
 - 한국어: 사용자 피드백에 따라 방법론 중심 그림을 교체했다. 상단 a는 연구 동기와 개념적 틀, 하단 b–d는 세 상보적 분석이며 학습 절차는 분석 2의 작은 영역으로 내렸다. 개인 경험과 측정하지 않은 개인 요인은 측정 범위 밖으로 명시했다. README 양쪽 설명, 도식 원본·프롬프트, 보강 문서의 그림 상태를 함께 수정했다. 새 과학적 분석이나 결과는 추가하지 않았고 이전 도안은 Git 이력에 남아 있다.
+
+## 📊 Expanded model panel / 모델 패널 확장 — 2026-10-06
+
+- English: Removed the figure title/subtitle/date strip, enlarged the layout to 4:3 and color-coded the three analyses. Expanded Analysis 2 to show the candidate brain-query teacher, separate brain-only student and output-only nested OOF guidance without removing post-training tests. Updated bilingual captions and source/prompt; no model code, design freeze or experiment changed.
+- 한국어: 그림의 제목·부제·날짜 줄을 제거하고 4:3 지면과 분석별 색상을 적용했다. 분석 2에 후보 brain-query teacher, 별도 brain-only student, 출력 수준 중첩 OOF 지도를 확장해 표시하면서 학습 후 검정을 유지했다. 영한 설명과 원본·프롬프트를 갱신했으며 모델 코드·설계 동결·실험은 변경하지 않았다.
