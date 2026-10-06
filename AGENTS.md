@@ -42,4 +42,4 @@ Without these answers, do not add it to the primary design. Novelty, popularity,
 - Store server audit outputs together under project/output/audits; link evidence rather than duplicating data.
 - Keep root README, CLAUDE and CONTEXT as navigation, not competing specifications.
 - This work uses a temporary local checkout; do not create a persistent Mac project checkout or rearrange the user's local research folder.
-- Work on the requested branch. Do not merge to main or create a PR without authorization.
+- Continue documentation, code and experiment-related work on `docs/unify-study-design-20261006`. Keep main unchanged until experiments have been run, major design decisions and results have been reviewed, and the user explicitly approves a merge. Do not create a PR without authorization.

@@ -59,7 +59,7 @@ Earlier top-level entry points are retained only as short navigation files.
 
 ## 🔄 Branch workflow
 
-Documentation unification is prepared on `docs/unify-study-design`, based on main commit
+The active working branch is `docs/unify-study-design-20261006`, based on main commit
 `a5285044ce417945685e0eb044ac77f68d487af0`.
 This branch does not make old results evidence for the new design.
-Review changes before merging to main; do not overwrite server work or run jobs on checkout.
+Continue documentation, code and experiment-related work on this branch. Keep main unchanged until experiments have been run, major design decisions and results have been reviewed, and the user explicitly approves a merge. Do not overwrite server work or run jobs merely on checkout.

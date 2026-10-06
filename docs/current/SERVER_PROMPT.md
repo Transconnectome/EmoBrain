@@ -12,6 +12,8 @@ Teacher는 training 시 brain + video + caption을 받는다. Student는 trainin
 
 ## 📚 먼저 읽을 문서
 
+작업 브랜치는 `docs/unify-study-design-20261006`이야. 이후 문서·코드·실험 관련 변경은 이 브랜치에서 이어가고, 실험 실행과 주요 설계·결과 검토가 끝난 뒤 사용자가 명시적으로 승인할 때만 main에 병합해. 브랜치 전환 전 서버의 미커밋 변경과 실행 중인 작업을 확인하고 보존해. 이 지침 자체가 GPU 작업 실행이나 PR 생성을 승인하는 것은 아니야.
+
 저장소 루트의 `AGENTS.md`와 `docs/current/00_README.md`부터 읽어줘. 이어 같은 폴더의 `01_STORY_AND_DESIGN.md`, `04_DECISION_REGISTER.md`, `02_IMPLEMENTATION_SPEC.md`, `03_ACTION_ITEMS.md`, `05_REFERENCES.md`, `06_NEURAL_VALIDATION_AMENDMENT.md`, `07_RESPONSE_ESTIMATION_REVIEW.md`, `08_IMPLEMENTATION_STATUS.md`를 읽어줘. `docs/current`만 유지·편집하고 과거 H1–H4, 날짜별 handoff, 통합본·ZIP은 역사 자료로 취급해줘. 문서 브랜치를 받았다고 main을 병합하거나 진행 중인 서버 작업을 덮어쓰지 마.
 
 기존 설계를 무조건 새로 구현하거나 이미 실행한 결과를 버리지 말고, 현재 코드·데이터·로그와 대조해줘. 이번 패키지의 ‘권고/미확정’을 사용자 승인된 확정값으로 바꾸지 마. 이미 실제 preregistration이 있다면 변경을 amendment 또는 exploratory로 기록해줘.
