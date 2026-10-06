@@ -220,7 +220,7 @@ claim_evidence_table
 
 ### 그림 상태
 
-2026-10-06 Nature-style overview v1은 이 보강 전 도안으로 보존한다. 새 설계의 완성본이라고 재배포하지 않는다. 다음 도식에서는 panel a에 1a/1b, panel b에 2d를 포함하고 학습 구조는 2·3의 공통 준비임을 드러낸다. 이번 문서 보강은 PNG 수정 작업을 수행했다는 뜻이 아니다.
+2026-10-06 Nature-style overview v1은 이 보강 전 도안으로 보존하며 새 설계의 완성본으로 재배포하지 않는다. 이후 사용자 요청으로 [현재 Overview](../assets/study_overview.png)를 새로 생성해 README에 연결했다. Panel a에 1a/1b, panel b에 2a–d와 affect-neighborhood retrieval, panel c에 독립 target과 재현성을 표시하고 teacher–student 학습은 2·3의 공통 준비로 구분했다. 2d bridge 구현은 여전히 검증·동결 전임을 그림에 표시했다. [원본 논리·생성 프롬프트·검수 범위](../assets/study_overview.md)를 함께 관리한다. PNG 제작 완료는 분석 구현이나 실험 검증 완료를 뜻하지 않는다.
 
 ## 🔗 8. 근거와 검증 범위
 

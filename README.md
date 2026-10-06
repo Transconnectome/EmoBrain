@@ -27,6 +27,14 @@ and how are these brain–content relations learned and used for high-dimensiona
 This is a neuroscience study of learned content and model use, not an emotion-decoding leaderboard.
 Normative affect annotations are not the scanned participants' self-reports.
 
+### Study overview
+
+![EmoBrain overview: direct neural encoding and content–affect overlap; learned content, model use and independent neural validation; brain-only affect readout and participant-cohort replication.](docs/assets/study_overview.png)
+
+_Study plan, not results. Shared teacher–student training supports Analyses 2 and 3. All brain illustrations, thumbnails, matrices and bars are schematic or illustrative—not measured effects, actual study stimuli or verified affect matches._
+
+The figure distinguishes correspondence in measured fMRI from information recoverable in a model and information the model uses. The 2d content-side bridge is a proposed implementation pending feasibility validation, with separate training-set calibration; held-out validation fMRI is an evaluation target, never an input to that prediction path. CKA summarizes geometry similarity, not information use. VA/VAD runs require codebook verification. [Full-size image](docs/assets/study_overview.png) · [Figure source, scope and generation prompt](docs/assets/study_overview.md).
+
 | Analysis | Question |
 | --- | --- |
 | 1a / 1b | Do content and affect annotations explain held-out brain responses, and where do their predictions overlap? |
@@ -53,6 +61,7 @@ Training, preprocessing changes, test-set selection and publication of results a
 docs/current/    maintained study design, decisions, actions and implementation status
 docs/archive/    superseded research plans and historical review records
 docs/reference/ literature and dataset evidence; not an alternative protocol
+docs/assets/    maintained overview image and its editable logic / generation prompt
 project/        existing code and outputs; migration status is explicit
 tools/          existing repository utilities
 archive/        pre-existing historical results and literature corpus
@@ -97,6 +106,14 @@ _뇌–내용 관계와 규준 정서 프로필 예측 · 최신 설계 반영�
 이 연구는 감정 decoding 성능 순위를 높이는 것이 아니라, 모델이 학습한 내용과 실제 정보 사용을 검정하는 신경과학 연구다.
 규준 정서 주석은 fMRI 촬영 참가자의 자기보고가 아니다.
 
+### 연구 개요 그림
+
+![EmoBrain 연구 개요: 실제 뇌의 내용–정서 설명력, 모델이 학습하고 사용하는 내용과 독립 뇌 검증, brain-only 정서 프로필 예측 및 참가자 집단 간 재현.](docs/assets/study_overview.png)
+
+_실험 결과가 아닌 연구 계획이다. Teacher–student 학습은 분석 2·3의 공통 기반이다. 뇌 그림, 영상 예시, 행렬, 막대는 모두 설명용이며 실제 측정 효과·연구 자극·검증된 정서 유사성 사례가 아니다._
+
+그림은 실제 fMRI와의 대응, 모델에서 읽을 수 있는 정보, 모델이 사용하는 정보를 구분한다. 2d의 content-side bridge는 실행 가능성 검증 전인 구현 제안이며 training 자극을 이용한 별도 calibration이 필요하다. Held-out 검증 뇌는 평가 대상일 뿐 이 예측 경로의 입력이 아니다. CKA는 표상 구조의 유사성을 요약하며 정보 사용을 입증하지 않는다. VA/VAD 실행은 codebook 확인이 필요하다. [원본 크기 이미지](docs/assets/study_overview.png) · [도식 원본·해석 범위·생성 프롬프트](docs/assets/study_overview.md).
+
 | 분석 | 질문 |
 | --- | --- |
 | 1a / 1b | 자극 내용과 정서 주석이 학습에서 제외한 자극의 뇌 반응을 설명하는가? 두 예측은 어디에서 중첩되는가? |
@@ -123,6 +140,7 @@ Teacher는 학습 시 뇌 + 영상 + 서술형 caption을 사용한다. Student�
 docs/current/    현재 연구 설계, 결정 기록, 작업 목록, 구현 상태
 docs/archive/    대체된 연구 계획과 과거 검토 기록
 docs/reference/ 문헌·데이터셋 근거 자료; 별도의 연구 프로토콜이 아님
+docs/assets/    현재 Overview 이미지와 수정 가능한 논리 / 생성 프롬프트
 project/        기존 코드와 산출물; 최신 설계로의 전환 상태를 명시
 tools/          기존 저장소 유틸리티
 archive/        기존 과거 결과와 문헌 모음

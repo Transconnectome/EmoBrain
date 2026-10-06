@@ -55,3 +55,8 @@ _2026-10-06 · 2026-10-04 전달본의 후속 버전_
 
 - English: Updated the root and project READMEs to place English first and a complete Korean version below a separator, with language navigation links. Added the same-file bilingual maintenance rule to AGENTS. No model code, study design or archived originals changed.
 - 한국어: 루트와 project README를 영어 본문 다음에 구분선과 전체 한국어 본문이 오는 형식으로 바꾸고 언어 이동 링크를 추가했다. AGENTS에 같은 파일에서 양쪽 언어를 함께 갱신하는 원칙을 기록했다. 모델 코드, 연구 설계, 보관된 과거 원문은 변경하지 않았다.
+
+## 📊 Current study overview / 최신 연구 개요 그림 — 2026-10-06
+
+- English: Added `docs/assets/study_overview.png` and its bilingual source/scope/prompt record, with inline images and captions in both README language sections. The three panels include 1a/1b, 2a–d plus affect-neighborhood retrieval, and independent affect readouts/replication. Teacher–student training is shared preparation; the bridge remains pending validation. Illustrative graphics are not data. No scientific decisions were newly frozen and no experiment was run.
+- 한국어: `docs/assets/study_overview.png`와 영한 원본·범위·프롬프트 기록을 추가하고 README 양쪽 언어에 그림과 설명을 연결했다. 1a/1b, 2a–d와 정서 이웃 내 retrieval, 독립 정서 target·재현성을 세 패널로 나타냈다. Teacher–student 학습은 공통 준비이고 bridge는 검증 전이다. 설명용 그림은 데이터가 아니며, 과학적 결정을 새로 동결하거나 실험을 실행하지 않았다.
