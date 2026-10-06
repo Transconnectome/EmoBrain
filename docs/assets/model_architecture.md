@@ -14,6 +14,8 @@ Sources: [implementation specification](../current/02_IMPLEMENTATION_SPEC.md), [
 
 ### Reading the model
 
+The fused-token stack combines blue (brain), ochre (video) and sage (caption) within each token. These colors illustrate multimodal fusion, not separately identified coordinates or measured modality contributions. Student tokens remain blue because its input is brain-only.
+
 1. **Teacher:** The brain pattern, video and caption each become token vectors. Brain queries select weighted video/caption information through cross-attention; this update is added to the original brain state by a skip connection. The result is **Fused State (Joint Latent)**; the affect head maps it to a profile. Cross-attention is the candidate fusion operation, not a replacement for the joint representation.
 2. **Student:** A separate encoder receives only fMRI. It learns from the normative annotation and the teacher's predicted profile. The second loss compares output values, not hidden representations.
 3. **OOF:** For a training stimulus, guidance comes from a teacher fitted without that stimulus group across participants. This fitting happens inside the student training split; its outer test set stays excluded.
@@ -65,6 +67,8 @@ flowchart TB
 기준 문서는 위 구현 사양·연구 설계·독립 뇌 검증 문서다. 깊이·너비·bridge 구현은 개발 단계 결정으로 남아 있다.
 
 ### 모델 읽기
+
+결합 토큰은 각 토큰 안에 파랑(뇌)·황토색(영상)·초록(caption)을 함께 배치했다. 색은 다중모달 결합의 개념도이며, 분리된 좌표나 측정된 모달리티 기여도를 뜻하지 않는다. Student는 뇌만 입력받으므로 파란 토큰을 유지했다.
 
 1. **Teacher:** 뇌 패턴·영상·caption을 각각 token 벡터로 바꾼다. Brain query가 cross-attention으로 영상·caption 정보에 가중치를 주어 가져오고, 이를 skip connection으로 원래 뇌 표상에 더한다. 결과가 **Fused State (Joint Latent)**이며 affect head는 이를 정서 프로필로 변환한다. Cross-attention은 후보 결합 연산이지 joint representation의 대체물이 아니다.
 2. **Student:** 별도 encoder가 fMRI만 입력받는다. 실제 규준 주석과 teacher 예측 프로필 두 가지를 참고해 학습한다. 두 번째 loss는 내부 표상이 아니라 출력값을 비교한다.
@@ -137,6 +141,12 @@ The graphics are illustrative, not empirical results. Preserve output-only disti
 ```
 
 ### Correction prompts
+
+Latest local edit (2026-10-06): built-in image editing; mixed-colour fused tokens only. The model and loss contracts are unchanged.
+
+```text
+Use case: precise-object-edit. Edit target: the supplied EmoBrain scientific architecture figure. Make ONE local visual change only. Between the circled plus sign and the teacher Affect Head, replace the narrow GRAY vertical token stack above 'Fused State (Joint Latent)' with a slightly wider elegant stack of six small horizontal token rectangles. Each token rectangle contains a subtle mixture of three colored cells in muted blue, muted orange/ochre, and muted green/sage, matching the three input modalities. Vary color order across rows to suggest a fused multimodal representation, not three separate modality blocks. Keep it compact within the same available area. Retain the black outline, incoming/outgoing arrows and exact labels 'Fused State (Joint Latent)' and u_BVS. This should visually communicate that each fused token combines Brain, Video and Caption information. Preserve EVERYTHING else exactly: all text, equations, line routing, teacher/student architecture, two panels, loss formulas, OOF box, title capitalization, margins, aspect ratio, white background, Helvetica-style lettering. Do not add scatter plots, legends, captions, new losses or new arrows. Do not recolor the student latent. No other edits.
+```
 
 ```text
 Make a precise correction of this TWO-PANEL scientific figure. Keep all layout, white background, capitalized labels, two panels Training / After Training, muted token colors, equations and content. Use non-condensed regular Helvetica-style typography.
