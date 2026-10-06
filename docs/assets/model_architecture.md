@@ -8,9 +8,16 @@ _Training, inference and representation analysis · 2026-10-06_
 
 ![Teacher–student training, brain-only inference and post-training analyses](model_architecture.png)
 
-The figure shows the candidate brain-query teacher, output-guided brain-only student, and post-training geometry, content and model-use analyses. Equations illustrate the 34-D case: sigmoid outputs, soft BCE labels and dimension-mean OOF probability MSE. The target strip describes the separate continuous-target runs. Repeated OOF-profile symbols denote the same type of cached prediction, not different supervision sources.
+The figure shows the candidate brain-query teacher, output-guided brain-only student, and post-training geometry, content and model-use analyses. Equations illustrate the 34-D case: sigmoid outputs, soft BCE labels and dimension-mean OOF probability MSE. The target strip describes the separate continuous-target runs.
 
 Sources: [implementation specification](../current/02_IMPLEMENTATION_SPEC.md), [study design](../current/01_STORY_AND_DESIGN.md), [independent neural validation](../current/06_NEURAL_VALIDATION_AMENDMENT.md). Depth, widths and the bridge implementation remain development decisions.
+
+### Reading the model
+
+1. **Teacher:** The brain pattern, video and caption each become token vectors. Brain queries select weighted video/caption information through cross-attention; this update is added to the original brain state. The affect head maps that state to a profile.
+2. **Student:** A separate encoder receives only fMRI. It learns from the normative annotation and the teacher's predicted profile. The second loss compares output values, not hidden representations.
+3. **OOF:** For a training stimulus, guidance comes from a teacher fitted without that stimulus group across participants. This fitting happens inside the student training split; its outer test set stays excluded.
+4. **After training:** CKA measures geometry similarity, retrieval tests accessible content, and selective perturbation tests model reliance. The candidate content-side bridge provides a separate route for independent neural validation.
 
 ### Design rationale
 
@@ -43,9 +50,16 @@ flowchart TB
 
 ## 📚 한국어
 
-이 그림은 후보 brain-query teacher, 출력 지도를 받는 brain-only student, 학습 후 geometry·content·모델 사용 분석을 보여준다. 수식은 34-D 기준으로 sigmoid 출력, soft BCE label loss, 차원 평균 OOF 확률 MSE를 나타낸다. 연속 target은 별도 학습하며 하단 target 띠에 표시했다. 반복된 OOF 프로필 표시는 동일한 종류의 예측 cache를 가리킨다.
+이 그림은 후보 brain-query teacher, 출력 지도를 받는 brain-only student, 학습 후 geometry·content·모델 사용 분석을 보여준다. 수식은 34-D 기준으로 sigmoid 출력, soft BCE label loss, 차원 평균 OOF 확률 MSE를 나타낸다. 연속 target은 별도 학습하며 하단 target 띠에 표시했다.
 
 기준 문서는 위 구현 사양·연구 설계·독립 뇌 검증 문서다. 깊이·너비·bridge 구현은 개발 단계 결정으로 남아 있다.
+
+### 모델 읽기
+
+1. **Teacher:** 뇌 패턴·영상·caption을 각각 token 벡터로 바꾼다. Brain query가 cross-attention으로 영상·caption 정보에 가중치를 주어 가져오고, 이를 원래 뇌 표상에 더한다. Affect head는 이 표상을 정서 프로필로 변환한다.
+2. **Student:** 별도 encoder가 fMRI만 입력받는다. 실제 규준 주석과 teacher 예측 프로필 두 가지를 참고해 학습한다. 두 번째 loss는 내부 표상이 아니라 출력값을 비교한다.
+3. **OOF:** 특정 학습 자극의 지도값은 모든 참가자에서 해당 자극 그룹을 제외하고 학습한 teacher로 만든다. 이 과정 전체가 student training split 안에서 이루어지며 outer test는 제외한다.
+4. **학습 후:** CKA는 표상 구조의 유사성, retrieval은 읽을 수 있는 내용, 선택적 교란은 모델의 정보 의존성을 조사한다. 후보 content-side bridge는 독립 뇌 검증을 위한 별도 경로다.
 
 ### 설계 근거
 
@@ -60,93 +74,77 @@ flowchart TB
 
 ## 🔧 Production / 제작
 
-Built-in image generation, using the user-provided figure as a layout reference. Reviewed inputs, residual fusion, output losses, OOF scope and evaluation routes. Independent neural validation uses held-out content rather than the evaluation brain. Illustrations and profile bars are schematic. The overview image is unchanged.
+Built-in image generation, using the current model for content and the user-provided figure for restrained styling. Removed tinted panels, decorative borders and redundant labels. Helvetica Neue styling was requested; the raster has no embedded font identity to verify. Reviewed inputs, residual fusion, output losses, OOF scope and evaluation routes. Independent neural validation uses held-out content rather than the evaluation brain. Illustrations and profile bars are schematic. The overview image is unchanged.
 
-내장 이미지 도구로 제작했고 사용자 첨부 그림의 배치를 참고했다. 입력, residual fusion, 출력 loss, OOF 범위, 평가 경로를 검수했다. 독립 뇌 검증은 평가 뇌가 아니라 held-out content를 입력으로 받는다. 이미지와 프로필 막대는 설명용이며 기존 Overview는 변경하지 않았다.
+내장 이미지 도구로 현재 모델 내용을 유지하고 사용자 첨부 그림의 절제된 스타일을 참고했다. 배경색·장식 테두리·중복 표기를 줄이고 Helvetica Neue 스타일을 요청했다. Raster 이미지이므로 실제 내장 폰트명을 검증할 수는 없다. 입력, residual fusion, 출력 loss, OOF 범위, 평가 경로를 검수했다. 독립 뇌 검증은 평가 뇌가 아니라 held-out content를 입력으로 받는다. 이미지와 프로필 막대는 설명용이며 기존 Overview는 변경하지 않았다.
 
 ### Generation prompt
 
 ```text
-Create a NEW standalone model figure for the current EmoBrain design, using the attached image ONLY for its clean academic visual style and three-part layout. Do NOT reproduce obsolete weighted-MSE training or Venn-circle fusion. This is a model architecture figure separate from the study overview.
+Restyle the FIRST image (current scientifically correct model figure) using the restrained academic appearance of the SECOND image (style reference). Create a clean Nature-style model plate with true-looking Helvetica Neue REGULAR-width letterforms throughout, headings Helvetica Neue Bold. Absolutely no condensed or narrow type, no handwritten fonts, no serif labels except mathematical symbols. Consistent medium-size body text and 3 sizes total. Increase whitespace. Do NOT imitate the dense condensed typography of image 1. This is a full redraw, not a colour filter.
 
-Canvas: generous landscape 4:3, high resolution, white background, crisp Helvetica/Arial, black fine arrows, subdued slate-blue brain path, muted amber video path, sage caption path. Avoid neon, gradients and decorative card styling. Small realistic grayscale MRI stack and filmstrip inputs like the reference. Legible labels, ample whitespace, safe margins. NO overall title, subtitle or date. Only panel titles.
-Panel (a) upper 65% full width: training. Panel (b) bottom left 28% width: inference. Panel (c) bottom right 72% width: after-training analysis. Thin grey separators.
+Landscape 3:2 or 4:3, spacious high resolution. Pure WHITE background. No coloured panel fills, no dashed group borders, no gradients, shadows, 3D trapezoids, cartoon icons, coloured cards or giant header. Thin black rules and arrows. Restrained colour only for small token stacks: brain slate blue, video ochre, caption sage; training guidance one muted blue dashed line. Most text black. Three panels a top 65% full width, b bottom left 30%, c bottom right 70%. Large equal outer margins.
 
-(a) heading "Training: multimodal teacher → brain-only student"
-Main TEACHER on upper-left two thirds, 3 horizontal input pathways:
-MRI stack "fMRI ROI patterns" → "Participant map" → little blue token stack "Brain queries Q"
-Filmstrip "Video" → "Frozen V-JEPA 2" → "Projector" → little amber token stack "Visual keys / values"
-Caption box text "People share a cake at a table." → "Frozen sentence encoder" → "Projector" → green token stack "Semantic keys / values"
-All three enter a box "Brain-query cross-attention": Q from brain, K/V from video+caption. Output goes to circled "+" receiving BOTH the attention output and a clearly drawn residual arrow from Brain queries Q. Label bypass "Brain residual".
-The plus outputs "Fused brain state" → "Pool + affect head" → "Teacher profile p_T" drawn as schematic bar vector.
-Caption under this group "Candidate brain-query fusion". No content-only skip to affect head. No LLM, no extra object/event branch.
+Use these concise labels and preserve correct information flow:
 
-To the UPPER RIGHT of teacher draw normative bar vector "Normative profile y" feeding compact orange label-loss box:
-"Teacher objective"
-"L_T = softBCE(y, p_T)"
-Clearly connect teacher profile to this loss box too. Frozen encoder icons only on pretrained video and sentence encoders, not the entire teacher.
+a heading "Training: multimodal teacher and brain-only student"
 
-On the RIGHT MIDDLE show a compact box headed "Nested out-of-fold teacher predictions".
-Inside, only 3 short lines:
-"Within each outer training split"
-"Hold stimulus groups out across participants"
-"Fit teacher; predict excluded groups"
-At bottom a small line "Outer test excluded throughout".
-From this box output a bar vector labelled "OOF teacher profile p_T^OOF (fixed)".
-Use a thin connector from teacher to OOF box to indicate repeated fold-specific fits, NOT the in-sample teacher prediction serving as OOF. Label that connector "refit by fold".
+Upper-left 'Teacher' schematic:
+Three input rows, each with simple tiny input illustration:
+'fMRI' → 'Participant map' → BLUE 'Brain tokens'
+'Video' → 'Frozen V-JEPA 2' → 'Projection' → OCHRE 'Video tokens'
+'Caption' → 'Frozen sentence encoder' → 'Projection' → SAGE 'Caption tokens'
+Caption example "People share a cake."
+Brain tokens enter a clean white thin black rectangular 'Cross-attention' as Q; video and caption tokens enter it as K,V. Add small port labels Q and K,V instead of verbose repeated keys/values.
+Cross-attention output enters circled '+'; a bypass from brain tokens also enters '+' labeled 'Brain residual'. Then '+' → small neutral token stack 'Fused state' → 'Affect head' → black thin-bar vector 'Teacher prediction'.
+No Venn circles, no content-to-head shortcut.
 
-Beneath teacher within PANEL (a), show a separate student TRAINING lane:
-"fMRI ROI patterns" → "Participant map" → "Small brain encoder" → "Student state z" → "Affect head" → "Student profile p_S".
-Label lane "Student: brain-only input".
-NO video or caption input to student.
-To its right a blue student objective box with TWO inputs: "Normative profile y" via solid line and "OOF teacher profile" via dashed blue line. Student prediction p_S also connects to the objective.
-Exact text:
-"Student objective"
-"L_S = softBCE(y, p_S) + λ MSE(p_T^OOF, p_S)"
-Small line "Output guidance only · teacher targets fixed"
-Use readable math, not an enormous formula. OOF guidance goes to this output loss, NOT to student z. Labels also supervise teacher. No visual reconstruction or joint-latent loss.
+Upper-right 'Supervision' area, plain open typography with a single fine separator, not boxed cards:
+'Normative profile y' drawn as small black bars.
+Line 'Teacher: soft BCE(y, p_T)'.
+Include a short discrete arrow from teacher prediction and from y into this teacher objective; do not send y twice.
+Below a small heading 'Nested OOF predictions'
+Only two explanatory lines:
+'Fit without the recipient stimulus group'
+'Outer test excluded from all fitting'
+Below show small black bars 'OOF teacher profile'.
+This denotes repeated fold-specific teacher fits, NOT a transformation of the teacher's in-sample predictions. If linking from teacher, connect from the teacher GROUP margin with a bracket labelled 'Fold-specific fits', not from the teacher prediction bars.
 
-Below these, a narrow light-grey strip across panel (a):
-"Independent target runs: 34-D soft BCE + OOF MSE | 14-D standardized MSE + OOF MSE"
-Second shorter line "VA-2 / VAD-3 if available · Separate teacher and student per target"
-The detailed displayed p_T / p_S objectives illustrate the 34-D case only; add small label "34-D example" near the objectives.
-A separate small line beneath teacher only if space "Teacher controls: B | BV | BS | BVS | VS | shuffled pairing".
-Define B=brain, V=video, S=caption in small legend at bottom, no giant legend.
+Below teacher a separate labelled 'Student' lane on the left:
+'fMRI' → 'Participant map' → 'Brain encoder' → small blue tokens 'z' → 'Affect head' → bars 'Student prediction'.
+On right of this lane put the simple student objective:
+'L_student = soft BCE(y, p_S) + λ MSE(p_T^OOF, p_S)'
+Direct solid line from student prediction to the objective.
+One dashed blue line from the OOF teacher profile down into the student objective.
+Solid line or clear label indicates normative y also supplies this objective.
+Below objective a single short phrase 'Match labels + teacher outputs'.
+Do NOT send OOF into z, no latent-alignment training loss.
+Tiny text next to equations '34-D example'.
+A single understated line at bottom of panel a:
+'Separate target runs: 34-D categories | 14-D ratings | VA / VAD if available'
+And a second short line:
+'14-D / VA / VAD: standardized MSE label loss + OOF MSE'
+Do not add long control lists in panel a. They are in the methods.
 
-(b) heading "Inference: brain only"
-MRI stack → "Participant map" → "Same trained student" → "Affect profile".
-Arrange on two lines if needed, arrows continuous.
-Below concise text "No video, caption or teacher".
-This is trained student from (a), not a separately optimized decoder.
+b heading 'Inference: brain only'
+Small MRI stack → 'Participant map' → 'Trained student' → black bar profile.
+Arrange with ample whitespace.
+One short line 'No video, caption or teacher'.
 
-(c) heading "After training: what was learned and used?"
-Left-to-right mini chain "fMRI" → "Adapter" → "Encoder stages" → "z"; bracket below "Freeze and analyze each stage". Do not prescribe exactly two blocks, depth is not frozen.
-From stages or z branch to three readable stacked panels:
-"Geometry" — a small heatmap; text "Linear CKA on matched held-out stimuli"
-"Content" — tiny video thumbnails and caption slips; text "Frozen probes / video and caption retrieval"
-second small line "Similar-affect candidates; affect-output-only control"
-"Model use" — small token group one selectively perturbed; text "ROI / token perturbation → content and affect changes".
-Below these three a slender fourth row
-"Independent neural validation"
-"Content-derived representation → separate-cohort fMRI"
-small "(candidate bridge; training-set calibration)"
-No arrow using held-out evaluation brain as predictor for this fourth row. Do not imply human neural causality.
-At bottom line "Student comparisons: Direct | Full-guided | Shuffled-guided".
-Small footer legend "B: brain · V: video · S: caption · Probes are evaluations, not training losses".
+c heading 'After training: what did the student learn?'
+Left small chain 'Adapter' → 'Encoder stages' → 'z'; bracket label 'Freeze model'.
+From the chain branch THREE arrows to unboxed rows separated by fine grey rules:
+'Geometry' — small neutral heatmap, 'Linear CKA'
+'Content' — two small video/caption examples, 'Held-out retrieval'
+small subline 'Including similar-affect scenes'
+'Model use' — simple few token squares one outlined, 'Selective ROI / token perturbation'
+small subline 'Changes in content and affect readout'
+Below these, a SEPARATE row not connected to the z arrows:
+'Independent neural validation'
+'Held-out content → frozen bridge → separate-cohort fMRI'
+Small '(candidate bridge; training-set calibration)'.
+Bottom line 'Compare: Direct | Full-guided | Shuffled-guided'.
+No repeated disclaimers, no paragraph footers, no coloured panels. Short final note only 'Probes are evaluations, not training losses.'
 
-Prioritize correct information flow and readable model, not prose. All profiles/heatmaps are schematic without numeric results. Unlike reference, fusion must be explicit Q / K,V with a brain residual, student training must be visible, OOF must be nested, and current 34-D loss is unweighted soft BCE plus teacher-output MSE (NOT weighted MSE, correlation loss, KL, or softmax). Keep the scientific workflow self-contained and visually intuitive.
-```
-
-### Revision prompt
-
-```text
-Correct only three information-flow details in this scientific model figure. Keep all layout, typography, colours, model blocks, equations, panels and margins otherwise unchanged.
-1. UPPER-RIGHT TEACHER OBJECTIVE: currently normative y has duplicate arrows and p_T is not clearly connected. Show exactly one arrow from the top normative profile y into 'Teacher objective', and a SEPARATE continuous thin black arrow from the actual Teacher profile p_T (the bars immediately after Pool + affect head) UP and RIGHT into that teacher objective. Remove any line between the OOF procedure box and the teacher objective. The teacher objective has exactly two incoming data lines: y and p_T.
-2. The OOF teacher profile on the far upper right is duplicated just above the Student objective. REMOVE the lower duplicate OOF bar plot and its label, leaving the student normative y plot unchanged. Connect the single upper-right 'OOF teacher profile p_T^OOF (fixed)' directly DOWN to the student objective with a continuous DASHED BLUE arrow. This is the only OOF guidance line. Student objective retains its other two inputs y and p_S and its existing formula.
-3. BOTTOM-RIGHT independent neural validation: REMOVE the arrow from student z to the fourth 'Independent neural validation' box. Only the first three Geometry, Content and Model use boxes receive branches from z. In the fourth box, replace the brain icon and old body text with an explicit small TWO-LINE content-only prediction route:
-'Held-out video + caption → Frozen bridge → Neural readout'
-'→ Predict separate-cohort fMRI'
-Small italic line '(candidate bridge; training-set calibration)'.
-Keep its heading 'Independent neural validation'. It must be visually separate from the three z-probe branches; no z arrow enters this box. Evaluation fMRI must not be an input. If needed increase that fourth box height slightly using bottom whitespace, but do not overlap the student-comparisons line or crop any content.
-These are corrections of information flow, not changes to design. Do not add any other panels or prose.
+Make it visually calm, beautifully aligned, spacious like a meticulously typeset journal figure. All mini profiles are schematic. The attached style example contains obsolete weighted MSE for 34-D: do not use that. Maintain soft BCE for 34-D labels, MSE for teacher-output guidance, and brain-only student input during BOTH training and inference. Preserve teacher brain residual, explicit student path, nested OOF and separate independent-validation path.
 ```
