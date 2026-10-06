@@ -50,3 +50,8 @@ _2026-10-06 · 2026-10-04 전달본의 후속 버전_
 - 사용자 요청으로 작업 브랜치 이름을 `docs/unify-study-design`에서 `docs/unify-study-design-20261006`으로 변경한다. 이전 커밋과 문서 이력은 그대로 보존한다.
 - 이후 문서·코드·실험 관련 변경은 날짜가 붙은 브랜치에서 계속한다. 실험 실행과 주요 설계·결과 검토 후 사용자 명시 승인 전까지 main은 변경하지 않는다.
 - 루트 README, AGENTS와 서버 AI 전달문에 이 방침을 반영했다. 모델 코드나 실험 결과는 변경하지 않았다.
+
+## 🌐 Bilingual README policy / README 이중 언어 원칙 — 2026-10-06
+
+- English: Updated the root and project READMEs to place English first and a complete Korean version below a separator, with language navigation links. Added the same-file bilingual maintenance rule to AGENTS. No model code, study design or archived originals changed.
+- 한국어: 루트와 project README를 영어 본문 다음에 구분선과 전체 한국어 본문이 오는 형식으로 바꾸고 언어 이동 링크를 추가했다. AGENTS에 같은 파일에서 양쪽 언어를 함께 갱신하는 원칙을 기록했다. 모델 코드, 연구 설계, 보관된 과거 원문은 변경하지 않았다.
