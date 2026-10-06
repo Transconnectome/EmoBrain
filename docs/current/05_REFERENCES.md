@@ -58,6 +58,12 @@ Frank, S., Bugliarello, E., & Elliott, D. (2021). *Vision-and-Language or Vision
 
 연결: Cross-modal input ablation으로 modality 영향의 비대칭성을 진단하는 근거. 공식 초록과 서지 정보를 확인했다. 원 논문의 vision/language 결과가 fMRI 활용, brain swap의 분포 내 타당성, dropout rescue의 성공을 검증한 것은 아니다. Wang et al.의 저자 공개 초록도 다시 확인했으며 modality별 일반화·과적합 차이의 근거로만 사용한다.
 
+### 학습 불균형 보완 전략의 추가 근거
+
+Peng, X., Wei, Y., Deng, A., Wang, D., & Hu, D. (2022). *Balanced Multimodal Learning via On-the-Fly Gradient Modulation*. CVPR, 8238–8247. [공식 논문 페이지](https://openaccess.thecvf.com/content/CVPR2022/html/Peng_Balanced_Multimodal_Learning_via_On-the-Fly_Gradient_Modulation_CVPR_2022_paper.html).
+
+확인 범위: 공식 서지와 공개 초록의 modality별 학습 불균형·gradient modulation 설명. Wang et al. (2020)과 함께 학습 전략 검토의 근거로 사용한다. EmoBrain의 Brain-first 초기화나 공유 Affect Head 조합을 이 논문에서 검증했다고 쓰지 않는다. Gradient modulation 자체도 현재 채택된 학습법이 아니다. Warm-up/보조 loss의 선택은 D20/D21의 프로젝트 설계이며, circular-analysis 문헌과 연결해 학습 목표가 유도한 표상과 독립적인 뇌 증거를 구분한다.
+
 ## 🔍 3. 해석·통계·전처리 근거
 
 ### Probing과 geometry

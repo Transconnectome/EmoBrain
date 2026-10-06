@@ -12,6 +12,8 @@ Affect-neighborhood retrieval은 후속 사용자 요청으로 Analysis 2의 정
 
 ## 📋 1. 유지하는 핵심 원칙
 
+후속 합의: Joint 학습을 기본으로 유지하고 Brain-first → Joint를 필요에 따라 비교하는 방향을 승인했다. 공유 Affect Head 보조 loss는 여전히 제안이다. D20/D21, C10/C11과 R16에 학습 전략·해석·탐색 범위를 기록한다.
+
 1. 뇌 중심 neuroscience 연구이며 prediction 성능만으로 끝내지 않는다.
 2. 감각·의미가 감정에 기여한다는 문제의식은 유지하되 감정 전체의 환원적 등식을 검정했다고 주장하지 않는다.
 3. Teacher에는 brain, video, caption을 모두 넣는다. Student는 brain-only다.
@@ -74,6 +76,20 @@ B-only baseline 실패는 뇌 정보가 전혀 없다는 증명이 아니다. Mu
 
 원본 prereg B1은 block response를 재현 baseline으로 보존하고 대체 beta 추정을 검토하도록 되어 있어 ‘단순 블록 평균이 이미 확정’이라는 설명과 다르다. 최신 전달본도 estimator를 D04 미동결로 둔다. 짧은 원본 영상은 실험 중 반복 재생되므로 clip duration과 block duration을 혼동하지 않는다. 현재 `blocks_mcap`의 생성 코드·window·정규화는 미확인이다. 상세 근거와 권고는 [07 검토](07_RESPONSE_ESTIMATION_REVIEW.md)에 있다. 이 정정으로 서버 데이터나 등록된 계획을 자동 변경하지 않는다.
 
+### C10. Joint latent와 학습 순서, affect supervision의 해석
+
+Joint latent는 결합 표상이고 Brain-first는 초기 학습 순서다. 둘을 반대 연구로 구분하지 않는다. 사용자는 joint 학습을 기본으로, 필요시 Brain-first → Joint를 비교하는 방향을 선택했다. 공유 brain 경로뿐 아니라 affect head까지 공유하는 보조 objective는 설명한 후보이지 자동 채택된 기본 loss가 아니다.
+
+Training affect를 쓰는 것 자체는 cheating이 아니다. Warm-up부터 OOF 범위를 지켜야 하며, supervised latent의 affect geometry를 가공하지 않은 뇌의 자연적 geometry라고 해석할 수 없다. 현재 연구는 affect-supervised joint 모델이 무엇을 학습·사용하는지 묻는다. Affect-free emergence 연구를 별도로 의무 추가하지 않는다.
+
+**판단 변경의 이유:** Assistant가 brain 활용 강화를 우선해 warm-up을 기본 추천했으나, 사용자가 joint representation의 학습·해석이라는 중심 목적을 재확인했다. 이에 warm-up을 선택적 비교 경로로 낮췄다. 방법의 효과가 실험으로 검증된 것은 아니다.
+
+### C11. 결과 기반 실험 수정은 허용, 독립 검증과 구분
+
+‘최종 결과를 보고 학습법을 바꾸거나 최종 모델을 교체하면 안 된다’는 포괄적 금지를 철회한다. 결과를 보고 새 방법을 탐색하고 최종 선택을 수정할 수 있다. 기존 run·변경 이유·선택에 사용한 평가 자료·시점을 기록하고, 선택에 사용된 test를 같은 모델의 독립 검증으로 표현하지 않는다. 과거 결과나 실제 preregistration을 덮어쓰거나 사후 선택을 사전 primary로 소급 표시하지 않는다. 새 split 명칭이나 freeze 날짜만으로 독립성이 생기지 않는다.
+
+**판단 변경의 이유:** 사용자가 실험적 탐색과 방법 개선 자체를 금지하는 설명에 이의를 제기했다. 필요한 제한은 방법 수정 자체가 아니라 누출 방지와 선택·검증의 구분이다. 고정된 실패 gate는 추가 전략 검토의 필수 전제가 아니며 GPU 실행·비용의 별도 승인 원칙은 유지한다.
+
 ## 📌 3. 본실험 전에 결정할 항목
 
 | ID | 결정 | 현재 상태 | 필요한 근거 |
@@ -85,7 +101,7 @@ B-only baseline 실패는 뇌 정보가 전혀 없다는 증명이 아니다. Mu
 | D05 | ROI rank·width·student depth | 개발 선택 | 제한된 validation |
 | D06 | V/S checkpoint·layer·pooling | 미확정 | 재현성·입력 적합성 |
 | D07 | 14-D codebook·VA/VAD 열 | 미확정 | 원 annotation |
-| D08 | λ·η·dropout·seed 수 | 미확정 | Inner scope·비용 |
+| D08 | λ·η·dropout·seed·warm-up 설정 | 미확정 | Fit scope·선택 이력·비용 |
 | D09 | Primary contrasts·multiplicity | 재검토 | Claim별 family |
 | D10 | Interval·계층 모형·direction gate | 미확정 | Small-n calibration |
 | D11 | Permutation·swap donor 규칙 | 미확정 | Exchangeability·run QC |
@@ -97,6 +113,8 @@ B-only baseline 실패는 뇌 정보가 전혀 없다는 증명이 아니다. Mu
 | D17 | 2d bridge·stage·calibration 경계 | 방향 승인, 구현 권고 | Bridge fidelity·공통 H·비용·controls |
 | D18 | Affect-neighborhood retrieval 평가 규칙 | 보조 분석 채택 승인; 세부 미동결 | Profile coverage·내용 차이·metric/m/null |
 | D19 | Visual cortex 대비 추가 ROI의 예측 증분 | 사용자 질문에 대한 검토 후보; 실행/primary 미승인 | 독립 ROI 정의·coverage·차원/capacity·reliability·split·contrast |
+| D20 | Joint 기본 / Brain-first → Joint 추가 비교 | 방향 승인; warm-up 필수 아님; 실행 미보고 | 초기화 provenance·학습량·OOF·선택/검증 구분 |
+| D21 | 공유 Affect Head의 joint + B-only objective | 제안; primary 채택 미확정 | 경로/head 공유·η·표현 호환·예산·학습 효과 |
 
 해당 결정이 다른 결과를 보기 전에 실제로 동결됐는지 기록한다. 과거 test에 이미 접근했다면 새로운 freeze 날짜를 붙여 과거를 사전등록처럼 보이게 하지 않는다.
 
@@ -208,6 +226,15 @@ B-only baseline 실패는 뇌 정보가 전혀 없다는 증명이 아니다. Mu
 - R14: Affect-neighborhood retrieval은 affect-profile 재표현 대안에 대한 채택된 보조 분석이다. Continuous-profile 기반의 기존 retrieval 재사용을 권고하며 coverage/구별력이 없으면 보류한다. 감정별 threshold 분할이나 완전한 affect 통제가 아니다.
 
 각 rationale의 여섯 질문 전체와 문헌은 [06 보강 문서](06_NEURAL_VALIDATION_AMENDMENT.md)에 명시했다. R12/R13의 보강 방향과 R14의 보조 분석 포함은 승인되었다. D16–D18의 실행 설정 동결 및 primary 통계 승인과는 구분한다.
+
+### R16. Joint 기본 방향과 선택적 brain 학습 보완
+
+1. **질문:** Affect-supervised joint 모델에서 brain–visual–semantic 관계가 어떻게 학습되며, brain 경로의 학습 순서·직접 supervision이 이를 바꾸는가?
+2. **대안 설명:** Content 경로의 최적화 우위, 단순한 추가 update/label exposure, 학습 목표가 유도한 geometry를 뇌 고유 구조로 오인할 수 있다.
+3. **근거:** Joint 모델을 중심으로 유지하겠다는 사용자 결정, Wang et al. (2020)의 modality별 일반화 차이, Peng et al. (2022)의 학습 불균형 조절 연구, 독립 평가 원칙. 이 문헌들은 현재 fMRI warm-up·공유 head 조합의 효과를 검증하지 않는다.
+4. **선택 이유:** Joint를 직접 학습하는 기존 연구 질문을 유지하고, warm-up은 같은 최종 joint 구조로 이어지는 추가 전략으로 비교한다. D21은 별도 head보다 본 readout에 brain 학습 신호를 주기 위한 후보이며, 단순 brain scale 증폭보다 objective 경로가 명시적이다. 모든 장치를 동시에 채택하지 않는다.
+5. **반례·변경:** Warm-up 과적합, 추가 학습량으로 설명되는 효과, 공유 head의 표현 충돌, 보조 loss가 joint 학습을 저해하는 경우 해당 전략·해석을 수정하거나 제외한다. 효과 없음은 뇌 정보 부재의 증거가 아니다.
+6. **한계:** Brain 학습 신호 부여는 full-input 사용이나 신규 정보 생성의 보증이 아니다. Affect 지도 latent를 자연적 뇌 geometry 또는 affect-free discovery라고 부르지 않는다. 선택에 노출된 평가 자료는 독립 최종 검증을 대신하지 않는다.
 
 ## 🚫 5. 현재 primary에 넣지 않을 항목
 

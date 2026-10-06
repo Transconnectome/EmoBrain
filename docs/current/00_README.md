@@ -18,6 +18,12 @@ _2026-10-06 · 유지·편집하는 단일 연구 기준 · 결과 보고서가 
 
 서버의 실제 코드·데이터·로그는 직접 확인하지 않았다. 이후 GitHub main의 정적 코드 검토는 수행했으며 [구현 상태](08_IMPLEMENTATION_STATUS.md)에 범위를 기록했다. 사용자가 전달한 전처리 산출물 보고는 보고된 사실이지 서버 재검증 결과가 아니다. 기존 체크리스트의 미체크 상태를 ‘미실행’의 증거로 취급하지 말고, 먼저 서버 현황을 조사한다.
 
+## Latest training decision / 최신 학습 방향 — 2026-10-06
+
+Joint B/V/S training remains the default. Brain-first → Joint is an optional additional strategy, not a mandatory second study. A shared Affect Head auxiliary loss is still a proposal. Result-driven iteration is allowed; preserve runs and distinguish selection-exposed results from independent validation. See D20/D21 and C10/C11 in the [decision register](04_DECISION_REGISTER.md), §4 of the [specification](02_IMPLEMENTATION_SPEC.md), and P11b in the [action items](03_ACTION_ITEMS.md). This update does not launch training.
+
+Joint B/V/S 학습이 기본이다. Brain-first → Joint는 추가 전략이며 별도 연구 두 벌을 의무화하지 않는다. 공유 Affect Head 보조 loss는 아직 제안이다. 결과 기반 수정·탐색은 허용하고, 기존 run을 보존하며 선택에 사용한 결과와 독립 검증을 구분한다. 상세는 결정 기록 D20/D21·C10/C11, 구현 명세 §4, 작업 목록 P11b에 있다. 이번 문서 갱신은 학습 실행이 아니다.
+
 ## 📍 읽는 순서
 
 | 순서 | 문서 | 역할 |

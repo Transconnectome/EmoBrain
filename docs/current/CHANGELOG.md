@@ -6,6 +6,11 @@ _2026-10-06 · 2026-10-04 전달본의 후속 버전_
 
 ## 📋 변경 내용
 
+### Joint-first learning and iterative experimentation / 학습 방향·탐색 원칙 — 2026-10-06
+
+- English: Recorded Joint as the default and optional Brain-first → Joint as D20. Kept shared Affect Head auxiliary training as proposal D21. Added scope-safe warm-up, supervision/geometry interpretation, budget/provenance and P11b tasks. Corrected the blanket ban on result-driven revisions: models may be revised/selected through exploration, with original runs and selection exposure preserved and independent validation distinguished. Synchronized handoff, story, specification, decisions, actions, references, server prompt, implementation status and bilingual figure notes. No code, PNG, experiment, main branch or preregistration was changed.
+- 한국어: Joint 기본과 선택적 Brain-first → Joint를 D20으로 기록하고 공유 Affect Head 보조 학습은 D21 제안으로 남겼다. Warm-up 범위·supervision/geometry 해석·학습량/provenance와 P11b 작업을 추가했다. 결과 기반 수정 자체의 금지를 철회하고 기존 run·선택 노출을 보존하며 독립 검증을 구분하도록 정정했다. 인수인계·스토리·명세·결정·작업·문헌·서버 지시·구현 상태·영한 도식 설명을 동기화했다. 코드·PNG·실험·main·실제 preregistration은 변경하지 않았다.
+
 ### Two-panel model figure and brain-use clarification — 2026-10-06
 
 - English: Replaced the duplicate inference panel with Training / After Training; capitalized component labels and restored Fused State (Joint Latent). Updated the bilingual figure source and README links. Clarified existing BVS/VS, brain-swap and limited rescue interpretations; recorded Frank et al. (2021). No new primary objective, training run, architecture freeze or mandatory VS-guided student was introduced.

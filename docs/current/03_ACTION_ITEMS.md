@@ -141,7 +141,20 @@ deviation_from_plan, next_dependency, decision_needed
 - **수행:** BVS−VS, brain-swap, 학습 안정성, modality norm·gradient QA를 조사한다. Attention/gradient plot을 과학적 explanation으로 사용하지 않는다.
 - **산출물:** `teacher_pilot.md`, architecture comparison, nested OOF runtime estimate.
 - **수용:** Brain-only inference가 V/S 파일에 접근하지 않아도 작동하고 OOF provenance test가 통과한다.
-- **실패 시:** Brain pathway가 무시되는지, optimization 문제인지, 정보가 검출되지 않는지 구분한다. 사전 rescue 후보를 연구책임자에게 제시한다.
+- **후속 탐색:** Brain pathway 학습·optimization·측정 신호 문제를 구분하고 Brain-first → Joint 등 이유 있는 추가 전략을 비교할 수 있다. 정해진 실패 gate를 통과해야만 탐색할 수 있는 것은 아니다. 실행 자원 승인 범위는 유지한다.
+
+### P11b. 학습 전략 비교와 provenance — 필요에 따라 수행
+
+- **목적:** Joint latent 학습을 유지하면서 brain 경로의 학습 순서·supervision이 미치는 영향을 구분한다. 새 Analysis 4나 두 연구의 의무 실행을 뜻하지 않는다.
+- [ ] 기본 joint run의 설정·checkpoint·결과를 보존한다.
+- [ ] 필요하면 Brain-first → Joint를 비교한다. Warm-up brain 경로·affect head의 가중치가 실제 joint 초기화에 연결됐는지 확인한다.
+- [ ] 공유 Affect Head의 `L_joint + η L_brain`은 D21 제안으로 구분하고 채택 여부를 명시한다. 채택 시 동일 경로/head 공유, 두 loss의 gradient 도달, 34-D/연속 target의 출력·loss 계약을 검사한다. Warm-up과 동시에 바꾸면 효과를 학습 순서 하나로 귀속하지 않는다.
+- [ ] Recipient와 inner validation/outer test가 warm-up부터 제외되는 자동 QA를 추가한다. 더 넓은 프로젝트 label scope의 checkpoint 재사용은 엄격한 OOF에서 거부한다.
+- [ ] 총 update·label exposure·seed·tuning budget과 필요한 계산량 matched joint 대조를 기록한다.
+- [ ] Run별 변경 이유·parent run·관찰한 평가 자료·선택 metric·시점·최종 선택 여부를 기존 실험 기록에 저장한다. 결과 기반 추가 실험을 금지하지 않는다.
+- [ ] 모델 선택에 이용한 test 결과와 독립 validation 결과를 구분한다. 후자가 없으면 없다고 보고하고 freeze 날짜를 소급하지 않는다.
+- **산출물:** 기존 `teacher_pilot.md`의 전략 비교 절, 실험 output 영역의 run manifest/OOF provenance/QA 결과. 새 루트 보고서나 중복 handoff를 만들지 않는다.
+- **완료 기준:** 전략별 재현 가능한 학습 범위·초기화·loss 기록과 누출 QA. 성능 향상을 완료 조건으로 강제하지 않는다. 문서 갱신은 학습 실행 완료가 아니다.
 
 ### P12. Inferential plan과 freeze
 

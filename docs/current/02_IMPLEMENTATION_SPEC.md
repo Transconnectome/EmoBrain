@@ -235,7 +235,27 @@ L_KD = mean_valid_dimensions (teacher_oof_in_common_scale - prediction)^2
 
 λ grid, learning rate, epoch, early stopping, rank, token width, seed 수는 개발 audit 후 freeze할 설정이다. 개발 결과를 보지 않고 임의의 ‘최적값’을 이 문서에서 지정하지 않는다.
 
-Rescue는 `L_BVS + η L_B`처럼 같은 target의 auxiliary loss 또는 content dropout이다. Target 간 공동학습과 혼동하지 않는다. Rescue는 primary 결과와 별도 namespace에 보존하고, 본실험을 보고 primary로 교체하지 않는다.
+### 학습 전략 계약 — Joint 기본, 추가 비교 허용
+
+- **Joint 기본 방향 승인 (D20):** 처음부터 B/V/S를 결합해 affect prediction으로 teacher를 학습한다. Brain-first를 모든 run의 필수 준비 단계로 넣지 않는다.
+- **Brain-first → Joint 추가 경로 승인 (D20):** 해당 teacher fit scope 안에서 brain 경로와 affect head를 먼저 학습하고 그 가중치를 이어받아 joint fitting한다. Warm-up epoch·학습률·초기화·freeze/unfreeze·총 update 수는 기록하며 구체 설정은 D08에서 결정한다. Frozen V/S encoder 원칙은 유지한다. 항상 별도 실험 두 벌을 수행해야 한다는 뜻은 아니다.
+- **공유 Head 보조 loss (D21, 제안):** 동일 brain 경로와 동일 affect head를 사용하는 두 forward 경로다. 별도 B-only baseline 모델이나 student와 가중치를 공유한다는 뜻이 아니다.
+
+```text
+H_B = teacher_brain_path(B)
+U_BVS = fusion(H_B, V, S)
+p_B = output_activation(h(pool(H_B)))
+p_BVS = output_activation(h(pool(U_BVS)))  # same h
+L_T_candidate = L_affect(y, p_BVS) + eta * L_affect(y, p_B)
+```
+
+34-D는 sigmoid/soft BCE, 연속 target은 linear output/해당 fit scope의 standardized MSE다. 두 항은 **같은 target**이며 34-D와 14-D 공동학습이 아니다. 공유 head가 두 표현을 읽을 수 있도록 차원·pooling 계약을 맞춘다. eta, 공유 head 채택, dropout과의 병용은 미확정이며 새 primary loss로 자동 추가하지 않는다. Content dropout은 별도 후보로 남기고 모든 보완책을 한꺼번에 넣지 않는다. Brain-first와 보조 loss는 독립적인 설계 축이다.
+
+**Warm-up 누출 방지:** 모든 teacher fit에서 warm-up·전처리·target scaler·checkpoint 선택부터 recipient canonical stimulus group의 모든 참가자 관측을 제외한다. Student inner validation과 outer test 등 해당 scope의 기존 제외 경계도 그대로 적용한다. 해당 프로젝트의 더 넓은 label scope로 학습한 checkpoint에서 시작하면 recipient-excluded OOF가 아니다. 공통 checkpoint를 재사용하려면 그 전체 학습 provenance가 현재 fit scope와 양립해야 한다. Scope ID, training-ID hash, warm-up checkpoint와 parent fit ID, scaler hash를 OOF cache provenance에 남긴다. 전략 변경 후 이전 cache를 이름만 바꿔 재사용하지 않는다.
+
+**비교·탐색 기록:** 학습 순서 효과를 비교할 때 architecture·target·평가 행을 맞추고 warm-up까지 포함한 총 update/label exposure/tuning 기회를 보고한다. 계산량을 맞춘 joint 비교를 검토하고, 맞추지 못하면 추가 학습량이라는 대안 설명을 남긴다. 서로 다른 objective까지 바꾼 결과를 순서만의 효과로 귀속하지 않는다.
+
+결과를 본 뒤 새 학습법을 시도하거나 최종 선택 모델을 바꿀 수 있다. 각 run은 별도 ID로 보존하고 parent run, 변경 이유, schedule/objective, 선택에 사용한 데이터·metric·시점, exploratory/independent-validation 지위를 남긴다. 개발 자료를 통한 선택을 우선하되 이미 열람한 test를 탐색에 사용했다면 선택 자료로 표시한다. 같은 test의 재평가나 선택 이후의 단순 재분할은 그 선택에 대한 독립 검증이 아니다. 기존 preregistration은 amendment로 남기며 사후 모델을 소급 primary로 표시하지 않는다. 이것은 실험 수정 금지가 아니라 선택·검증 분리와 정직한 보고의 계약이다.
 
 ## 🔍 5. Analysis 1·2의 실행 계약
 

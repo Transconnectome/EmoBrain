@@ -25,7 +25,9 @@ The figure includes existing teacher controls: separately trained **BVS vs VS** 
 
 Use a B-only baseline to assess accessible target signal, not to declare whether the brain contains information. The target is a stimulus-level normative profile, so content-only success is not itself leakage or a scientific failure. The user's earlier low-increment experiment is a motivation, not a verified current 34-D result.
 
-Existing development-only rescue candidates are joint video+caption dropout and a same-target B-only auxiliary head sharing the teacher's brain pathway. Neither is newly approved by this figure. Evaluate full-input reliance after rescue, not only missing-content performance. D08 tuning and D14 VS-guided student status remain unchanged.
+Joint Training is the default. Brain-first → Joint Training is an optional additional schedule (D20); the final model still learns a Fused State (Joint Latent). A same-target auxiliary loss sharing both the brain pathway and Affect Head remains a proposal (D21), as does content dropout. These optional variants are not depicted as required components or losses. D08 settings and D14 VS-guided student status remain unresolved.
+
+Warm-up must respect nested OOF exclusions from initialization onward. Affect supervision does not establish that latent geometry is the brain's untrained geometry. Result-driven experimentation is allowed: preserve runs and disclose which evaluations informed selection; selection-exposed scores are not independent validation. The two-panel figure and base loss equations remain unchanged.
 
 ### Design rationale
 
@@ -75,7 +77,9 @@ flowchart TB
 
 B-only baseline은 현재 측정·모델에서 읽을 수 있는 target 정보를 평가하며 뇌에 정보가 있는지 없는지를 확정하지 않는다. Target은 자극별 규준 프로필이므로 content-only 성공 자체가 누출이나 연구 실패는 아니다. 사용자의 과거 실험 경험은 설계 동기이며 현재 34-D 실험에서 검증된 결과가 아니다.
 
-기존 개발 단계 rescue 후보는 video+caption 공동 dropout과 teacher brain 경로를 공유하는 동일-target B-only auxiliary head다. 이번 그림으로 새로 승인하지 않는다. Rescue 후에는 content가 모두 있는 조건의 brain 의존성을 검증해야 하며, content가 없는 조건만 잘 맞추는 것으로 충분하지 않다. D08 설정과 D14 VS-guided student의 지위는 유지한다.
+Joint Training이 기본이다. Brain-first → Joint Training은 선택적 추가 학습 순서(D20)이며 최종 모델은 여전히 Fused State (Joint Latent)를 학습한다. Brain 경로와 Affect Head를 모두 공유하는 동일-target 보조 loss는 D21 제안이며 content dropout도 후보 상태다. 이 선택적 변형들을 필수 구조나 loss처럼 그림에 추가하지 않았다. D08 설정과 D14 VS-guided student는 미확정 상태를 유지한다.
+
+Warm-up은 초기화부터 nested OOF 제외 경계를 지켜야 한다. Affect supervision으로 만들어진 latent geometry가 가공하지 않은 뇌의 geometry임을 증명하지는 않는다. 결과 기반 탐색은 허용하며 run을 보존하고 어떤 평가를 선택에 사용했는지 밝힌다. 선택에 노출된 점수는 독립 검증이 아니다. 두 패널 그림과 기본 loss 수식은 유지한다.
 
 ### 설계 근거
 

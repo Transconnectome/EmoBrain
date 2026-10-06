@@ -162,11 +162,25 @@ Teacher가 사실상 `f(B,V,S) ≈ g(V,S)`로 학습해도 teacher 성능과 stu
 
 단순 scalar는 새로운 정보를 만들지는 않지만 최적화에 영향을 줄 수 있다. 같은 축에 적용되는 LayerNorm 앞의 균일한 scale은 대체로 상쇄될 수 있고, learnable projection이 보상할 수도 있다. 따라서 ‘무조건 불가능’도 ‘brain을 보도록 보장’도 아니다.
 
-기본안은 임의 brain amplification 없이 시작한다. 안정적인 신호는 있는데 학습에서 무시되는 정황이 있으면 content-modality dropout 또는 같은 target의 B-only auxiliary loss를 제한된 rescue로 평가한다. Text만 drop하면 shortcut이 video로 옮겨갈 수 있으므로 video+caption 공동 dropout을 포함할지 개발 계획에 명시한다. Rescue 조건·weight는 outer test 결과를 보기 전에 결정한다.
+기본안은 임의 brain amplification 없이 시작한다. Content-modality dropout 또는 같은 target의 B-only auxiliary loss는 학습 보완 후보다. Text만 drop하면 의존이 video로 옮겨갈 수 있으므로 공동 dropout 여부를 명시한다. 이 후보들의 채택·weight는 미확정이며, 아래 학습 전략과 탐색 기록 원칙을 따른다.
 
 Auxiliary head를 사용한다면 본 teacher와 brain 경로를 공유해야 해당 경로에 학습 신호를 줄 수 있다. Dropout/auxiliary로 B-only 성능이 좋아져도 full-input teacher가 brain을 사용하는지는 별도로 검정한다. 두 입력 상태를 분리해 처리하는 모델도 가능하므로 rescue 성공을 자동적인 brain-grounding으로 해석하지 않는다. 이는 기존 rescue 후보의 해석 보강이며 새 primary loss 채택이 아니다.
 
 B-only 실패는 ‘뇌에 정보가 없다’는 증명이 아니다. 측정 잡음, 표상 선택, 모델 적합성, task 난도 또는 modality 간 상호작용이 원인일 수 있다. 이 경우 QC와 제한된 multimodal pilot으로 진단하고, 양성 결론의 범위를 줄인다.
+
+### Joint 학습 우선, Brain-first는 추가 실험 경로
+
+2026-10-06 사용자 합의: **Brain + Video + Caption의 joint 학습을 기본 방향으로 유지한다.** Fused State (Joint Latent)는 세 입력의 결합 결과이고, cross-attention은 이를 구현하는 후보 연산이다. Brain-first warm-up을 필수 전제로 만들거나 별도의 두 연구를 의무화하지 않는다.
+
+**Brain-first → Joint Training**은 필요에 따라 비교할 추가 학습 전략이다. Teacher의 brain 경로와 affect head를 해당 training scope의 affect target으로 먼저 학습한 뒤, 그 가중치에서 시작해 video·caption을 포함한 joint 학습으로 이어간다. 최종 연구 대상은 여전히 joint 모델이다. B-only 신호는 읽히는데 joint 최적화에서 brain 경로가 뒤처지는 정황은 시도할 동기이지, 반드시 통과해야 하는 실패 gate가 아니다. Joint 결과를 보고 새 전략을 탐색하거나 이유 있는 비교를 미리 수행할 수 있다.
+
+동시에 두 경로를 예측하는 **공유 Affect Head 보조 loss**도 제안으로 기록한다. 같은 brain 경로와 head로 brain-only·joint 예측을 만들고 `L_joint + η L_brain`을 학습한다. 이 제안은 warm-up과 별개이며, primary loss로 채택된 것이 아니다. 현 기본 teacher loss와 output-only student distillation은 유지한다. 구현·상태는 [02 §4](02_IMPLEMENTATION_SPEC.md), 결정은 D20/D21이다.
+
+### Affect supervision의 해석과 탐색 원칙
+
+Training affect로 먼저 학습하는 것 자체는 cheating이 아니다. 다만 warm-up부터 nested OOF 제외 범위를 지켜야 한다. 전체 프로젝트 데이터로 affect warm-up한 checkpoint를 재사용하고 후속 fitting에서만 recipient 자극을 제외하면 누출이다. Affect로 학습한 latent에서 affect geometry가 나타났다는 사실만으로 원래 뇌의 자연적 geometry를 발견했다고 주장하지 않는다. 연구 질문은 **정서 예측을 학습하는 과정에서 brain–visual–semantic 관계가 어떻게 조직되고 사용되는가**이며, affect-free emergence 검정으로 바꾸지 않는다. 이 한계는 warm-up 없는 기존 supervised joint 학습에도 적용된다.
+
+**결과를 보고 모델·loss·학습 순서를 수정하는 탐색은 허용한다.** 이전의 ‘최종 결과를 본 뒤 학습법을 바꾸면 안 된다’는 포괄적 설명을 정정한다. 기존 실험과 변경 이유·선택 과정은 보존하고, 어떤 평가 자료를 변경 결정에 사용했는지 기록한다. 선택에 사용한 test는 이후에도 탐색에 활용할 수 있으나 같은 결과를 독립적인 최종 검증이라고 부르지 않는다. 최종 선택 모델을 바꿀 수 있지만 사후 선택을 사전 지정 primary 결과로 소급 표시하지 않는다. 독립 검증이 아직 없으면 그 상태로 보고하며, 새 split 이름이나 freeze 날짜만으로 독립성을 복구하지 않는다. 탐색 허용은 임의의 GPU 실행·예산 확대 승인과는 다르다.
 
 ## 📊 6. Target과 loss의 논리
 

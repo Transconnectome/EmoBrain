@@ -10,6 +10,10 @@ The current design is defined by [00_README](00_README.md), not by inherited cod
 
 This branch unifies documentation only. No inherited experiment becomes a current-design result by this change.
 
+The subsequent D20 decision keeps Joint training as the default and allows an optional Brain-first → Joint comparison. D21 shared-head auxiliary training remains a proposal. P11b now specifies scope-safe warm-up provenance and experiment-selection records. These are documentation changes, not implemented or executed training results.
+
+후속 D20 결정은 Joint 학습을 기본으로 유지하고 Brain-first → Joint 비교를 선택적으로 허용한다. D21 공유 head 보조 학습은 제안 상태다. P11b에 warm-up의 학습 범위·provenance와 실험 선택 기록을 추가했으며, 이는 구현·학습 실행 완료 보고가 아니다.
+
 ## 🔍 Verified implementation gaps
 
 | Area | Repository evidence at audited commit | Migration requirement |
