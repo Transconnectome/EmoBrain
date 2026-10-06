@@ -60,3 +60,8 @@ _2026-10-06 · 2026-10-04 전달본의 후속 버전_
 
 - English: Added `docs/assets/study_overview.png` and its bilingual source/scope/prompt record, with inline images and captions in both README language sections. The three panels include 1a/1b, 2a–d plus affect-neighborhood retrieval, and independent affect readouts/replication. Teacher–student training is shared preparation; the bridge remains pending validation. Illustrative graphics are not data. No scientific decisions were newly frozen and no experiment was run.
 - 한국어: `docs/assets/study_overview.png`와 영한 원본·범위·프롬프트 기록을 추가하고 README 양쪽 언어에 그림과 설명을 연결했다. 1a/1b, 2a–d와 정서 이웃 내 retrieval, 독립 정서 target·재현성을 세 패널로 나타냈다. Teacher–student 학습은 공통 준비이고 bridge는 검증 전이다. 설명용 그림은 데이터가 아니며, 과학적 결정을 새로 동결하거나 실험을 실행하지 않았다.
+
+## 📊 Concept-first overview / 개념 중심 Overview 수정 — 2026-10-06
+
+- English: Replaced the method-first image after user feedback. Panel a now presents the conceptual motivation; panels b–d show the three complementary analyses. Training moved into a small Analysis 2 inset. Personal experience and unmeasured individual factors are explicitly out of measurement scope. Updated both README captions, figure source/prompt and amendment figure status. No new scientific analysis or result was added; earlier art remains in Git history.
+- 한국어: 사용자 피드백에 따라 방법론 중심 그림을 교체했다. 상단 a는 연구 동기와 개념적 틀, 하단 b–d는 세 상보적 분석이며 학습 절차는 분석 2의 작은 영역으로 내렸다. 개인 경험과 측정하지 않은 개인 요인은 측정 범위 밖으로 명시했다. README 양쪽 설명, 도식 원본·프롬프트, 보강 문서의 그림 상태를 함께 수정했다. 새 과학적 분석이나 결과는 추가하지 않았고 이전 도안은 Git 이력에 남아 있다.

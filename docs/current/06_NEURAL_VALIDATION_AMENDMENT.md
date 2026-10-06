@@ -220,7 +220,7 @@ claim_evidence_table
 
 ### 그림 상태
 
-2026-10-06 Nature-style overview v1은 이 보강 전 도안으로 보존하며 새 설계의 완성본으로 재배포하지 않는다. 이후 사용자 요청으로 [현재 Overview](../assets/study_overview.png)를 새로 생성해 README에 연결했다. Panel a에 1a/1b, panel b에 2a–d와 affect-neighborhood retrieval, panel c에 독립 target과 재현성을 표시하고 teacher–student 학습은 2·3의 공통 준비로 구분했다. 2d bridge 구현은 여전히 검증·동결 전임을 그림에 표시했다. [원본 논리·생성 프롬프트·검수 범위](../assets/study_overview.md)를 함께 관리한다. PNG 제작 완료는 분석 구현이나 실험 검증 완료를 뜻하지 않는다.
+2026-10-06 Nature-style overview v1은 이 보강 전 도안으로 보존하며 새 설계의 완성본으로 재배포하지 않는다. 이후 사용자 요청으로 [현재 Overview](../assets/study_overview.png)를 새로 생성해 README에 연결했다. 최신 수정은 상단 panel a를 연구의 개념적 틀로 두고, 아래 panel b–d에 분석 1·2·3을 배치한다. 1a/1b, 2a–d와 affect-neighborhood 질문, 독립 target과 재현성을 유지한다. Teacher–student 학습은 2 안의 보조 도구이며 3에서도 같은 student를 사용한다. 개인 기억·가치·신체 상태·주관 경험은 현재 측정 밖으로 구분하고 새로운 분석으로 추가하지 않았다. 2d bridge 구현은 검증·동결 전이다. [원본 논리·생성 프롬프트·검수 범위](../assets/study_overview.md)를 함께 관리하며, 이전 그림은 Git 이력에 보존한다. PNG 제작 완료는 분석 구현이나 실험 검증 완료를 뜻하지 않는다.
 
 ## 🔗 8. 근거와 검증 범위
 

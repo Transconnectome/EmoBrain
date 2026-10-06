@@ -29,9 +29,11 @@ Normative affect annotations are not the scanned participants' self-reports.
 
 ### Study overview
 
-![EmoBrain overview: direct neural encoding and content–affect overlap; learned content, model use and independent neural validation; brain-only affect readout and participant-cohort replication.](docs/assets/study_overview.png)
+![EmoBrain conceptual framework: evocative scene content, measured brain responses and external affect profiles above three tests of neural correspondence, learned relations and affect readout.](docs/assets/study_overview.png)
 
-_Study plan, not results. Shared teacher–student training supports Analyses 2 and 3. All brain illustrations, thumbnails, matrices and bars are schematic or illustrative—not measured effects, actual study stimuli or verified affect matches._
+_Study plan, not results. Top: the conceptual question connecting scene content, brain-response structure and external normative affect profiles. Bottom: three complementary tests, with teacher–student learning as a supporting tool. All brain illustrations, scene pictures, graphs and bars are illustrative—not measured effects, actual study stimuli or verified affect matches._
+
+Personal memories, values, bodily state and individual experience motivate the broader question but are not directly measured or recovered here; the dashed band marks that boundary. The correspondence arrow is a relation to test, not an established mechanism of emotion generation.
 
 The figure distinguishes correspondence in measured fMRI from information recoverable in a model and information the model uses. The 2d content-side bridge is a proposed implementation pending feasibility validation, with separate training-set calibration; held-out validation fMRI is an evaluation target, never an input to that prediction path. CKA summarizes geometry similarity, not information use. VA/VAD runs require codebook verification. [Full-size image](docs/assets/study_overview.png) · [Figure source, scope and generation prompt](docs/assets/study_overview.md).
 
@@ -108,9 +110,11 @@ _뇌–내용 관계와 규준 정서 프로필 예측 · 최신 설계 반영�
 
 ### 연구 개요 그림
 
-![EmoBrain 연구 개요: 실제 뇌의 내용–정서 설명력, 모델이 학습하고 사용하는 내용과 독립 뇌 검증, brain-only 정서 프로필 예측 및 참가자 집단 간 재현.](docs/assets/study_overview.png)
+![EmoBrain 개념적 틀: 장면 내용, 측정된 뇌 반응, 외부 정서 프로필의 관계를 상단에 놓고 아래에 신경 대응, 학습된 관계, 정서 예측의 세 검정을 배치.](docs/assets/study_overview.png)
 
-_실험 결과가 아닌 연구 계획이다. Teacher–student 학습은 분석 2·3의 공통 기반이다. 뇌 그림, 영상 예시, 행렬, 막대는 모두 설명용이며 실제 측정 효과·연구 자극·검증된 정서 유사성 사례가 아니다._
+_실험 결과가 아닌 연구 계획이다. 상단은 장면 내용·뇌 반응 구조·외부 규준 정서 프로필을 연결하는 개념적 질문이고, 하단은 이를 검정하는 세 분석이다. Teacher–student 학습은 보조 도구로 배치했다. 뇌 그림·장면·그래프·막대는 설명용이며 실제 측정 효과·연구 자극·검증된 정서 유사성 사례가 아니다._
+
+개인 기억·가치·신체 상태·개인 경험은 더 넓은 질문의 배경이지만 현재 직접 측정하거나 복원하지 않는다. 점선 영역이 이 범위를 구분한다. 대응 화살표는 검정할 관계이며 확립된 감정 생성 기전이 아니다.
 
 그림은 실제 fMRI와의 대응, 모델에서 읽을 수 있는 정보, 모델이 사용하는 정보를 구분한다. 2d의 content-side bridge는 실행 가능성 검증 전인 구현 제안이며 training 자극을 이용한 별도 calibration이 필요하다. Held-out 검증 뇌는 평가 대상일 뿐 이 예측 경로의 입력이 아니다. CKA는 표상 구조의 유사성을 요약하며 정보 사용을 입증하지 않는다. VA/VAD 실행은 codebook 확인이 필요하다. [원본 크기 이미지](docs/assets/study_overview.png) · [도식 원본·해석 범위·생성 프롬프트](docs/assets/study_overview.md).
 
