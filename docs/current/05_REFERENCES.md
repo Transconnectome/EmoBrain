@@ -54,6 +54,10 @@ Wang, W., Tran, D., & Feiszli, M. (2020). *What makes training multi-modal class
 
 연결: Training-only additional information의 활용, modality별 optimization/overfitting 차이. 두 논문은 EmoBrain teacher가 fMRI를 무시했다는 직접 증거가 아니다. Brain reliance는 본 연구의 controls로 검정한다.
 
+Frank, S., Bugliarello, E., & Elliott, D. (2021). *Vision-and-Language or Vision-for-Language? On Cross-Modal Influence in Multimodal Transformers*. EMNLP, 9847–9857. [원문](https://aclanthology.org/2021.emnlp-main.775/).
+
+연결: Cross-modal input ablation으로 modality 영향의 비대칭성을 진단하는 근거. 공식 초록과 서지 정보를 확인했다. 원 논문의 vision/language 결과가 fMRI 활용, brain swap의 분포 내 타당성, dropout rescue의 성공을 검증한 것은 아니다. Wang et al.의 저자 공개 초록도 다시 확인했으며 modality별 일반화·과적합 차이의 근거로만 사용한다.
+
 ## 🔍 3. 해석·통계·전처리 근거
 
 ### Probing과 geometry

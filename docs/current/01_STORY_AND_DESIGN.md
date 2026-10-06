@@ -154,11 +154,17 @@ Teacher가 사실상 `f(B,V,S) ≈ g(V,S)`로 학습해도 teacher 성능과 stu
 
 필수 진단은 matched `BVS vs VS`, content를 고정한 held-out brain swap, B-only baseline이다. Caption-only 및 affect-word-only baseline, 감정어 masking sensitivity는 직접 label-word 의존을 점검한다. Brain swap의 성능 저하에도 distribution shift라는 대안 설명이 남는다.
 
+예측 증분과 사용 여부는 구별한다. BVS와 VS의 성능 차이가 작아도 brain과 content가 중복 정보를 제공할 수 있고, 추정 불확실성이 크면 무시 여부를 판정할 수 없다. 반대로 brain swap에 민감하더라도 유용한 추가 정보가 아니라 불일치에 민감한 계산일 수 있다. Input ablation을 통한 cross-modal influence 진단의 문헌적 선례는 [Frank et al. (2021)](https://aclanthology.org/2021.emnlp-main.775/)이며, 이 연구가 EmoBrain의 의존성을 입증하지는 않는다.
+
+규준 target은 참가자별 자기보고가 아니라 자극별 평정이다. 따라서 content-only 성공 자체를 shortcut 누출로 부르지 않는다. 사용자가 보고한 과거 video/caption 대비 brain 추가 이득 부족은 현재 34-D 실험의 검증 결과가 아니라 pilot 동기다. Teacher brain-grounding의 증거가 없으면 그 주장을 보류하되, 이를 뇌에 정서 정보가 없다는 결론으로 바꾸지 않는다.
+
 ### Brain weight를 높이면 해결되는가
 
 단순 scalar는 새로운 정보를 만들지는 않지만 최적화에 영향을 줄 수 있다. 같은 축에 적용되는 LayerNorm 앞의 균일한 scale은 대체로 상쇄될 수 있고, learnable projection이 보상할 수도 있다. 따라서 ‘무조건 불가능’도 ‘brain을 보도록 보장’도 아니다.
 
 기본안은 임의 brain amplification 없이 시작한다. 안정적인 신호는 있는데 학습에서 무시되는 정황이 있으면 content-modality dropout 또는 같은 target의 B-only auxiliary loss를 제한된 rescue로 평가한다. Text만 drop하면 shortcut이 video로 옮겨갈 수 있으므로 video+caption 공동 dropout을 포함할지 개발 계획에 명시한다. Rescue 조건·weight는 outer test 결과를 보기 전에 결정한다.
+
+Auxiliary head를 사용한다면 본 teacher와 brain 경로를 공유해야 해당 경로에 학습 신호를 줄 수 있다. Dropout/auxiliary로 B-only 성능이 좋아져도 full-input teacher가 brain을 사용하는지는 별도로 검정한다. 두 입력 상태를 분리해 처리하는 모델도 가능하므로 rescue 성공을 자동적인 brain-grounding으로 해석하지 않는다. 이는 기존 rescue 후보의 해석 보강이며 새 primary loss 채택이 아니다.
 
 B-only 실패는 ‘뇌에 정보가 없다’는 증명이 아니다. 측정 잡음, 표상 선택, 모델 적합성, task 난도 또는 modality 간 상호작용이 원인일 수 있다. 이 경우 QC와 제한된 multimodal pilot으로 진단하고, 양성 결론의 범위를 줄인다.
 

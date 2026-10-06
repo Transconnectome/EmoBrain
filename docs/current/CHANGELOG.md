@@ -6,6 +6,11 @@ _2026-10-06 · 2026-10-04 전달본의 후속 버전_
 
 ## 📋 변경 내용
 
+### Two-panel model figure and brain-use clarification — 2026-10-06
+
+- English: Replaced the duplicate inference panel with Training / After Training; capitalized component labels and restored Fused State (Joint Latent). Updated the bilingual figure source and README links. Clarified existing BVS/VS, brain-swap and limited rescue interpretations; recorded Frank et al. (2021). No new primary objective, training run, architecture freeze or mandatory VS-guided student was introduced.
+- 한국어: 중복 추론 패널을 없애고 Training / After Training으로 구성했으며 구성요소 대문자와 Fused State (Joint Latent) 표기를 적용했다. 영한 도식 원본과 README 링크를 갱신했다. 기존 BVS/VS·brain swap·제한된 rescue의 해석을 보강하고 Frank et al. (2021)을 기록했다. 새 primary loss·학습 실행·구조 동결·VS-guided student 필수화는 하지 않았다.
+
 - Analysis 1a 유지, 1b에 content–affect의 실제 fMRI 공유/조건부 설명력 비교 추가.
 - Analysis 2a–c 유지, 2d에 독립 neural validation 원칙과 개발용 content-side bridge 권고 추가.
 - Analysis 3은 같은 모델의 readout·cohort replication으로 유지.
