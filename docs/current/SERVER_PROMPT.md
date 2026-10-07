@@ -22,6 +22,10 @@ Teacher는 training 시 brain + video + caption을 받는다. Student는 trainin
 
 ## 🔍 첫 번째 작업 범위
 
+**Preprocessing/QC update — 2026-10-07:** Read [09_PREPROCESSING_HANDOFF.md](09_PREPROCESSING_HANDOFF.md) before deciding on masks, OFC pooling or Horikawa SDC. Preserve v2 and active authorized work. Separate low signal, mask exclusion and localization uncertainty. MindCaptioning displacement is not a Horikawa measurement. The no-GM comparison is a proposed limited sensitivity, not a new primary pipeline or automatic job authorization.
+
+**전처리/QC 갱신 — 2026-10-07:** Mask·OFC pooling·Horikawa SDC를 결정하기 전에 [09_PREPROCESSING_HANDOFF.md](09_PREPROCESSING_HANDOFF.md)를 읽어줘. v2와 기존 승인 작업을 보존하고 저신호·마스크 제외·위치 불확실성을 구분해줘. MindCaptioning 변위는 Horikawa 실측값이 아니야. No-GM 비교는 제한된 sensitivity 제안이지 새 primary나 자동 실행 승인이 아니야.
+
 최신 학습 방향은 **Joint 기본, Brain-first → Joint 추가 비교 가능**이야(D20). Brain-first를 모든 fit의 필수 단계로 넣지 말고, 같은 최종 joint 모델의 선택적 학습 전략으로 다뤄줘. 정해진 실패 gate 없이도 이유 있는 탐색·비교를 제안할 수 있어. 공유 Affect Head의 `L_joint + η L_brain`은 D21 제안이지 기본 loss로 승인된 것이 아니야. Teacher warm-up을 시도한다면 초기화 단계부터 recipient/inner validation/outer test를 제외하고 checkpoint provenance를 검사해줘. 세부 구현은 02 §4, 작업은 P11b를 따라줘.
 
 결과를 보고 학습법·최종 선택 모델을 바꾸는 것 자체는 금지가 아니야. 이전 run과 변경 이유·선택에 사용한 데이터·metric·시점을 보존하고, 이미 선택에 쓰인 test 결과를 독립 최종 검증으로 부르지 마. Prereg amendment와 exploratory/independent-validation 지위를 구분해줘. 이 탐색 원칙이 현재 첫 작업 범위 밖의 GPU 실행·예산 확대를 승인하는 것은 아니야.

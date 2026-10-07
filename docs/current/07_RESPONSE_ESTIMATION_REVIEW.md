@@ -6,6 +6,10 @@ _2026-10-06 · 현재 데이터·코드 미검증 · D04의 판단 근거와 실
 
 ## 📋 1. 질문과 현재 권고
 
+**2026-10-07 evidence update:** The user supplied full preprocessing and focused OFC reports, plus follow-up replies from two server AIs. Their reported results and the coordinating review are consolidated in [09_PREPROCESSING_HANDOFF.md](09_PREPROCESSING_HANDOFF.md). Server files were not independently rechecked here. Preserve v2; targeted mask/SDC/motion/provenance checks precede a final D04 decision. GM-regression sensitivity is proposed, not frozen.
+
+**2026-10-07 근거 갱신:** 사용자가 전처리 전체·OFC 집중 보고서와 두 서버 AI의 후속 답변을 제공했다. 보고 결과와 총괄 검토는 [09_PREPROCESSING_HANDOFF.md](09_PREPROCESSING_HANDOFF.md)에 정리했다. 서버 파일을 여기서 독립 재검증한 것은 아니다. v2를 보존하고 mask·SDC·motion·provenance 표적 검토 후 D04를 결정한다. GM 회귀 sensitivity는 제안이며 동결하지 않았다.
+
 질문은 “영상별 내용–정서 관계를 연구할 때, 블록 평균이 주 입력으로 충분한가?”다.
 
 성립 조건은 정확한 자극–BOLD 정렬, 분석에 필요한 공간 패턴의 보존, 해석 가능한 자극별 추정치, 그리고 개발 자료에서의 안정성이다. 반례는 평균으로 소실된 시간 정보가 단순한 길이·운동·이웃 자극 효과가 아니라 독립적인 content/affect 예측과 일관된 신경 대응을 제공하는 경우다. 시계열이 이긴다는 결과 없이 우월성을 가정하지도 않는다.

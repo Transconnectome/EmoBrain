@@ -26,11 +26,16 @@ Joint B/V/S 학습이 기본이다. Brain-first → Joint는 추가 전략이며
 
 ## 📍 읽는 순서
 
+**Preprocessing handoff — 2026-10-07:** Server preprocessing/QC AIs should start with [09_PREPROCESSING_HANDOFF.md](09_PREPROCESSING_HANDOFF.md). It reconciles the reported OFC/mask/SDC findings, corrects unsupported claims, and specifies evidence and next actions. It does not authorize a whole-cohort rerun or freeze D04.
+
+**전처리 전달문 — 2026-10-07:** 서버 전처리/QC AI는 [09_PREPROCESSING_HANDOFF.md](09_PREPROCESSING_HANDOFF.md)부터 읽는다. 보고된 OFC·마스크·SDC 근거와 과도한 주장을 구분하고 반환물·다음 작업을 정리했다. 전체 재실행 승인이나 D04 동결이 아니다.
+
 | 순서 | 문서 | 역할 |
 |---|---|---|
 | 1 | [연구 스토리와 설계](01_STORY_AND_DESIGN.md) | 무엇을 왜 하는가 |
 | 보강 우선 | [뇌 검증 보강과 추가 후보](06_NEURAL_VALIDATION_AMENDMENT.md) | 1b·2d 방향 승인, 내용 구별 보조 분석 채택 |
 | 전처리 검토 | [자극별 반응과 시계열 입력](07_RESPONSE_ESTIMATION_REVIEW.md) | 블록 평균 권고의 근거·정정·미확인 항목 |
+| 최신 전처리 전달 | [서버 전처리/QC 검토와 작업 지시](09_PREPROCESSING_HANDOFF.md) | 2026-10-07 보고 대조·근거 상태·표적 검증·결정 대기 |
 | 2 | [결정·정정 기록](04_DECISION_REGISTER.md) | 확정·제안·미확정 구분 |
 | 3 | [구현 명세](02_IMPLEMENTATION_SPEC.md) | 데이터·분할·모델·loss·평가 |
 | 4 | [상세 실행 목록](03_ACTION_ITEMS.md) | 순서·산출물·완료 기준 |

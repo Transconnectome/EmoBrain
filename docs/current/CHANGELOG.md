@@ -6,6 +6,11 @@ _2026-10-06 · 2026-10-04 전달본의 후속 버전_
 
 ## 📋 변경 내용
 
+### Preprocessing evidence and server-AI handoff / 전처리 근거·서버 전달 — 2026-10-07
+
+- English: Added a focused bilingual `09_PREPROCESSING_HANDOFF.md`, linked from current navigation, server prompt and estimator review. Reconciled the two reported QC summaries and subsequent Claude Code/Codex replies; separated low signal, intersection-mask exclusion and localization uncertainty. Corrected MC-to-HK displacement extrapolation, 11/12-parcel coverage mixing, one-run tSNR generalization and blanket “no other issues” claims. Recorded targeted mask/SDC audits, proposed no-GM sensitivity, temporal-source preservation, motion/timing/atlas/split/provenance checks and six-question rationales. No server files/jobs, model code, primary settings, main branch or actual preregistration were changed.
+- 한국어: 전처리 전용 영한 `09_PREPROCESSING_HANDOFF.md`를 추가하고 current 목차·서버 시작 지시·estimator 검토에서 연결했다. 두 QC 보고와 Claude Code/Codex 후속 답변을 대조해 저신호·교집합 제외·위치 불확실성을 분리했다. MC→HK 변위 외삽, 11/12-parcel coverage 혼용, 한 run tSNR 일반화, ‘나머지 문제없음’을 정정했다. 표적 mask/SDC 감사, no-GM sensitivity 제안, 시계열 보존, motion/timing/atlas/split/provenance 검사와 여섯 질문 근거를 기록했다. 서버 파일·job·모델 코드·primary 설정·main·실제 preregistration은 변경하지 않았다.
+
 ### Joint-first learning and iterative experimentation / 학습 방향·탐색 원칙 — 2026-10-06
 
 - English: Recorded Joint as the default and optional Brain-first → Joint as D20. Kept shared Affect Head auxiliary training as proposal D21. Added scope-safe warm-up, supervision/geometry interpretation, budget/provenance and P11b tasks. Corrected the blanket ban on result-driven revisions: models may be revised/selected through exploration, with original runs and selection exposure preserved and independent validation distinguished. Synchronized handoff, story, specification, decisions, actions, references, server prompt, implementation status and bilingual figure notes. No code, PNG, experiment, main branch or preregistration was changed.
