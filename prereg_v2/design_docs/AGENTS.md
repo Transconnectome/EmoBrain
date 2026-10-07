@@ -1,5 +1,13 @@
 # EmoBrain project instructions
 
+## Audit snapshot notice / 감사 당시 사본 안내 — 2026-10-07
+
+English: This directory preserves the design documents used for the earlier audit. It is not a second current protocol. New work follows [root AGENTS.md](../../AGENTS.md) and [docs/current](../../docs/current/00_README.md); current explicit user decisions retain their priority. Preserve the historical documents below this notice and alongside this file. Audit code, manifests and results elsewhere in `prereg_v2/` are evidence to review, not automatic approval of old settings. Importing these files does not amend a registered protocol.
+
+한국어: 이 디렉토리는 이전 감사에서 사용한 설계 문서를 보존하며 별도의 최신 프로토콜이 아니다. 새 작업은 [루트 AGENTS.md](../../AGENTS.md)와 [docs/current](../../docs/current/00_README.md)를 따르고 현재 사용자의 명시적 결정을 우선한다. 이 안내 아래와 같은 폴더의 과거 문서는 보존한다. `prereg_v2/`의 다른 감사 코드·manifest·결과는 검토 근거이지 과거 설정의 자동 승인이 아니다. 파일을 가져오는 것이 실제 등록 프로토콜의 amendment는 아니다.
+
+---
+
 ## Rationale-before-inclusion rule
 
 모델, feature, target, loss, control, 분석, 통계 검정, 시각화 또는 해석을 새로 설정하거나 논문에 포함하기 전에 반드시 **왜 필요한가**를 명시한다. 단순히 최신 방법, 높은 성능, 관행, 유명 논문 사용, 또는 fancy함은 포함 근거가 아니다.

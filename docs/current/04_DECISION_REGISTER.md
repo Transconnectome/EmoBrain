@@ -4,6 +4,12 @@ _2026-10-06 · 기존 설계의 복원과 이번 검토의 제안을 분리한 �
 
 ---
 
+## 📍 Coordination decision / 협업 역할 결정 — 2026-10-07
+
+English: The user explicitly designated GPT as the research-idea and overall design coordinator, Claude Code and Codex as verification/implementation agents, and requested that these rules be applied to GitHub. GPT discusses the study with the user, synthesizes evidence and maintains accepted current documents; the user decides core direction and material changes. Routine authorized verification/implementation does not need a fresh decision at each step. This administrative decision changes no model, loss, target, analysis, exclusion rule or preregistration. T001–T003 remain open; their proposals are not approved by this update. See [coordination rules](../coordination/README.md) and [board](../coordination/BOARD.md).
+
+한국어: 사용자가 GPT를 연구 아이디어·전체 설계 총괄, Claude Code와 Codex를 검증·구현 담당으로 명시하고 이 규칙을 GitHub에 적용하도록 요청했다. GPT는 사용자와 연구를 논의하고 근거를 종합하며 확정된 최신 문서를 관리한다. 핵심 방향과 중요한 변경은 사용자가 결정한다. 승인 범위의 일반 검증·구현은 단계마다 새 결정을 받을 필요가 없다. 이번 운영 결정은 모델·loss·target·분석·제외 규칙·사전등록을 바꾸지 않는다. T001–T003은 열린 상태이며 이번 갱신으로 그 제안을 승인하지 않았다. [협업 규칙](../coordination/README.md)과 [작업판](../coordination/BOARD.md)을 따른다.
+
 ## 🔄 0. 2026-10-06 승인된 보강
 
 Analysis 1b의 실제 뇌 content–affect 설명력 비교와 Analysis 2d의 독립 neural validation을 연구 방향에 반영한다. 기존 세 분석은 유지하며 큰 Analysis 4·5를 추가하지 않는다. 구현 권고, 보조 후보, 본실험 동결은 구분한다. [06 보강 문서](06_NEURAL_VALIDATION_AMENDMENT.md)에 각 항목의 여섯 질문 rationale, 산식, split, 반례·한계가 있다.

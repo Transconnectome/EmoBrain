@@ -6,6 +6,11 @@ _2026-10-06 · 2026-10-04 전달본의 후속 버전_
 
 ## 📋 변경 내용
 
+### Research coordination and shared-checkout rules / 연구 총괄·공유 사본 규칙 — 2026-10-07
+
+- English: Applied the user's GPT / Claude Code / Codex role distinction. Updated root instructions and coordination rules in English then Korean; separated proposals, routine verification and user decisions. Added whole-transaction Git serialization, shared-index protection and evidence provenance. Preserved the existing three threads and task states, added acceptance criteria, and marked `prereg_v2/design_docs` as historical audit snapshots without rewriting the original study documents. Linked coordination from current navigation and recorded the administrative decision. No new folders, scientific settings, code, server jobs, main changes or PRs.
+- 한국어: 사용자가 정한 GPT / Claude Code / Codex 역할을 적용했다. 루트·협업 지침을 영문 다음 한글로 정리하고 제안·일반 검증·사용자 결정을 구분했다. Git 갱신부터 push까지 직렬 실행, 공유 index 보호, 근거 출처 규칙을 추가했다. 기존 세 스레드·작업 상태를 보존하고 완료 기준을 보강했으며 `prereg_v2/design_docs`에 감사 당시 사본임을 표시하되 원래 연구 문서는 다시 쓰지 않았다. current 목차에 협업을 연결하고 운영 결정을 기록했다. 새 폴더·과학적 설정·코드·서버 job·main 변경·PR은 없다.
+
 ### Preprocessing evidence and server-AI handoff / 전처리 근거·서버 전달 — 2026-10-07
 
 - English: Added a focused bilingual `09_PREPROCESSING_HANDOFF.md`, linked from current navigation, server prompt and estimator review. Reconciled the two reported QC summaries and subsequent Claude Code/Codex replies; separated low signal, intersection-mask exclusion and localization uncertainty. Corrected MC-to-HK displacement extrapolation, 11/12-parcel coverage mixing, one-run tSNR generalization and blanket “no other issues” claims. Recorded targeted mask/SDC audits, proposed no-GM sensitivity, temporal-source preservation, motion/timing/atlas/split/provenance checks and six-question rationales. No server files/jobs, model code, primary settings, main branch or actual preregistration were changed.

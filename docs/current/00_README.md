@@ -26,6 +26,10 @@ Joint B/V/S 학습이 기본이다. Brain-first → Joint는 추가 전략이며
 
 ## 📍 읽는 순서
 
+**Coordination — 2026-10-07:** GPT coordinates research ideas and current design with the user; Claude Code and Codex verify, implement and run authorized experiments. Read the [coordination rules](../coordination/README.md) and [board](../coordination/BOARD.md) for assignments. They do not replace study specifications. `prereg_v2/design_docs/` contains audit-era snapshots, not a competing current protocol.
+
+**협업 — 2026-10-07:** GPT가 사용자와 연구 아이디어·최신 설계를 총괄하고 Claude Code와 Codex는 검증·구현·승인된 실험을 맡는다. 배정은 [협업 규칙](../coordination/README.md)과 [작업판](../coordination/BOARD.md)을 읽는다. 이들은 연구 명세를 대체하지 않는다. `prereg_v2/design_docs/`는 감사 당시 사본이며 별도의 최신 프로토콜이 아니다.
+
 **Preprocessing handoff — 2026-10-07:** Server preprocessing/QC AIs should start with [09_PREPROCESSING_HANDOFF.md](09_PREPROCESSING_HANDOFF.md). It reconciles the reported OFC/mask/SDC findings, corrects unsupported claims, and specifies evidence and next actions. It does not authorize a whole-cohort rerun or freeze D04.
 
 **전처리 전달문 — 2026-10-07:** 서버 전처리/QC AI는 [09_PREPROCESSING_HANDOFF.md](09_PREPROCESSING_HANDOFF.md)부터 읽는다. 보고된 OFC·마스크·SDC 근거와 과도한 주장을 구분하고 반환물·다음 작업을 정리했다. 전체 재실행 승인이나 D04 동결이 아니다.
