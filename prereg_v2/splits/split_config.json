@@ -1,0 +1,110 @@
+{
+  "provenance": {
+    "generated_by": "prereg_v2/code/p3_splits_leakage.py",
+    "generated_at_utc": "2026-09-23T08:04:46Z",
+    "git_commit": "0bc3a79becf56c7a532980dcef09f5a8a0b36427",
+    "python": "/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python",
+    "asset_registry": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/code/_assets.py",
+    "asset_registry_sha256": "9dc8264b6c79df478c33c4232818edd478489d852a05d90810918fbb2714bb5e",
+    "split_config": {
+      "unit": "canonical_stimulus_id",
+      "n_outer_folds": 5,
+      "n_inner_folds": 5,
+      "seed": 20260923,
+      "shuffle": true,
+      "stratified": false,
+      "stratification_note": "A3-1 permits stratification only on a predefined summary and forbids balancing the target itself. No summary has been predefined, so the split is unstratified and the realised target balance is reported rather than enforced.",
+      "status": "PROVISIONAL: fold counts are not fixed by prereg_v2 or implementation_v2 and require confirmation before freeze"
+    }
+  },
+  "config": {
+    "unit": "canonical_stimulus_id",
+    "n_outer_folds": 5,
+    "n_inner_folds": 5,
+    "seed": 20260923,
+    "shuffle": true,
+    "stratified": false,
+    "stratification_note": "A3-1 permits stratification only on a predefined summary and forbids balancing the target itself. No summary has been predefined, so the split is unstratified and the realised target balance is reported rather than enforced.",
+    "status": "PROVISIONAL: fold counts are not fixed by prereg_v2 or implementation_v2 and require confirmation before freeze"
+  },
+  "realised_balance": {
+    "n_annotated_rows_per_outer_fold": {
+      "0": 438,
+      "1": 436,
+      "2": 438,
+      "3": 437,
+      "4": 436
+    },
+    "max_across_fold_range_of_any_category_mean": 0.028663290907377154,
+    "mean_across_fold_range": 0.011479053766887019,
+    "per_fold_mean_row_sum": {
+      "0": 1.6992765022831051,
+      "1": 1.7261344977064221,
+      "2": 1.7185709223744294,
+      "3": 1.7195589679633867,
+      "4": 1.707991380733945
+    }
+  },
+  "per_participant_fold_summary": {
+    "sub-01": {
+      "n_stimuli": 2185,
+      "n_without_fold": 0,
+      "fold_vector_sha256": "70821093314e85ed6d6e6a8647486f451ce42f7dc11e81ed6fc46be3c82375f5",
+      "fold_sizes": {
+        "0": 438,
+        "1": 436,
+        "2": 438,
+        "3": 437,
+        "4": 436
+      }
+    },
+    "sub-02": {
+      "n_stimuli": 2185,
+      "n_without_fold": 0,
+      "fold_vector_sha256": "70821093314e85ed6d6e6a8647486f451ce42f7dc11e81ed6fc46be3c82375f5",
+      "fold_sizes": {
+        "0": 438,
+        "1": 436,
+        "2": 438,
+        "3": 437,
+        "4": 436
+      }
+    },
+    "sub-03": {
+      "n_stimuli": 2185,
+      "n_without_fold": 0,
+      "fold_vector_sha256": "70821093314e85ed6d6e6a8647486f451ce42f7dc11e81ed6fc46be3c82375f5",
+      "fold_sizes": {
+        "0": 438,
+        "1": 436,
+        "2": 438,
+        "3": 437,
+        "4": 436
+      }
+    },
+    "sub-04": {
+      "n_stimuli": 2185,
+      "n_without_fold": 0,
+      "fold_vector_sha256": "70821093314e85ed6d6e6a8647486f451ce42f7dc11e81ed6fc46be3c82375f5",
+      "fold_sizes": {
+        "0": 438,
+        "1": 436,
+        "2": 438,
+        "3": 437,
+        "4": 436
+      }
+    },
+    "sub-05": {
+      "n_stimuli": 2185,
+      "n_without_fold": 0,
+      "fold_vector_sha256": "70821093314e85ed6d6e6a8647486f451ce42f7dc11e81ed6fc46be3c82375f5",
+      "fold_sizes": {
+        "0": 438,
+        "1": 436,
+        "2": 438,
+        "3": 437,
+        "4": 436
+      }
+    }
+  }
+}

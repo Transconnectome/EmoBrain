@@ -1,0 +1,70 @@
+{
+  "provenance": {
+    "generated_by": "prereg_v2/code/q1_voxel_census.py",
+    "generated_at_utc": "2026-09-28T04:05:48Z",
+    "git_commit": "5baff3177d0960aadd1e575fa5368e32a6dc8894",
+    "python": "/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python",
+    "asset_registry": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/code/_assets.py",
+    "asset_registry_sha256": "9dc8264b6c79df478c33c4232818edd478489d852a05d90810918fbb2714bb5e",
+    "frame_crop": "(slice(12, 86, None), slice(12, 103, None), slice(1, 82, None))",
+    "workers": 16,
+    "max_runs": 0,
+    "subjects": [
+      "sub-01",
+      "sub-02",
+      "sub-03",
+      "sub-04",
+      "sub-05"
+    ]
+  },
+  "n_runs": 305,
+  "n_segments": 11285,
+  "n_boundaries": 10980,
+  "header": {
+    "all_grid_97x115x97": true,
+    "all_affine_identical": true,
+    "distinct_zooms": [
+      "(2.0, 2.0, 2.0, 2.0)"
+    ],
+    "distinct_dtypes": [
+      "float32"
+    ],
+    "distinct_qform_sform": [
+      "4/4"
+    ],
+    "all_tr_counts_match_meta": true,
+    "n_nan_total": 0,
+    "n_inf_total": 0,
+    "n_all_zero_volumes_total": 0
+  },
+  "tiling": {
+    "all_runs_contiguous": true,
+    "all_runs_start_at_tr0": true,
+    "n_boundaries_with_gap_or_overlap": 0,
+    "run_length_tr_min": 204,
+    "run_length_tr_max": 291
+  },
+  "run_zscore": {
+    "median_over_runs_of_median_abs_voxel_mean": 0.0013750711321292154,
+    "median_over_runs_of_median_voxel_sd": 0.9997795788358197,
+    "min_over_runs_frac_voxels_zscored": 1.0,
+    "median_over_runs_frac_voxels_zscored": 1.0
+  },
+  "boundary_continuity": {
+    "median_boundary_over_within_dvars": 1.009492942200603,
+    "max_boundary_over_within_dvars": 1.0728678590137766
+  },
+  "frames": {
+    "n_segments_checked": 10980,
+    "n_frames_checked": 66755,
+    "max_abs_diff_vs_relu_crop": 0.0,
+    "all_frame_counts_exact": true,
+    "n_frame_errors": 0,
+    "brain_voxels_outside_crop_max": 1663,
+    "frac_brain_values_zeroed_by_relu_median": 0.4985410925670997
+  },
+  "coverage": {
+    "n_parcels_with_coverage_below_0.5_any_participant": 19,
+    "n_parcels_with_zero_coverage_any_participant": 0
+  }
+}

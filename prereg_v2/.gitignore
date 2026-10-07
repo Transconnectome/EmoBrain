@@ -1,0 +1,10 @@
+# Regenerable by code/p1_stimulus_crosswalk.py; 8.6 MB of derived cache.
+manifests/clip_signatures.npy
+manifests/clip_signature_video_numbers.npy
+# Local provenance copies of artifacts replaced by a re-run.
+manifests/superseded/
+logs/
+__pycache__/
+# Reconstructed ROI run series from q1; 231 MB, regenerable.
+qc/roi_runs/
+*.smoke.*

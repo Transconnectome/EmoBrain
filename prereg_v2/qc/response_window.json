@@ -1,0 +1,262 @@
+{
+  "provenance": {
+    "generated_by": "prereg_v2/code/q3_response_window.py",
+    "generated_at_utc": "2026-09-28T04:15:22Z",
+    "git_commit": "5baff3177d0960aadd1e575fa5368e32a6dc8894",
+    "python": "/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python",
+    "asset_registry": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/code/_assets.py",
+    "asset_registry_sha256": "9dc8264b6c79df478c33c4232818edd478489d852a05d90810918fbb2714bb5e",
+    "shifts_tr": [
+      -2,
+      -1,
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "far_positions": 5,
+    "dct_cutoff_s": 128.0,
+    "hrf": "SPM canonical double gamma 6/16/6"
+  },
+  "n_repeat_pairs": 16,
+  "summary_by_method": [
+    {
+      "form": "roi_all",
+      "method": "glm_lsa@-4",
+      "repeat_r_mean": 0.06713894390226649,
+      "repeat_r_null_mean": 0.010085618127070727,
+      "within_prev_minus_far": 0.5096808154922947,
+      "cross_same_r": 0.1859527445843318,
+      "cross_prev_r": 0.17776469644067108,
+      "contamination_ratio": 0.9512850554223548,
+      "repeat_r_min_over_participants": 0.006118843074070821
+    },
+    {
+      "form": "roi_all",
+      "method": "glm_lsa@0",
+      "repeat_r_mean": 0.08019810730946723,
+      "repeat_r_null_mean": 0.026944300140642558,
+      "within_prev_minus_far": 0.4514814777494718,
+      "cross_same_r": 0.19590815460655675,
+      "cross_prev_r": 0.19136475430820638,
+      "contamination_ratio": 0.9613860314930607,
+      "repeat_r_min_over_participants": 0.0475684235093886
+    },
+    {
+      "form": "roi_all",
+      "method": "shift-1",
+      "repeat_r_mean": 0.14224034919228307,
+      "repeat_r_null_mean": -0.0014532756470417515,
+      "within_prev_minus_far": -0.12003923534378529,
+      "cross_same_r": 0.19067480201810053,
+      "cross_prev_r": -0.011931607928167002,
+      "contamination_ratio": -0.07898112089166068,
+      "repeat_r_min_over_participants": 0.12090736646270672
+    },
+    {
+      "form": "roi_all",
+      "method": "shift-2",
+      "repeat_r_mean": 0.10629556023893046,
+      "repeat_r_null_mean": -0.004449191732522975,
+      "within_prev_minus_far": -0.10317202863517902,
+      "cross_same_r": 0.16807356456656466,
+      "cross_prev_r": 0.004894917329708356,
+      "contamination_ratio": 0.03570659560205974,
+      "repeat_r_min_over_participants": 0.06957179437616645
+    },
+    {
+      "form": "roi_all",
+      "method": "shift0",
+      "repeat_r_mean": 0.15785116645265823,
+      "repeat_r_null_mean": 0.00860558566371178,
+      "within_prev_minus_far": -0.1329520803809176,
+      "cross_same_r": 0.20974455615250695,
+      "cross_prev_r": -0.030076971110209693,
+      "contamination_ratio": -0.13092427170635265,
+      "repeat_r_min_over_participants": 0.13867902655830242
+    },
+    {
+      "form": "roi_all",
+      "method": "shift1",
+      "repeat_r_mean": 0.15025914369989887,
+      "repeat_r_null_mean": -0.0037825280338484313,
+      "within_prev_minus_far": -0.13638638914019238,
+      "cross_same_r": 0.20540062629215528,
+      "cross_prev_r": -0.02873192613731862,
+      "contamination_ratio": -0.14341549404932738,
+      "repeat_r_min_over_participants": 0.06670077499448121
+    },
+    {
+      "form": "roi_all",
+      "method": "shift2",
+      "repeat_r_mean": 0.12414646386349384,
+      "repeat_r_null_mean": 0.0014999749993965745,
+      "within_prev_minus_far": -0.09831303244652578,
+      "cross_same_r": 0.18208519156584851,
+      "cross_prev_r": -0.007687609582211101,
+      "contamination_ratio": -0.0241040911234069,
+      "repeat_r_min_over_participants": 0.007589690550926023
+    },
+    {
+      "form": "roi_all",
+      "method": "shift3",
+      "repeat_r_mean": 0.09572111428925573,
+      "repeat_r_null_mean": -0.007514452031102783,
+      "within_prev_minus_far": -0.07438774659994685,
+      "cross_same_r": 0.16519470726854582,
+      "cross_prev_r": 0.01149668201170739,
+      "contamination_ratio": 0.07372106697750122,
+      "repeat_r_min_over_participants": 0.0010799996941269485
+    },
+    {
+      "form": "roi_all",
+      "method": "shift4",
+      "repeat_r_mean": 0.07948572879096719,
+      "repeat_r_null_mean": 0.00978703984409932,
+      "within_prev_minus_far": -0.07736951098446013,
+      "cross_same_r": 0.17365641603004317,
+      "cross_prev_r": 0.006976839879649069,
+      "contamination_ratio": 0.03173342899978696,
+      "repeat_r_min_over_participants": -0.010802313518377056
+    },
+    {
+      "form": "roi_brain",
+      "method": "glm_lsa@-4",
+      "repeat_r_mean": 0.06675091487152612,
+      "repeat_r_null_mean": 0.0166982649028423,
+      "within_prev_minus_far": 0.5157165913222262,
+      "cross_same_r": 0.186025995500678,
+      "cross_prev_r": 0.17783579518525894,
+      "contamination_ratio": 0.9510824438478782,
+      "repeat_r_min_over_participants": 0.006532906262794624
+    },
+    {
+      "form": "roi_brain",
+      "method": "glm_lsa@0",
+      "repeat_r_mean": 0.0800570014321516,
+      "repeat_r_null_mean": 0.023823632781716914,
+      "within_prev_minus_far": 0.44128400927721356,
+      "cross_same_r": 0.19590656090320085,
+      "cross_prev_r": 0.191368654263563,
+      "contamination_ratio": 0.9609777783103148,
+      "repeat_r_min_over_participants": 0.047397276057608
+    },
+    {
+      "form": "roi_brain",
+      "method": "shift-1",
+      "repeat_r_mean": 0.14238123980797884,
+      "repeat_r_null_mean": -0.005231181367919045,
+      "within_prev_minus_far": -0.11567336887044781,
+      "cross_same_r": 0.1907470983820871,
+      "cross_prev_r": -0.01198864375258602,
+      "contamination_ratio": -0.05424733970666814,
+      "repeat_r_min_over_participants": 0.12039341664865044
+    },
+    {
+      "form": "roi_brain",
+      "method": "shift-2",
+      "repeat_r_mean": 0.10579915576018195,
+      "repeat_r_null_mean": 0.006267709367132945,
+      "within_prev_minus_far": -0.10496170860259806,
+      "cross_same_r": 0.1681373046891867,
+      "cross_prev_r": 0.004840230889398086,
+      "contamination_ratio": 0.017592755061713698,
+      "repeat_r_min_over_participants": 0.06853918420134963
+    },
+    {
+      "form": "roi_brain",
+      "method": "shift0",
+      "repeat_r_mean": 0.15845399183233624,
+      "repeat_r_null_mean": 0.0009437775868219426,
+      "within_prev_minus_far": -0.13322441968921356,
+      "cross_same_r": 0.20981985473860956,
+      "cross_prev_r": -0.03012811513133078,
+      "contamination_ratio": -0.1544651606432,
+      "repeat_r_min_over_participants": 0.13825856419447474
+    },
+    {
+      "form": "roi_brain",
+      "method": "shift1",
+      "repeat_r_mean": 0.15087493425779178,
+      "repeat_r_null_mean": 0.0028249156470488363,
+      "within_prev_minus_far": -0.13247730908516622,
+      "cross_same_r": 0.20546648973296205,
+      "cross_prev_r": -0.028773274247596892,
+      "contamination_ratio": -0.13642740571929002,
+      "repeat_r_min_over_participants": 0.06632361016981861
+    },
+    {
+      "form": "roi_brain",
+      "method": "shift2",
+      "repeat_r_mean": 0.12447004102145749,
+      "repeat_r_null_mean": -0.005470994764312689,
+      "within_prev_minus_far": -0.09831227465829027,
+      "cross_same_r": 0.1821325119812699,
+      "cross_prev_r": -0.007724984972179422,
+      "contamination_ratio": -0.03589750210984868,
+      "repeat_r_min_over_participants": 0.007251914606934556
+    },
+    {
+      "form": "roi_brain",
+      "method": "shift3",
+      "repeat_r_mean": 0.09574612921826552,
+      "repeat_r_null_mean": 0.000368911361231998,
+      "within_prev_minus_far": -0.0736554725445571,
+      "cross_same_r": 0.16523818415164615,
+      "cross_prev_r": 0.011452225422377827,
+      "contamination_ratio": 0.06907040536880657,
+      "repeat_r_min_over_participants": 0.0007367968533679055
+    },
+    {
+      "form": "roi_brain",
+      "method": "shift4",
+      "repeat_r_mean": 0.07939707486822234,
+      "repeat_r_null_mean": -0.009340488005267362,
+      "within_prev_minus_far": -0.07552677318613618,
+      "cross_same_r": 0.17371136418471694,
+      "cross_prev_r": 0.006923833142854913,
+      "contamination_ratio": 0.03720698574738931,
+      "repeat_r_min_over_participants": -0.011235106004708428
+    }
+  ],
+  "onset_offset": {
+    "sub-01": {
+      "n_runs": 61,
+      "fitted_onset_offset_s": -6.5,
+      "empirical_half_rise_s_from_nominal_onset": -1.2248159993452958,
+      "canonical_half_rise_s_from_onset": 5.497173216620183,
+      "implied_offset_s": -6.721989215965479
+    },
+    "sub-02": {
+      "n_runs": 61,
+      "fitted_onset_offset_s": -3.0,
+      "empirical_half_rise_s_from_nominal_onset": 1.4178673521460112,
+      "canonical_half_rise_s_from_onset": 5.497173216620183,
+      "implied_offset_s": -4.079305864474172
+    },
+    "sub-03": {
+      "n_runs": 61,
+      "fitted_onset_offset_s": -4.5,
+      "empirical_half_rise_s_from_nominal_onset": 0.8552090799229646,
+      "canonical_half_rise_s_from_onset": 5.497173216620183,
+      "implied_offset_s": -4.641964136697219
+    },
+    "sub-04": {
+      "n_runs": 61,
+      "fitted_onset_offset_s": -4.5,
+      "empirical_half_rise_s_from_nominal_onset": 0.579545525297064,
+      "canonical_half_rise_s_from_onset": 5.497173216620183,
+      "implied_offset_s": -4.917627691323119
+    },
+    "sub-05": {
+      "n_runs": 61,
+      "fitted_onset_offset_s": -6.0,
+      "empirical_half_rise_s_from_nominal_onset": -0.23097575579479823,
+      "canonical_half_rise_s_from_onset": 5.497173216620183,
+      "implied_offset_s": -5.728148972414981
+    }
+  },
+  "fitted_onset_offset_s_mean": -4.9,
+  "reading_note": "repeat_r is the primary criterion. contamination_ratio estimates c/(1+c^2) for a predecessor weight c. The onset latency says how many seconds after a clip starts its response reaches half height; with a 5 TR window and no delay, that span of the window is dominated by the preceding clip."
+}

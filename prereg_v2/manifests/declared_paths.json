@@ -1,0 +1,51 @@
+{
+  "provenance": {
+    "generated_by": "prereg_v2/code/p0_inventory.py",
+    "generated_at_utc": "2026-09-23T07:52:28Z",
+    "git_commit": "0bc3a79becf56c7a532980dcef09f5a8a0b36427",
+    "python": "/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python",
+    "asset_registry": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/code/_assets.py",
+    "asset_registry_sha256": "9dc8264b6c79df478c33c4232818edd478489d852a05d90810918fbb2714bb5e"
+  },
+  "declared_paths": {
+    "labels_video_path_column_root": {
+      "path": "/pscratch/sd/s/sjmoon/EmoFM/videos/CowenEmotionVideos",
+      "exists": false
+    },
+    "step7_source_preprocessing_root": {
+      "path": "/storage/bigdata/Horikawa/preprocessing_output",
+      "exists": false
+    },
+    "step7_source_events_root": {
+      "path": "/storage/bigdata/Horikawa/raw",
+      "exists": false
+    }
+  },
+  "design_documents": {
+    "AGENTS.md": {
+      "path": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/design_docs/AGENTS.md",
+      "size_bytes": 1429,
+      "sha256": "bb82701201e40c4f228257987abbab0a7e4b2b296c5ab80acc7c726385b61896"
+    },
+    "action_items_v1.md": {
+      "path": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/design_docs/action_items_v1.md",
+      "size_bytes": 68528,
+      "sha256": "95c8897eca7ad22ff04bed3084d8b9bb034bd607db9739c72f3d7fe977c7a1fd"
+    },
+    "implementation_v2.md": {
+      "path": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/design_docs/implementation_v2.md",
+      "size_bytes": 31188,
+      "sha256": "35c377ce73d370c57505889c4349bb5545fd171e89f7346f56574f11703c0b46"
+    },
+    "paper_v15.md": {
+      "path": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/design_docs/paper_v15.md",
+      "size_bytes": 31107,
+      "sha256": "28ec541060eb10ed01d084025bf95c48e2449010333ee47e030e39bf680afef9"
+    },
+    "prereg_v2.md": {
+      "path": "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/design_docs/prereg_v2.md",
+      "size_bytes": 30909,
+      "sha256": "914be717a61ff37afa8974285bcfdf5da40cae70cfb7e4d0ba9f2862c7365ac1"
+    }
+  }
+}
