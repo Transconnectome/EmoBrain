@@ -16,14 +16,14 @@
     1000000.0,
     10000000.0
   ],
-  "max_rows": 450,
+  "max_rows": 500,
   "max_voxels": 220000,
   "cpu_threads": 4,
   "estimated_memory_gib": 12,
   "requested_wall_minutes": 30,
-  "estimate_status": "audit 044941Z: 436 rows x 195,764 voxels float32 = 341 MB; dual ridge on <=362 rows; conservative request, not a measured runtime",
+  "estimate_status": "audit 072736Z: MC sub-01 436 rows x 195,764 voxels (341 MB), HK sub-01 468 x 197,641 (370 MB); about 35 s per target on a login node (MC runs)",
   "outputs": "linear MSE benchmark in original target units, no clipping",
   "full_training": false,
-  "subset_basis": "metadata-only development subset from audit_20261008T044941Z (session/run order); Codex's original 2/1/1 had 72 fit rows",
+  "subset_basis": "metadata-only development subset per participant from the audit (session/run order, components without reserved content); participant can be overridden with --participant",
   "alpha_basis": "declared before any fit: standardized voxels give a kernel diagonal near the voxel count (~2e5), so 1-100 is effectively unregularized; grid spans 1e2-1e7. A selected edge value is reported, not extended after scoring."
 }

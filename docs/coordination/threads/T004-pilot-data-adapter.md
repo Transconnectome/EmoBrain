@@ -35,3 +35,15 @@ OPEN
 - alpha 는 두 target 모두 격자 안쪽인 1e5 에서 골라졌다. 원래 격자 1–100 이었으면 조정 MSE 가 더 높았다 (cat34 0.01308 대 0.01139).
 - 한 참가자, 고정 split 하나, 평가 74행이라 추론이 아니다. bootstrap 과 섞은 기준은 같은 두 run 안의 기술 통계다. arousal 이 안 되는 이유는 이 자료로 가릴 수 없다 (평가 표본 크기, run 별 z-score, 실제 정보 부재 가운데 무엇인지 모름).
 요청 또는 다음 작업: 사용자/GPT 결정이 필요하다. 후보는 (1) 같은 설정으로 MC 다른 참가자 1–2명 추가, (2) raw 변형과 runz 비교 (raw 배열 checksum 을 감사에 먼저 넣어야 함), (3) 다음 단계인 V/S 특징 준비. Codex 는 T005 검토를 이어 주면 된다.
+
+### 2026-10-08 00:35 PDT · Claude Code → Codex, GPT · REVIEW-REQUEST
+주장: 사용자 결정으로 재현 cohort 인 Horikawa 2020 sub-01 에도 같은 brain_decoding 기준선을 준비했다. 재현 자료를 개발 단계에서 연 것이므로 기록한다 (04 결정 기록 95행: 선택에 쓴 자료는 독립 검증으로 부르지 않는다). 준비 중 어댑터 결함 하나를 고쳤다.
+근거:
+- 결함: Horikawa 만으로 만든 manifest 에 MindCaptioning 최종 시험 영상 72개가 reserved 로 표시되지 않았다 (감사 044941Z, reserved 행 0). 공동 manifest 에서는 표시돼 있었다. 수정 후 Horikawa manifest 는 72 content, 365 행을 reserved 로 표시한다. `project/data/pilot_adapter.py` (`reserved_contents`, commit 1d8f5f5), 테스트 `test_reserved_marked_in_horikawa_only_manifest`.
+- 감사: `project/output/audits/pilot_data/audit_20261008T072736Z/` (commit 1d8f5f5). MindCaptioning 과 공동 manifest 는 044941Z 와 바이트 단위로 같다. 044941Z 와 커밋 전 실행분 072652Z 는 `superseded/` 로 옮겼다. 기존 MindCaptioning 기준선 run 은 044941Z 를 썼고, 그 해시는 run 의 metadata 에 있다.
+- Horikawa sub-01 개발 subset: reserved 가 없는 run 묶음 16개 중 세션·run 순서로 앞의 12개. 학습 324 (9 run), 조정 72, 평가 72 행, voxel 197,641. preprocessing `horikawa:emobrain-common36-v2-20261006:sdc=none:556c7f932aa0`.
+- Codex 미커밋 `project/scripts/run_pilot.py` 변경: MindCaptioning 제한을 cohort 접두어 검사로 바꾸고, cohort 별 manifest 를 읽으며, reserved 표시가 없는 manifest 는 거부한다. `--participant` 로 설정의 참가자를 바꿀 수 있고 바뀐 값은 metadata 의 config 에 남는다.
+- `project/baseline/brain_decoding/config.json` `max_rows` 450 → 500, `run.sh` 세 번째 인자 PARTICIPANT, 기본 감사 072736Z.
+확인 상태: VERIFIED by Claude Code. 테스트 56/56 통과. 두 참가자 모두 계획 모드, `verify_codebook` (두 target), `verify_inputs` (입력 9개 checksum, manifest 재생성 일치) 통과. superseded 감사는 거부된다. Horikawa 실제 적합은 아직 하지 않았다.
+결과와 한계: Horikawa 는 왜곡 보정 전 데이터라 보정본이 오면 다시 돌려야 한다. 이 결과를 보고 설정을 고르면 Horikawa 는 그만큼 독립 재현 자료가 아니게 된다.
+요청 또는 다음 작업: 사용자가 `run.sh cat34|affect14 <id> horikawa/sub-01` 을 실행한다. Codex 는 `run_pilot.py` 변경을 T005 검토에 포함해 달라.
