@@ -1,0 +1,29 @@
+{
+  "stage": "development",
+  "participant": "mindcaptioning/sub-01",
+  "roles": {
+    "fit": 8,
+    "tune": 2,
+    "evaluate": 2
+  },
+  "seed": 0,
+  "brain_variant": "runz",
+  "alphas": [
+    100.0,
+    1000.0,
+    10000.0,
+    100000.0,
+    1000000.0,
+    10000000.0
+  ],
+  "max_rows": 450,
+  "max_voxels": 220000,
+  "cpu_threads": 4,
+  "estimated_memory_gib": 12,
+  "requested_wall_minutes": 30,
+  "estimate_status": "audit 044941Z: 436 rows x 195,764 voxels float32 = 341 MB; dual ridge on <=362 rows; conservative request, not a measured runtime",
+  "outputs": "linear MSE benchmark in original target units, no clipping",
+  "full_training": false,
+  "subset_basis": "metadata-only development subset from audit_20261008T044941Z (session/run order); Codex's original 2/1/1 had 72 fit rows",
+  "alpha_basis": "declared before any fit: standardized voxels give a kernel diagonal near the voxel count (~2e5), so 1-100 is effectively unregularized; grid spans 1e2-1e7. A selected edge value is reported, not extended after scoring."
+}

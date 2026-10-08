@@ -8,6 +8,7 @@ __pycache__/
 project/shared/output/
 project/shared/results/
 project/output/
+project/baseline/*/runs/
 docs/reports/status/PROJECT_STATUS.md
 
 # Reference paper PDFs kept locally only (citations live in papers.md / review docs)
@@ -109,6 +110,8 @@ project/dir2_fmri_lm/configs/!(horikawa_*).yaml
 
 # Model checkpoints
 baseline/
+# Tracked baseline experiments (configs/scripts); their runs/ stay ignored above
+!project/baseline/
 
 # Keep folder placeholders
 !reports/status/.gitkeep

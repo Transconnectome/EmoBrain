@@ -1,0 +1,23 @@
+{
+  "target": "affect14",
+  "columns": [
+    "arousal_score",
+    "dominance_score",
+    "valence_score",
+    "approach_score",
+    "attention_score",
+    "certainty_score",
+    "commitment_score",
+    "control_score",
+    "effort_score",
+    "fairness_score",
+    "identity_score",
+    "obstruction_score",
+    "safety_score",
+    "upswing_score"
+  ],
+  "reference_path": "/pscratch/sd/s/sjmoon/EmoBrain/project/shared/data/cowen_horikawa_labels.csv",
+  "reference_sha256": "a462c851d7f8849f4a51fbc8a63097931452629bfd2b51af42b00ade85633134",
+  "reviewed_by": "Claude Code 2026-10-08, development check only: the 14 *_score columns exist in the label table in this order. No codebook on the server, so dimension definitions and polarity are unverified.",
+  "scale_description": "Per-video mean rating on a 1-9 scale (observed e.g. valence 1.00-9.00, arousal 2.00-8.67). Polarity of each dimension unverified."
+}

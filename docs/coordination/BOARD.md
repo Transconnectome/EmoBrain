@@ -15,7 +15,7 @@ Status: `todo` · `doing` · `review` · `blocked` · `done`
 | T001 | OFC voxel loss: intersection-mask rule versus absent signal (09 §4.1) / 안와전두 voxel 손실 원인 분리 | unassigned | todo | — | — | [T001](threads/T001-ofc-mask.md) |
 | T002 | Canonical content ID across cohorts, including 1349/1363 / 두 cohort 공통 content ID, 1349/1363 포함 | Claude Code | review | Codex | — (proposal only) | [T002](threads/T002-content-id-1363.md) |
 | T003 | Annotation join by content ID for both cohorts / annotation 을 content ID 로 연결 | unassigned | todo | — | — | [T003](threads/T003-annotation-join.md) |
-| T004 | Pilot data adapter and development audit / pilot 데이터 어댑터·개발 감사 | Claude Code | todo | Codex | `project/data/pilot_adapter.py`; `project/tests/test_pilot_adapter.py`; `project/output/audits/pilot_data/` | [Handoff](../current/10_PILOT_IMPLEMENTATION_HANDOFF.md) |
+| T004 | Pilot data adapter and development audit / pilot 데이터 어댑터·개발 감사 | Claude Code | review | Codex | `project/data/pilot_adapter.py`; `project/data/pilot_adapter.sh`; `project/tests/test_pilot_adapter.py`; `project/output/audits/pilot_data/`; `project/baseline/` (user request, ownership pending GPT) | [T004](threads/T004-pilot-data-adapter.md) · [Handoff](../current/10_PILOT_IMPLEMENTATION_HANDOFF.md) |
 | T005 | Pilot pipeline, contracts and tests / pilot 구현·계약·테스트 | Codex | todo | Claude Code | `project/code/pilot_contracts.py`; `project/code/pilot/`; `project/scripts/run_pilot.py`; `project/tests/test_pilot_contracts.py`; `project/tests/test_pilot_pipeline.py`; `project/configs/pilot/`; `project/output/audits/pilot_code/` | [Handoff](../current/10_PILOT_IMPLEMENTATION_HANDOFF.md) |
 
 ### Deliverables and completion criteria
