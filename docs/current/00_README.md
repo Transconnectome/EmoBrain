@@ -26,6 +26,10 @@ Joint B/V/S 학습이 기본이다. Brain-first → Joint는 추가 전략이며
 
 ## 📍 읽는 순서
 
+**Pilot implementation — 2026-10-08:** Data are staged on Perlmutter according to the user; the SDC comparison is pending. Start bounded development with [10_PILOT_IMPLEMENTATION_HANDOFF.md](10_PILOT_IMPLEMENTATION_HANDOFF.md): agent-specific prompts, data contracts, baseline/model/probe implementation order, and replacement-data rules. A tested split-guard scaffold is included; a real-data trainer has not been implemented or run by this update.
+
+**예비 구현 — 2026-10-08:** 사용자 보고상 Perlmutter 데이터가 준비됐고 SDC 비교는 진행 중이다. [10_PILOT_IMPLEMENTATION_HANDOFF.md](10_PILOT_IMPLEMENTATION_HANDOFF.md)의 담당별 프롬프트·데이터 계약·기준모델/모델/probe 구현 순서·데이터 교체 규칙부터 읽는다. 검사된 split-guard 코드가 포함됐으며 이번 갱신에서 실제 데이터 trainer를 구현하거나 실행한 것은 아니다.
+
 **Coordination — 2026-10-07:** GPT coordinates research ideas and current design with the user; Claude Code and Codex verify, implement and run authorized experiments. Read the [coordination rules](../coordination/README.md) and [board](../coordination/BOARD.md) for assignments. They do not replace study specifications. `prereg_v2/design_docs/` contains audit-era snapshots, not a competing current protocol.
 
 **협업 — 2026-10-07:** GPT가 사용자와 연구 아이디어·최신 설계를 총괄하고 Claude Code와 Codex는 검증·구현·승인된 실험을 맡는다. 배정은 [협업 규칙](../coordination/README.md)과 [작업판](../coordination/BOARD.md)을 읽는다. 이들은 연구 명세를 대체하지 않는다. `prereg_v2/design_docs/`는 감사 당시 사본이며 별도의 최신 프로토콜이 아니다.

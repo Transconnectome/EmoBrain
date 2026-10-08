@@ -4,6 +4,12 @@ _첨부 패키지와 함께 전달할 작업 요청 · 2026-10-06_
 
 ---
 
+## 📍 Current development entry / 현재 개발 시작점 — 2026-10-08
+
+For the user's current request to implement code and small pilots while SDC comparison continues, follow [10_PILOT_IMPLEMENTATION_HANDOFF.md](10_PILOT_IMPLEMENTATION_HANDOFF.md) and the coordination board. Its final section contains separate prompts for Claude Code and Codex. The design documents below remain authoritative; this changes the immediate work order, not the scientific scope.
+
+SDC 비교 중 코드와 소규모 pilot을 준비하는 현재 요청은 [10_PILOT_IMPLEMENTATION_HANDOFF.md](10_PILOT_IMPLEMENTATION_HANDOFF.md)와 작업판에 따라 진행한다. 마지막 절에 Claude Code·Codex별 전달 프롬프트가 있다. 아래 연구 기준은 유지하며 당장 할 일의 순서를 구체화한 것이지 연구 범위를 바꾼 것이 아니다.
+
 ## 🎯 연구 목적
 
 EmoBrain 연구를 이어서 진행해줘. 이 연구는 감정 decoding 최고 성능을 만드는 것이 아니라, 뇌 반응과 visual/semantic content가 어떤 관계를 이루며 teacher와 brain-only student가 그 관계를 무엇으로 학습하고 실제 affect prediction에 어떻게 사용하는지 검정하는 neuroscience 연구다.
