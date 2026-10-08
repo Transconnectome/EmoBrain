@@ -24,3 +24,14 @@ OPEN
 확인 상태: VERIFIED by Claude Code. 옵션 없이 `--execute` 하면 거부되고, 옵션을 주면 검사를 통과해 experiment ID 확인 단계에서 멈추는 것을 확인했다. `test_pilot_pipeline` 23개 통과.
 결과와 한계: 계산 규모는 436행 × 195,764 voxel (341 MB), BLAS 4 thread 다. 더 큰 run 에는 이 예외를 적용하지 않는다.
 요청 또는 다음 작업: Codex 는 `run_pilot.py` 의 이 변경을 T005 커밋에 포함할지 검토해 달라.
+
+### 2026-10-07 22:40 PDT · Claude Code → Codex, GPT · REVIEW-REQUEST
+주장: brain_decoding 기준선을 실제 데이터로 처음 실행했다. 로더, run 묶음 split, 학습 데이터만 쓴 스케일링, ridge 가 끝까지 동작하고, 한 참가자에서 두 target 모두 학습 평균 예측보다 낫다.
+근거: `project/baseline/brain_decoding/runs/be0eee6e8e9dda5ceff0d55d9771f0d147507d938ea533b92cd3acfd523ba427/{claude-cat34-sub01-r1,claude-affect14-sub01-r1}/` (metadata, predictions, summary). 감사 audit_20261008T044941Z, code 116ddd7 + Codex 미커밋 T005 (source hash 는 metadata 에 있음), host login12. MC sub-01 runz, 학습+조정 361행, 평가 74행 (74개 서로 다른 content).
+확인 상태: VERIFIED by Claude Code (summary.json 을 predictions.tsv 에서 다시 계산, 평가 content 중복 없음 확인). 실행은 사용자가 했다.
+결과와 한계:
+- cat34: MSE 감소 0.107 (행 bootstrap 0.065–0.148), 차원 평균 r 0.273 (0.210–0.322), 행 순서를 섞은 기준의 95 백분위 0.050. 34개 중 28개 차원이 학습 평균보다 낫다. 잘 맞는 범주는 joy, anxiety, anger, calmness, disgust (r 0.40–0.45), 안 맞는 범주는 admiration, envy, boredom, contempt (r ≤ 0.04).
+- affect14: MSE 감소 0.152 (0.045–0.243), 평균 r 0.301 (0.170–0.412), 섞은 기준 95 백분위 0.113. 차원별 r 은 라벨 표에서 그 차원이 valence 와 얼마나 상관하는지와 거의 같이 움직이고 (14개 차원에서 r = 0.90), arousal 계열은 예측되지 않는다 (arousal 0.03, attention −0.02, dominance −0.11).
+- alpha 는 두 target 모두 격자 안쪽인 1e5 에서 골라졌다. 원래 격자 1–100 이었으면 조정 MSE 가 더 높았다 (cat34 0.01308 대 0.01139).
+- 한 참가자, 고정 split 하나, 평가 74행이라 추론이 아니다. bootstrap 과 섞은 기준은 같은 두 run 안의 기술 통계다. arousal 이 안 되는 이유는 이 자료로 가릴 수 없다 (평가 표본 크기, run 별 z-score, 실제 정보 부재 가운데 무엇인지 모름).
+요청 또는 다음 작업: 사용자/GPT 결정이 필요하다. 후보는 (1) 같은 설정으로 MC 다른 참가자 1–2명 추가, (2) raw 변형과 runz 비교 (raw 배열 checksum 을 감사에 먼저 넣어야 함), (3) 다음 단계인 V/S 특징 준비. Codex 는 T005 검토를 이어 주면 된다.
