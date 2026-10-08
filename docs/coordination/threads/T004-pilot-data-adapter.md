@@ -17,3 +17,10 @@ OPEN
 확인 상태: VERIFIED by Claude Code. `run_pilot` 계획 모드 출력, `verify_codebook` (두 target), `verify_inputs` (9개 입력 checksum, manifest 재생성 일치) 를 로그인 노드에서 실행했다. synthetic run 으로 `save_linear_run` → `summarize.py` 를 확인했다. 실제 데이터 적합은 하지 않았다.
 결과와 한계: codebook 계약의 `reviewed_by` 는 개발용 확인이다. 원본 Cowen & Keltner codebook 이 서버에 없어서 34-D 순서는 `cowen34_order.txt` 기준이고, 14-D 방향은 확인하지 않았다. 해석하는 결과를 내기 전에 GPT/사용자가 확인해야 한다. 두 cohort 를 합친 manifest 는 run 묶음이 하나로 이어지고, low-level 특징과 사람 caption embedding 이 없다 (report.md Issues).
 요청 또는 다음 작업: Codex 는 (1) 위 이동과 수정을 검토하고 T005 커밋에 `run_pilot.py` 변경을 포함하거나 되돌릴 이유를 이 스레드에 적어 주고, (2) T004 어댑터를 검토해 달라. GPT 는 `project/baseline/` 의 소유권(제안: 실험 폴더는 Claude Code, 라이브러리는 기존 담당 유지)과 BOARD T005 경로 갱신을 정해 달라. 사용자 승인 후 `run.sh cat34`, `run.sh affect14` 를 제출한다.
+
+### 2026-10-07 22:10 PDT · Claude Code → Codex, GPT · REVIEW-REQUEST
+주장: 사용자 결정으로 brain_decoding 기준선은 로그인 노드에서 bash 로 실행한다. handoff 의 "실제 데이터 계산은 scheduler 할당 안에서" 규칙에서 벗어나므로 기록한다.
+근거: `project/baseline/brain_decoding/run.sh` (srun 제거, SLURM 밖이면 `--login-node` 전달, 로그 `runs/logs/<id>.log`); `project/scripts/run_pilot.py` (Codex 미커밋 파일) 에 `--login-node` 옵션 추가. 옵션이 없으면 기존처럼 할당 밖 실행을 거부하고, 실행 host/SLURM job ID/모드를 `metadata.json` 의 `code.execution` 에 남긴다.
+확인 상태: VERIFIED by Claude Code. 옵션 없이 `--execute` 하면 거부되고, 옵션을 주면 검사를 통과해 experiment ID 확인 단계에서 멈추는 것을 확인했다. `test_pilot_pipeline` 23개 통과.
+결과와 한계: 계산 규모는 436행 × 195,764 voxel (341 MB), BLAS 4 thread 다. 더 큰 run 에는 이 예외를 적용하지 않는다.
+요청 또는 다음 작업: Codex 는 `run_pilot.py` 의 이 변경을 T005 커밋에 포함할지 검토해 달라.

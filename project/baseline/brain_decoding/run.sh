@@ -7,9 +7,11 @@
 #SBATCH --time=00:30:00
 #SBATCH --job-name=emobrain_brain_decoding
 #SBATCH --output=/pscratch/sd/s/sjmoon/EmoBrain/project/baseline/brain_decoding/runs/logs/%x-%j.log
-# Brain-only decoding baseline (ridge vs training mean), one target per job.
-# Usage: sbatch /pscratch/sd/s/sjmoon/EmoBrain/project/baseline/brain_decoding/run.sh TARGET EXPERIMENT_ID [AUDIT_DIR]
+# Brain-only decoding baseline (ridge vs training mean), one target per run.
+# Usage (login node): bash /pscratch/sd/s/sjmoon/EmoBrain/project/baseline/brain_decoding/run.sh TARGET EXPERIMENT_ID [AUDIT_DIR]
 #   TARGET = cat34 | affect14; EXPERIMENT_ID must be new (runs are never overwritten).
+#   Outside SLURM it passes --login-node (4 BLAS threads, ~2-3 GB RAM, a few minutes);
+#   the execution host is recorded in the run's metadata.json.
 set -euo pipefail
 if [[ $# -lt 2 || $# -gt 3 ]]; then
     echo "Expected TARGET EXPERIMENT_ID [AUDIT_DIR]" >&2
@@ -21,11 +23,16 @@ PY=/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python
 TARGET=$1
 EXP=$2
 AUDIT=${3:-$REPO/project/output/audits/pilot_data/audit_20261008T044941Z}
+mkdir -p "$HERE/runs/logs"
+exec > >(tee -a "$HERE/runs/logs/$EXP.log") 2>&1
+WHERE=()
+[[ -z "${SLURM_JOB_ID:-}" ]] && WHERE=(--login-node)
 cd "$REPO"
 export OPENBLAS_NUM_THREADS=4
 export OMP_NUM_THREADS=4
-srun --cpu-bind=cores "$PY" -m project.scripts.run_pilot \
+"$PY" -m project.scripts.run_pilot \
     --audit-dir "$AUDIT" --target "$TARGET" \
     --config "$HERE/config.json" --output-root "$HERE/runs" \
-    --codebook-contract "$HERE/codebook/$TARGET.json" --experiment-id "$EXP" --execute
+    --codebook-contract "$HERE/codebook/$TARGET.json" --experiment-id "$EXP" \
+    --execute "${WHERE[@]}"
 "$PY" "$HERE/summarize.py" "$EXP"
