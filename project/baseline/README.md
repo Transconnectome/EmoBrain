@@ -29,4 +29,7 @@ project/baseline/
 
 | Experiment ID | Target | Status | Summary |
 | --- | --- | --- | --- |
-| (none yet) | | | |
+| claude-cat34-sub01-r1 | cat34 | done 2026-10-07, login node, code 116ddd7 + uncommitted T005 | MSE reduction 0.107 (row bootstrap 0.065 to 0.148); mean r 0.273 (0.210 to 0.322) vs row-shuffle 95th pct 0.050; 28/34 dims above training mean; alpha 1e5 (interior) |
+| claude-affect14-sub01-r1 | affect14 | done 2026-10-07, login node, code 116ddd7 + uncommitted T005 | MSE reduction 0.152 (0.045 to 0.243); mean r 0.301 (0.170 to 0.412) vs shuffle 95th pct 0.113; 10/14 dims; alpha 1e5 (interior) |
+
+Runs are under `brain_decoding/runs/be0eee6e.../<experiment-id>/` (`summary.md`). Across the 14 affect dimensions, decoding r tracks each dimension's correlation with valence in the label table (r = 0.90 over dimensions) and not arousal (arousal r 0.03, attention -0.02, dominance -0.11). Descriptive only: one participant, 74 evaluate rows from two runs.
