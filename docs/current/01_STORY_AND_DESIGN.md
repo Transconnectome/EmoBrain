@@ -177,6 +177,8 @@ OOF는 out-of-fold, 즉 해당 자극을 학습하지 않은 teacher의 예측�
 
 ### Brain pathway
 
+2026-10-08 구체화: 외부 사전학습 brain checkpoint를 사용하지 않는 방향이다. 우선 MLP와 ROI-token Transformer를 비교하고, 동일 Transformer에 ROI-masked JEPA 보조 학습을 추가하는 방식은 별도 후보로 기록한다. 기존 Brain-JEPA를 그대로 사용하는 것이 아니다. Video/caption의 frozen 사전학습 feature 사용은 유지한다. 상세는 아래 9.1a–c와 [구현 명세 §3](02_IMPLEMENTATION_SPEC.md)에 있다.
+
 ROI별 fMRI pattern을 작은 token으로 압축하고 participant-specific map으로 공통 token width에 맞춘다. 이 map은 참가자별 측정 좌표 차이를 처리하는 adapter다. 개인 감정이나 성격을 알아낸 module이라는 뜻은 아니다. 향후 brain token에 subject-specific component를 추가하려는 사용자 의도는 유지하되, 현재 normative target만으로 개인 주관성을 학습했다고 해석하지 않는다.
 
 ROI-PCA는 작은 표본에서 파라미터 수를 제한하고 해부학적 위치를 유지하기 위한 후보다. 고분산 방향이 목표 관련 방향과 같다는 보장은 없다. Ridge는 제한된 자료에서 재현 가능한 linear baseline 및 probe로 쓰는 것이며, 뇌가 선형이라는 가정이나 최신성이 선택 이유가 아니다. 대체안은 train-only reduced-rank mapping, direct regularized projection이며 개발 단계에서 제한된 비교만 한다.
@@ -360,11 +362,84 @@ Token은 모델이 처리하는 벡터 단위다. 해부학적 ROI와 연결하�
 
 ROI-PCA는 작은 모델과 위치 추적성을 위한 후보이며 필수는 아니다. 고분산 방향이 목표 관련 신호와 같지 않다면 regularized projection 같은 대안을 검토한다. 모든 학습 변환은 해당 training scope에서 fit한다. 새 참가자에게 map을 fit하면 calibration을 보고하며 zero-shot으로 표현하지 않는다.
 
+### 9.1a Participant Map의 정확한 의미와 학습
+
+Participant Map은 뇌 지도 이미지가 아니라 **참가자별 학습 가능한 입력 변환층**이다. ROI-token 후보에서는 참가자 s·ROI r의 압축 패턴 q를 다음처럼 변환한다.
+
+$$
+h_{s,i,r}=W_{s,r}q_{s,i,r}+b_{s,r}.
+$$
+
+q는 영상 i에 대한 ROI 내부 voxel pattern을 training-only 표준화·PCA 등으로 압축한 벡터다. W와 b는 downstream loss의 역전파로 학습되는 map이며, PCA 자체와 구분한다. 예를 들어 A의 500 voxel과 B의 620 voxel을 각각 32차원으로 압축한 뒤 각자의 선형층으로 128차원에 연결할 수 있다. 숫자는 설명용이며 rank/width는 D05에서 결정한다. PCA 후 같은 차원이라도 참가자별 PCA 축의 방향·부호·의미는 다를 수 있다.
+
+Map은 각 ROI 입력을 공통 폭으로 연결하고, 그 뒤의 shared encoder는 ROI 정보의 조합을 학습한다. Map을 두 번 연속 붙이는 것이 아니다. ROI identity는 해부학적 위치를 알리는 별도 embedding이고, 미래의 subject-specific component는 별도 연구 선택이다. Map 가중치가 개인별이라는 이유만으로 감정·성격·기억을 학습했다고 하지 않는다.
+
+Teacher map과 student map은 기본 비교에서 별도 parameter다. 각 OOF teacher의 map/PCA/encoder는 자기 fit scope 안에서만 학습하고 student에 숨겨진 가중치 전이를 하지 않는다. Map의 공통 width는 기능적 정렬의 증거가 아니다. 새로운 참가자에는 새 map의 calibration 규칙이 필요하며 D13에서 사용 자료·label 접근을 정한다. 동일 정렬 좌표의 shared projection 대안과의 비교는 가능하지만, 서로 독립적인 PCA 좌표에 shared map을 바로 적용하는 것은 적절한 정렬 대조가 아니다.
+
+### 9.1b Brain Encoder 후보: 구조와 학습 목적을 구분한다
+
+외부 pretrained brain weight를 쓰지 않는 방향을 기록한다. 사전학습이 무효라는 실증 결론이 아니라 사용자가 정한 범위다. SwiFT는 현재 후보에서 제외하고 원 시계열은 보존한다. 다음은 비교 후보이지 세 모델 전체 실행이나 primary 확정이 아니다.
+
+| 후보 | 변환 | 선택 이유와 해석 범위 |
+|---|---|---|
+| 작은 MLP | ROI 압축/map 출력 연결 → 작은 bottleneck → residual MLP → z | Attention 없이 패턴 조합을 학습하는 기준. 입력 ROI 교란은 가능하지만 혼합 이후 hidden unit을 특정 ROI라고 부르지 않음 |
+| ROI-token Transformer | Map 출력 + ROI identity → 작은 self-attention blocks → H_B | ROI별 입력 위치와 query slot을 유지하며 영역 간 조합을 학습. 갱신 토큰은 타 ROI 정보도 포함하므로 순수 ROI 신호가 아님 |
+| 동일 Transformer + JEPA-style auxiliary | ROI 일부를 숨기고 해당 부분의 target latent를 예측 | 구조를 고정하고 brain-intrinsic 학습 목적의 추가 효과를 조사하는 별도 후보 |
+
+MLP의 z는 teacher에서 한 개 또는 소수의 global query token으로 projection할 수 있다. 이를 해부학적 ROI token처럼 이름 붙이지 않는다. Transformer teacher는 H_B를 content cross-attention의 query와 residual로 사용하고, student는 H_B를 pooling해 z와 affect output을 만든다. MLP와 Transformer는 같은 관측·target·split·tuning budget을 사용하고 query 수, 입력 rank, parameter 수와 pooling 차이도 보고한다. Encoder 2 blocks/width 128은 개발 출발 제안이며 최적값·동결값이 아니다.
+
+MindEye2는 참가자별 mapping과 shared nonlinear backbone의 참고 사례지만, 그 구조를 참고하는 것과 외부 weight 또는 CLIP 학습 목적을 전이하는 것은 다르다. 여기서는 외부 brain weight·CLIP reconstruction objective를 가져오지 않는다.[^11]
+
+### 9.1c Brain-JEPA 원형과 JEPA-style 보조 학습의 차이
+
+기존 Brain-JEPA는 ROI 시계열의 시공간 target representation을 예측한다. 블록 공간 패턴으로 바꾼 후보를 원형 Brain-JEPA나 그 사전학습 모델이라고 부르지 않는다.[^12] 현재 후보명은 `ROI-masked JEPA-style auxiliary`다.
+
+1. 같은 작은 Transformer의 online encoder에 일부 ROI를 제거/가린 brain 입력을 준다.
+2. Predictor가 가려진 ROI의 latent를 예측한다.
+3. Target encoder는 online encoder의 EMA 사본이며 target 출력은 stop-gradient한다. 정확한 target view와 target normalization은 미동결이다.
+4. 보조 loss를 채택한다면 해당 모델의 기존 loss에 `alpha * L_JEPA`를 더한다. 별도 사전학습 없이 동시 학습하는 방식이 후보이며 alpha=0이 matched control이다.
+
+이 target encoder는 B/V/S multimodal teacher와 다른 역할이다. 보조 loss는 content fusion 이전 brain 경로에서 계산하고 V/S·affect 값을 target으로 사용하지 않는다. Teacher/student 중 어디에 적용할지, mask 규칙·EMA·predictor·collapse 방지 및 nuisance 대조는 D23에서 먼저 정한다. 보조 predictor·EMA encoder는 기본 inference에 필요하지 않다.
+
+같은 training scope 안에서만 모든 EMA·predictor·map을 학습한다. OOF recipient나 outer-test brain을 'label-free'라는 이유로 보조 학습에 포함하지 않는다. Latent 분산·rank 붕괴, motion/global signal 의존, masked ROI 예측과 held-out content 결과를 구분한다. JEPA loss 감소만으로 brain–visual–semantic 관계를 배웠다고 말하지 않는다. 이는 output-only distillation과 별개 후보이며 기존 label/OOF loss를 조용히 바꾸지 않는다.
+
 ### 9.2 Frozen Encoder와 Projection은 무엇이 다른가?
 
 Frozen video/sentence encoder는 이번 학습의 gradient로 weight를 바꾸지 않는 feature 추출기다. Projection은 그 feature 폭을 fusion 입력에 맞추는 작은 변환이며 학습될 수 있다. 거대한 network 전체를 새로 학습하는 것과 구분한다.
 
 V-JEPA 2의 정확한 checkpoint·layer·frame sampling·pooling, 짧은 영상의 loop와 긴 영상의 sampling 방식은 기록·동결해야 한다. Caption은 원 human annotation을 기준으로 유효 문장 집합·집계 규칙을 남긴다. 감정 예측에 유리한 문장만 사후 선택하지 않는다.
+
+### 9.2a 영상 feature 추출: 재현 가능한 개발 사양
+
+V-JEPA 2의 final embedding 하나를 저수준부터 의미까지의 대표로 쓰지 않는다. 아래는 사용자 요청으로 문서화한 구체적 개발안이며 입력 QA·개발 비교 전 primary freeze가 아니다. 공식 코드에서 ViT-L의 24 blocks/1024 hidden width, intermediate output 지원, 256 해상도와 16-frame 평가 설정을 확인했다. 8 fps·세 층 선택·집계 격자는 프로젝트 제안이지 공식 최적값이 아니다.[^13]
+
+| 단계 | 개발 제안 | 이유 / 남은 확인 |
+|---|---|---|
+| Backbone | Frozen V-JEPA 2 ViT-L/16 encoder; pretrained target-encoder weight | 고정 영상 좌표. Predictor/robotics 모듈 제외; commit·weight hash 확인 |
+| 시간축 | 실제 제시 구간 기준 8 fps, 16-frame window, 1초 start stride | 긴 영상을 일정 프레임 수로 압축해 속도를 바꾸지 않음; aliasing·짧은 영상 QA 필요 |
+| 공간 전처리 | 공식 evaluation transform의 256 해상도 | Resize/crop/normalization을 기록; 주변 물체가 crop으로 없어지는지 검사 |
+| 추출 지점 | 1-based block 6/12/24; zero-based 5/11/23 | 같은 backbone의 초기·중간·최종 표상 비교. 저수준/object/semantic이라는 명칭을 강제하지 않음 |
+| 집계 | 층별 상대시간 4구간 × 공간 2×2 평균 | 거친 시공간 위치를 유지하며 token 수 제한; full fine-grained dynamics는 아님 |
+| 저장 형태 | 유효 격자 기준 층당 최대 16×1024; 세 층 최대 48 tokens | 층별 분리 저장, valid-mask와 좌표 보존; pooling 전 좌표·시간 대응 재현 가능하게 저장 |
+| Teacher | 층별 projector + layer/time/spatial identity → video K/V | Multi-layer 입력은 개발 후보; final-only와 token/capacity 차이를 통제해 필요성 검사 |
+
+짧은 영상은 지원되는 even frame 길이를 먼저 검증하고, 마지막 frame 최소 반복이 필요하면 그 사실을 기록한다. 반복 frame은 새 정보가 아니다. 실제 실험의 loop는 presentation log대로 재구성하되 임의 loop를 만들지 않는다. 긴 영상의 마지막 구간도 덮고, window overlap은 실제 timestamp coverage 가중으로 집계해 중복 과대표집을 막는다. 짧은 영상에서 빈 시간 구간은 valid-mask로 표시하며 같은 token을 복사해 독립 구간처럼 세지 않는다. Padding token을 마지막 pooling에서 빼는 것만으로 앞선 attention의 padding 영향이 제거되지는 않으므로 별도 QA가 필요하다.
+
+Analysis 1에서는 `L+V6`, `L+V12`, `L+V24`의 층별 비교를 기존 1a에 대한 보조 후보로 기록한다. 세 층 결합과 caption 추가는 차원·정규화·학습 예산을 맞춰 비교한다. 이것이 기존 1a의 primary contrasts를 자동 교체하지 않는다. Teacher가 사용하는 V의 layer policy와 해석용 reference feature를 분리 기록한다. Probe 표적을 teacher가 사용한 feature로 잡으면 training-associated reference이고, 학습에 쓰지 않은 층/특징은 별도 reference다.
+
+최종층에 저수준 정보가 전혀 없다고 단정하지도, 초반층이 인간의 초기 시각 처리를 구현한다고 단정하지도 않는다. 각 층에서 별도 L 특징과 caption 관련 정보가 held-out probe로 읽히는지를 확인하는 후보를 두고, 낮은 probe score는 그 probe에서의 낮은 접근성으로 해석한다. 다른 backbone 전체 sweep은 추가하지 않는다.
+
+### 9.2b 저수준 특징의 정의와 별도 역할
+
+저수준 L은 물체·caption label 없이 명시적 영상 연산으로 얻는 기준 좌표다. 밝기/luminance·대비·색 통계, 방향/공간주파수별 Gabor energy, spatiotemporal motion energy를 별도로 계산한다. 필터 bank·단위·색 공간·공간 구획·시간 집계의 정확한 설정은 D24에서 기록한다. Motion energy의 자연영상 encoding 선례는 있으나 우리 파라미터의 최적성을 보증하지 않는다.[^14]
+
+Motion 특징은 V-JEPA용 8 fps만으로 계산하지 않고 실제 원 영상의 frame timestamp와 temporal filtering/resampling을 고려한다. L의 영상 영역과 V의 crop 영역 차이도 기록하고, 불일치가 크면 matched-field sensitivity를 검토한다. Duration·유효 frame 수·loop·crop 등은 별도 QC/nuisance 기록이지 감정 feature라고 가정하지 않는다. Learned monocular depth는 모델 prior가 섞이므로 명시적 low-level control에 자동 포함하지 않는다.
+
+L은 현재 Analysis 1의 설명/통제 변수이며 teacher의 별도 입력 branch가 아니다. L을 after-training probe의 target으로 쓰는 것은 후보 분석이고 L을 직접 학습 loss로 넣는 것과 다르다. Video/caption embeddings도 겹치는 내용이 있으므로 shared/conditional prediction을 유지하고 순수 visual 대 순수 semantic으로 나누지 않는다.
+
+### 9.2c 현재 model figure가 생략한 내용
+
+기존 PNG에는 student의 `Brain Encoder`와 After Training의 `Encoder Stages`가 있다. 그러나 teacher는 `Participant Map → Brain Tokens → Fusion`으로 그려져 별도 pre-fusion Brain Encoder가 명시되지 않았다. Map과 encoder는 다른 연산이므로 최신 후보를 보여주려면 teacher에도 `Participant Map → Brain Encoder → Brain Queries`를 표시해야 한다. Multi-layer V 추출과 JEPA 후보도 기존 PNG에는 없다. [도식의 편집 원본](../assets/model_architecture.md)에 최신 경로·교체 요구사항을 기록했다. PNG는 이번 문서 갱신에서 재생성하지 않았다.
 
 ### 9.3 Cross-Attention은 연산, Joint Latent는 그 결과
 
@@ -666,3 +741,8 @@ Full이 Direct보다 좋아도 BVS teacher가 content-only teacher보다 꼭 필
 
 
 [^10]: Lescroart, Stansbury and Gallant (2015). Fourier power, subjective distance, and object categories all provide plausible models of BOLD responses in scene-selective visual areas. https://doi.org/10.3389/fncom.2015.00135
+
+[^11]: Scotti et al. (2024). MindEye2: Shared-Subject Models Enable fMRI-To-Image With 1 Hour of Data. https://arxiv.org/abs/2403.11207 — 참가자별 mapping과 공유 모델의 설계 선례이며, 현재 데이터에서의 성능이나 외부 weight 사용의 근거는 아니다.
+[^12]: Dong et al. (2024). Brain-JEPA: Brain Dynamics Foundation Model with Gradient Positioning and Spatiotemporal Masking. https://arxiv.org/abs/2409.19407 ; 공식 구현 https://github.com/EricLRL/Brain-JEPA — 원형의 ROI 시계열 학습과 여기서 제안한 block-level ROI-masked 보조 목적함수는 구별한다.
+[^13]: V-JEPA 2 공식 구현: https://github.com/facebookresearch/vjepa2/blob/main/src/models/vision_transformer.py ; https://github.com/facebookresearch/vjepa2/blob/main/src/hub/backbones.py ; https://github.com/facebookresearch/vjepa2/blob/main/configs/eval/vitl/ssv2.yaml . ViT-L의 24 blocks·1024 width 및 layer export 근거이며, 8 fps·6/12/24층·pooling 조합은 EmoBrain 개발 제안이다. 실행 전 commit과 checkpoint hash를 고정한다.
+[^14]: Nishimoto et al. (2011). Reconstructing Visual Experiences from Brain Activity Evoked by Natural Movies. https://doi.org/10.1016/j.cub.2011.08.031 — 자연 영상의 시공간 motion-energy encoding 선례이며 우리 필터 설정의 최적성을 보장하지 않는다.

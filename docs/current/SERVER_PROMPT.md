@@ -12,6 +12,10 @@ SDC 비교 중 코드와 소규모 pilot을 준비하는 현재 요청은 [10_PI
 
 ## 🎯 연구 목적
 
+Latest encoder/feature detail: read 01 §9.1a–9.2c, 02 §3a–3c, D22–D24 and P07b/P08b/P11c. Do not load externally pretrained brain weights. MLP and ROI-token Transformer are architecture candidates; JEPA-style is a proposed auxiliary objective, not a third pretrained backbone. Keep Participant Map separate from Brain Encoder in both teacher and student. Frozen V-JEPA/text backbones remain in scope. Layer/window/pooling numbers are development proposals pending QA; this documentation update does not authorize downloads or jobs.
+
+최신 encoder/feature 상세는 01 §9.1a–9.2c, 02 §3a–3c, D22–D24, P07b/P08b/P11c를 읽는다. 외부 pretrained brain weight를 로드하지 않는다. MLP·ROI-token Transformer는 구조 후보, JEPA-style은 보조 목적함수 제안이다. Teacher와 student 모두 Participant Map과 Brain Encoder를 구분한다. Frozen V-JEPA/text backbone은 유지한다. Layer/window/pooling 숫자는 QA 전 개발안이며 문서 갱신만으로 다운로드·job을 실행하지 않는다.
+
 EmoBrain 연구를 이어서 진행해줘. 이 연구는 감정 decoding 최고 성능을 만드는 것이 아니라, 뇌 반응과 visual/semantic content가 어떤 관계를 이루며 teacher와 brain-only student가 그 관계를 무엇으로 학습하고 실제 affect prediction에 어떻게 사용하는지 검정하는 neuroscience 연구다.
 
 Teacher는 training 시 brain + video + caption을 받는다. Student는 training과 inference 모두 brain-only이며 label과 OOF teacher output으로 학습한다. Visual/semantic probe는 기본적으로 학습 loss가 아닌 사후 held-out 평가다. Normative affect annotation은 fMRI 참가자의 자기보고가 아니다. 34-D, 14-D, VA-2, VAD-3는 codebook 확인 후 별도 모델로 학습하며 공동학습하지 않는다.

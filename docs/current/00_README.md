@@ -26,6 +26,10 @@ Joint B/V/S 학습이 기본이다. Brain-first → Joint는 추가 전략이며
 
 ## 📍 읽는 순서
 
+Encoder and feature details (2026-10-08): [story §9](01_STORY_AND_DESIGN.md), [implementation §3a–3c](02_IMPLEMENTATION_SPEC.md), D22–D24 and P07b/P08b/P11c now distinguish Participant Map, train-from-scratch brain encoders, optional JEPA-style learning, explicit low-level features and multi-layer V-JEPA extraction. Numerical configurations remain development proposals.
+
+Encoder·feature 상세(2026-10-08): 위 문서에서 Participant Map, 외부 사전학습 없는 brain encoder, 선택적 JEPA-style 학습, 명시적 저수준 특징과 다층 V-JEPA 추출을 구분한다. 수치 설정은 개발안으로 남아 있다.
+
 **Pilot implementation — 2026-10-08:** Data are staged on Perlmutter according to the user; the SDC comparison is pending. Start bounded development with [10_PILOT_IMPLEMENTATION_HANDOFF.md](10_PILOT_IMPLEMENTATION_HANDOFF.md): agent-specific prompts, data contracts, baseline/model/probe implementation order, and replacement-data rules. A tested split-guard scaffold is included; a real-data trainer has not been implemented or run by this update.
 
 **예비 구현 — 2026-10-08:** 사용자 보고상 Perlmutter 데이터가 준비됐고 SDC 비교는 진행 중이다. [10_PILOT_IMPLEMENTATION_HANDOFF.md](10_PILOT_IMPLEMENTATION_HANDOFF.md)의 담당별 프롬프트·데이터 계약·기준모델/모델/probe 구현 순서·데이터 교체 규칙부터 읽는다. 검사된 split-guard 코드가 포함됐으며 이번 갱신에서 실제 데이터 trainer를 구현하거나 실행한 것은 아니다.
@@ -72,4 +76,4 @@ Joint B/V/S 학습이 기본이다. Brain-first → Joint는 추가 전략이며
 
 ## ⚠️ 전달 시 주의
 
-이 패키지에는 원본 fMRI·동영상·caption, 실행 결과, 모델 weight가 포함되어 있지 않다. 서버 AI는 서버의 실제 경로를 찾아 별도 manifest로 기록해야 한다. 로컬 Mac 경로를 서버 경로로 그대로 사용하지 않는다. 기존 overview v1 PNG는 이번 보강 전 도안이며 수정하지 않았다. 1b·2d가 반영된 도식으로 오인하지 않는다. 새 연구 흐름의 편집 원본은 06 문서의 Mermaid이며, 이미지 속 수식이나 gate가 최신 결정 기록보다 우선하지 않는다.
+이 패키지에는 원본 fMRI·동영상·caption, 모델 weight가 포함되어 있지 않다. 서버의 실제 경로를 manifest로 기록하고 로컬 Mac 경로를 그대로 사용하지 않는다. 기존 model PNG에는 Student Encoder는 있지만 Teacher의 pre-fusion Encoder가 생략되어 있다. 최신 경로는 [model figure 문서](../assets/model_architecture.md)에 반영했으며 PNG는 아직 재생성하지 않았다. 이미지보다 최신 구현 명세·결정 기록을 우선한다.

@@ -104,8 +104,8 @@ Training affect를 쓰는 것 자체는 cheating이 아니다. Warm-up부터 OOF
 | D02 | Run grouping과 outer/inner/OOF K | 권고 6/5, OOF 별도 | 연결 성분·계산량 |
 | D03 | Reserved 72와 개발 자료 경계 | 미확정 | Presentation mapping |
 | D04 | Response estimator·공간·atlas | 미동결; lagged block mean 출발점 권고 | 07 문서의 window/TR/nuisance/normalization audit·개발 QA |
-| D05 | ROI rank·width·student depth | 개발 선택 | 제한된 validation |
-| D06 | V/S checkpoint·layer·pooling | 미확정 | 재현성·입력 적합성 |
+| D05 | ROI rank·map·encoder width/depth | 개발 선택; D22와 연결 | Train-only map·MLP/ROI Transformer·capacity |
+| D06 | V/S checkpoint·layer·pooling | 미확정; 구체적 V 개발안은 D24 | 재현성·입력 적합성 |
 | D07 | 14-D codebook·VA/VAD 열 | 미확정 | 원 annotation |
 | D08 | λ·η·dropout·seed·warm-up 설정 | 미확정 | Fit scope·선택 이력·비용 |
 | D09 | Primary contrasts·multiplicity | 재검토 | Claim별 family |
@@ -121,10 +121,57 @@ Training affect를 쓰는 것 자체는 cheating이 아니다. Warm-up부터 OOF
 | D19 | Visual cortex 대비 추가 ROI의 예측 증분 | 사용자 질문에 대한 검토 후보; 실행/primary 미승인 | 독립 ROI 정의·coverage·차원/capacity·reliability·split·contrast |
 | D20 | Joint 기본 / Brain-first → Joint 추가 비교 | 방향 승인; warm-up 필수 아님; 실행 미보고 | 초기화 provenance·학습량·OOF·선택/검증 구분 |
 | D21 | 공유 Affect Head의 joint + B-only objective | 제안; primary 채택 미확정 | 경로/head 공유·η·표현 호환·예산·학습 효과 |
+| D22 | Brain encoder 후보와 외부 brain pretraining 제외 | 사용자 방향 기록; MLP/ROI Transformer 비교 후보; 구조 미동결 | 같은 block 입력·scope·capacity·안정성·해석 단위 |
+| D23 | ROI-masked JEPA-style auxiliary | 검토 후보; 원형 Brain-JEPA와 구별; 기본 loss 미변경 | Target view·EMA·mask·collapse·nuisance·적용 경로·예산 |
+| D24 | Multi-layer V-JEPA 2 추출과 명시적 L | 구체적 개발안 기록; 숫자·primary 미동결 | FPS/window/short-clip/crop QA·layer/pooling·추출 hash |
 
 해당 결정이 다른 결과를 보기 전에 실제로 동결됐는지 기록한다. 과거 test에 이미 접근했다면 새로운 freeze 날짜를 붙여 과거를 사전등록처럼 보이게 하지 않는다.
 
+### 2026-10-08의 범위 및 정정
+
+- **사용자 방향:** 외부 brain pretrained weight를 쓰지 않고 MLP·ROI-token Transformer·JEPA 관련 후보를 상세히 기록한다. SwiFT는 현재 shortlist에서 제외한다. 사전학습이 효과가 없다는 실증 결론은 아니다. Video/caption frozen pretraining 제외 요청으로 확대하지 않는다.
+- **GPT 개발 제안:** Transformer 2 blocks/width 128, V-JEPA 2 ViT-L/16의 6/12/24층, 8 fps·16 frames·1초 stride·4×2×2 pooling. 문서 반영 요청은 이 수치가 데이터로 검증됐거나 본실험에 동결됐다는 뜻이 아니다.
+- **JEPA 구분:** MLP/Transformer는 architecture, JEPA는 training objective다. 블록 입력의 masked ROI latent prediction은 원형 시계열 Brain-JEPA가 아니다. 별도 외부 사전학습 없이 joint auxiliary로 검토하되 기본 loss는 그대로 유지한다.
+- **그림 정정:** PNG의 student Brain Encoder와 After Training stages는 존재한다. Teacher의 pre-fusion Brain Encoder가 명시적으로 빠져 있고 내부 구조·multi-layer extraction이 생략돼 있다. Markdown flow를 갱신하고 PNG 미갱신 상태를 표시한다.
+- **선택/실행:** 모델 선택·차원·seed·query 수·학습량을 기록한다. 현재 문서 갱신은 code completion, pretrained download, GPU 실행, main merge 또는 JEPA primary 편입 승인이 아니다.
+
 ## 🎯 4. 주요 구성요소의 여섯 질문 rationale
+
+### R18. Participant Map을 encoder와 분리
+
+1. **질문:** 참가자별 voxel/압축 좌표를 하나의 shared encoder에 어떻게 연결할 것인가?
+2. **대안 설명:** 같은 vector index를 같은 기능으로 취급하거나 참가자별 측정 차이가 공유 표상 효과처럼 보일 수 있다.
+3. **근거:** 현재 variable-voxel/PCA 계약; MindEye2의 subject-specific linear/shared nonlinear mapping은 참고 사례다([05 §9](05_REFERENCES.md)). 현재 map 정렬 성능은 미검증이다.
+4. **선택 이유:** 작은 학습 가능한 선형층으로 측정 좌표를 연결한다. Shared map은 실제 대응 좌표가 있을 때 대안이며 독립 PCA 축을 그대로 공유하지 않는다.
+5. **변경 조건:** 안정성·held-out 비교에서 이득이 없거나 과적합하면 tied/regularized map을 검토한다. 새 참가자 calibration 비용도 선택에 포함한다.
+6. **한계:** 차원 일치는 functional alignment, 개인 감정/기억/성격의 측정, zero-shot subject transfer가 아니다.
+
+### R19. MLP와 ROI-token Transformer의 제한된 비교
+
+1. **질문:** Brain–content 관계를 학습하는 데 token interaction 구조가 필요한가?
+2. **대안 설명:** 결과가 단순한 비선형 mapping으로도 설명되거나 용량 차이만 반영할 수 있다.
+3. **근거:** MLP shared mapping의 문헌 선례와 현재 ROI별 공간 패턴·perturbation 목적. 작은 Transformer의 EmoBrain 적합성은 아직 검증하지 않았다.
+4. **선택 이유:** 동일 block 입력에서 두 작은 구조를 비교하며 외부 pretrained brain prior를 배제한다. Full foundation-model sweep 대신 해석 가능한 제한 비교다.
+5. **변경 조건:** Transformer가 불안정하거나 matched 개발 비교에서 추가 가치가 없으면 MLP를 선택할 수 있다. 예측·probe·seed 안정성·비용을 함께 보고한다.
+6. **한계:** Attention은 neural connectivity가 아니고 MLP hidden unit은 ROI가 아니다. 작은 데이터의 우승 모델이 인간 뇌의 계산 구조를 입증하지 않는다.
+
+### R20. JEPA-style brain auxiliary — 기본안이 아닌 후보
+
+1. **질문:** Affect supervision 외에 brain-intrinsic masked prediction이 유용하고 안정적인 표상을 돕는가?
+2. **대안 설명:** 개선은 추가 계산·정규화 또는 motion/global signal 예측만으로 생길 수 있다.
+3. **근거:** Brain-JEPA의 latent prediction 원리는 참고하되 원 논문의 시계열·pretraining 성과를 블록 공간 패턴에 전이된 사실로 쓰지 않는다([05 §9](05_REFERENCES.md)).
+4. **선택 이유:** 동일 작은 Transformer에서 alpha=0 대조로 objective만 비교한다. 외부 checkpoint/별도 사전학습 없이 동시 보조 학습을 검토한다.
+5. **변경 조건:** Collapse, nuisance 의존, 불안정성 또는 matched budget의 추가 가치 부재가 있으면 수정/제외한다. Mask·EMA·target view·적용 경로 확정 전 실행하지 않는다.
+6. **한계:** Masked latent 예측 성공은 정서 기전이나 brain–content 관계의 증거가 아니며 기존 output guidance의 joint-geometry 전이를 보증하지 않는다.
+
+### R21. Multi-layer vision과 독립 low-level 좌표
+
+1. **질문:** Frozen video network의 깊이에 따라 어떤 정보가 뇌를 설명하며 최종층만으로 중요한 내용이 누락되는가?
+2. **대안 설명:** 임의 층 선택·pooling·시간 왜곡·crop·차원 증가가 수준별 차이처럼 보일 수 있다.
+3. **근거:** 공식 V-JEPA 2 코드의 intermediate feature 지원, motion-energy encoding 선례; 우리 8 fps/층/bin 선택은 실증 결과가 아닌 개발안이다([05 §9](05_REFERENCES.md)).
+4. **선택 이유:** 같은 backbone의 소수 층과 별도 명시적 L을 사용해 광범위 model sweep을 피한다. 고정 시간 window는 길이에 따른 time-warp를 피하고 거친 bin은 위치 정보를 일부 남긴다.
+5. **변경 조건:** 시간/공간 crop 손실, short-clip 문제, aliasing 또는 final-only 대비 추가 가치 부재가 확인되면 추출 설정/층 수를 수정한다. 변경 이력과 선택 노출은 보존한다.
+6. **한계:** Early=low-level/final=semantic 등식, 인간 처리 계층, 순수 visual/semantic 분리 또는 multi-layer 효과의 단일 원인을 주장하지 않는다. Fine motion과 상세 공간 관계는 pooling으로 손실될 수 있다.
 
 ### R01. Frozen video와 caption을 함께 사용
 

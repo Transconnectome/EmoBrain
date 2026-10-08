@@ -67,6 +67,8 @@ Keep initial outputs small: row-aligned predictions, per-participant/ROI descrip
 
 ### P2. Small joint teacher and brain-only student
 
+Encoder detail is now specified in [02 §3a–3c](02_IMPLEMENTATION_SPEC.md): train-only compression → Participant Map → Brain Encoder in both teacher and student, with separately fitted parameters. Compare a small MLP and ROI-token Transformer without externally pretrained brain weights. ROI-masked JEPA-style learning is an optional objective on the same Transformer, not the original Brain-JEPA or a required loss (D23). Frozen pretrained video/text encoders remain allowed. Multi-layer V-JEPA extraction and explicit low-level features follow D24/P08b; proposed numerical settings require pilot QA, not a full sweep.
+
 Implement a configurable small model following [02 §4](02_IMPLEMENTATION_SPEC.md). Brain tokens query video/caption keys and values; a brain residual feeds the fused state and affect head. Participant maps are fitted transformations, not measured subjectivity. Video and sentence encoders stay frozen. Student forward input is brain only, during both training and inference. Expose named intermediate stages for later probes.
 
 Start with a synthetic forward/backward pass, then a bounded real-data fit. The first target run can be CAT-34 for debugging convenience, not a scientific preference over 14-D. Confirm the independent 14-D path before claiming implementation complete. VA/VAD require verified dimensions and coding; do not invent a dominance label.
@@ -183,6 +185,8 @@ Training-only scaling과 regularized linear baseline, training-mean baseline을 
 최초 산출물은 행별 prediction, 참가자/ROI별 기술 점수, coverage/missingness, 시간·메모리다. 참가자 1명 pilot으로 유의성·해부학 결론을 내리지 않는다. Feature가 없으면 어댑터와 brain-only부터 끝내고 부족한 artifact를 보고한다.
 
 ### P2. 작은 joint teacher와 brain-only student
+
+Encoder 상세는 [02 §3a–3c](02_IMPLEMENTATION_SPEC.md)에 있다. Teacher와 student 모두 train-only compression → Participant Map → Brain Encoder를 사용하고 parameter는 따로 학습한다. 외부 사전학습 brain weight 없이 작은 MLP와 ROI-token Transformer를 비교한다. ROI-masked JEPA-style은 같은 Transformer에 붙이는 선택적 목적함수이며 원형 Brain-JEPA나 필수 loss가 아니다(D23). Frozen pretrained video/text encoder는 유지한다. 다층 V-JEPA 추출·명시적 저수준 특징은 D24/P08b를 따르고, 제안한 숫자는 pilot QA를 거친다. 전체 sweep을 요구하지 않는다.
 
 02 §4에 따라 brain query와 video/caption key/value, brain residual, fused state와 affect head를 구현한다. Participant map은 학습되는 변환이지 측정된 개인 주관성이 아니다. Video/sentence encoder는 frozen, student는 학습·추론 모두 brain-only다. 후속 probe를 위해 stage별 표상을 반환한다.
 

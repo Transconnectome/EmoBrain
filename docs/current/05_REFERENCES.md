@@ -157,3 +157,17 @@ fc9d26db1916471f7a1489ea47ffe50960a640dbdb200f4d3ce61ee55959e997
 - Billot, Bocchetta, Todd, Dalca, Rohrer & Iglesias (2020). *Automated segmentation of the hypothalamus and associated subunits in brain MRI*. NeuroImage, 223, 117287. https://doi.org/10.1016/j.neuroimage.2020.117287 — 작은 크기와 주변 contrast 부족으로 인한 hypothalamus 분할의 어려움. PubMed 초록과 서지 확인: https://pubmed.ncbi.nlm.nih.gov/32853816/ . 구조 MRI 분할 연구이며 우리 task-fMRI의 신뢰도 또는 decoding 효과를 검증한 논문은 아니다.
 
 현재 dataset의 실제 ROI 신호·coverage·예측 증분은 검증되지 않았다. 성능 향상, 피질하의 고유 정서 기능 또는 새 논문의 성립 가능성을 문헌만으로 확정하지 않는다.
+
+## 📚 9. Participant Map·Brain Encoder·영상 추출 근거
+
+2026-10-08 보강. 아래는 D22–D24 및 R18–R21의 근거다. 문헌의 구조적 선례, 공식 구현에서 확인한 설정, EmoBrain에서 새로 제안한 설정을 구분한다.
+
+| 출처 | 뒷받침하는 내용 | 뒷받침하지 않는 내용 |
+|---|---|---|
+| Scotti et al. (2024), *MindEye2: Shared-Subject Models Enable fMRI-To-Image With 1 Hour of Data*. https://arxiv.org/abs/2403.11207 | 참가자별 mapping과 공유 모델을 구분하는 설계 선례 | 우리 ROI별 map의 최적성, calibration 없는 새 참가자 일반화, 외부 weight 도입 |
+| Dong et al. (2024), *Brain-JEPA: Brain Dynamics Foundation Model with Gradient Positioning and Spatiotemporal Masking*. https://arxiv.org/abs/2409.19407 ; https://github.com/EricLRL/Brain-JEPA | ROI 시계열에서 masking과 latent prediction을 사용하는 원형 | Block 평균 입력의 제안 변형이 원형 Brain-JEPA라는 주장, 현재 task에서 효과가 입증됐다는 주장 |
+| Assran et al. (2025), *V-JEPA 2*. https://arxiv.org/abs/2506.09985 | 영상 표상 학습의 근거와 모델 계열 | Early layer가 순수 저수준, final layer가 순수 의미라는 등식 |
+| V-JEPA 2 [vision_transformer.py](https://github.com/facebookresearch/vjepa2/blob/main/src/models/vision_transformer.py), [backbones.py](https://github.com/facebookresearch/vjepa2/blob/main/src/hub/backbones.py), [ViT-L SSV2 eval](https://github.com/facebookresearch/vjepa2/blob/main/configs/eval/vitl/ssv2.yaml) | ViT-L 24 blocks·1024 width, 중간 layer export, 256 해상도·16-frame 평가 설정의 구현 선례 | EmoBrain의 8 fps·1초 stride·6/12/24층·4×2×2 pooling을 공식 표준 또는 검증된 최적 설정으로 부르는 것 |
+| Nishimoto et al. (2011), *Reconstructing Visual Experiences from Brain Activity Evoked by Natural Movies*. https://doi.org/10.1016/j.cub.2011.08.031 | 시공간 motion-energy를 명시적으로 계산하는 encoding 선례 | 우리 자극에 적합한 filter bank·차원·sampling이 이미 결정됐다는 주장 |
+
+공식 저장소의 `main` 링크는 변경될 수 있다. 구현 시 코드 revision, weight URL·hash, normalization, layer 출력이 normalization 전인지 후인지까지 manifest에 기록한다. 현재 문서는 모델 다운로드·추출 실행·성능 검증을 보고하는 문서가 아니다. JEPA-style 후보는 외부 checkpoint 없이 동일한 작은 ROI Transformer에 붙이는 선택적 목적함수이며, 기본 multimodal distillation loss를 바꾸지 않는다.

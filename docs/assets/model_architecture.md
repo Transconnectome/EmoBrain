@@ -2,11 +2,15 @@
 
 _Training / After Training · 2026-10-06_
 
+_Editable flow updated 2026-10-08; PNG retained / 편집 흐름 갱신, PNG 유지_
+
 ---
 
 ## 📚 English
 
 ![Training and After Training](model_architecture.png)
+
+The PNG includes the Student Brain Encoder and After Training Encoder Stages, but omits the teacher's separate pre-fusion Brain Encoder. The updated editable flow below adds it; the PNG has not yet been regenerated. Participant Map is not a synonym for Brain Encoder.
 
 The figure shows the candidate brain-query teacher, output-guided brain-only student, and post-training geometry, content and model-use analyses. Equations illustrate the 34-D case: sigmoid outputs, soft BCE labels and dimension-mean OOF probability MSE. The target strip describes the separate continuous-target runs.
 
@@ -16,7 +20,7 @@ Sources: [implementation specification](../current/02_IMPLEMENTATION_SPEC.md), [
 
 The fused-token stack combines blue (brain), ochre (video) and sage (caption) within each token. These colors illustrate multimodal fusion, not separately identified coordinates or measured modality contributions. Student tokens remain blue because its input is brain-only.
 
-1. **Teacher:** The brain pattern, video and caption each become token vectors. Brain queries select weighted video/caption information through cross-attention; this update is added to the original brain state by a skip connection. The result is **Fused State (Joint Latent)**; the affect head maps it to a profile. Cross-attention is the candidate fusion operation, not a replacement for the joint representation.
+1. **Teacher:** Train-only brain compression feeds a Participant Map, then a trainable Brain Encoder. Its encoded state supplies both brain queries and the residual. Frozen video and caption features are projected into keys/values. Cross-attention retrieves a content-conditioned update, added to the encoded brain state to form **Fused State (Joint Latent)**. The affect head maps it to a profile. Cross-attention is the candidate fusion operation, not a replacement for the joint representation.
 2. **Student:** A separate encoder receives only fMRI. It learns from the normative annotation and the teacher's predicted profile. The second loss compares output values, not hidden representations.
 3. **OOF:** For a training stimulus, guidance comes from a teacher fitted without that stimulus group across participants. This fitting happens inside the student training split; its outer test set stays excluded.
 4. **After training:** CKA measures geometry similarity, retrieval tests accessible content, and selective perturbation tests model reliance. The candidate content-side bridge provides a separate route for independent neural validation.
@@ -45,22 +49,40 @@ Warm-up must respect nested OOF exclusions from initialization onward. Affect su
 ### Editable information flow
 
 ```mermaid
-flowchart TB
-    accTitle: EmoBrain model information flow
-    accDescr: A multimodal teacher supplies nested out of fold outputs for a brain only student. Targets supervise output losses while content probes and geometry analyses remain post training evaluations.
-    paired_inputs["Brain, video and caption"] --> teacher["Brain-query teacher"]
-    teacher -->|Fold-specific fits| oof_profile["Nested OOF teacher outputs"]
-    brain_input["Student fMRI input"] --> student["Brain-only student"]
-    normative_targets["Normative affect targets"] --> teacher_loss["Teacher label loss"]
-    teacher --> teacher_loss
-    normative_targets --> student_loss["Label loss plus output MSE"]
-    oof_profile --> student_loss
-    student --> student_loss
-    student --> frozen_analysis["Frozen representation analyses"]
-    student --> inference["Brain-only affect prediction"]
+flowchart LR
+    accTitle: Teacher Brain Encoder and Joint Latent
+    accDescr: Within each teacher fit, training-only brain transforms precede a separately trainable brain encoder. Encoded brain state queries content and supplies the residual used to form the joint latent.
+    brain_input["fMRI: Train-only Compression"] --> participant_map["Participant Map"]
+    participant_map --> brain_encoder["Brain Encoder: MLP or ROI Transformer"]
+    brain_encoder --> brain_state["Encoded Brain State"]
+    video_input["Video: Frozen V-JEPA 2 Layers"] --> content_projection["Projection and Token IDs"]
+    caption_input["Caption: Frozen Sentence Encoder"] --> content_projection
+    brain_state -->|Queries| fusion["Cross-Attention"]
+    content_projection -->|Keys and Values| fusion
+    fusion --> joint_latent["Residual Sum: Fused State / Joint Latent"]
+    brain_state -->|Brain Residual| joint_latent
+    joint_latent --> affect_head["Affect Head and Teacher Prediction"]
 ```
 
+```mermaid
+flowchart TB
+    accTitle: Output Guidance and Frozen Student Analysis
+    accDescr: Recipient-excluded teacher fits provide output targets, not latent targets. The separately parameterized brain-only student is trained on labels and guidance, then frozen for representation and model-use evaluation.
+    teacher_fits["Recipient-excluded Teacher Fits: Outer Test Excluded"] --> oof_profile["OOF Teacher Profile"]
+    student_brain["fMRI: Train-only Compression"] --> student_map["Student Participant Map"]
+    student_map --> student_encoder["Student Brain Encoder"]
+    student_encoder --> student_head["Affect Head and Student Prediction"]
+    normative_targets["Normative Affect Targets"] --> student_loss["Label Loss + Weighted Output MSE"]
+    oof_profile --> student_loss
+    student_head --> student_loss
+    student_encoder -->|Freeze after training| analyses["Geometry / Content Retrieval / Model Use"]
+```
+
+MLP produces a global latent projected to query token(s); these are not ROI-labeled tokens. The ROI Transformer retains ROI-indexed states before fusion/pooling. Teacher and student use the same candidate family for a matched comparison, not shared learned parameters. Optional JEPA-style auxiliary learning is omitted from this base flow because D23 is not yet adopted. Video layer/time/spatial tokenization is specified in [02 §3c](../current/02_IMPLEMENTATION_SPEC.md); explicit low-level descriptors remain Analysis 1 controls, not another mandatory teacher branch.
+
 ## 📚 한국어
+
+기존 PNG에는 Student Brain Encoder와 After Training Encoder Stages가 있다. 빠진 것은 **Teacher의 fusion 이전 별도 Brain Encoder**다. 위 편집 흐름에 이를 추가했으며 PNG는 아직 재생성하지 않았다. Participant Map과 Brain Encoder는 다른 단계다.
 
 이 그림은 후보 brain-query teacher, 출력 지도를 받는 brain-only student, 학습 후 geometry·content·모델 사용 분석을 보여준다. 수식은 34-D 기준으로 sigmoid 출력, soft BCE label loss, 차원 평균 OOF 확률 MSE를 나타낸다. 연속 target은 별도 학습하며 하단 target 띠에 표시했다.
 
@@ -70,10 +92,12 @@ flowchart TB
 
 결합 토큰은 각 토큰 안에 파랑(뇌)·황토색(영상)·초록(caption)을 함께 배치했다. 색은 다중모달 결합의 개념도이며, 분리된 좌표나 측정된 모달리티 기여도를 뜻하지 않는다. Student는 뇌만 입력받으므로 파란 토큰을 유지했다.
 
-1. **Teacher:** 뇌 패턴·영상·caption을 각각 token 벡터로 바꾼다. Brain query가 cross-attention으로 영상·caption 정보에 가중치를 주어 가져오고, 이를 skip connection으로 원래 뇌 표상에 더한다. 결과가 **Fused State (Joint Latent)**이며 affect head는 이를 정서 프로필로 변환한다. Cross-attention은 후보 결합 연산이지 joint representation의 대체물이 아니다.
+1. **Teacher:** Train-only brain compression → Participant Map → 학습되는 Brain Encoder 순서다. Encoder 출력이 brain query와 residual 양쪽에 들어간다. Frozen video/caption feature를 key/value로 투영하고 cross-attention으로 가져온 내용 정보를 encoded brain state에 더한다. 결과가 **Fused State (Joint Latent)**이며 affect head는 이를 정서 프로필로 변환한다. Cross-attention은 후보 결합 연산이지 joint representation의 대체물이 아니다.
 2. **Student:** 별도 encoder가 fMRI만 입력받는다. 실제 규준 주석과 teacher 예측 프로필 두 가지를 참고해 학습한다. 두 번째 loss는 내부 표상이 아니라 출력값을 비교한다.
 3. **OOF:** 특정 학습 자극의 지도값은 모든 참가자에서 해당 자극 그룹을 제외하고 학습한 teacher로 만든다. 이 과정 전체가 student training split 안에서 이루어지며 outer test는 제외한다.
 4. **학습 후:** CKA는 표상 구조의 유사성, retrieval은 읽을 수 있는 내용, 선택적 교란은 모델의 정보 의존성을 조사한다. 후보 content-side bridge는 독립 뇌 검증을 위한 별도 경로다.
+
+MLP는 global latent를 query token으로 바꾸므로 이를 ROI token이라고 부르지 않는다. ROI Transformer는 fusion/pooling 전까지 ROI별 state를 유지한다. Teacher와 student는 비교할 구조 계열을 맞추되 학습 parameter를 공유하지 않는다. JEPA-style은 D23의 미채택 보조 목적함수라 기본 경로에 넣지 않았다. 영상 layer/time/spatial tokenization은 [02 §3c](../current/02_IMPLEMENTATION_SPEC.md)를 따른다. 명시적 저수준 특징은 Analysis 1 control이며 teacher의 새 필수 branch가 아니다.
 
 ### Brain 활용 점검
 
@@ -102,7 +126,15 @@ Built-in image generation using imagegen and scientific-schematics guidance. Two
 
 imagegen·scientific-schematics 지침과 내장 이미지 도구를 사용했다. 사용자 요청에 따라 두 패널, 구성요소 대문자 표기, Fused State (Joint Latent)를 적용했다. Helvetica 스타일을 요청했으나 raster의 내장 폰트명은 검증할 수 없다. Skip connection·출력 지도·OOF 분리·평가 경로를 직접 검수했으며 자동 품질 점수는 주장하지 않는다. Study overview는 변경하지 않았다.
 
-### Generation prompt
+### Current revision brief / 최신 수정 사양
+
+Retain two panels, Training / After Training, white background, Helvetica-style text and muted modality colors. Add an explicit Brain Encoder after Participant Map in the teacher, and originate both Query and Brain Residual from its encoded output. Keep the Student Brain Encoder explicit. Label the video pathway as Frozen V-JEPA 2 → Layer Features → Projection; use the caption pathway unchanged. Keep the mixed-color Fused State (Joint Latent), OOF output guidance and existing base losses. Put exact candidate dimensions, layer indices and optional JEPA design in the caption/specification rather than crowding the figure. Do not draw a third inference panel or latent-distillation arrow.
+
+Training / After Training 두 패널, 흰 배경, Helvetica 스타일, 절제된 모달리티 색을 유지한다. Teacher의 Participant Map 다음에 Brain Encoder를 명시하고 그 출력에서 Query와 Brain Residual을 출발시킨다. Student Brain Encoder도 유지한다. 영상 경로는 Frozen V-JEPA 2 → Layer Features → Projection으로 쓰고 caption 경로는 유지한다. 혼합색 Fused State (Joint Latent), OOF 출력 지도와 기존 기본 loss를 유지한다. 후보 차원·layer index·선택적 JEPA 상세는 그림을 빽빽하게 만들지 말고 caption/명세에 둔다. 별도 inference 패널이나 latent-distillation 화살표를 추가하지 않는다.
+
+### Historical generation prompt / 이전 PNG 제작 프롬프트
+
+The following prompt produced the retained PNG and is not the latest architecture specification. / 아래는 보존한 PNG의 이전 제작 지시이며 최신 구조 명세가 아니다.
 
 ```text
 Edit the reference into a clean Nature-style scientific model figure with EXACTLY TWO PANELS, (a) Training and (b) After Training. Remove the separate Inference panel entirely. White background, thin black lines, generous whitespace, neutral Helvetica / Helvetica Neue regular-width sans-serif, bold headings. No condensed lettering, no big overall title, no colored panel fills, no 3D blocks. Use muted slate blue for brain tokens, ochre for video, sage for captions, a blue dashed output-guidance arrow. Landscape 3:2 with generous margins. Capitalize component labels consistently, e.g. "Participant Map", "Brain Tokens", "Cross-Attention", "Affect Head". Content and scientific details below are mandatory; do not copy lowercase labels or old panel structure.

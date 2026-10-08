@@ -105,6 +105,15 @@ deviation_from_plan, next_dependency, decision_needed
 - **수용:** Shape·finite·variance 검사가 통과하고 임의 test observation을 변경해도 fitted training transform이 바뀌지 않는다.
 - **실패 시:** No-PCA regularized projection 등 제한된 대안을 개발 범위에서 비교하고 선택 이유를 남긴다.
 
+### P07b. Participant Map과 Brain Encoder를 분리해 검증
+
+- [ ] 02 §3a의 map·encoder 계약을 synthetic 입력에서 구현하고 P11에서 작은 개발 비교를 한다.
+- **목적:** 개인별 입력 변환의 효과와 공유 encoder의 효과를 혼동하지 않고, 복잡한 구조가 필요한지 확인한다. 근거는 D22/R18/R19다.
+- **수행:** 외부 brain checkpoint 없이 MLP와 작은 ROI-token Transformer를 후보로 둔다. Map의 입력 ROI/PCA 차원, 출력 폭, 초기화, trainable 여부, teacher/student 소유를 기록한다. Teacher에도 map 뒤 별도 brain encoder를 둔다. MLP의 global query를 해부학적 ROI token이라고 부르지 않는다.
+- **검사:** Train-only PCA/scaler와 OOF별 map 재학습, gradient 도달, teacher/student parameter 비공유, missing-ROI mask, 새 참가자의 calibration 필요 여부를 검사한다. 독립 PCA 좌표를 단순히 같은 index로 합쳐 공유 map으로 쓰지 않는다.
+- **산출물·수용:** Encoder configuration·shape/gradient test·parameter/FLOP budget·stage export가 재현된다. 비교에 같은 입력, split, target, tuning budget을 쓴다. 2 blocks/128 width는 초기 개발안이지 확정 사양이 아니다.
+- **실패 시:** 안정적인 작은 MLP를 유지하거나 rank·폭을 줄인다. Transformer의 성능만으로 뇌가 attention 연산을 한다고 해석하지 않는다.
+
 ### P08. Frozen content cache
 
 - [ ] L/V/S를 추출하고 checkpoint·sampling·aggregation을 기록한다.
@@ -113,6 +122,16 @@ deviation_from_plan, next_dependency, decision_needed
 - **산출물:** `lowlevel_cache`, `video_cache`, `caption_cache`, `feature_manifest`.
 - **수용:** 모든 usable canonical ID에 feature가 있고 hash·dimension이 재현된다. Affect labels가 feature 추출/선택에 입력되지 않는다.
 - **실패 시:** Missing feature 원인을 보고하고 조용히 zero-filled modality로 학습하지 않는다.
+
+### P08b. Multi-layer vision·명시적 저수준 feature QA
+
+- [ ] 02 §3c, D24/R21에 따라 feature manifest와 짧은 추출 검사를 준비한다.
+- **목적:** 저수준부터 학습된 영상 표상까지 비교하되, layer 깊이를 심리적 수준과 동일시하지 않는다.
+- **수행:** ViT-L의 1-based 6/12/24층(코드 5/11/23), 8 fps·16-frame·1초 stride, 4 temporal bins×2×2 spatial bins를 개발 후보로 구현한다. 각 layer는 최대 16×1024, 합쳐 최대 48 tokens다. 정확한 checkpoint/hash·crop·normalization·유효 bin 수는 추출 전에 확인한다.
+- **검사:** 실제 제시 시간과 source-frame timestamp, 실제 loop, 마지막 구간 coverage, overlap 중복 가중치, short-clip 최소 padding, 빈 bin mask, layer 순서와 normalization을 확인한다. 상수 입력의 pooling이 window 수에 따라 달라지지 않는지 검사한다. Padding은 encoder attention에도 영향을 줄 수 있으므로 pooling mask만으로 해결됐다고 보고하지 않는다.
+- **저수준 L:** 밝기/색/대비, orientation·spatial-frequency filter, native-time motion-energy를 별도 추출한다. Filter bank·sampling·aggregation을 먼저 명세하며 depth는 primary L로 자동 포함하지 않는다. V-JEPA 첫 층을 L의 대용으로 쓰지 않는다.
+- **산출물·수용:** 작은 clip 묶음의 시각 검수, 재현 가능한 cache hash, layer/token schema, frame coverage 표가 통과한다. L은 Analysis 1 control이며 teacher의 새 필수 branch가 아니다.
+- **실패 시:** Sampling/pooling을 개발 자료에서 수정하고 cache 버전을 바꾼다. 층별·multi-layer 비교는 개발/보조 후보이며 기존 primary 분석을 몰래 대체하지 않는다.
 
 ## 🧪 4. Phase 2 — 작은 pilot과 사전 동결
 
@@ -155,6 +174,14 @@ deviation_from_plan, next_dependency, decision_needed
 - [ ] 모델 선택에 이용한 test 결과와 독립 validation 결과를 구분한다. 후자가 없으면 없다고 보고하고 freeze 날짜를 소급하지 않는다.
 - **산출물:** 기존 `teacher_pilot.md`의 전략 비교 절, 실험 output 영역의 run manifest/OOF provenance/QA 결과. 새 루트 보고서나 중복 handoff를 만들지 않는다.
 - **완료 기준:** 전략별 재현 가능한 학습 범위·초기화·loss 기록과 누출 QA. 성능 향상을 완료 조건으로 강제하지 않는다. 문서 갱신은 학습 실행 완료가 아니다.
+
+### P11c. JEPA-style 후보의 채택 전 검토
+
+- [ ] D23/R20의 target view·mask·EMA·normalization·적용 경로를 정한 뒤에만 선택적 실험을 제안한다.
+- **목적:** 같은 ROI Transformer에서 masked latent prediction이 target 감독만으로 얻기 어려운 brain 표현을 보완하는지 묻는다. 원형 Brain-JEPA를 block 입력에 그대로 이식하는 작업이 아니다.
+- **수행:** 외부 pretrained weights 없이 온라인 encoder와 별도 EMA target encoder를 사용한다. Stop-gradient와 alpha=0 대조를 검사한다. Content fusion 전 brain 표현만 사용하며 multimodal teacher와 EMA target network를 구별한다. Teacher와 student 중 어디에 적용할지는 미확정이다.
+- **수용:** 금지된 recipient/validation/test 입력이 self-supervised fit에도 들어가지 않는다. Variance·effective rank·target collapse·motion/run/subject nuisance와 학습 예산을 점검한다. 기본 output-only distillation 계약은 유지한다.
+- **실패 시:** 보조 목적함수를 제거하고 동일 backbone을 유지한다. Reconstruction이나 latent-prediction 성과만으로 emotion 정보를 학습했다고 주장하지 않는다. 이 항목은 기본 loss 변경이나 job 실행 승인으로 읽지 않는다.
 
 ### P12. Inferential plan과 freeze
 

@@ -16,6 +16,10 @@ The subsequent D20 decision keeps Joint training as the default and allows an op
 
 ## 🔍 Verified implementation gaps
 
+2026-10-08 documentation update: D22–D24 add detailed Participant Map/encoder contracts, optional ROI-masked JEPA design and multi-layer vision extraction proposals. P07b/P08b/P11c specify tests. These are specifications, not claims that the server has implemented or passed them. Existing server code, audit outputs and coordination states are unchanged by this update.
+
+2026-10-08 문서 갱신: D22–D24에 Participant Map/encoder 계약, 선택적 ROI-masked JEPA 설계, 다층 vision 추출 개발안을 추가했다. P07b/P08b/P11c는 필요한 검사 목록이며 서버 구현·통과 보고가 아니다. 이번 갱신은 기존 서버 코드·감사 산출물·작업 상태를 변경하지 않는다.
+
 | Area | Repository evidence at audited commit | Migration requirement |
 | --- | --- | --- |
 | Model | `project/code/decoder/label_query_decoder.py`: emotion queries read combined memory | Implement the current brain-query teacher and small brain-only student |

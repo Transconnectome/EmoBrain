@@ -6,6 +6,11 @@ _2026-10-06 · 2026-10-04 전달본의 후속 버전_
 
 ## 📋 변경 내용
 
+### Brain encoder and vision extraction detail / Brain Encoder·영상 추출 상세 — 2026-10-08
+
+- English: Separated Participant Map from Brain Encoder in both model paths; documented independently fitted teacher/student maps, MLP versus ROI-token Transformer, and optional ROI-masked JEPA-style learning without external brain checkpoints. Added explicit low-level descriptors, multi-layer V-JEPA extraction proposals, timestamp/pooling/cache QA, source references and six-question rationales (D22–D24, R18–R21). Synchronized actions, server handoff and editable model flow. Corrected the figure description: the existing PNG shows the student encoder but omits the teacher pre-fusion encoder. No PNG, code, experiment, server output or main-branch changes.
+- 한국어: 두 모델 경로에서 Participant Map과 Brain Encoder를 분리하고 teacher/student map의 독립 학습, MLP 대 ROI-token Transformer, 외부 brain checkpoint 없는 선택적 ROI-masked JEPA-style 학습을 기록했다. 명시적 저수준 특징, 다층 V-JEPA 추출 개발안, timestamp/pooling/cache QA, 문헌과 여섯 질문 근거(D22–D24, R18–R21)를 추가했다. 작업 목록·서버 인계·편집 가능한 모델 흐름을 동기화했다. 기존 PNG에는 student encoder가 있고 teacher pre-fusion encoder가 빠졌음을 정정했다. PNG·코드·실험·서버 산출물·main은 변경하지 않았다.
+
 ### Research coordination and shared-checkout rules / 연구 총괄·공유 사본 규칙 — 2026-10-07
 
 - English: Applied the user's GPT / Claude Code / Codex role distinction. Updated root instructions and coordination rules in English then Korean; separated proposals, routine verification and user decisions. Added whole-transaction Git serialization, shared-index protection and evidence provenance. Preserved the existing three threads and task states, added acceptance criteria, and marked `prereg_v2/design_docs` as historical audit snapshots without rewriting the original study documents. Linked coordination from current navigation and recorded the administrative decision. No new folders, scientific settings, code, server jobs, main changes or PRs.

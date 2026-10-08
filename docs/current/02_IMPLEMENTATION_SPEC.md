@@ -143,6 +143,8 @@ Participant-specific map은 학습 참가자에게만 fit된다. 새 참가자�
 
 ### Content feature
 
+2026-10-08의 구체적인 brain/vision 개발 후보는 아래 §3a–3c를 따른다. 외부 brain checkpoint 없이 MLP/ROI Transformer를 비교한다는 방향과, 미검증 숫자·JEPA 보조 loss의 후보 상태를 구분한다.
+
 `L`: luminance/color, spatial-frequency/orientation-energy, motion-energy의 사전 지정 작은 집합. Depth는 pretrained semantics와 얽힐 수 있어 exploratory만 허용한다. 어떤 low-level feature가 무엇을 통제하는지 기록한다.
 
 `V`: frozen V-JEPA 2 checkpoint, input resolution, frame sampling, crop, layer, temporal pooling, original dimension을 manifest에 기록한다. 원래 audio가 있어도 무음 시청 조건이면 audio branch를 만들지 않는다.
@@ -157,16 +159,70 @@ Primary는 원문 caption을 유지한다. Robustness는 동결한 좁은 affect
 
 사용자 제공 7.1%/46%/10%는 검증 대기 수치다. Caption-level 비율과 video-level 비율, tokenizer, lexicon, 수작업 확인 표본을 모두 다시 기록한다.
 
+### 3a. Participant Map과 Brain Encoder 계약
+
+Participant Map은 training-only ROI 압축 벡터 `q[s,i,r,k]`를 공통 token width d에 연결하는 `h = W[s,r] q + b[s,r]`다. PCA와 구분되는 trainable linear layer이며 task loss로 encoder와 함께 학습한다. 500/620 voxel → PCA 32 → map 128은 설명용 예시다. PCA rank, width, ROI 수는 미동결이며 rank가 작은 ROI와 missing ROI의 처리 규칙을 기록한다.
+
+- Input map: 참가자·ROI 측정 좌표를 연결. Shared encoder: 그 출력들의 조합을 학습. ROI identity: 해부학적 slot 정보. 세 역할을 구분한다.
+- Map은 participant-specific 감정/성격 추정이나 검증된 functional alignment가 아니다. 같은 폭의 출력도 같은 의미 좌표임을 보증하지 않는다.
+- 서로 독립 fit한 PCA의 축을 동일하다고 가정해 shared map을 적용하지 않는다. Shared projection 대조에는 대응하는 공통 입력 좌표가 필요하다.
+- Teacher/student의 map과 encoder는 기본적으로 별도 weight다. Teacher weight를 student에 암묵적으로 초기화하지 않는다. OOF teacher마다 map/PCA/encoder/선택 scope를 기록한다.
+- 새 참가자는 calibration policy가 필요하다. Map 없이 기존 학습 참가자 ID로 우회하지 않으며 zero-shot으로 표시하지 않는다.
+
+| Config 후보 | 입력 → 출력 | 단계별 export / 제약 |
+|---|---|---|
+| `brain_encoder=mlp` | ROI map 출력 연결 → bottleneck → residual MLP → global z → teacher query projection 또는 student affect head | 입력 ROI, MLP stages, z. Global query/hidden unit을 ROI로 해석하지 않음 |
+| `brain_encoder=roi_transformer` | ROI tokens + ROI identity + valid mask → self-attention → H_B; student pooling → z | Pre-fusion H_B와 block별 token, z. Mixing 후 token은 단일 ROI 측정값이 아님 |
+| `brain_encoder=roi_transformer`, `brain_aux=roi_jepa` | 같은 backbone + masked ROI latent prediction | D23의 보조 목적 후보. 원형 Brain-JEPA checkpoint/시계열 모델과 다름 |
+
+외부 pretrained brain weight는 사용하지 않는 방향이다. MLP와 Transformer의 rank·parameter·token 수·pooling·tuning budget을 기록하며 모두 같은 split/target/관측을 사용한다. 2 blocks, width 128은 개발 출발 제안이다. 모든 후보를 본실험 전체에 실행하거나 작은 모델 우위를 선언하지 않는다. SwiFT는 현재 후보에서 제외한다. ROI 입력 perturbation과 혼합된 hidden-state perturbation을 구분해 저장한다.
+
+### 3b. ROI-masked JEPA-style objective — 미동결 후보
+
+공통 Transformer의 online path에 일부 ROI를 가리고 predictor가 masked ROI의 target latent를 맞춘다. Target encoder는 EMA update + stop-gradient 후보이며 external weights를 쓰지 않는다. Target view, mask 비율/분포, target normalization, EMA decay, alpha, collapse 검사는 D23에서 결정한다. 기존 Brain-JEPA의 Cross-Time 학습을 블록 패턴으로 그대로 실행했다고 부르지 않는다.
+
+채택 시 `L_total = L_existing + alpha * L_ROI_JEPA`; alpha=0의 동일 backbone 대조를 둔다. 기존 34-D/14-D label 및 output OOF loss 계약은 바뀌지 않는다. Distillation은 여전히 output-only이고 이 보조 목적은 brain-intrinsic 학습이다. 적용 대상(teacher, student 또는 둘 다)을 먼저 명시하고 동일 조건의 Direct/Full/Shuffled 비교를 유지한다. 현재 실행 승인이나 기본 objective 추가는 아니다.
+
+Loss는 V/S fusion 이전 brain 경로에서 계산한다. EMA encoder는 multimodal teacher와 다른 객체다. EMA/map/predictor/정규화 모두 해당 fit scope 안에서만 학습하고 recipient/inner validation/outer test를 label-free training에도 사용하지 않는다. 숨긴 ROI 값이 online 입력이나 normalization을 통해 유출되지 않도록 검사한다. EMA stop-gradient, target variance/rank, mask별 예측, nuisance 의존과 보조 loss 유무의 held-out 결과를 보고한다. Collapse나 nuisance 예측만 개선되면 기전 주장을 낮추고 목적을 수정/제외한다. Predictor와 EMA branch는 기본 inference에서 제거 가능해야 한다.
+
+### 3c. Vision extraction contract — 구체적 개발안, D24 미동결
+
+다음 값은 문서화 요청으로 기록한 개발 제안이다. Encoder code의 input/output 규격 확인과 실제 영상 QA를 구분한다. 구현 근거는 [05 §9](05_REFERENCES.md)에 기록한다.
+
+| 설정 | 제안 값 | 상태 |
+|---|---|---|
+| Backbone | Frozen V-JEPA 2 ViT-L/16, target-encoder checkpoint | 정확한 공개 weight hash/revision 확인 필요 |
+| 입력 | 공식 deterministic eval transform, 256 해상도 | Crop/resize/normalization의 실제 구현 기록 |
+| 시간 | 8 fps, 16 frames/window, start stride 1초 | 실제 제시 timestamp 기준; 프로젝트 제안 |
+| Layers | 1-based 6/12/24; code indices 5/11/23 | Early/middle/final 비교 후보; psychophysical level 아님 |
+| Layer feature | 각 block 출력, post-normalization 여부 명시, width 1024 | Classifier logits나 predictor 출력 사용 안 함 |
+| Pooling | Relative-time 4 bins × spatial 2×2; 최대 16 tokens/layer | 겹침 보정·valid-mask 필요; temporal/spatial 세밀도 손실 기록 |
+| Teacher V | 최대 48 tokens, 층별 projector, layer/time/spatial identity | Multi-layer vs final-only 개발 비교; 자동 primary 변경 아님 |
+
+단계별 절차:
+
+1. Canonical video와 실제 presentation의 구간·loop·frame timestamps를 연결한다. 파일 전체가 그대로 제시됐다고 가정하지 않는다. 서로 다른 presentation policy는 같은 content ID라도 별도 feature variant가 필요할 수 있다.
+2. Native fps가 낮은 경우의 중복 frame, timestamp nearest-neighbor 오차, time coverage를 기록한다. 긴 영상을 fixed 16 frames로 time-warp하지 않는다. Tail window를 포함하고 short clip은 지원되는 even frame 길이/최소 마지막 frame 반복을 QA한다. 임의 loop 금지.
+3. Eval/no-grad encoder에서 세 층의 patch grid를 추출한다. 패치 token의 시간·공간 순서를 공식 코드와 synthetic 영상으로 검증한다. Intermediate normalization 규칙도 hash 대상이다.
+4. Tubelet center와 window offset을 실제 시각에 연결한다. Overlap coverage로 가중하고 4×2×2 bin에 집계한다. Empty bin은 invalid로 둔다. 반복 frame, 빈 bin, short-clip 축소를 새 독립 내용으로 세지 않는다. Pooling mask만으로 앞단 padding-attention 영향을 제거했다고 주장하지 않는다.
+5. `V[content_variant,layer,time_bin,y_bin,x_bin,channel]`와 valid-mask를 저장한다. Transformer input 직전 reshape/projection과 reference feature의 정규화·pooling을 분리한다. 분석용 flatten/PCA/scaler는 fold training-only다.
+6. `L`, 각 층 V와 S를 분리 cache한다. Layerwise 1a 대비는 보조 후보이며 기존 primary family 변경은 D09/D24로 기록한다. Teacher의 multi-layer와 final-only 비교는 token 수·trainable capacity 차이를 보고한다.
+
+Feature manifest 필수 항목: checkpoint/repo revision/hash, content/presentation variant hash, 원 fps와 timestamp, sampled indices, window bounds/tail/overlap, loop/pad/duplicate 정책, crop/resize/normalization, block indices, token-grid order, layer normalization, pooling weights/bins/mask, output shape/dtype/hash. 다른 추출 규칙의 예전 cache를 같은 이름으로 재사용하지 않는다. 다운로드나 대규모 추출 실행은 이 문서 갱신에 포함하지 않는다.
+
+Low-level L은 luminance mean/variation, contrast, 색 채널 통계, orientation/spatial-frequency Gabor energy, spatiotemporal motion energy다. 색 공간·필터 bank·frame-rate/anti-aliasing·공간 구획·집계·단위를 config로 정한다. Motion energy는 V-JEPA용 8 fps만으로 충분하다고 가정하지 않는다. L의 원시야와 V의 crop 시야가 다르면 그 차이를 기록한다. Depth는 exploratory 상태 유지. L은 기본 teacher 입력/학습 loss가 아니며 layerwise low-level probe도 보조 후보다. Learned layer에서 L이 읽힌다는 것은 그 probe의 접근성이지 순수 low-level 연산의 입증이 아니다.
+
 ## 🧠 4. Teacher와 student
 
 ### Teacher 기본안
 
 ```text
-brain ROI tokens -- trainable participant map --> brain queries
+brain ROI patterns -- train-only compression --> participant map
+participant map -- trainable brain encoder --> brain queries H_B
 video features  -- trainable projector --------> visual keys/values
 caption features -- trainable projector -------> semantic keys/values
 
-fused brain state = brain residual + content-conditioned update
+fused brain state = encoded brain residual H_B + content-conditioned update
 target head reads pooled fused brain state
 ```
 
