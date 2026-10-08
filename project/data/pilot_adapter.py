@@ -155,6 +155,21 @@ def _read_participant(cohort: str, d: Path) -> tuple[pd.DataFrame, dict]:
     return sm, info
 
 
+def reserved_contents(paths: DataPaths, canon: Mapping[int, int]) -> set[str]:
+    """Canonical content IDs of MindCaptioning final-test videos (part == test).
+
+    Read from every MindCaptioning participant regardless of which cohorts or
+    participants a manifest includes. Fails rather than returning an empty set.
+    """
+    reserved = set()
+    for d in participant_dirs(paths, "mindcaptioning"):
+        sm = pd.read_csv(d / f"{d.parent.name}_samples.tsv", sep="\t", usecols=["video_id", "part"])
+        reserved |= {content_key(canon[int(v)]) for v in sm.loc[sm.part == "test", "video_id"]}
+    if not reserved:
+        raise ValueError("No MindCaptioning test content found; cannot mark reserved content")
+    return reserved
+
+
 def build_manifest(paths: DataPaths = DEFAULT_PATHS,
                    cohorts: Sequence[str] = ("mindcaptioning", "horikawa"),
                    near_duplicate_policy: str = "merge",
@@ -202,8 +217,9 @@ def build_manifest(paths: DataPaths = DEFAULT_PATHS,
     m["row_id"] = m.run_id + "/r" + m.array_row.astype(str).str.zfill(5)
     m["content_id"] = m.canonical_number.map(content_key)
     # Reserved = MindCaptioning final-test content, propagated to every row of
-    # that content in every participant and cohort.
-    reserved = set(m.loc[(m.cohort == "mindcaptioning") & (m.part == "test"), "content_id"])
+    # that content in every participant and cohort, also when MindCaptioning
+    # rows are not part of this manifest (e.g. a Horikawa-only manifest).
+    reserved = reserved_contents(paths, canon)
     m["reserved"] = m.content_id.isin(reserved)
     m["run_group"] = compute_run_groups(m)
     info["near_duplicate_policy"] = near_duplicate_policy
@@ -492,6 +508,29 @@ def _git(*args: str) -> str:
     return r.stdout.strip()
 
 
+def _dev_subset(m: pd.DataFrame, participant: str, roles: Mapping[str, int], inventory: dict) -> dict:
+    from project.code.pilot_contracts import validate_scopes
+    subset = select_dev_subset(m, participant, roles)
+    obs = to_observations(m)
+    counts = validate_scopes(obs, subset["fit"] + subset["tune"], subset["evaluate"])
+    counts_tune = validate_scopes(obs, subset["fit"], subset["tune"], subset["evaluate"])
+    rows = m[m.row_id.isin(sum(subset.values(), []))]
+    v = inventory["participants"][participant]["runz"]["shape"][1]
+    return {"participant": participant, "roles": roles,
+            "row_counts": {k: len(x) for k, x in subset.items()},
+            "target_ok_counts": {k: int((rows[rows.row_id.isin(x)].annotation_status == "ok").sum())
+                                 for k, x in subset.items()},
+            "components": {k: sorted(m.loc[m.row_id.isin(x), "run_group"].unique())
+                           for k, x in subset.items()},
+            "runs": {k: sorted(m.loc[m.row_id.isin(x), "run_id"].unique()) for k, x in subset.items()},
+            "validate_scopes_fit+tune_vs_evaluate": counts,
+            "validate_scopes_fit_vs_tune_forbid_evaluate": counts_tune,
+            "estimate": {"voxels": v, "rows": int(len(rows)),
+                         "brain_bytes_float32": int(len(rows) * v * 4),
+                         "note": "dual ridge on <=500 rows: about a minute of CPU"},
+            "row_ids": subset}
+
+
 def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot",
           pilot_participant: str = "sub-01",
           roles: Mapping[str, int] | None = None) -> dict:
@@ -530,8 +569,8 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
                 a = np.load(p, mmap_mode="r")
                 rec[variant] = {"path": str(p), "shape": list(a.shape), "dtype": str(a.dtype),
                                 "bytes": p.stat().st_size}
-                if hash_arrays == "all" or (hash_arrays == "pilot" and cohort == "mindcaptioning"
-                                            and sub == pilot_participant and variant == "runz"):
+                if hash_arrays == "all" or (hash_arrays == "pilot" and sub == pilot_participant
+                                            and variant == "runz"):
                     rec[variant]["sha256"] = sha256_file(p)
             for small in (f"{sub}_samples.tsv", f"{sub}_mask.nii.gz", "preprocessing_config.json",
                           "STATUS.json"):
@@ -580,34 +619,15 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
         m.to_csv(out / f"manifest_{label}.tsv.gz", sep="\t", index=False)
         exclusion_manifest(m).to_csv(out / f"pilot_exclusions_{label}.tsv", sep="\t", index=False)
 
-    # development subset (MindCaptioning-only manifest) -----------------------
-    mc = manifests["mindcaptioning"]
-    from project.code.pilot_contracts import validate_scopes
-    try:
-        subset = select_dev_subset(mc, f"mindcaptioning/{pilot_participant}", roles)
-        obs = to_observations(mc)
-        counts = validate_scopes(obs, subset["fit"] + subset["tune"], subset["evaluate"])
-        counts_tune = validate_scopes(obs, subset["fit"], subset["tune"], subset["evaluate"])
-        rows = mc[mc.row_id.isin(sum(subset.values(), []))]
-        v = report["inventory"]["participants"][f"mindcaptioning/{pilot_participant}"]["runz"]["shape"][1]
-        dev = {"participant": f"mindcaptioning/{pilot_participant}", "roles": roles,
-               "row_counts": {k: len(x) for k, x in subset.items()},
-               "target_ok_counts": {k: int((rows[rows.row_id.isin(x)].annotation_status == "ok").sum())
-                                    for k, x in subset.items()},
-               "components": {k: sorted(mc.loc[mc.row_id.isin(x), "run_group"].unique())
-                              for k, x in subset.items()},
-               "runs": {k: sorted(mc.loc[mc.row_id.isin(x), "run_id"].unique())
-                        for k, x in subset.items()},
-               "validate_scopes_fit+tune_vs_evaluate": counts,
-               "validate_scopes_fit_vs_tune_forbid_evaluate": counts_tune,
-               "estimate": {"voxels": v, "rows": int(len(rows)),
-                            "brain_bytes_float32": int(len(rows) * v * 4),
-                            "note": "ridge in dual form on <=500 rows is seconds of CPU; "
-                                    "run inside a scheduler allocation, not the login node"},
-               "row_ids": subset}
-    except ValueError as e:
-        dev = {"error": str(e)}
-    report["dev_subset"] = dev
+    # development subsets (one per cohort, from that cohort's own manifest) ----
+    report["dev_subsets"] = {}
+    for cohort in COHORT_DIRS:
+        participant = f"{cohort}/{pilot_participant}"
+        try:
+            report["dev_subsets"][participant] = _dev_subset(
+                manifests[cohort], participant, roles, report["inventory"])
+        except (ValueError, KeyError) as e:
+            report["dev_subsets"][participant] = {"error": str(e)}
     report["seconds"] = round(time.time() - t0, 1)
     (out / "audit.json").write_text(json.dumps(report, indent=2, default=str, ensure_ascii=False))
     return report
@@ -626,7 +646,8 @@ def main(argv: Iterable[str] | None = None) -> None:
                     pilot_participant=args.pilot_participant)
         print(json.dumps({k: rep[k] for k in rep if k.startswith("manifest_")},
                          indent=1, default=str)[:6000])
-        print(json.dumps(rep["dev_subset"], indent=1, default=str)[:3000])
+        print(json.dumps({p: {k: v for k, v in d.items() if k != "row_ids"}
+                          for p, d in rep["dev_subsets"].items()}, indent=1, default=str))
 
 
 if __name__ == "__main__":

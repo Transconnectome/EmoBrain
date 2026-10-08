@@ -151,6 +151,12 @@ class ManifestTests(AdapterFixture):
         self.assertIn("horikawa", set(reserved.cohort))
         self.assertTrue(reserved[reserved.part == "train"].flag_test_video_in_train_session.any())
 
+    def test_reserved_marked_in_horikawa_only_manifest(self):
+        m, info = self.manifest(("horikawa",))
+        self.assertEqual(set(m.cohort), {"horikawa"})
+        self.assertEqual(set(m.loc[m.reserved, "content_id"]), {pa.content_key(5)})
+        self.assertEqual(info["n_reserved_contents"], 1)
+
     def test_run_groups_link_runs_through_shared_content(self):
         m, _ = self.manifest(("horikawa",))
         g = m.set_index("run")["run_group"]
