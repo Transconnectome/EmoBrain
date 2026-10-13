@@ -26,7 +26,7 @@ N_VOX = 6
 
 def _write_participant(root: Path, cohort_dir: str, sub: str, rows: list[dict],
                        constant_voxels: dict | None = None, config_extra: dict | None = None):
-    d = root / cohort_dir / sub / "v2"
+    d = root / cohort_dir / sub / {"MC": "v2", "HK": "v3"}[cohort_dir]  # pa.RESPONSE_VERSIONS
     (d / "qc").mkdir(parents=True)
     sm = pd.DataFrame(rows)
     sm.insert(0, "row", np.arange(len(sm)))
@@ -191,13 +191,26 @@ class ManifestTests(AdapterFixture):
     def test_preprocessing_id_changes_with_config(self):
         m, _ = self.manifest(("horikawa",))
         before = m.preprocessing_id.iloc[0]
-        d = self.paths.cohort_roots["horikawa"] / "sub-01" / "v2"
+        d = self.paths.cohort_roots["horikawa"] / "sub-01" / "v3"
         cfg = json.loads((d / "preprocessing_config.json").read_text())
         cfg["sdc_existing"] = "syn-sdc-candidate"
         (d / "preprocessing_config.json").write_text(json.dumps(cfg))
         after = self.manifest(("horikawa",))[0].preprocessing_id.iloc[0]
         self.assertNotEqual(before, after)
         self.assertIn("sdc=syn-sdc-candidate", after)
+
+    def test_sdc_field_overrides_legacy_sdc_existing(self):
+        # Horikawa v3: legacy sdc_existing still "none", SyN-SDC described in sdc.
+        d = self.paths.cohort_roots["horikawa"] / "sub-01" / "v3"
+        cfg = json.loads((d / "preprocessing_config.json").read_text())
+        cfg["sdc"] = "fMRIPrep fieldmap-less SyN SDC; phase-encoding axis A-P assumed"
+        (d / "preprocessing_config.json").write_text(json.dumps(cfg))
+        pid = self.manifest(("horikawa",))[0].preprocessing_id.iloc[0]
+        self.assertIn("sdc=fieldmap-less-syn", pid)
+
+    def test_response_versions_select_cohort_folders(self):
+        self.assertEqual(pa.response_dir(self.paths, "horikawa", "sub-01").name, "v3")
+        self.assertEqual(pa.response_dir(self.paths, "mindcaptioning", "sub-01").name, "v2")
 
 
 class AnnotationTests(AdapterFixture):

@@ -53,6 +53,9 @@ REPO = Path(__file__).resolve().parents[2]
 SCRATCH = Path("/pscratch/sd/s/sjmoon")
 
 COHORT_DIRS = {"mindcaptioning": "MindCaptioning", "horikawa": "Horikawa"}
+# Final response versions (Horikawa/PREPROCESSING_FINAL.md, 2026-10-13): Horikawa v3 is
+# v2 processing on fieldmap-less SyN-SDC fMRIPrep input; Horikawa v2 is record-only.
+RESPONSE_VERSIONS = {"mindcaptioning": "v2", "horikawa": "v3"}
 BRAIN_VARIANTS = {"runz": "blocks_common36_runz", "raw": "blocks_common36"}
 TARGET_SPACES = ("cat34", "affect14")
 AFFECT14 = (
@@ -72,6 +75,7 @@ class DataPaths:
     captions_csv: Path
     video_features: Path
     crosswalk_tsv: Path
+    response_versions: Mapping[str, str] = field(default_factory=lambda: dict(RESPONSE_VERSIONS))
 
 
 DEFAULT_PATHS = DataPaths(
@@ -101,8 +105,21 @@ def _read_tsv(path: Path) -> pd.DataFrame:
 
 
 def participant_dirs(paths: DataPaths, cohort: str) -> list[Path]:
-    root = Path(paths.cohort_roots[cohort])
-    return sorted(p / "v2" for p in root.glob("sub-*") if (p / "v2").is_dir())
+    root, version = Path(paths.cohort_roots[cohort]), paths.response_versions[cohort]
+    return sorted(p / version for p in root.glob("sub-*") if (p / version).is_dir())
+
+
+def response_dir(paths: DataPaths, cohort: str, sub: str) -> Path:
+    return Path(paths.cohort_roots[cohort]) / sub / paths.response_versions[cohort]
+
+
+def _sdc_label(config: Mapping) -> str:
+    """Distortion-correction label. Horikawa v3 describes SyN-SDC in ``sdc`` while its
+    legacy ``sdc_existing`` field still reads "none"; prefer ``sdc`` when present."""
+    if "sdc" in config:
+        text = str(config["sdc"])
+        return "fieldmap-less-syn" if "fieldmap-less" in text.lower() else text.split(";")[0].replace(" ", "-")
+    return str(config.get("sdc_existing", "unknown")).replace(" ", "-")
 
 
 def preprocessing_id(cohort: str, config: Mapping) -> str:
@@ -112,7 +129,7 @@ def preprocessing_id(cohort: str, config: Mapping) -> str:
     change in SDC, response estimator, mask or atlas reuse changes the ID.
     """
     blob = json.dumps(config, sort_keys=True, separators=(",", ":")).encode()
-    sdc = str(config.get("sdc_existing", "unknown")).replace(" ", "-")
+    sdc = _sdc_label(config)
     return f"{cohort}:{config.get('policy', 'unknown')}:sdc={sdc}:{hashlib.sha256(blob).hexdigest()[:12]}"
 
 
@@ -430,7 +447,7 @@ def load_student_batch(m_rows: pd.DataFrame, paths: DataPaths = DEFAULT_PATHS,
     if "annotation_status" not in m_rows:
         raise ValueError("attach_annotation() before loading targets")
     cohort, sub = m_rows.cohort.iloc[0], m_rows.subject.iloc[0]
-    d = Path(paths.cohort_roots[cohort]) / sub / "v2"
+    d = response_dir(paths, cohort, sub)
     arr = np.load(d / f"{sub}_{BRAIN_VARIANTS[brain_variant]}.npy", mmap_mode="r")
     rows = m_rows.array_row.to_numpy()
     if rows.max() >= arr.shape[0]:
@@ -491,7 +508,7 @@ def load_content_features(m_rows: pd.DataFrame, paths: DataPaths = DEFAULT_PATHS
 def voxel_ijk(paths: DataPaths, cohort: str, sub: str) -> np.ndarray:
     """Column -> voxel coordinates (mask order is numpy C order per preprocessing record)."""
     import nibabel as nib
-    d = Path(paths.cohort_roots[cohort]) / sub / "v2"
+    d = response_dir(paths, cohort, sub)
     mask = np.asarray(nib.load(d / f"{sub}_mask.nii.gz").dataobj) > 0
     return np.argwhere(mask)
 
@@ -541,6 +558,7 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
                     "environment": {"python": sys.executable, "version": sys.version.split()[0],
                                     "numpy": np.__version__, "pandas": pd.__version__,
                                     "host": platform.node()},
+                    "response_versions": dict(paths.response_versions),
                     "git": {"branch": _git("rev-parse", "--abbrev-ref", "HEAD"),
                             "commit": _git("rev-parse", "HEAD"),
                             "dirty": _git("status", "--porcelain").splitlines()}}
