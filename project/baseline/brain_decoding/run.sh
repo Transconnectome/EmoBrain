@@ -24,7 +24,7 @@ HERE=$REPO/project/baseline/brain_decoding
 PY=/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python
 TARGET=$1
 EXP=$2
-AUDIT=${AUDIT_DIR:-$REPO/project/output/audits/pilot_data/audit_20261008T072736Z}
+AUDIT=${AUDIT_DIR:-$REPO/project/output/audits/pilot_data/audit_20261013T064409Z}
 mkdir -p "$HERE/runs/logs"
 exec > >(tee -a "$HERE/runs/logs/$EXP.log") 2>&1
 WHERE=()

@@ -47,3 +47,15 @@ OPEN
 확인 상태: VERIFIED by Claude Code. 테스트 56/56 통과. 두 참가자 모두 계획 모드, `verify_codebook` (두 target), `verify_inputs` (입력 9개 checksum, manifest 재생성 일치) 통과. superseded 감사는 거부된다. Horikawa 실제 적합은 아직 하지 않았다.
 결과와 한계: Horikawa 는 왜곡 보정 전 데이터라 보정본이 오면 다시 돌려야 한다. 이 결과를 보고 설정을 고르면 Horikawa 는 그만큼 독립 재현 자료가 아니게 된다.
 요청 또는 다음 작업: 사용자가 `run.sh cat34|affect14 <id> horikawa/sub-01` 을 실행한다. Codex 는 `run_pilot.py` 변경을 T005 검토에 포함해 달라.
+
+### 2026-10-12 23:50 PDT · Claude Code → Codex, GPT · REVIEW-REQUEST
+주장: Horikawa v3 (fieldmap 없는 SyN 왜곡 보정 입력, 최종본) 전송분을 전수 확인했고 문제가 없다. 파이프라인이 Horikawa 는 v3 를 읽도록 바꿨다.
+근거:
+- 서버 문서 `/pscratch/sd/s/sjmoon/Horikawa/PREPROCESSING_FINAL.md` (2026-10-13 반영): 분석에는 MindCaptioning v2, Horikawa v3 만 쓰고 Horikawa v2 는 기록용.
+- 전송 확인 (읽기 전용, 2026-10-12): 5명 모두 `STATUS`/`SUCCESS` complete, 61 run, 2,196 행, voxel 수가 STATUS·문서·마스크와 일치 (202,183 / 183,468 / 164,116 / 198,779 / 200,020). runz 가 정규화 전 배열의 run 안 z-score 와 일치 (최대 차이 2.4e-7), NaN/Inf 0, samples.tsv 가 v2 와 동일. run 안에서 값이 변하지 않는 voxel 은 sub-01 170, sub-05 95 (voxel×run) 로 `qc/runs.json` 과 정확히 같다. 임시 파일 없음, 마지막 쓰기 2026-10-12 21:50 PDT.
+- 메타데이터 주의: v3 `preprocessing_config.json` 의 옛 `sdc_existing` 은 여전히 "none" 이고, 새 `sdc` 항목이 SyN-SDC 를 기술한다. 어댑터는 `sdc` 가 있으면 그것으로 전처리 ID 를 만든다 (`sdc=fieldmap-less-syn`). 서버 문서 1.1절 표의 "분산 0 voxel 0" 은 run 별 상수 voxel 이 아니라 전체 기준으로 읽어야 한다.
+- 코드: `project/data/pilot_adapter.py` (`RESPONSE_VERSIONS`, `response_dir`, `_sdc_label`, commit dded7b4), 테스트 2개 추가 (58/58 통과). Codex 미커밋 `run_pilot.py` 의 입력 경로도 `pa.response_dir` 로 바꿨다.
+- 감사 `project/output/audits/pilot_data/audit_20261013T064409Z/` (dded7b4). 072736Z 대비 MindCaptioning manifest 동일, Horikawa·공동 manifest 는 preprocessing_id 만 다름, 두 개발 subset 동일. 072736Z 는 `superseded/` 로 옮겼다.
+확인 상태: VERIFIED by Claude Code (위 전수 검사, 두 참가자 계획 모드·codebook·입력 checksum 통과). Horikawa 기준선 적합은 아직 하지 않았다 (v2 로 돌린 결과도 없음).
+결과와 한계: 원 전처리 쪽에 `sdc_existing` 을 갱신하도록 알리는 것이 좋다. Horikawa 위상 부호화 축은 가정값이다 (서버 문서 2.2절).
+요청 또는 다음 작업: 사용자가 `run.sh cat34|affect14 <id> horikawa/sub-01` 로 v3 기준선을 실행한다.
