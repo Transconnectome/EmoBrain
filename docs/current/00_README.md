@@ -1,6 +1,18 @@
 # EmoBrain 서버 AI 인수인계
 
-_2026-10-06 · 유지·편집하는 단일 연구 기준 · 결과 보고서가 아닌 실행 계획_
+_2026-10-19 · 유지·편집하는 단일 연구 기준 · 결과 보고서가 아닌 실행 계획_
+
+---
+
+## Latest framing / 최신 구성 — 2026-10-19
+
+**English.** The current paper has concise EmoViS-inspired preliminary analyses followed by **Study 1: joint brain–visual–semantic latent learning and interpretation**, and **Study 2: teacher–student transfer to brain-only prediction and validation**. Distillation is the main transfer strategy; fine-tuning is a meaningful comparator, not an already failed method. The former Analysis 1–3 identifiers in downstream specifications are method references, not three equally weighted studies. Their scientific priorities must be read through this update.
+
+D25 (dimension-wise rating QC/evaluation), D26 (conditional visual/caption contributions) and D27 (layer-wise affect probes) are documented recommendations/review candidates, **not newly approved primary analyses**. See the [decision and independent-review packet](04_DECISION_REGISTER.md#current-framing-and-preliminary-analysis-review--2026-10-19). Existing losses, splits, cohort roles and execution permissions are unchanged. Personal AI Lab must pin the updated commit for a new review; prior frozen packets do not update automatically. No review dispatch or experimental result is claimed.
+
+**한국어.** 현재 논문은 **간결한 EmoViS 기초 분석 → Study 1: brain–visual–semantic joint latent 학습·해석 → Study 2: teacher–student의 brain-only 전달·예측·검증**으로 구성한다. 증류가 주 전달 전략이고 fine-tuning은 유의미한 비교 방법이지 이미 실패한 방법이 아니다. 아래 및 다른 명세에 남은 Analysis 1–3은 방법 참조용 번호이며 동등한 연구 세 개를 뜻하지 않는다. 과학적 비중은 이번 갱신을 우선한다.
+
+D25(차원별 평정 QC·평가), D26(시각·caption 조건부 기여), D27(층별 정서 probe)은 기록된 권고/검토 후보이며 **새 primary로 승인되지 않았다**. [결정 및 독립 검토 요청](04_DECISION_REGISTER.md#current-framing-and-preliminary-analysis-review--2026-10-19)에 근거·반례·최소안이 있다. 기존 loss·split·cohort 역할·실행 권한은 바꾸지 않는다. Personal AI Lab의 다음 검토는 갱신 커밋을 고정해야 하며 과거 packet은 자동 갱신되지 않는다. 검토 전달 완료나 실험 결과를 주장하지 않는다.
 
 ---
 
@@ -8,13 +20,13 @@ _2026-10-06 · 유지·편집하는 단일 연구 기준 · 결과 보고서가 
 
 이 연구는 **감정 예측 성능 경쟁이 아니라, 뇌–장면 내용 관계를 모델이 무엇으로 학습하고 실제 예측에 어떻게 사용하는지 검정하는 연구**다. Teacher는 학습 시 brain + video + caption을 받고, student는 학습·추론 시 fMRI만 입력받는다. Teacher의 출력으로 student를 안내하지만, 그 사실만으로 teacher의 joint representation이 student에 전달되었다고 간주하지 않는다.
 
-세 분석은 다음 질문으로 이어진다.
+현재 구성과 기존 방법의 대응은 다음과 같다.
 
-1. 장면의 시각·의미 표상이 새로운 자극의 뇌 반응을 설명하며, 그 설명력은 정서 주석의 설명력과 어떻게 겹치고 구별되는가? (1a·1b)
-2. Teacher와 brain-only student가 어떤 brain–content 관계를 학습하고 사용하며, 발견한 내용 관련 표현이 독립 뇌 측정에서도 지지되는가? (2a–d)
-3. 그 표현에서 normative affect profile을 읽을 수 있으며, 다른 참가자 cohort에서도 재현되는가?
+1. **기초 분석:** EmoViS의 내용–정서 관계와 제한된 실제 뇌 대응. 기존 Analysis 1a/1b의 방법을 재사용하되 범위·통계 family는 축소 검토한다.
+2. **Study 1:** Multimodal 모델의 joint latent에서 학습된 brain–visual–semantic 관계와 입력 사용을 해석한다.
+3. **Study 2:** Teacher–student 증류가 brain-only 표상·내용 접근·정서 예측에 무엇을 전달하는지 비교·검증한다. 기존 student probe·readout은 이 단계에 연결한다.
 
-본 전달본은 2026-10-04 패키지의 업데이트다. 이전 폴더·ZIP과 원본 4종은 보존했다. 서버에는 이 날짜의 패키지를 전달한다. Analysis 1b와 2d 보강 방향은 승인되었지만, 세부 구현·primary family·통계 동결은 아직 필요하다. Affect-neighborhood retrieval은 후속 사용자 요청으로 Analysis 2의 정식 보조 분석에 포함한다. 채택은 승인되었고 거리·후보 수·null 및 평가 규칙은 D18에서 동결한다. Primary 승격이나 실행 완료를 뜻하지 않는다.
+과거 1b/2d 보강 및 affect-neighborhood retrieval의 채택 이력은 결정 기록에 보존한다. 모든 기존 분석을 동일 비중으로 자동 실행하는 것은 아니다. 독립 neural validation의 구체적 배치·실행 범위와 cohort transfer/replication 설정은 추가 검토가 필요하다. 이번 갱신으로 과거 승인 이력이나 실제 사전등록을 소급 변경하지 않는다.
 
 서버의 실제 코드·데이터·로그는 직접 확인하지 않았다. 이후 GitHub main의 정적 코드 검토는 수행했으며 [구현 상태](08_IMPLEMENTATION_STATUS.md)에 범위를 기록했다. 사용자가 전달한 전처리 산출물 보고는 보고된 사실이지 서버 재검증 결과가 아니다. 기존 체크리스트의 미체크 상태를 ‘미실행’의 증거로 취급하지 말고, 먼저 서버 현황을 조사한다.
 
