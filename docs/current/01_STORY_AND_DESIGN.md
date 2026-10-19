@@ -1,6 +1,16 @@
 # EmoBrain 전체 연구 흐름: 질문에서 모델, 해석과 논문까지
 
-_문석진 연구자용 전체 설명서 · 2026-10-08 · 현재 설계를 설명하는 문서이며 실험 결과 보고서는 아님_
+_문석진 연구자용 전체 설명서 · 2026-10-19 · 현재 설계를 설명하는 문서이며 실험 결과 보고서는 아님_
+
+## Latest framing / 최신 구성 — 2026-10-19
+
+**English.** The current paper has concise EmoViS-inspired preliminary analyses followed by **Study 1: joint brain–visual–semantic latent learning and interpretation**, and **Study 2: teacher–student transfer to brain-only prediction and validation**. Distillation is the main transfer strategy; fine-tuning is a meaningful comparator, not an already failed method. The former Analysis 1–3 identifiers in downstream specifications are method references, not three equally weighted studies. Their scientific priorities must be read through this update.
+
+D25 (dimension-wise rating QC/evaluation), D26 (conditional visual/caption contributions) and D27 (layer-wise affect probes) are documented recommendations/review candidates, **not newly approved primary analyses**. See the [decision and independent-review packet](04_DECISION_REGISTER.md#current-framing-and-preliminary-analysis-review--2026-10-19). Existing losses, splits, cohort roles and execution permissions are unchanged. Personal AI Lab must pin the updated commit for a new review; prior frozen packets do not update automatically. No review dispatch or experimental result is claimed.
+
+**한국어.** 현재 논문은 **간결한 EmoViS 기초 분석 → Study 1: brain–visual–semantic joint latent 학습·해석 → Study 2: teacher–student의 brain-only 전달·예측·검증**으로 구성한다. 증류가 주 전달 전략이고 fine-tuning은 유의미한 비교 방법이지 이미 실패한 방법이 아니다. 아래 및 다른 명세에 남은 Analysis 1–3은 방법 참조용 번호이며 동등한 연구 세 개를 뜻하지 않는다. 과학적 비중은 이번 갱신을 우선한다.
+
+D25(차원별 평정 QC·평가), D26(시각·caption 조건부 기여), D27(층별 정서 probe)은 기록된 권고/검토 후보이며 **새 primary로 승인되지 않았다**. [결정 및 독립 검토 요청](04_DECISION_REGISTER.md#current-framing-and-preliminary-analysis-review--2026-10-19)에 근거·반례·최소안이 있다. 기존 loss·split·cohort 역할·실행 권한은 바꾸지 않는다. Personal AI Lab의 다음 검토는 갱신 커밋을 고정해야 하며 과거 packet은 자동 갱신되지 않는다. 검토 전달 완료나 실험 결과를 주장하지 않는다.
 
 **학위논문 가제**
 
@@ -8,18 +18,18 @@ Development and Validation of a Multimodal Learning Framework for Modeling and I
 
 멀티모달 학습을 통한 정서 관련 뇌 표상의 모델링 및 해석 프레임워크 개발과 검증
 
-이 문서는 연구의 전체 논리를 한 곳에서 이해하기 위한 설명서다. 0절에서 실제 실행 순서를 먼저 보고, 1–7절에서 질문·세 분석·설계 이유·주장 범위를 읽은 뒤, 8–12절에서 데이터 준비·수식·OOF·사후 분석을 구체적으로 이해하면 된다. 설명용 케이크 장면과 숫자는 실제 실험 결과가 아닌 가상 예시다.
+이 문서는 연구의 전체 논리를 한 곳에서 이해하기 위한 설명서다. 0절에서 실제 실행 순서를 먼저 보고, 1–7절에서 질문·연구 구성·설계 이유·주장 범위를 읽은 뒤, 8–12절에서 데이터 준비·수식·OOF·사후 분석을 구체적으로 이해하면 된다. 설명용 케이크 장면과 숫자는 실제 실험 결과가 아닌 가상 예시다.
 
 | 읽을 부분 | 답하는 질문 |
 |---|---|
 | 0–1. 전체 지도와 연구 질문 | 우리는 왜 이 연구를 하며 무엇을 주장하려 하나? |
-| 2. 세 분석 | 실제 뇌 → 학습된 모델 → 정서 readout이 어떻게 연결되나? |
+| 2. 기초 분석과 두 연구 | 실제 뇌 → 학습된 모델 → 정서 readout이 어떻게 연결되나? |
 | 3–6. 모델·통제·학습 목표 | 각 입력과 학습 전략을 왜 쓰나? |
 | 7. 해석 | 어떤 결과에서 무엇까지 주장할 수 있나? |
 | 8. 데이터 준비 | 원자료에서 자극별 brain/visual/semantic/affect가 어떻게 만들어지나? |
 | 9. 모델과 loss 상세 | Participant Map, Cross-Attention, Joint Latent와 loss 수식은 무엇인가? |
 | 10. OOF 상세 | Teacher의 답을 어떻게 만들어 student에 전달하나? |
-| 11. 세 분석의 실제 계산 | Encoding·CKA·retrieval·perturbation·독립 뇌 검증을 어떻게 하나? |
+| 11. 기존 방법 ID별 실제 계산 | Encoding·CKA·retrieval·perturbation·독립 뇌 검증을 어떻게 하나? |
 | 12. 실행과 완성 | 지금부터 무엇을 순서대로 하고 어떤 결과물로 논문을 완성하나? |
 
 ---
@@ -34,47 +44,18 @@ Development and Validation of a Multimodal Learning Framework for Modeling and I
 
 ### 논문의 흐름과 실행 순서
 
-```mermaid
-flowchart TB
-    accTitle: EmoBrain complete study flow
-    accDescr: Audited data support direct neural encoding and teacher-student training. The same trained student supports representation analysis and affect readout; independent neural evidence contributes to the final interpretation.
-    data_ready["데이터 연결 · 전처리 QA · 분할"] --> neural_encoding["Analysis 1: 실제 뇌 대응"]
-    data_ready --> joint_training["B/V/S Teacher · Brain-only Student 학습"]
-    joint_training --> model_analysis["Analysis 2: 표상 내용 · 모델 내 사용"]
-    joint_training --> affect_readout["Analysis 3: 정서 예측 · 참가자 재현"]
-    model_analysis --> neural_validation["Analysis 2d: 독립 뇌 검증"]
-    neural_encoding --> synthesis["뇌–내용–정서 관계의 최종 해석"]
-    neural_validation --> synthesis
-    affect_readout --> synthesis
-    classDef neural fill:#dbeafe,stroke:#2563eb,color:#1e3a5f
-    classDef model fill:#ffedd5,stroke:#ea580c,color:#7c2d12
-    classDef readout fill:#dcfce7,stroke:#16a34a,color:#14532d
-    class neural_encoding neural
-    class joint_training,model_analysis,neural_validation model
-    class affect_readout readout
-```
+**간결한 기초 분석 → Study 1의 joint latent 해석 → Study 2의 brain-only 전달·검증**이 논문의 흐름이다.
 
-논문은 Analysis 1 → 2 → 3으로 설명하지만, 실제로는 **분석 2와 3이 같은 teacher/student 학습 결과를 공유한다.** 모델을 고정하고 안에 무엇이 있는지 조사하면 분석 2, 그 모델의 원래 affect output을 평가하면 분석 3이다. 분석 2를 마친 뒤 새로운 decoding architecture를 추가하는 것이 아니다.
+1. 데이터 연결·QC·canonical stimulus/run 분할을 먼저 확인한다.
+2. 명시적인 저수준 특징 L, frozen 영상 표현 V, caption 표현 S와 34D/14D 평정을 준비한다.
+3. 기초 분석의 최소 범위를 결정한다. D25–D27의 차원별·층별 후보는 독립 검토 후 채택 범위와 평가 계획을 정하며, 검토 기록만으로 실행하지 않는다.
+4. B/V/S joint 모델을 학습하고 joint latent의 내용·geometry·입력 사용을 조사한다. Brain을 입력했다는 사실만으로 brain-grounded라고 결론 내리지 않는다.
+5. 허용된 학습 범위에서 nested OOF teacher 출력을 생성하고 brain-only student를 학습한다.
+6. Direct brain-only 및 적절한 fine-tuning 비교를 통해 증류가 남기는 표상·내용·정서 readout 차이를 평가한다. Fine-tuning 실패를 사전에 결과로 정하지 않는다.
+7. 독립 뇌 검증과 두 번째 cohort 평가의 구체 방식은 D13/D17 및 데이터 경계를 확인한 뒤 적용한다. 공유 자극의 다른 참가자는 새로운 자극 분포 검증과 구별한다.
+8. 양성·음성 결과와 대안 설명을 함께 종합한다.
 
-Analysis 1의 encoding model은 별도 분석 도구다. 그 가중치를 teacher에 반드시 넣는 구조가 아니며, encoding이 좋은 ROI만 사후 골라 후속 모델에 넣도록 정해진 것도 아니다. 데이터 준비가 끝나면 encoding과 모델 구현을 일부 병행할 수 있다.
-
-실제 작업을 한 줄씩 이어 쓰면 다음과 같다.
-
-1. 원 fMRI·영상·caption·annotation을 확보한다.
-2. 전처리와 QC를 검토하고 자극당 fMRI 공간 패턴을 만든다.
-3. 각 brain observation을 정확한 영상·caption·label에 연결한다.
-4. 같은 내용·반복 회차·run 구조를 고려해 학습과 평가를 나눈다.
-5. Frozen video/caption feature와 저수준 통제를 준비한다.
-6. Analysis 1에서 내용과 정서 주석으로 실제 뇌를 예측한다.
-7. 허용된 학습 범위 안에서 B/V/S teacher를 학습하고 뇌 사용을 검사한다.
-8. Recipient 자극을 보지 않은 teacher의 OOF 예측을 만든다.
-9. 원 label과 OOF 출력으로 brain-only student를 학습한다.
-10. 학습된 student를 고정해 geometry·content·model use를 조사한다.
-11. 같은 student의 held-out affect prediction을 평가한다.
-12. 내용 관련 모델 표현을 독립 뇌 자료에 연결하고 두 번째 cohort에서 재현을 평가한다.
-13. 각 결과가 지지하는 주장과 남은 대안 설명을 함께 논문으로 정리한다.
-
-이 순서는 실행 의존성을 설명한다. 앞 단계의 양성 결과만 남기고 나머지를 숨기는 gate가 아니다. 신호가 약하거나 결과가 연결되지 않는 경우도 조사·보고한다.
+기초 분석의 encoding 가중치를 teacher에 반드시 넣거나, encoding이 잘된 ROI만 사후 선택하는 구조가 아니다. 기존 상세 절의 Analysis 1/2/3 번호는 계산 방법을 추적하기 위해 유지한다. 특히 기존 Analysis 2의 teacher joint 해석은 Study 1, student의 전이·probe·사용 평가는 Study 2에 해당한다.
 
 ---
 
@@ -111,49 +92,52 @@ Kragel et al.의 visual emotion schema 연구를 개념적 출발점으로 삼�
 - Attention map 또는 activation patching만으로 인간 뇌의 인과기제를 찾았다는 주장
 - 같은 영상의 다른 참가자 cohort를 새로운 자극 분포에 대한 독립 검증이라고 부르는 것
 
-## 📚 2. 논문의 세 단계
+## 📚 2. 기초 분석과 두 연구
 
-```mermaid
-flowchart LR
-    accTitle: EmoBrain three stage study logic
-    accDescr: Neural encoding tests correspondence, model analysis tests learned content and computational use, and independent affect readouts test functional access and replication.
-    neural_encoding["Analysis 1: content–affect neural correspondence"] --> learned_relations["Analysis 2: learned relations, use and neural validation"]
-    learned_relations --> affect_readout["Analysis 3: affect readout and replication"]
-```
+### 기초 분석 — EmoViS의 질문을 간결하게 유지
 
-### Analysis 1 — 실제 뇌에서 내용과 정서의 대응
+질문은 “정서 평정의 구조와 장면의 시각·상황 정보는 어떻게 연결되며, 이러한 표현은 측정된 뇌 반응과 어떻게 대응하는가?”다. 독립적인 대형 Study를 추가하기보다 모델 연구의 동기와 비교 기준을 제공한다.
 
-Analysis 1a는 기존 content encoding이며, 1b는 2026-10-06 승인된 보강이다. 모델 내부의 관계가 아니라 측정된 뇌 반응에서 content와 affect annotation의 연결을 직접 평가한다.
+전체 profile의 관계만으로 충분한지 검토하기 위해 다음 후보를 기록한다. **D25–D27의 최종 범위·지표·통계 계획은 독립 검토 대기이며 primary 승인이나 실행 결과가 아니다.**
 
-질문은 ‘어떤 내용 좌표가 held-out 자극의 뇌 반응을 예측하는가?’다. Low-level visual control `L`, frozen video feature `V`, frozen caption feature `S`를 사용해 `L`, `L+V`, `L+V+S`의 cross-validated encoding을 비교한다. `L+S`는 visual의 조건부 기여까지 대칭적으로 보려는 경우의 사전 지정 보조 비교다.
+- **D25:** 34D·14D 각각의 분포·변산·상관과 차원별 예측 결과. 전체 성능이 일부 차원에 의해 지배되는지 확인하는 기본 평가로 권고한다. 가용한 경우 평정 신뢰도도 확인한다.
+- **D26:** L, L+V, L+S, L+V+S의 같은 held-out 자극 예측을 비교해, 각 정서 차원에서 다른 표현에 조건부인 추가 정보를 묻는다. “감각/의미가 감정을 몇 % 생성한다”는 분석이 아니다.
+- **D27:** 같은 frozen 시각 모델의 소수 초기·중간·후기층을 비교하는 파일럿 후보. 명시적 L은 별도로 두며 초기층=저수준·후기층=의미로 가정하지 않는다.
 
-핵심 대비는 `L+V − L`과 `L+V+S − (L+V)`다. 각 모델의 held-out prediction을 비교하며, low-level baseline을 모든 중첩 모델에 유지한다. 이로써 단순한 밝기·색·움직임 통계와 비교한 추가 설명력을 묻는다. Encoding과 decoding은 서로 다른 질문에 답한다.[^3]
+각 평정 차원은 전체 적격 영상의 연속 값으로 다룬다. 기쁨 영상 등을 threshold로 골라 독립 범주로 비교하지 않는다. 34D와 14D는 합치지 않는다. Feature overlap, caption 감정어, 평정 특성, 용량·pooling 차이가 해석에 주는 영향을 검토한다.
 
-1b에서는 content C=[V,S], normative affect E, 공통 low-level/nuisance baseline G로 `G`, `G+C`, `G+E`, `G+C+E`가 동일 held-out fMRI를 예측하는지 비교한다. 34-D와 14-D E는 별도 실행한다. Content·affect의 조건부 증분과 공유 예측 성분을 구분하며, signed out-of-sample score와 동일 분모를 사용한다. 음수 성분을 0으로 잘라 생물학적 구성 비율로 그리지 않는다. Primary/secondary와 family는 기존 1a 대비를 포함해 다시 동결한다. 근거·산식·제약은 [보강 문서](06_NEURAL_VALIDATION_AMENDMENT.md)에 있다.[^10]
+기존 1a/1b의 실제 뇌 encoding·공유/조건부 예측력 비교는 제한된 연결 분석의 방법 자원이다. 별도 신경 대응 없이 평정 예측만으로 뇌에 대한 결론을 내리지 않는다. 차원 × layer × ROI 전체 조합을 자동 추가하지 않으며, 추가 가치가 없는 후보는 본문에서 제외할 수 있다. 여섯 질문 rationale와 반례·독립 검토 요청은 [D25–D27](04_DECISION_REGISTER.md#current-framing-and-preliminary-analysis-review--2026-10-19)에 있다.
 
-1a에 성공하면 ‘검사한 content representation이 뇌 반응과 대응한다’고 말할 수 있다. 1b의 공유 설명력은 normative-affect-associated brain response와의 예측적 중첩이지 감정 생성의 인과적 매개가 아니다. 성공만으로 뇌가 해당 network를 구현한다거나 그 정보가 정서 예측에 사용된다고 말할 수는 없다. 다음 분석이 필요한 이유다.
+### Study 1 — Joint brain–visual–semantic 표상의 학습과 해석
 
-### Analysis 2 — 학습된 관계·모델 내 사용·독립 뇌 검증
+중심 질문은 “뇌·영상·caption을 함께 학습한 모델은 이 세 정보의 어떤 관계를 joint latent에 표현하며, 실제 예측에서 무엇을 사용하는가?”다.
 
-이 분석이 논문의 중심이다. Teacher의 입력은 `B+V+S`, student의 입력은 `B`다. Teacher는 학습 시 추가 정보를 제공하는 장치이며, test-time 접근이 없는 정보로 학습을 안내하는 발상은 privileged information/distillation과 연결된다.[^4]
+Joint 모델은 이후 Study 2의 teacher 역할을 맡지만, 여기서는 student를 위한 출력 생성기로만 취급하지 않는다. **Joint latent 자체가 중심 분석 대상**이다.
 
-기존 모델 내부 분석 2a–c와 실제 뇌 검증 2d를 분리한다. Teacher–student 학습은 Analysis 2·3의 공통 준비이지 분석의 결론 자체가 아니다. 먼저 다음 세 질문을 다룬다.
+- **표현된 관계:** 제한된 held-out probe/retrieval과 geometry 비교로 어떤 내용이 접근 가능한지 조사한다. CKA는 전체 유사성 요약이지 의미 관계나 사용의 단독 증거가 아니다.
+- **입력의 사용:** VS 대조, content를 고정한 brain swap, 적절한 null을 갖춘 선택적 perturbation 등으로 모델이 실제 뇌 입력을 이용하는지 검정한다. 구체 실험은 기존 rationale와 미확정 설정을 확인한다.
+- **정서와의 연결:** 정서 프로필이 가까운 장면에서도 내용이 구별되는지와 그 정보가 affect readout에 어떻게 연결되는지 묻는다. 단순한 label 재표현과 구분한다.
 
-1. **Teacher 형성:** video와 caption만으로 해결하지 않고 실제 fMRI에 의존하는가? 올바른 brain–content pairing이 frozen teacher의 표현과 output을 바꾸는가?
-2. **Student 내용:** output guidance를 받은 brain-only student에서 visual·semantic 내용이 Direct 및 Shuffled-guided보다 더 잘 읽히는가?
-3. **모델 내 사용:** 사전 정의된 일부 brain token/ROI나 내부 경로를 교란했을 때 content retrieval과 affect output이 함께 바뀌는가?
+Affect-supervised joint latent를 가공하지 않은 자연적 뇌 geometry라고 부르지 않는다. Brain 입력 포함이나 좋은 예측 성능만으로 brain–content 관계가 학습되었다고 인정하지 않는다. 표상에 접근 가능한 정보와 예측에 실제로 사용되는 정보는 별도 검정한다. 기존 student용 probe/perturbation을 teacher에 기계적으로 복제하지 않고, 적용할 stage·통제·비용은 정해야 한다.
 
-첫째는 matched teacher control과 brain/content swap, 둘째는 low-capacity held-out probe/retrieval, 셋째는 선택적 perturbation/patching으로 조사한다. CKA는 단계별 표상 구조의 유사성을 요약하는 보조 지표다.[^5] 각 방법의 양성 결과는 서로 대체되지 않는다.
+### Study 2 — Teacher–student 전달과 brain-only 검증
 
-2d는 모델에서 발견한 내용 관련 표현을 검증할 뇌 신호를 입력으로 사용하지 않는 독립 neural validation이다. 구현 권고는 discovery 자료에서 `content C → frozen student z`의 작은 bridge를 학습·고정하고, 그 content-recoverable projection으로 별도 참가자의 held-out fMRI를 예측하는 것이다. Validation cohort의 training stimuli로 neural readout을 calibration할 수 있으나, 공통 test 자극은 discovery·bridge·readout 학습 전체에서 제외한다. Original-content 및 Direct-derived projection과 비교하며, projection은 C의 함수이므로 새 정보나 뇌와 동일한 계산을 입증하지 않는다. 구체 구현은 pilot과 D17의 동결을 거친다.[^1]
+Study 1에서 학습한 관계가 brain-only 조건에서도 접근 가능하고 정서 예측을 지원하는지를 묻는다. **Teacher–student 증류가 주 전달 전략**이며 직접 지도 brain-only 및 적절한 multimodal-to-brain-only fine-tuning을 비교 대상으로 둔다.
 
-사용자가 채택한 Analysis 2의 정식 보조 분석은 ‘정서 프로필이 가까운 후보들 사이에서도 content를 구별하는가?’라는 affect-neighborhood retrieval이다. 전체 34-D/14-D 연속 profile을 따로 사용하고 단일 emotion threshold나 공동학습은 하지 않는다. Affect-output-only probe를 필수 비교로 포함해 label-profile 재표현 대안을 점검한다. D18은 채택 여부가 아니라 거리·후보 수·coverage·null의 동결을 다룬다. 불충분한 coverage는 미실행/한계로 보고하며 사후 좋은 후보만 고르지 않는다.[^7]
+Teacher가 제공하는 것은 해당 recipient 자극과 outer test를 학습하지 않은 nested OOF 출력이다. 기존 output-guidance 계약은 유지한다. 이것만으로 joint latent가 전달되었다고 보지 않고, student의 내용 접근·geometry·모델 내 사용과 affect readout을 함께 평가한다. Shuffled guidance는 pairing 대조이지 모든 대안의 통제가 아니다.
 
-### Analysis 3 — 기능적 readout과 재현
+Fine-tuning은 구조 호환·초기화·추가 학습량·입력 제거 방식·tuning 예산을 명시해야 공정한 비교가 된다. **“Fine-tuning이 안 돼서 증류를 썼다”는 아직 관찰된 결과가 아니다.** 두 방법의 결과가 어느 방향이든 보존하고 해석한다.
 
-앞 단계에서 조사한 brain-only representation으로 고차원 normative affect profile을 얼마나 읽을 수 있는지 평가한다. ‘갑자기 decoding을 추가’하는 것이 아니라, 관찰된 brain–content 관계가 논문의 정서적 질문에 연결되는지를 확인하는 endpoint다.
+34D·14D는 별도 target run이며 VA/VAD는 codebook 확인 후 사용한다. 두 번째 cohort에서는 pipeline replication과 calibrated transfer/외부 test를 혼용하지 말고 D13에서 정확히 정한다. 공유 영상의 다른 참가자는 새로운 자극 일반화의 증거가 아니다. 독립 neural validation(기존 2d)은 목적을 유지하되 업데이트된 joint 중심 질문에 맞는 bridge·검증 대상·배치를 D17에서 검토한다.
 
-34-D, 14-D, VA-2, VAD-3는 각각 별도의 모델로 학습한다. 34-D를 mechanistic analysis의 기준으로 삼되 14-D를 배제하지 않는다. VA/VAD는 실제 annotation codebook에 대응 열이 있는지 확인한 뒤 사용한다. 다른 참가자 cohort에서 동일한 분석 규칙을 적용하되, 공유 자극이라는 범위를 명시한다.
+### 기존 번호와 현재 위치
+
+| 기존 방법 ID | 현재 구성에서의 위치 |
+| --- | --- |
+| Analysis 1a/1b | 간결한 기초 뇌 대응 분석의 방법 자원; 범위·family 재검토 |
+| Analysis 2의 teacher 형성·joint 관계·brain use | Study 1 중심 |
+| Analysis 2의 student probe·geometry·사용, Analysis 3 readout | Study 2의 전달·기능 검증 |
+| Analysis 2d 독립 neural validation | 연결 검증 방향 유지; joint 중심 설계에 맞는 구체 배치·구현 검토 |
 
 ## ⚙️ 3. 모델의 역할과 학습 흐름
 
