@@ -30,7 +30,10 @@ project/baseline/
 
 | Experiment ID | Target | Status | Summary |
 | --- | --- | --- | --- |
-| (Horikawa sub-01 runs pending) | | | |
+| claude-cat34-hk01-r1 | cat34 | done 2026-10-20, login node, code 8ecd58e + uncommitted T005 | MSE reduction 0.117 (row bootstrap 0.080 to 0.151); mean r 0.268 (0.215 to 0.312) vs row-shuffle 95th pct 0.047; 27/34 dims above training mean; alpha 1e5 (interior) |
+| claude-affect14-hk01-r1 | affect14 | done 2026-10-20, login node, code 8ecd58e + uncommitted T005 | MSE reduction 0.013 (0.007 to 0.021); mean r 0.259 (0.151 to 0.357) vs shuffle 95th pct 0.108; 14/14 dims; **alpha 1e7 = grid upper edge** (tuning MSE still falling), predictions shrunk to 2.5% of target SD |
+
+Horikawa runs are under `brain_decoding/runs/4b94193e.../<experiment-id>/`; both pass the strict recomputation in `summarize.py` (W04). cat34 matches the earlier MindCaptioning sub-01 level. For affect14 the selected alpha sits at the declared grid edge, so the small MSE reduction reflects heavy shrinkage rather than absent signal (correlation is above the shuffle reference in all 14 dimensions); a wider grid must be declared before any rerun. The MindCaptioning valence concentration (r = 0.90 between decoding r and valence loading) is not seen here (0.29), but one participant with 72 evaluate rows and an edge alpha cannot separate cohort differences from noise.
 
 ### Before the cohort decision: MindCaptioning sub-01 (now test cohort)
 
