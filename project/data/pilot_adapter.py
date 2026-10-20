@@ -56,6 +56,11 @@ COHORT_DIRS = {"mindcaptioning": "MindCaptioning", "horikawa": "Horikawa"}
 # Final response versions (Horikawa/PREPROCESSING_FINAL.md, 2026-10-13): Horikawa v3 is
 # v2 processing on fieldmap-less SyN-SDC fMRIPrep input; Horikawa v2 is record-only.
 RESPONSE_VERSIONS = {"mindcaptioning": "v2", "horikawa": "v3"}
+# Cohort roles (user decision 2026-10-19): Horikawa 2020 is the development cohort,
+# MindCaptioning is the held-out test cohort. Development fits must not read test-cohort
+# participants. Final-test reserved content (MindCaptioning part == test) stays excluded
+# from every development scope in both cohorts.
+COHORT_ROLES = {"horikawa": "development", "mindcaptioning": "test"}
 BRAIN_VARIANTS = {"runz": "blocks_common36_runz", "raw": "blocks_common36"}
 TARGET_SPACES = ("cat34", "affect14")
 AFFECT14 = (
@@ -356,6 +361,15 @@ def component_sizes(m: pd.DataFrame) -> dict:
 
 
 # ----------------------------------------------------------- dev subset ----
+def require_development_cohort(participant: str, cohort_roles: Mapping[str, str] = COHORT_ROLES) -> str:
+    """Return the cohort of a cohort-qualified participant; refuse test-cohort participants."""
+    cohort = participant.split("/")[0]
+    if cohort_roles.get(cohort) != "development":
+        raise ValueError(f"{participant}: cohort role is {cohort_roles.get(cohort)!r}, "
+                         "not 'development'; test-cohort data are not used for development fits")
+    return cohort
+
+
 def select_dev_subset(m: pd.DataFrame, participant: str,
                       roles: Mapping[str, int]) -> dict[str, list[str]]:
     """Deterministic, metadata-only subset of whole run groups for one participant.
@@ -637,10 +651,14 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
         m.to_csv(out / f"manifest_{label}.tsv.gz", sep="\t", index=False)
         exclusion_manifest(m).to_csv(out / f"pilot_exclusions_{label}.tsv", sep="\t", index=False)
 
-    # development subsets (one per cohort, from that cohort's own manifest) ----
+    # development subsets (development-role cohorts only, own manifest) ---------
+    report["cohort_roles"] = dict(COHORT_ROLES)
     report["dev_subsets"] = {}
     for cohort in COHORT_DIRS:
         participant = f"{cohort}/{pilot_participant}"
+        if COHORT_ROLES[cohort] != "development":
+            report["dev_subsets"][participant] = {"skipped": f"{cohort} is the {COHORT_ROLES[cohort]} cohort"}
+            continue
         try:
             report["dev_subsets"][participant] = _dev_subset(
                 manifests[cohort], participant, roles, report["inventory"])

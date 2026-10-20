@@ -312,6 +312,14 @@ class SubsetTests(AdapterFixture):
         with self.assertRaisesRegex(ValueError, "three independent"):
             pa.select_dev_subset(m, "mindcaptioning/sub-01", {"fit": 1, "evaluate": 1})
 
+    def test_test_cohort_refused_for_development(self):
+        # 2026-10-19: Horikawa develops, MindCaptioning is the held-out test cohort.
+        self.assertEqual(pa.require_development_cohort("horikawa/sub-01"), "horikawa")
+        with self.assertRaisesRegex(ValueError, "not 'development'"):
+            pa.require_development_cohort("mindcaptioning/sub-01")
+        with self.assertRaisesRegex(ValueError, "not 'development'"):
+            pa.require_development_cohort("sub-01")  # cohort-unqualified IDs are refused too
+
 
 if __name__ == "__main__":
     unittest.main()
