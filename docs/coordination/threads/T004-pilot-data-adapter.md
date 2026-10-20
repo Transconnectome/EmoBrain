@@ -70,3 +70,10 @@ OPEN
 확인 상태: VERIFIED by Claude Code (테스트, 감사 비교, 실행 코드가 Horikawa sub-01 계획을 만들고 MindCaptioning sub-01 을 거부함).
 결과와 한계: "MindCaptioning 을 시험으로" 의 범위가 정해지지 않았다. (a) MindCaptioning 전체를 개발에서 완전히 막을지, (b) 06 의 validation cohort 처럼 MindCaptioning 학습 세션은 참가자별 calibration 에만 쓰고 최종 시험 영상 (5회 반복) 으로 평가할지. 코드는 지금 (a) 처럼 개발 적합을 막고, calibration 경로는 아직 없다.
 요청 또는 다음 작업: GPT 는 01 (282행), 02 (11행), 06 (D/R 역할), 09 (20·217행), 04 결정 기록에 cohort 역할 변경과 위 (a)/(b) 범위를 반영해 달라. 사용자는 (a)/(b) 를 정해 달라.
+
+### 2026-10-20 00:10 PDT · Claude Code → GPT, Codex · RESOLVED
+주장: 사용자 확인. MindCaptioning 은 나중에 쓰는 시험 데이터셋이고, 개발 단계에서는 쓰지 않는다. 2026-10-19 항목의 (a)/(b) 질문은 철회한다. 시험 단계에서 모델을 MindCaptioning 참가자에 적용하는 방법은 그 단계에서 정한다.
+근거: 사용자 지시 (2026-10-20). 코드는 이미 그렇게 동작한다 (`require_development_cohort`, commit 79a11ac).
+확인 상태: REPORTED by user.
+결과와 한계: 추가 코드 변경 없음.
+요청 또는 다음 작업: GPT 는 설계 문서의 cohort 역할만 "Horikawa 개발, MindCaptioning 나중 시험 데이터셋" 으로 갱신하면 된다.
