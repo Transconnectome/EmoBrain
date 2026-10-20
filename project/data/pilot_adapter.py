@@ -70,6 +70,10 @@ AFFECT14 = (
     "safety_score", "upswing_score",
 )
 NEAR_DUPLICATE_POLICIES = ("merge", "hash_only")
+# Audit inventory schema. 2 (2026-10-20, issue #7): adds stim_idx.npy, participant
+# qc/runs.json and per-batch dependency records with an aggregate input digest.
+# Schema-1 inventories are legacy: check_inventory() refuses them.
+INVENTORY_SCHEMA = 2
 
 
 @dataclass(frozen=True)
@@ -415,6 +419,7 @@ class StudentBatch:
     brain_valid: np.ndarray      # (n, v) bool; False where a voxel was constant in that run
     targets: Mapping[str, np.ndarray] = field(default_factory=dict)       # (n, d) float32, NaN if invalid
     target_masks: Mapping[str, np.ndarray] = field(default_factory=dict)  # (n, d) bool
+    input_digest: str = ""       # aggregate sha256 over student_dependencies() at load time
 
 
 @dataclass(frozen=True)
@@ -427,6 +432,7 @@ class ContentFeatures:
     caption: np.ndarray | None        # (n, ds) float32
     caption_valid: np.ndarray | None
     caption_source: str
+    input_digest: str = ""            # aggregate sha256 over content_dependencies() at load time
 
 
 @dataclass(frozen=True)
@@ -437,6 +443,76 @@ class TeacherBatch:
     def __post_init__(self):
         if self.student.observation_ids != self.content.observation_ids:
             raise ValueError("teacher content features are not row-aligned with brain rows")
+
+
+def student_dependencies(paths: DataPaths, cohort: str, sub: str,
+                         brain_variant: str = "runz") -> dict[str, Path]:
+    """Every file a StudentBatch of this participant is built from.
+
+    Brain rows and validity (array, samples, qc/runs.json constant voxels), voxel
+    mapping (mask), preprocessing identity (config, STATUS), targets and their join
+    (labels, 34-D order, crosswalk) and reserved content (all MindCaptioning samples).
+    """
+    d = response_dir(paths, cohort, sub)
+    deps = {f"{cohort}/{sub}/{brain_variant}": d / f"{sub}_{BRAIN_VARIANTS[brain_variant]}.npy",
+            f"{cohort}/{sub}/samples.tsv": d / f"{sub}_samples.tsv",
+            f"{cohort}/{sub}/mask.nii.gz": d / f"{sub}_mask.nii.gz",
+            f"{cohort}/{sub}/preprocessing_config.json": d / "preprocessing_config.json",
+            f"{cohort}/{sub}/STATUS.json": d / "STATUS.json",
+            f"{cohort}/{sub}/qc/runs.json": d / "qc" / "runs.json",
+            "shared/labels_csv": Path(paths.labels_csv), "shared/order34": Path(paths.order34),
+            "shared/crosswalk_tsv": Path(paths.crosswalk_tsv)}
+    for md in participant_dirs(paths, "mindcaptioning"):
+        deps[f"mindcaptioning/{md.parent.name}/samples.tsv"] = md / f"{md.parent.name}_samples.tsv"
+    return deps
+
+
+def content_dependencies(paths: DataPaths) -> dict[str, Path]:
+    """Every file ContentFeatures are built from (feature rows go through stim_idx.npy)."""
+    vf = Path(paths.video_features)
+    return {"shared/video_features": vf, "shared/stim_idx": vf.parent / "stim_idx.npy",
+            "shared/labels_csv": Path(paths.labels_csv), "shared/crosswalk_tsv": Path(paths.crosswalk_tsv)}
+
+
+def file_records(deps: Mapping[str, Path], known: Mapping[str, str] | None = None) -> dict[str, dict]:
+    """name -> resolved path, bytes, sha256 (``known`` maps resolved paths to hashes already computed)."""
+    out = {}
+    for name, p in sorted(deps.items()):
+        r = Path(p).resolve()
+        if not r.is_file():
+            raise FileNotFoundError(f"dependency {name} missing: {p}")
+        sha = (known or {}).get(str(r)) or sha256_file(r)
+        out[name] = {"path": str(p), "resolved": str(r), "bytes": r.stat().st_size, "sha256": sha}
+    return out
+
+
+def aggregate_digest(records: Mapping[str, Mapping]) -> str:
+    """One sha256 over (name, sha256) pairs; any dependency change changes it."""
+    blob = json.dumps({k: v["sha256"] for k, v in sorted(records.items())}, separators=(",", ":"))
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def check_inventory(inventory: Mapping, paths: DataPaths, participant: str,
+                    brain_variant: str = "runz", content: bool = False) -> str:
+    """Recompute the participant's (and optionally content) dependencies and refuse any
+    difference from the audited inventory. Call before fitting; returns the digest."""
+    if inventory.get("schema", 1) < INVENTORY_SCHEMA:
+        raise ValueError(f"legacy inventory (schema {inventory.get('schema', 1)}) has no stim_idx/qc "
+                         "dependency records; rebuild the audit")
+    cohort, sub = participant.split("/")
+    audited = inventory["participants"].get(participant, {}).get("dependencies", {}).get(brain_variant)
+    if not audited:
+        raise ValueError(f"audit has no dependency record for {participant} {brain_variant}")
+    expected = dict(audited["files"])
+    current = file_records(student_dependencies(paths, cohort, sub, brain_variant))
+    if content:
+        expected.update(inventory["shared"]["content_dependencies"]["files"])
+        current.update(file_records(content_dependencies(paths)))
+    changed = sorted(k for k in set(expected) | set(current)
+                     if expected.get(k, {}).get("sha256") != current.get(k, {}).get("sha256"))
+    if changed:
+        raise ValueError(f"inputs changed since the audit, refusing stale manifest/cache: {changed}")
+    return aggregate_digest(current)
 
 
 def _constant_voxel_invalid(d: Path, sub: str) -> dict[tuple[str, str], np.ndarray]:
@@ -484,9 +560,10 @@ def load_student_batch(m_rows: pd.DataFrame, paths: DataPaths = DEFAULT_PATHS,
             y[ok] = lab.loc[ann[ok], cols].to_numpy(dtype=np.float32)
         mk = np.isfinite(y)
         targets[space], masks[space] = y, mk
+    digest = aggregate_digest(file_records(student_dependencies(paths, cohort, sub, brain_variant)))
     return StudentBatch(m_rows.participant_id.iloc[0], m_rows.preprocessing_id.iloc[0], brain_variant,
                         tuple(m_rows.row_id), tuple(m_rows.content_id), brain, valid,
-                        targets, masks)
+                        targets, masks, digest)
 
 
 def load_content_features(m_rows: pd.DataFrame, paths: DataPaths = DEFAULT_PATHS,
@@ -516,7 +593,8 @@ def load_content_features(m_rows: pd.DataFrame, paths: DataPaths = DEFAULT_PATHS
     return ContentFeatures(tuple(m_rows.row_id), video, vvalid,
                            f"{paths.video_features} (provenance of checkpoint/layer/pooling unverified)",
                            None, None,
-                           "MISSING: no human-caption sentence embeddings on server; generated captions not substituted")
+                           "MISSING: no human-caption sentence embeddings on server; generated captions not substituted",
+                           aggregate_digest(file_records(content_dependencies(paths))))
 
 
 def voxel_ijk(paths: DataPaths, cohort: str, sub: str) -> np.ndarray:
@@ -578,7 +656,7 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
                             "dirty": _git("status", "--porcelain").splitlines()}}
 
     # inventory -------------------------------------------------------------
-    inv = {"shared": {}, "participants": {}}
+    inv = {"schema": INVENTORY_SCHEMA, "shared": {}, "participants": {}}
     for name in ("labels_csv", "order34", "captions_csv", "crosswalk_tsv"):
         p = Path(getattr(paths, name))
         inv["shared"][name] = {"path": str(p), "bytes": p.stat().st_size, "sha256": sha256_file(p)}
@@ -587,6 +665,13 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
     inv["shared"]["video_features"] = {"path": str(vf), "resolved": str(vf.resolve()),
                                        "shape": list(va.shape), "dtype": str(va.dtype),
                                        "sha256": sha256_file(vf.resolve())}
+    si = vf.parent / "stim_idx.npy"
+    inv["shared"]["stim_idx"] = {"path": str(si), "resolved": str(si.resolve()),
+                                 "bytes": si.resolve().stat().st_size, "sha256": sha256_file(si.resolve())}
+    content = file_records(content_dependencies(paths),
+                           known={inv["shared"]["video_features"]["resolved"]: inv["shared"]["video_features"]["sha256"],
+                                  inv["shared"]["stim_idx"]["resolved"]: inv["shared"]["stim_idx"]["sha256"]})
+    inv["shared"]["content_dependencies"] = {"files": content, "digest": aggregate_digest(content)}
     inv["shared"]["missing_artifacts"] = {
         "human_caption_sentence_embeddings": "absent; caption_ck20.csv text exists (20 per video)",
         "low_level_visual_features": "absent (no luminance/colour/motion-energy features found)",
@@ -605,8 +690,15 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
                                             and variant == "runz"):
                     rec[variant]["sha256"] = sha256_file(p)
             for small in (f"{sub}_samples.tsv", f"{sub}_mask.nii.gz", "preprocessing_config.json",
-                          "STATUS.json"):
-                rec[small] = {"sha256": sha256_file(d / small)}
+                          "STATUS.json", "qc/runs.json"):
+                rec[small] = {"sha256": sha256_file(d / small), "bytes": (d / small).stat().st_size}
+            # Dependency records only where the brain array itself was hashed.
+            rec["dependencies"] = {}
+            for variant in BRAIN_VARIANTS:
+                if rec[variant].get("sha256"):
+                    files = file_records(student_dependencies(paths, cohort, sub, variant),
+                                         known={str(Path(rec[variant]["path"]).resolve()): rec[variant]["sha256"]})
+                    rec["dependencies"][variant] = {"files": files, "digest": aggregate_digest(files)}
             inv["participants"][f"{cohort}/{sub}"] = rec
     report["inventory"] = inv
 

@@ -37,6 +37,7 @@ def _write_participant(root: Path, cohort_dir: str, sub: str, rows: list[dict],
     np.save(d / f"{sub}_blocks_common36_runz.npy", brain)
     np.save(d / f"{sub}_blocks_common36.npy", brain * 2)
     (d / "STATUS.json").write_text(json.dumps({"state": "complete", "samples": len(rows)}))
+    (d / f"{sub}_mask.nii.gz").write_bytes(f"synthetic mask {cohort_dir} {sub}".encode())  # hashed, not parsed
     cfg = {"policy": "test-policy", "sdc_existing": "none", "script_sha256": "abc"}
     cfg.update(config_extra or {})
     (d / "preprocessing_config.json").write_text(json.dumps(cfg))
@@ -319,6 +320,76 @@ class SubsetTests(AdapterFixture):
             pa.require_development_cohort("mindcaptioning/sub-01")
         with self.assertRaisesRegex(ValueError, "not 'development'"):
             pa.require_development_cohort("sub-01")  # cohort-unqualified IDs are refused too
+
+
+class InputDigestTests(AdapterFixture):
+    """Issue #7: inputs that change feature rows or brain validity must change the digest."""
+
+    def audit_inventory(self):
+        return pa.audit(self.tmp / f"audit_{len(list(self.tmp.glob('audit_*')))}", self.paths,
+                        hash_arrays="all")["inventory"]
+
+    def rows(self, cohort, participant):
+        m, info = self.manifest((cohort,))
+        return m[m.participant_id == participant], info
+
+    def test_inventory_schema_records_stim_idx_and_qc(self):
+        inv = self.audit_inventory()
+        self.assertEqual(inv["schema"], pa.INVENTORY_SCHEMA)
+        self.assertIn("sha256", inv["shared"]["stim_idx"])
+        self.assertIn("shared/stim_idx", inv["shared"]["content_dependencies"]["files"])
+        rec = inv["participants"]["mindcaptioning/sub-02"]
+        self.assertIn("sha256", rec["qc/runs.json"])
+        self.assertIn("mindcaptioning/sub-02/qc/runs.json", rec["dependencies"]["runz"]["files"])
+
+    def test_unchanged_inputs_pass_and_match_batch_digests(self):
+        inv = self.audit_inventory()
+        rows, info = self.rows("horikawa", "horikawa/sub-01")
+        digest = pa.check_inventory(inv, self.paths, "horikawa/sub-01")
+        self.assertEqual(digest, pa.load_student_batch(rows, self.paths).input_digest)
+        self.assertEqual(digest, inv["participants"]["horikawa/sub-01"]["dependencies"]["runz"]["digest"])
+        pa.check_inventory(inv, self.paths, "horikawa/sub-01", content=True)
+        self.assertEqual(pa.load_content_features(rows, self.paths, info["canonical_map"]).input_digest,
+                         inv["shared"]["content_dependencies"]["digest"])
+
+    def test_stim_idx_change_changes_digest_and_is_refused(self):
+        inv = self.audit_inventory()
+        rows, info = self.rows("horikawa", "horikawa/sub-01")
+        before = pa.load_content_features(rows, self.paths, info["canonical_map"])
+        si = Path(self.paths.video_features).parent / "stim_idx.npy"
+        np.save(si, np.load(si)[::-1].copy())          # same bytes count, different row order
+        after = pa.load_content_features(rows, self.paths, info["canonical_map"])
+        self.assertFalse(np.array_equal(before.video, after.video))
+        self.assertNotEqual(before.input_digest, after.input_digest)
+        pa.check_inventory(inv, self.paths, "horikawa/sub-01")  # brain-only path does not read it
+        with self.assertRaisesRegex(ValueError, r"shared/stim_idx"):
+            pa.check_inventory(inv, self.paths, "horikawa/sub-01", content=True)
+        self.assertNotEqual(self.audit_inventory()["shared"]["stim_idx"]["sha256"], inv["shared"]["stim_idx"]["sha256"])
+
+    def test_constant_voxel_change_changes_validity_digest_and_is_refused(self):
+        inv = self.audit_inventory()
+        rows, _ = self.rows("mindcaptioning", "mindcaptioning/sub-02")
+        before = pa.load_student_batch(rows, self.paths)
+        q = self.tmp / "MC" / "sub-02" / "v2" / "qc" / "runs.json"
+        runs = json.loads(q.read_text())
+        runs[0]["constant_voxel_indices"] = [1, 2]
+        q.write_text(json.dumps(runs))
+        after = pa.load_student_batch(rows, self.paths)
+        self.assertFalse(np.array_equal(before.brain_valid, after.brain_valid))
+        np.testing.assert_array_equal(before.brain, after.brain)  # only validity changed
+        self.assertNotEqual(before.input_digest, after.input_digest)
+        with self.assertRaisesRegex(ValueError, r"mindcaptioning/sub-02/qc/runs.json"):
+            pa.check_inventory(inv, self.paths, "mindcaptioning/sub-02")
+        pa.check_inventory(inv, self.paths, "horikawa/sub-01")  # other participants unaffected
+
+    def test_legacy_or_unhashed_inventory_is_refused(self):
+        inv = self.audit_inventory()
+        legacy = {k: v for k, v in inv.items() if k != "schema"}
+        with self.assertRaisesRegex(ValueError, "legacy inventory"):
+            pa.check_inventory(legacy, self.paths, "horikawa/sub-01")
+        pilot = pa.audit(self.tmp / "audit_pilot", self.paths, hash_arrays="pilot")["inventory"]
+        with self.assertRaisesRegex(ValueError, "no dependency record"):
+            pa.check_inventory(pilot, self.paths, "mindcaptioning/sub-02")  # array not hashed
 
 
 if __name__ == "__main__":
