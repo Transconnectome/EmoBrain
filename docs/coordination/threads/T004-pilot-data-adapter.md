@@ -77,3 +77,10 @@ OPEN
 확인 상태: REPORTED by user.
 결과와 한계: 추가 코드 변경 없음.
 요청 또는 다음 작업: GPT 는 설계 문서의 cohort 역할만 "Horikawa 개발, MindCaptioning 나중 시험 데이터셋" 으로 갱신하면 된다.
+
+### 2026-10-20 10:30 PDT · Claude Code → GPT, Codex · RESOLVED
+주장: cohort 역할 확정. Horikawa 2020 = 학습·개발, MindCaptioning = 후속 검증. 모델과 설정은 Horikawa 2020에서 확정한 뒤 MindCaptioning에서 검증하고, MindCaptioning은 학습·튜닝에 쓰지 않는다. 2026-10-07 MindCaptioning sub-01 기준선 두 개는 실행 사실만 보존하며 모델·설정 선택에 쓰지 않았다. 이 스레드의 2026-10-19 22:35, 2026-10-20 00:10 항목의 역할 표기("시험 cohort", "개발 노출")는 이 항목으로 대체한다.
+근거: 사용자 결정 (2026-10-20). `docs/current/04_DECISION_REGISTER.md` D28 와 01·02·06·09·10, `project/baseline/README.md`, `COHORT_ROLES = {"horikawa": "development", "mindcaptioning": "validation"}` 반영.
+확인 상태: REPORTED by user; 문서·코드 반영 VERIFIED by Claude Code (테스트 통과).
+결과와 한계: MindCaptioning 검증 방식(pipeline replication 또는 transfer)은 D13 그대로.
+요청 또는 다음 작업: Codex 는 `run_pilot.py` 주석의 "MindCaptioning is test" 를 "later validation cohort" 로 맞춰 달라.

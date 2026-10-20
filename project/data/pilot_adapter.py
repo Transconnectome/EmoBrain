@@ -56,11 +56,12 @@ COHORT_DIRS = {"mindcaptioning": "MindCaptioning", "horikawa": "Horikawa"}
 # Final response versions (Horikawa/PREPROCESSING_FINAL.md, 2026-10-13): Horikawa v3 is
 # v2 processing on fieldmap-less SyN-SDC fMRIPrep input; Horikawa v2 is record-only.
 RESPONSE_VERSIONS = {"mindcaptioning": "v2", "horikawa": "v3"}
-# Cohort roles (user decision 2026-10-19): Horikawa 2020 is the development cohort,
-# MindCaptioning is the held-out test cohort. Development fits must not read test-cohort
-# participants. Final-test reserved content (MindCaptioning part == test) stays excluded
-# from every development scope in both cohorts.
-COHORT_ROLES = {"horikawa": "development", "mindcaptioning": "test"}
+# Cohort roles (decision 2026-10-20, docs/current/04 D28): Horikawa 2020 is the training and
+# development cohort, MindCaptioning the later validation cohort. Models and settings are
+# fixed on Horikawa; MindCaptioning fMRI is not read by any training or tuning fit.
+# Final-test reserved content (MindCaptioning part == test) stays excluded from every
+# development scope.
+COHORT_ROLES = {"horikawa": "development", "mindcaptioning": "validation"}
 BRAIN_VARIANTS = {"runz": "blocks_common36_runz", "raw": "blocks_common36"}
 TARGET_SPACES = ("cat34", "affect14")
 AFFECT14 = (
@@ -370,7 +371,7 @@ def require_development_cohort(participant: str, cohort_roles: Mapping[str, str]
     cohort = participant.split("/")[0]
     if cohort_roles.get(cohort) != "development":
         raise ValueError(f"{participant}: cohort role is {cohort_roles.get(cohort)!r}, "
-                         "not 'development'; test-cohort data are not used for development fits")
+                         "not 'development'; validation-cohort data are not used for training or tuning")
     return cohort
 
 

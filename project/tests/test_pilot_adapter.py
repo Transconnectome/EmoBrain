@@ -314,7 +314,7 @@ class SubsetTests(AdapterFixture):
             pa.select_dev_subset(m, "mindcaptioning/sub-01", {"fit": 1, "evaluate": 1})
 
     def test_test_cohort_refused_for_development(self):
-        # 2026-10-19: Horikawa develops, MindCaptioning is the held-out test cohort.
+        # 2026-10-20 (D28): Horikawa trains and develops, MindCaptioning is the later validation cohort.
         self.assertEqual(pa.require_development_cohort("horikawa/sub-01"), "horikawa")
         with self.assertRaisesRegex(ValueError, "not 'development'"):
             pa.require_development_cohort("mindcaptioning/sub-01")
