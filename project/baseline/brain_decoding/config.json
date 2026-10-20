@@ -1,6 +1,6 @@
 {
   "stage": "development",
-  "participant": "mindcaptioning/sub-01",
+  "participant": "horikawa/sub-01",
   "roles": {
     "fit": 8,
     "tune": 2,
@@ -25,5 +25,6 @@
   "outputs": "linear MSE benchmark in original target units, no clipping",
   "full_training": false,
   "subset_basis": "metadata-only development subset per participant from the audit (session/run order, components without reserved content); participant can be overridden with --participant",
-  "alpha_basis": "declared before any fit: standardized voxels give a kernel diagonal near the voxel count (~2e5), so 1-100 is effectively unregularized; grid spans 1e2-1e7. A selected edge value is reported, not extended after scoring."
+  "alpha_basis": "declared before any fit: standardized voxels give a kernel diagonal near the voxel count (~2e5), so 1-100 is effectively unregularized; grid spans 1e2-1e7. A selected edge value is reported, not extended after scoring.",
+  "cohort_basis": "2026-10-19 user decision: Horikawa 2020 = development cohort, MindCaptioning = held-out test cohort; run_pilot refuses test-cohort participants"
 }

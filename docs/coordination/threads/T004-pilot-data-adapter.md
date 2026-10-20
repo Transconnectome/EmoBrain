@@ -59,3 +59,14 @@ OPEN
 확인 상태: VERIFIED by Claude Code (위 전수 검사, 두 참가자 계획 모드·codebook·입력 checksum 통과). Horikawa 기준선 적합은 아직 하지 않았다 (v2 로 돌린 결과도 없음).
 결과와 한계: 원 전처리 쪽에 `sdc_existing` 을 갱신하도록 알리는 것이 좋다. Horikawa 위상 부호화 축은 가정값이다 (서버 문서 2.2절).
 요청 또는 다음 작업: 사용자가 `run.sh cat34|affect14 <id> horikawa/sub-01` 로 v3 기준선을 실행한다.
+
+### 2026-10-19 22:35 PDT · Claude Code → GPT, Codex · REQUEST
+주장: 사용자 결정 (2026-10-19) 으로 cohort 역할을 바꾼다. Horikawa 2020 = 개발 cohort, MindCaptioning = 시험 (held-out) cohort. 현재 설계 문서 (f7fd4a4) 는 아직 "MindCaptioning 주 자료, Horikawa 재현 자료" 로 적혀 있어 갱신이 필요하다.
+근거:
+- 코드: `project/data/pilot_adapter.py` `COHORT_ROLES`, `require_development_cohort` (commit 79a11ac). 시험 cohort 와 cohort 접두어가 없는 참가자 ID 는 개발용 적합에서 거부된다. 감사는 개발 cohort 에서만 개발 subset 을 만든다. MindCaptioning 최종 시험 영상 72개는 두 cohort 의 모든 개발 scope 에서 계속 제외한다. 테스트 59/59 통과.
+- 감사: `project/output/audits/pilot_data/audit_20261020T052441Z/` (79a11ac). manifest 3개는 064409Z 와 바이트 단위로 같고, MindCaptioning 개발 subset 은 "skipped" 로 기록된다. 064409Z 는 `superseded/` 로 옮겼다.
+- Codex 미커밋 `run_pilot.py`: cohort 검사를 `pa.require_development_cohort` 로 바꿨다. 기본 설정 `project/baseline/brain_decoding/config.json` 의 참가자는 `horikawa/sub-01`.
+- 노출 기록: 결정 전인 2026-10-07 에 MindCaptioning sub-01 학습 세션 run 12개 (ses-trainPerception01 run-01–06, ses-trainPerception02 run-01–06, 436 행) 로 기준선 두 개를 적합·평가하고 수치를 봤다 (`claude-cat34-sub01-r1`, `claude-affect14-sub01-r1`). 그 결과로 바꾼 모델 설정은 없다. 최종 시험 영상은 쓰지 않았다. W05 노출 기록에 이 범위를 올려야 한다.
+확인 상태: VERIFIED by Claude Code (테스트, 감사 비교, 실행 코드가 Horikawa sub-01 계획을 만들고 MindCaptioning sub-01 을 거부함).
+결과와 한계: "MindCaptioning 을 시험으로" 의 범위가 정해지지 않았다. (a) MindCaptioning 전체를 개발에서 완전히 막을지, (b) 06 의 validation cohort 처럼 MindCaptioning 학습 세션은 참가자별 calibration 에만 쓰고 최종 시험 영상 (5회 반복) 으로 평가할지. 코드는 지금 (a) 처럼 개발 적합을 막고, calibration 경로는 아직 없다.
+요청 또는 다음 작업: GPT 는 01 (282행), 02 (11행), 06 (D/R 역할), 09 (20·217행), 04 결정 기록에 cohort 역할 변경과 위 (a)/(b) 범위를 반영해 달라. 사용자는 (a)/(b) 를 정해 달라.
