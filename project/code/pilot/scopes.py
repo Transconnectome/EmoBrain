@@ -44,7 +44,7 @@ def nested_plan(rows, split):
 
 
 def oof_cache_key(rows, scope, provenance):
-    for field in ("teacher_checkpoint_hash", "transform_hash"):
+    for field in ("teacher_checkpoint_hash", "transform_hash", "aggregate_input_digest"):
         if not provenance.get(field):
             raise ValueError(f"Missing OOF {field}")
     return artifact_key(rows, asdict(scope), provenance)

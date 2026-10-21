@@ -244,6 +244,8 @@ def load_fit(directory):
 
 
 def generate_oof(rows, data, cfg, fit_cfg, plan, provenance, shuffled=False):
+    if not provenance.get("aggregate_input_digest"):
+        raise ValueError("Missing OOF aggregate_input_digest; verify inputs before fitting")
     guidance, ledger = {}, []
     for scope in plan:
         fit = fit_model(rows, data, cfg, fit_cfg, scope.fit, scope.evaluate, scope.forbidden,

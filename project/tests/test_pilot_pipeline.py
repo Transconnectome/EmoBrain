@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
+from unittest.mock import patch
 import unittest
 
 import numpy as np
@@ -43,7 +44,7 @@ def fixture(target="cat34"):
     cfg = ModelConfig(target, 3, 4, width=8, heads=2)
     provenance = dict(code_commit="synthetic", input_manifest_hash="manifest", split_hash="split",
                       target=target, target_transform_hash="identity", feature_hash="features",
-                      config_hash="config", seed=0)
+                      config_hash="config", seed=0, aggregate_input_digest="a" * 64)
     return rows, batch, split, data, cfg, provenance
 
 
@@ -305,6 +306,159 @@ class ScopeAndAnalysisTests(unittest.TestCase):
         validate_bridge(rows,s["fit"],s["fit"],s["evaluate"])
         with self.assertRaises(ValueError):
             validate_bridge(rows,s["fit"]+s["evaluate"],s["tune"],s["evaluate"])
+
+
+# Reuse the adapter's tiny on-disk cohorts; no server arrays or jobs are used.
+from project.tests.test_pilot_adapter import AdapterFixture, _write_participant, _row
+from project.data import pilot_adapter as pa
+from project.scripts import run_pilot as runner
+from project.code.pilot.scopes import fingerprint
+
+
+class RunnerInventoryTests(AdapterFixture):
+    def setUp(self):
+        super().setUp()
+        self.response = pa.response_dir(self.paths, "horikawa", "sub-01")
+        # Four independent usable components plus one reserved component.
+        # Rewrite the existing fixture files without touching real data.
+        import shutil
+        shutil.rmtree(self.response)
+        _write_participant(self.tmp, "HK", "sub-01", [
+            _row(v, "ses-01", f"run-{i:02}") for i, v in enumerate((1, 2, 4, 6, 5), 1)])
+        self.audit_dir = self.tmp / "audit"
+        self.audit = pa.audit(self.audit_dir, self.paths, hash_arrays="all")
+        self.config = dict(stage="development", full_training=False, participant="horikawa/sub-01",
+                           brain_variant="runz", roles=dict(fit=2, tune=1, evaluate=1),
+                           max_rows=10, max_voxels=10, estimated_memory_gib=1,
+                           requested_wall_minutes=1, estimate_status="synthetic", cpu_threads=1,
+                           alphas=[1., 10.], seed=0)
+        self.config_file = self.tmp / "config.json"
+        self.config_file.write_text(json.dumps(self.config))
+        self.book = self.tmp / "codebook" / "cat34.json"
+        self.book.parent.mkdir()
+        self.book.write_text(json.dumps(dict(target="cat34", columns=self.audit["codebook"]["cat34_order"],
+            reference_path=str(self.paths.order34), reference_sha256=file_hash(self.paths.order34),
+            reviewed_by="synthetic fixture", scale_description="synthetic proportions")))
+        self.args = ["--audit-dir", str(self.audit_dir), "--config", str(self.config_file),
+                     "--target", "cat34", "--codebook-contract", str(self.book), "--execute", "--login-node",
+                     "--experiment-id", "synthetic", "--output-root", str(self.tmp / "runs")]
+        _, self.manifest, _, self.chosen, _, _ = runner.prepare(self.audit_dir, self.config, "cat34")
+
+    def mutate_qc(self):
+        p = self.response / "qc/runs.json"
+        records = json.loads(p.read_text())
+        records[0]["constant_voxel_indices"] = [1]
+        p.write_text(json.dumps(records))
+
+    def mutate_stim(self):
+        p = self.paths.video_features.parent / "stim_idx.npy"
+        np.save(p, np.load(p)[::-1].copy())
+
+    def load(self, content=False):
+        return runner.load_verified_inputs(self.audit, self.manifest, self.chosen, self.config,
+                                           "cat34", content=content, paths=self.paths)
+
+    def run_main(self):
+        code = dict(commit="synthetic", branch="docs/unify-study-design-20261006",
+                    source_hashes={"synthetic": "b" * 64}, dirty="")
+        with patch.object(pa, "DEFAULT_PATHS", self.paths), patch(
+                "project.code.pilot.artifacts.code_record", return_value=code):
+            runner.main(self.args)
+
+    def test_schema2_passes_real_entrypoint_and_pins_provenance(self):
+        with patch("project.code.pilot.baseline.run_linear", wraps=run_linear) as fit:
+            self.run_main()
+        fit.assert_called_once()
+        meta = json.loads(next((self.tmp / "runs").glob("*/*/metadata.json")).read_text())
+        digest = pa.check_inventory(self.audit["inventory"], self.paths, self.config["participant"])
+        self.assertEqual(meta["sources"]["aggregate_input_digest"], digest)
+        self.assertEqual(meta["provenance"]["feature_hash"], fingerprint(meta["sources"]))
+
+    def test_qc_change_stops_entrypoint_before_loading_or_fitting(self):
+        self.mutate_qc()
+        with patch.object(pa, "load_student_batch") as load, patch(
+                "project.code.pilot.baseline.run_linear") as fit:
+            with self.assertRaisesRegex(ValueError, "qc/runs.json"):
+                self.run_main()
+        load.assert_not_called()
+        fit.assert_not_called()
+        self.assertFalse((self.tmp / "runs").exists())
+
+    def test_legacy_and_unhashed_inventory_stop_entrypoint_before_fit(self):
+        for kind in ("legacy", "unhashed"):
+            with self.subTest(kind=kind):
+                audit = copy.deepcopy(self.audit)
+                if kind == "legacy":
+                    audit["inventory"]["schema"] = 1
+                else:
+                    audit["inventory"]["participants"][self.config["participant"]]["dependencies"] = {}
+                (self.audit_dir / "audit.json").write_text(json.dumps(audit))
+                with patch("project.code.pilot.baseline.run_linear") as fit:
+                    with self.assertRaisesRegex(ValueError, "legacy inventory|no dependency record"):
+                        self.run_main()
+                fit.assert_not_called()
+
+    def test_student_change_during_loading_stops_entrypoint_before_fit(self):
+        original = pa.load_student_batch
+        def changed(*args, **kwargs):
+            self.mutate_qc()
+            return original(*args, **kwargs)
+        with patch.object(pa, "load_student_batch", side_effect=changed), patch(
+                "project.code.pilot.baseline.run_linear") as fit:
+            with self.assertRaisesRegex(ValueError, "Student inputs changed"):
+                self.run_main()
+        fit.assert_not_called()
+
+    def test_content_path_checks_combined_digest_and_alignment(self):
+        batch, features, sources = self.load(content=True)
+        self.assertEqual(batch.observation_ids, features.observation_ids)
+        self.assertEqual(sources["aggregate_input_digest"], pa.check_inventory(
+            self.audit["inventory"], self.paths, self.config["participant"], content=True))
+        self.assertNotEqual(batch.input_digest, sources["aggregate_input_digest"])
+
+    def test_stim_change_stops_content_path_before_loading(self):
+        self.mutate_stim()
+        with patch.object(pa, "load_student_batch") as student, patch.object(pa, "load_content_features") as content:
+            with self.assertRaisesRegex(ValueError, "shared/stim_idx"):
+                self.load(content=True)
+        student.assert_not_called()
+        content.assert_not_called()
+        # Brain-only execution never depends on video features or their row index.
+        self.load(content=False)
+
+    def test_content_change_during_loading_is_refused(self):
+        original = pa.load_content_features
+        def changed(*args, **kwargs):
+            self.mutate_stim()
+            return original(*args, **kwargs)
+        with patch.object(pa, "load_content_features", side_effect=changed):
+            with self.assertRaisesRegex(ValueError, "Content inputs changed"):
+                self.load(content=True)
+
+    def test_reaudited_dependency_changes_invalidate_oof_and_feature_keys(self):
+        rows, _, split, _, _, prov = fixture()
+        scope = nested_plan(rows, split)["inner"][0]
+        def keys():
+            _, _, sources = self.load(content=True)
+            p = dict(prov, aggregate_input_digest=sources["aggregate_input_digest"],
+                     feature_hash=fingerprint(sources), teacher_checkpoint_hash="teacher", transform_hash="transform")
+            return p["feature_hash"], oof_cache_key(rows, scope, p)
+        before = keys()
+        for i, mutate in enumerate((self.mutate_qc, self.mutate_stim)):
+            mutate()
+            self.audit = pa.audit(self.tmp / f"reaudit{i}", self.paths, hash_arrays="all")
+            after = keys()
+            self.assertNotEqual(before[0], after[0])
+            self.assertNotEqual(before[1], after[1])
+            before = after
+
+    def test_oof_without_input_digest_fails_before_trainer(self):
+        rows, _, split, data, cfg, prov = fixture()
+        del prov["aggregate_input_digest"]
+        with patch("project.code.pilot.training.fit_model") as trainer:
+            with self.assertRaisesRegex(ValueError, "aggregate_input_digest"):
+                run_nested(rows, data, cfg, FitConfig(), split, prov)
+        trainer.assert_not_called()
 
 
 if __name__ == "__main__":

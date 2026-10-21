@@ -81,11 +81,11 @@ def verify_codebook(path, target, audit):
     return {str(path): file_hash(path), record["reference_path"]: record["reference_sha256"]}
 
 
-def verify_inputs(audit, m, chosen, config):
+def verify_inputs(audit, m, chosen, config, *, content=False, paths=None):
     from project.data import pilot_adapter as pa
-    from project.code.pilot.artifacts import file_hash
-
-    paths = pa.DEFAULT_PATHS
+    paths = pa.DEFAULT_PATHS if paths is None else paths
+    digest = pa.check_inventory(audit["inventory"], paths, config["participant"],
+                                config["brain_variant"], content=content)
     fresh, info = pa.build_manifest(paths, cohorts=[config["participant"].split("/")[0]])
     labels, _ = pa.load_labels(paths)
     fresh = pa.attach_annotation(fresh, pa.annotation_join(fresh, labels, info["canonical_map"]))
@@ -95,29 +95,46 @@ def verify_inputs(audit, m, chosen, config):
     if not m[fields].sort_values("row_id").reset_index(drop=True).equals(fresh[fields].sort_values("row_id").reset_index(drop=True)):
         raise ValueError("Full manifest changed since audit; rebuild the audit before fitting")
     participant = config["participant"]
-    inv = audit["inventory"]["participants"][participant]
     cohort, sub = participant.split("/")
-    base = pa.response_dir(paths, cohort, sub)  # MindCaptioning v2, Horikawa v3
-    source = {}
-    check = []
-    for key in ("labels_csv", "order34", "crosswalk_tsv"):
-        item = audit["inventory"]["shared"][key]
-        check.append((Path(item["path"]), item.get("sha256")))
-    brain = inv[config["brain_variant"]]
-    check.append((Path(brain["path"]), brain.get("sha256")))
-    for name in (f"{sub}_samples.tsv", f"{sub}_mask.nii.gz", "preprocessing_config.json", "STATUS.json"):
-        check.append((base / name, inv[name].get("sha256")))
-    for path, expected in check:
-        if not expected or file_hash(path) != expected:
-            raise ValueError(f"Missing or mismatched audit checksum: {path}")
-        source[str(path)] = expected
+    base = pa.response_dir(paths, cohort, sub)
+    records = dict(audit["inventory"]["participants"][participant]["dependencies"][config["brain_variant"]]["files"])
+    deps = pa.student_dependencies(paths, cohort, sub, config["brain_variant"])
+    if content:
+        records.update(audit["inventory"]["shared"]["content_dependencies"]["files"])
+        deps.update(pa.content_dependencies(paths))
+    source = {str(deps[name]): item["sha256"] for name, item in records.items()}
+    source["aggregate_input_digest"] = digest
     cfg = json.loads((base / "preprocessing_config.json").read_text())
     if cfg.get("sdc_existing") in (None, "", "unknown") or not cfg.get("policy"):
         raise ValueError("Unknown preprocessing/SDC version")
     if pa.preprocessing_id(cohort, cfg) != chosen.preprocessing_id.iloc[0]:
         raise ValueError("Preprocessing identity mismatch")
-    source[str(base / "qc/runs.json")] = file_hash(base / "qc/runs.json")
     return source
+
+
+def load_verified_inputs(audit, manifest, chosen, config, target, *, content=False, paths=None):
+    """Check audited dependencies before loading, and batch digests before fitting.
+
+    The optional content path prepares aligned frozen features for future callers;
+    it does not create ROI tensors, substitute captions, or launch a teacher.
+    """
+    from project.data import pilot_adapter as pa
+
+    paths = pa.DEFAULT_PATHS if paths is None else paths
+    sources = verify_inputs(audit, manifest, chosen, config, content=content, paths=paths)
+    batch = pa.load_student_batch(chosen, paths=paths, brain_variant=config["brain_variant"],
+                                  target_spaces=[target])
+    inv = audit["inventory"]
+    student_files = inv["participants"][config["participant"]]["dependencies"][config["brain_variant"]]["files"]
+    student_digest = pa.aggregate_digest(student_files) if content else sources["aggregate_input_digest"]
+    if batch.input_digest != student_digest:
+        raise ValueError("Student inputs changed between audit verification and batch loading")
+    features = None
+    if content:
+        features = pa.load_content_features(chosen, paths=paths)
+        if features.input_digest != pa.aggregate_digest(inv["shared"]["content_dependencies"]["files"]):
+            raise ValueError("Content inputs changed between audit verification and feature loading")
+    return batch, features, sources
 
 
 def main(argv=None):
@@ -148,11 +165,9 @@ def main(argv=None):
     if not args.experiment_id:
         raise ValueError("A new experiment ID is required")
     sources = verify_codebook(args.codebook_contract, args.target, audit)
-    sources.update(verify_inputs(audit, manifest, chosen, config))
     from project.code.pilot.artifacts import file_hash, code_record, save_linear_run
     from project.code.pilot.scopes import fingerprint
     from project.code.pilot.baseline import run_linear
-    from project.data import pilot_adapter as pa
     repo = Path(__file__).resolve().parents[2]
     code = code_record(repo)
     code["execution"] = dict(host=os.uname().nodename, slurm_job_id=os.environ.get("SLURM_JOB_ID"),
@@ -171,7 +186,8 @@ def main(argv=None):
     sources[str(args.audit_dir / "audit.json")] = file_hash(args.audit_dir / "audit.json")
     manifest_file = args.audit_dir / f"manifest_{config['participant'].split('/')[0]}.tsv.gz"
     sources[str(manifest_file)] = file_hash(manifest_file)
-    batch = pa.load_student_batch(chosen, brain_variant=config["brain_variant"], target_spaces=[args.target])
+    batch, _, checked_sources = load_verified_inputs(audit, manifest, chosen, config, args.target)
+    sources.update(checked_sources)
     start = time.monotonic()
     result = run_linear(rows, batch, split, args.target, config["alphas"])
     output = save_linear_run(output_root, args.experiment_id, rows, batch, split,
