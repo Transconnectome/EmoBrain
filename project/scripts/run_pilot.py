@@ -24,13 +24,14 @@ def prepare(audit_dir, config, target):
     audit = json.loads((audit_dir / "audit.json").read_text())
     if config["stage"] != "development" or config["full_training"] is not False:
         raise ValueError("Only bounded development configuration is supported")
-    if not config["participant"].startswith("mindcaptioning/"):
-        raise ValueError("First baseline is restricted to one primary-cohort participant")
+    cohort = pa.require_development_cohort(config["participant"])  # Horikawa develops; MindCaptioning is test
     if set(config["roles"]) != {"fit", "tune", "evaluate"} or any(type(n) is not int or n < 1 for n in config["roles"].values()):
         raise ValueError("Positive fit/tune/evaluate component counts required")
-    m = pd.read_csv(audit_dir / "manifest_mindcaptioning.tsv.gz", sep="\t")
+    m = pd.read_csv(audit_dir / f"manifest_{cohort}.tsv.gz", sep="\t")
     if m.reserved.dtype != bool:
         raise ValueError("Reserved flags must be explicit booleans")
+    if not m.reserved.any():  # audits before 2026-10-08 left Horikawa-only manifests unmarked
+        raise ValueError("Manifest marks no reserved content; rebuild the audit")
     rows = pa.to_observations(m)  # Keep the full manifest, not just selected rows.
     selected = pa.select_dev_subset(m, config["participant"], config["roles"])
     usable = set(m.loc[m.annotation_status == "ok", "row_id"])
@@ -85,7 +86,7 @@ def verify_inputs(audit, m, chosen, config):
     from project.code.pilot.artifacts import file_hash
 
     paths = pa.DEFAULT_PATHS
-    fresh, info = pa.build_manifest(paths, cohorts=["mindcaptioning"])
+    fresh, info = pa.build_manifest(paths, cohorts=[config["participant"].split("/")[0]])
     labels, _ = pa.load_labels(paths)
     fresh = pa.attach_annotation(fresh, pa.annotation_join(fresh, labels, info["canonical_map"]))
     fields = ["row_id", "content_id", "run_id", "run_group", "preprocessing_id", "reserved",
@@ -96,7 +97,7 @@ def verify_inputs(audit, m, chosen, config):
     participant = config["participant"]
     inv = audit["inventory"]["participants"][participant]
     cohort, sub = participant.split("/")
-    base = Path(paths.cohort_roots[cohort]) / sub / "v2"
+    base = pa.response_dir(paths, cohort, sub)  # MindCaptioning v2, Horikawa v3
     source = {}
     check = []
     for key in ("labels_csv", "order34", "crosswalk_tsv"):
@@ -128,10 +129,13 @@ def main(argv=None):
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--codebook-contract", type=Path)
     parser.add_argument("--experiment-id")
+    parser.add_argument("--participant", help="override config participant, e.g. horikawa/sub-01")
     parser.add_argument("--login-node", action="store_true",
                         help="explicitly allow the bounded baseline outside a SLURM allocation")
     args = parser.parse_args(argv)
     config = json.loads(args.config.read_text())
+    if args.participant:
+        config["participant"] = args.participant  # recorded in metadata.json with the config
     # Set thread bounds before importing numerical libraries.
     os.environ["OPENBLAS_NUM_THREADS"] = str(config["cpu_threads"])
     os.environ["OMP_NUM_THREADS"] = str(config["cpu_threads"])
@@ -165,7 +169,8 @@ def main(argv=None):
     if (output_root / prep_hash / args.experiment_id).exists():
         raise FileExistsError("Experiment output exists; use a new experiment ID")
     sources[str(args.audit_dir / "audit.json")] = file_hash(args.audit_dir / "audit.json")
-    sources[str(args.audit_dir / "manifest_mindcaptioning.tsv.gz")] = file_hash(args.audit_dir / "manifest_mindcaptioning.tsv.gz")
+    manifest_file = args.audit_dir / f"manifest_{config['participant'].split('/')[0]}.tsv.gz"
+    sources[str(manifest_file)] = file_hash(manifest_file)
     batch = pa.load_student_batch(chosen, brain_variant=config["brain_variant"], target_spaces=[args.target])
     start = time.monotonic()
     result = run_linear(rows, batch, split, args.target, config["alphas"])
