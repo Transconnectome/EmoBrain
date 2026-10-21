@@ -39,6 +39,12 @@ class RunFixture(unittest.TestCase):
         (self.root / "codebook").mkdir()
         self.codebook = self.root / "codebook" / "cat34.json"
         self.codebook.write_text(json.dumps({"target": "cat34", "columns": [f"dim{j}" for j in range(N_DIM)]}))
+        import pandas as pd
+        (self.root / "audits" / "audit_x").mkdir(parents=True)
+        self.manifest = self.root / "audits" / "audit_x" / "manifest_horikawa.tsv.gz"
+        pd.DataFrame({"row_id": [f"o{i}" for i in range(N_OBS)] + ["other"],
+                      "participant_id": ["horikawa/sub-01"] * (N_OBS + 1),
+                      "content_id": [f"c{i}" for i in range(N_OBS)] + ["c9"]}).to_csv(self.manifest, sep="\t", index=False)
 
     def tearDown(self):
         sm.N_RESAMPLES = self._resamples
@@ -58,7 +64,8 @@ class RunFixture(unittest.TestCase):
                     scope_roles=dict(fit=["f0", "f1"], tune=["t0"], evaluate=[f"o{i}" for i in range(N_OBS)]),
                     config=dict(alphas=[1.0, 10.0]), alpha=10.0, tuning_mse=[0.2, 0.1],
                     mse=mse, training_mean_mse=mse0, seconds=0.1, code=dict(commit="test", dirty=""),
-                    sources={str(self.codebook): hashlib.sha256(self.codebook.read_bytes()).hexdigest()})
+                    sources={str(self.codebook): hashlib.sha256(self.codebook.read_bytes()).hexdigest(),
+                             str(self.manifest): hashlib.sha256(self.manifest.read_bytes()).hexdigest()})
         meta.update(meta_overrides or {})
         (self.run / "metadata.json").write_text(json.dumps(meta))
         return meta
@@ -171,6 +178,35 @@ class RejectionTests(RunFixture):
     def test_alpha_outside_declared_grid(self):
         self.write(cells(), meta_overrides=dict(alpha=3.0))
         self.assertRejects("declared grid")
+
+    def test_alpha_not_tuning_minimum(self):
+        # Codex review (2026-10-21): alpha 1.0 is in the grid [1, 10] but tuning MSE [0.2, 0.1] selects 10.
+        self.write(cells(), meta_overrides=dict(alpha=1.0))
+        self.assertRejects("not the tuning-MSE minimum")
+
+    def test_participant_and_content_ids_checked_against_pinned_manifest(self):
+        # Codex review (2026-10-21): every participant and content ID replaced.
+        rows = cells()
+        for r in rows:
+            r[2], r[1] = "mindcaptioning/sub-99", "incorrect-content"
+        self.write(rows)
+        self.assertRejects("not the run participant")
+        rows = cells()
+        rows[5][1] = "c3"  # one cell of observation o0 carries another content
+        self.write(rows)
+        self.assertRejects("disagrees with the pinned manifest")
+
+    def test_manifest_pin_missing_changed_or_moved(self):
+        self.write(cells(), meta_overrides=dict(sources={str(self.codebook): hashlib.sha256(self.codebook.read_bytes()).hexdigest()}))
+        self.assertRejects("pins 0 sources matching manifest")
+        self.write(cells())
+        moved = self.root / "audits" / "superseded" / "audit_x"
+        moved.mkdir(parents=True)
+        self.manifest.rename(moved / self.manifest.name)
+        sm.summarize(self.run)  # an audit moved to superseded/ is followed
+        (self.run / "summary.json").unlink()
+        (moved / self.manifest.name).write_bytes(b"changed")
+        self.assertRejects("changed since the run")
 
 
 if __name__ == "__main__":

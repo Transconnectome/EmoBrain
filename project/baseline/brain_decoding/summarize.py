@@ -10,7 +10,9 @@ Every reported number is recomputed from the valid cells of predictions.tsv.
 The run fails (SummaryError) when metadata disagrees with that recomputation,
 when the TSV has duplicate, missing, out-of-range or non-finite cells, when its
 observations differ from the recorded evaluate scope, or when the codebook
-contract pinned in the run metadata is missing or changed. A training-mean MSE
+contract pinned in the run metadata is missing or changed, when participant or
+content IDs disagree with the run's pinned audit manifest, or when the recorded
+alpha is not the tuning-MSE minimum of the declared grid. A training-mean MSE
 at or below ZERO_DENOMINATOR makes the MSE reduction undefined (null).
 
 Usage: python -m project.baseline.brain_decoding.summarize EXPERIMENT_ID
@@ -66,6 +68,30 @@ def pinned_codebook(meta):
     return list(record["columns"])
 
 
+def _pinned_file(meta, pattern):
+    """(path, recorded sha256) of the one source matching ``pattern``; an audit folder
+    moved into a sibling superseded/ folder is followed and its bytes compared there."""
+    hits = [(Path(p), h) for p, h in meta.get("sources", {}).items() if Path(p).match(pattern)]
+    if len(hits) != 1:
+        raise SummaryError(f"Run metadata pins {len(hits)} sources matching {pattern}, expected 1")
+    path, recorded = hits[0]
+    moved = path.parent.parent / "superseded" / path.parent.name / path.name
+    path = path if path.is_file() else moved
+    if not path.is_file():
+        raise SummaryError(f"Pinned source is missing: {hits[0][0]}")
+    if _sha256(path) != recorded:
+        raise SummaryError(f"Pinned source changed since the run: {path}")
+    return path
+
+
+def pinned_identities(meta):
+    """row_id -> (participant_id, content_id) from the run's pinned audit manifest."""
+    import pandas as pd
+    path = _pinned_file(meta, "manifest_*.tsv.gz")
+    m = pd.read_csv(path, sep="\t", usecols=["row_id", "participant_id", "content_id"])
+    return dict(zip(m.row_id, zip(m.participant_id, m.content_id)))
+
+
 def _finite(text, what):
     try:
         value = float(text)
@@ -76,8 +102,13 @@ def _finite(text, what):
     return value
 
 
-def load_predictions(run, names, evaluate_ids):
-    """Cell arrays ordered as the recorded evaluate scope; fail closed on any defect."""
+def load_predictions(run, names, evaluate_ids, participant=None, identities=None):
+    """Cell arrays ordered as the recorded evaluate scope; fail closed on any defect.
+
+    With ``participant`` every cell must carry it; with ``identities`` (row_id ->
+    (participant_id, content_id) from the pinned manifest) each observation's
+    participant and content must match the manifest, consistently across dimensions.
+    """
     with (run / "predictions.tsv").open() as fh:
         reader = csv.DictReader(fh, delimiter="\t")
         missing_cols = set(REQUIRED_COLUMNS) - set(reader.fieldnames or ())
@@ -94,6 +125,13 @@ def load_predictions(run, names, evaluate_ids):
     for r in rows:
         if r["observation_id"] not in index:
             raise SummaryError(f"Observation outside the evaluate scope: {r['observation_id']}")
+        if participant is not None and r["participant_id"] != participant:
+            raise SummaryError(f"Cell participant {r['participant_id']!r} is not the run participant {participant!r}")
+        if identities is not None:
+            expected = identities.get(r["observation_id"])
+            if expected is None or (r["participant_id"], r["content_id"]) != expected:
+                raise SummaryError(f"Observation {r['observation_id']} identity "
+                                   f"{(r['participant_id'], r['content_id'])} disagrees with the pinned manifest {expected}")
         try:
             j = int(r["target_dimension"])
         except ValueError:
@@ -191,10 +229,18 @@ def summarize(run, out_dir=None):
         raise SummaryError(f"Unsupported target {meta.get('target')!r}")
     target = meta["target"]
     names = pinned_codebook(meta)
-    obs, y, pred, base, valid = load_predictions(run, names, meta["scope_roles"]["evaluate"])
+    obs, y, pred, base, valid = load_predictions(run, names, meta["scope_roles"]["evaluate"],
+                                                 participant=meta["participant"],
+                                                 identities=pinned_identities(meta))
     alphas = meta["config"]["alphas"]
     if meta["alpha"] not in alphas or len(meta["tuning_mse"]) != len(alphas):
         raise SummaryError("Selected alpha or tuning MSE does not match the declared grid")
+    if not all(isinstance(v, (int, float)) and math.isfinite(v) for v in meta["tuning_mse"]):
+        raise SummaryError("Non-finite tuning MSE")
+    # Same rule as the benchmark: first alpha with the smallest tuning MSE.
+    if meta["alpha"] != alphas[int(np.argmin(meta["tuning_mse"]))]:
+        raise SummaryError(f"Selected alpha {meta['alpha']!r} is not the tuning-MSE minimum "
+                           f"{alphas[int(np.argmin(meta['tuning_mse']))]!r}")
 
     # Overall metrics: mean over all valid cells, as in the fitted benchmark.
     mse = float(np.square(pred - y)[valid].mean())
