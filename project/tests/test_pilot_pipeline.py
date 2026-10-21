@@ -371,8 +371,11 @@ class RunnerInventoryTests(AdapterFixture):
         fit.assert_called_once()
         meta = json.loads(next((self.tmp / "runs").glob("*/*/metadata.json")).read_text())
         digest = pa.check_inventory(self.audit["inventory"], self.paths, self.config["participant"])
-        self.assertEqual(meta["sources"]["aggregate_input_digest"], digest)
-        self.assertEqual(meta["provenance"]["feature_hash"], fingerprint(meta["sources"]))
+        self.assertEqual(meta["provenance"]["aggregate_input_digest"], digest)
+        self.assertNotIn("aggregate_input_digest", meta["sources"])
+        self.assertTrue(all(Path(path).is_file() for path in meta["sources"]))
+        self.assertEqual(meta["provenance"]["feature_hash"],
+                         fingerprint(dict(meta["sources"], aggregate_input_digest=digest)))
 
     def test_qc_change_stops_entrypoint_before_loading_or_fitting(self):
         self.mutate_qc()

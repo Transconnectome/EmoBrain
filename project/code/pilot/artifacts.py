@@ -44,6 +44,11 @@ def save_linear_run(root, experiment_id, rows, batch, split, target, result, con
                       split_hash=fingerprint(split), target=target, target_transform_hash=transform_hash,
                       feature_hash=fingerprint(sources), config_hash=fingerprint(config), seed=config["seed"],
                       code_source_hashes=code["source_hashes"], brain_variant=batch.brain_variant)
+    # Keep sources a file-path -> hash mapping for lineage readers. The aggregate
+    # participates in feature_hash above and is also explicit in provenance.
+    if "aggregate_input_digest" in sources:
+        provenance["aggregate_input_digest"] = sources["aggregate_input_digest"]
+    file_sources = {k: v for k, v in sources.items() if k != "aggregate_input_digest"}
     key = artifact_key(rows, dict(fit=result["fit_ids"], evaluate=split["evaluate"], forbidden=[]), provenance)
     prep_hash = fingerprint(dict(preprocessing_id=batch.preprocessing_id, brain_variant=batch.brain_variant))
     out = Path(root) / prep_hash / experiment_id
@@ -51,7 +56,7 @@ def save_linear_run(root, experiment_id, rows, batch, split, target, result, con
     model.save(out / "linear_model.npz")
     (out / "metadata.json").write_text(json.dumps(dict(config=config, target=target, code=code,
         preprocessing_id=batch.preprocessing_id, brain_variant=batch.brain_variant,
-        participant=batch.participant_id, sources=sources, scope_roles=split,
+        participant=batch.participant_id, sources=file_sources, scope_roles=split,
         provenance=provenance, artifact_key=key, seconds=seconds,
         objective=result["objective"], alpha=result["selected_alpha"], tuning_mse=result["tuning_mse"],
         mse=result["mse"], training_mean_mse=result["training_mean_mse"],
