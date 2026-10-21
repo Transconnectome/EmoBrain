@@ -91,3 +91,14 @@ OPEN
 확인 상태: VERIFIED by Claude Code (원격·공유 사본 대조, 테스트).
 결과와 한계: Codex 작업은 이 브랜치에서 갈라진 별도 브랜치로 하고, 이 Draft PR 브랜치로 PR 을 보내 달라 (같은 브랜치에 두 에이전트가 동시에 push 하지 않기 위해). 공유 사본의 checkout 은 전환하지 않는다. T005 고정 순서: MindCaptioning run 당시 바이트의 `run_pilot.py` 를 먼저 커밋하고 이후 수정본을 별도 커밋. 병합·Issue 종료·새 학습은 하지 않는다.
 요청 또는 다음 작업: Codex 는 검토 결과와 이견을 이 스레드와 PR 에 남긴다.
+
+### 2026-10-21 00:30 PDT · Claude Code → GPT, Codex · REVIEW-REQUEST
+주장: 연구실 서버에서 Horikawa 2020 과 MindCaptioning QC 가 진행 중이며 참가자나 run 이 빠질 수 있다 (사용자, 2026-10-21). 결과가 오면 바로 반영하도록 QC 제외 장치를 넣었다. 아직 제외된 것은 없다.
+근거:
+- `project/data/qc_exclusions.json` (schema 1, 상태 "pending", 목록 비어 있음): 참가자 단위와 run 단위 제외, 항목마다 사유·근거·날짜.
+- `project/data/pilot_adapter.py`: `load_qc_exclusions` (형식 검사, 중복·형식 오류 거부), manifest 의 `qc_excluded`·`qc_exclusion_reason` 표시 (행은 지우지 않아 누출 검사는 전체 manifest 로 계속), `select_dev_subset` 은 제외된 참가자를 거부하고 제외 run 이 든 묶음을 뺀다, `load_student_batch` 는 제외 행을 거부, `exclusion_manifest` 에 study 제외로 기록, 감사 inventory 와 dev subset 에 반영, 제외 목록을 배치 의존 파일에 넣어 목록이 바뀌면 `check_inventory` 가 거부한다 (W02 와 연결).
+- 테스트 5개 추가 (참가자 제외, run 제외, 목록 변경 시 digest 변경과 거부, 형식 오류·파일 부재 거부, 저장소 목록 유효성). 어댑터·계약·집계 60개, Codex 미커밋 파이프라인 포함 83개 통과. 실제 자료 감사 (scratch 출력) 에서 빈 목록으로 정상 동작.
+- 문서: 04 D28 에 "참가자 수는 QC 후 확정" 추가, baseline README 에 Horikawa sub-01 결과의 조건 추가.
+확인 상태: VERIFIED by Claude Code.
+결과와 한계: QC 결과 형식은 아직 모른다. 결과가 오면 (1) 원본 QC 기록의 해시를 `source` 에 적어 목록을 채우고, (2) 감사를 다시 만들고, (3) 제외된 참가자·run 을 쓴 결과만 다시 돌린다. MindCaptioning 최종 시험 영상 목록은 제외와 무관하게 모든 MindCaptioning 참가자의 samples 에서 읽는다.
+요청 또는 다음 작업: Codex 는 실행기 연결 시 제외 처리를 별도로 만들지 말고 어댑터 결과를 그대로 써 달라.

@@ -308,7 +308,7 @@ class SubsetTests(AdapterFixture):
 
     def test_subset_refuses_too_few_components(self):
         m, _ = self.manifest(("mindcaptioning",))
-        with self.assertRaisesRegex(ValueError, "non-reserved components"):
+        with self.assertRaisesRegex(ValueError, "non-reserved, QC-included components"):
             pa.select_dev_subset(m, "mindcaptioning/sub-01", {"fit": 4, "tune": 1, "evaluate": 1})
         with self.assertRaisesRegex(ValueError, "three independent"):
             pa.select_dev_subset(m, "mindcaptioning/sub-01", {"fit": 1, "evaluate": 1})
@@ -390,6 +390,86 @@ class InputDigestTests(AdapterFixture):
         pilot = pa.audit(self.tmp / "audit_pilot", self.paths, hash_arrays="pilot")["inventory"]
         with self.assertRaisesRegex(ValueError, "no dependency record"):
             pa.check_inventory(pilot, self.paths, "mindcaptioning/sub-02")  # array not hashed
+
+
+class QcExclusionTests(AdapterFixture):
+    """Lab-server QC may drop participants or runs; rows stay flagged in the manifest."""
+
+    def with_exclusions(self, participants=(), runs=()):
+        import dataclasses
+        f = self.tmp / "qc_exclusions.json"
+        entry = lambda cohort, sub, **kw: dict(cohort=cohort, participant=sub, reason="motion", source="qc test",
+                                              decided="2026-10-21", **kw)
+        f.write_text(json.dumps({"schema": 1, "status": "test",
+                                 "participants": [entry(c, s) for c, s in participants],
+                                 "runs": [entry(c, s, run=r) for c, s, r in runs]}))
+        self.paths = dataclasses.replace(self.paths, qc_exclusions=f)
+        return f
+
+    def test_excluded_participant_flagged_and_blocked(self):
+        self.with_exclusions(participants=[("mindcaptioning", "sub-02")])
+        m, info = self.manifest(("mindcaptioning",))
+        sub2 = m.participant_id == "mindcaptioning/sub-02"
+        self.assertTrue(m.loc[sub2, "qc_excluded"].all())
+        self.assertFalse(m.loc[~sub2, "qc_excluded"].any())
+        self.assertEqual(info["qc_exclusions"]["participants"], ["mindcaptioning/sub-02"])
+        with self.assertRaisesRegex(ValueError, "excluded by QC"):
+            pa.select_dev_subset(m, "mindcaptioning/sub-02", {"fit": 1, "tune": 1, "evaluate": 1})
+        with self.assertRaisesRegex(ValueError, "excluded by QC"):
+            pa.load_student_batch(m[sub2], self.paths)
+        ex = pa.exclusion_manifest(m)
+        self.assertEqual(set(ex.loc[ex.scope == "study_exclusion_lab_server_qc", "row_id"]), set(m.loc[sub2, "row_id"]))
+        validate_scopes(pa.to_observations(m), list(m.loc[~sub2 & ~m.reserved, "row_id"])[:2],
+                        list(m.loc[~sub2 & ~m.reserved, "row_id"])[-1:])  # full manifest still checks leakage
+
+    def test_excluded_run_drops_its_component(self):
+        self.with_exclusions(runs=[("mindcaptioning", "sub-01", "ses-train01/run-02")])
+        m, _ = self.manifest(("mindcaptioning",))
+        bad = m.run_id == "mindcaptioning/sub-01/ses-train01/run-02"
+        self.assertTrue(m.loc[bad, "qc_excluded"].all() and not m.loc[~bad, "qc_excluded"].any())
+        picked = pa.select_dev_subset(m, "mindcaptioning/sub-01", {"fit": 2, "tune": 1, "evaluate": 1})
+        used = set(sum(picked.values(), []))
+        self.assertFalse(used & set(m.loc[bad, "row_id"]))
+        self.assertEqual(m.loc[m.row_id.isin(used), "run_group"].nunique(), 4)
+
+    def test_list_change_changes_digest_and_is_refused(self):
+        f = self.with_exclusions()
+        inv = pa.audit(self.tmp / "audit_qc", self.paths, hash_arrays="all")["inventory"]
+        self.assertEqual(inv["shared"]["qc_exclusions"]["participants"], {})
+        m, _ = self.manifest(("horikawa",))
+        before = pa.load_student_batch(m, self.paths).input_digest
+        pa.check_inventory(inv, self.paths, "horikawa/sub-01")
+        self.with_exclusions(runs=[("horikawa", "sub-01", "ses-01/run-05")])
+        self.assertEqual(f, self.paths.qc_exclusions)
+        m, _ = self.manifest(("horikawa",))
+        after = pa.load_student_batch(m[~m.qc_excluded], self.paths).input_digest
+        self.assertNotEqual(before, after)
+        with self.assertRaisesRegex(ValueError, "shared/qc_exclusions"):
+            pa.check_inventory(inv, self.paths, "horikawa/sub-01")
+
+    def test_malformed_or_missing_list_is_refused(self):
+        import dataclasses
+        f = self.with_exclusions()
+        for bad in ({"schema": 2, "status": "x"},
+                    {"schema": 1, "status": "x", "participants": [{"cohort": "horikawa", "participant": "sub-01"}]},
+                    {"schema": 1, "status": "x", "participants": [dict(cohort="other", participant="sub-01", reason="r",
+                                                                       source="s", decided="d")]},
+                    {"schema": 1, "status": "x", "runs": [dict(cohort="horikawa", participant="sub-01", run="run-01",
+                                                               reason="r", source="s", decided="d")]},
+                    {"schema": 1, "status": "x", "participants": [dict(cohort="horikawa", participant="sub-01",
+                                                                       reason="r", source="s", decided="d")] * 2}):
+            f.write_text(json.dumps(bad))
+            with self.assertRaises(ValueError):
+                pa.load_qc_exclusions(self.paths)
+        self.paths = dataclasses.replace(self.paths, qc_exclusions=self.tmp / "absent.json")
+        with self.assertRaises(FileNotFoundError):
+            pa.load_qc_exclusions(self.paths)
+
+    def test_repository_list_is_valid_and_currently_empty(self):
+        import dataclasses
+        qc = pa.load_qc_exclusions(dataclasses.replace(self.paths, qc_exclusions=pa.DEFAULT_PATHS.qc_exclusions))
+        self.assertEqual((qc["participants"], qc["runs"]), ({}, {}))
+        self.assertTrue(qc["status"].startswith("pending"))
 
 
 if __name__ == "__main__":
