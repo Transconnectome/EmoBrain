@@ -24,7 +24,7 @@ def prepare(audit_dir, config, target):
     audit = json.loads((audit_dir / "audit.json").read_text())
     if config["stage"] != "development" or config["full_training"] is not False:
         raise ValueError("Only bounded development configuration is supported")
-    cohort = pa.require_development_cohort(config["participant"])  # Horikawa develops; MindCaptioning is test
+    cohort = pa.require_development_cohort(config["participant"])  # Horikawa develops; MindCaptioning is the later validation cohort
     if set(config["roles"]) != {"fit", "tune", "evaluate"} or any(type(n) is not int or n < 1 for n in config["roles"].values()):
         raise ValueError("Positive fit/tune/evaluate component counts required")
     m = pd.read_csv(audit_dir / f"manifest_{cohort}.tsv.gz", sep="\t")
