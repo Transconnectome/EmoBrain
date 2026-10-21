@@ -8,7 +8,7 @@ _2026-10-06 · 서버 경로와 실행 결과는 현장 audit 후 채운다 · �
 
 ### Cohort와 관측 단위
 
-계획상의 primary는 Mind captioning/Horikawa 2025의 video-viewing cohort, replication은 Horikawa 2020 cohort다. 원문은 각각 6명과 5명을 기술한다. 개인 식별자와 cohort 간 참가자 중복 여부는 서버 manifest 및 원자료 설명으로 다시 확인한다. Imagery data는 사용하지 않는다.[^1][^2]
+학습·개발 cohort는 Horikawa 2020, 후속 검증 cohort는 Mind captioning/Horikawa 2025의 video-viewing cohort다 (2026-10-20 확정, 04 D28). 모델과 설정은 Horikawa 2020에서 확정하고, MindCaptioning fMRI 자료는 학습·튜닝에 쓰지 않는다. 원문은 각각 5명과 6명을 기술한다. 개인 식별자와 cohort 간 참가자 중복 여부는 서버 manifest 및 원자료 설명으로 다시 확인한다. Imagery data는 사용하지 않는다.[^1][^2]
 
 원문 수준에서 확인한 사항은 다음과 같다. 서버에 있는 derivative가 원문과 동일하다는 뜻은 아니다.
 

@@ -56,11 +56,12 @@ COHORT_DIRS = {"mindcaptioning": "MindCaptioning", "horikawa": "Horikawa"}
 # Final response versions (Horikawa/PREPROCESSING_FINAL.md, 2026-10-13): Horikawa v3 is
 # v2 processing on fieldmap-less SyN-SDC fMRIPrep input; Horikawa v2 is record-only.
 RESPONSE_VERSIONS = {"mindcaptioning": "v2", "horikawa": "v3"}
-# Cohort roles (user decision 2026-10-19): Horikawa 2020 is the development cohort,
-# MindCaptioning is the held-out test cohort. Development fits must not read test-cohort
-# participants. Final-test reserved content (MindCaptioning part == test) stays excluded
-# from every development scope in both cohorts.
-COHORT_ROLES = {"horikawa": "development", "mindcaptioning": "test"}
+# Cohort roles (decision 2026-10-20, docs/current/04 D28): Horikawa 2020 is the training and
+# development cohort, MindCaptioning the later validation cohort. Models and settings are
+# fixed on Horikawa; MindCaptioning fMRI is not read by any training or tuning fit.
+# Final-test reserved content (MindCaptioning part == test) stays excluded from every
+# development scope.
+COHORT_ROLES = {"horikawa": "development", "mindcaptioning": "validation"}
 BRAIN_VARIANTS = {"runz": "blocks_common36_runz", "raw": "blocks_common36"}
 TARGET_SPACES = ("cat34", "affect14")
 AFFECT14 = (
@@ -70,6 +71,10 @@ AFFECT14 = (
     "safety_score", "upswing_score",
 )
 NEAR_DUPLICATE_POLICIES = ("merge", "hash_only")
+# Audit inventory schema. 2 (2026-10-20, issue #7): adds stim_idx.npy, participant
+# qc/runs.json and per-batch dependency records with an aggregate input digest.
+# Schema-1 inventories are legacy: check_inventory() refuses them.
+INVENTORY_SCHEMA = 2
 
 
 @dataclass(frozen=True)
@@ -81,6 +86,7 @@ class DataPaths:
     video_features: Path
     crosswalk_tsv: Path
     response_versions: Mapping[str, str] = field(default_factory=lambda: dict(RESPONSE_VERSIONS))
+    qc_exclusions: Path | None = None   # QC exclusion list; None = no list (synthetic fixtures only)
 
 
 DEFAULT_PATHS = DataPaths(
@@ -90,6 +96,7 @@ DEFAULT_PATHS = DataPaths(
     captions_csv=REPO / "project/shared/data/caption_ck20.csv",
     video_features=REPO / "project/shared/data/stimulus_features/vjepa2_pretrained.npy",
     crosswalk_tsv=REPO / "prereg_v2/manifests/stimulus_crosswalk.tsv",
+    qc_exclusions=REPO / "project/data/qc_exclusions.json",
 )
 
 
@@ -177,6 +184,47 @@ def _read_participant(cohort: str, d: Path) -> tuple[pd.DataFrame, dict]:
     return sm, info
 
 
+QC_EXCLUSION_SCHEMA = 1
+
+
+def load_qc_exclusions(paths: DataPaths) -> dict:
+    """Participant- and run-level QC exclusions (lab-server QC decisions).
+
+    File: {"schema": 1, "status": str, "participants": [entry], "runs": [entry]}, entry =
+    {"cohort", "participant": "sub-XX", "run": "ses-../run-.." (runs only), "reason",
+    "source", "decided"}. Excluded rows stay in the manifest (flagged), so leakage checks
+    still see them, but no development subset or batch may use them. Returns
+    {"participants": {participant_id: reason}, "runs": {run_id: reason}, "sha256", "status"}.
+    """
+    out = {"participants": {}, "runs": {}, "sha256": None, "status": "no exclusion list configured"}
+    if paths.qc_exclusions is None:
+        return out
+    p = Path(paths.qc_exclusions)
+    if not p.is_file():
+        raise FileNotFoundError(f"QC exclusion list missing: {p}")
+    rec = json.loads(p.read_text())
+    if rec.get("schema") != QC_EXCLUSION_SCHEMA or not isinstance(rec.get("status"), str):
+        raise ValueError("QC exclusion list: unsupported schema or missing status")
+    out.update(sha256=sha256_file(p), status=rec["status"])
+    for kind in ("participants", "runs"):
+        for e in rec.get(kind, []):
+            for k in ("cohort", "participant", "reason", "source", "decided") + (("run",) if kind == "runs" else ()):
+                if not isinstance(e.get(k), str) or not e[k].strip():
+                    raise ValueError(f"QC exclusion {kind} entry lacks {k}: {e}")
+            if e["cohort"] not in COHORT_DIRS or not e["participant"].startswith("sub-"):
+                raise ValueError(f"QC exclusion entry has unknown cohort/participant: {e}")
+            key = f"{e['cohort']}/{e['participant']}"
+            if kind == "runs":
+                ses, _, run = e["run"].partition("/")
+                if not ses.startswith("ses-") or not run.startswith("run-"):
+                    raise ValueError(f"QC exclusion run must look like ses-XX/run-YY: {e}")
+                key = f"{key}/{e['run']}"
+            if key in out[kind]:
+                raise ValueError(f"duplicate QC exclusion: {key}")
+            out[kind][key] = e["reason"]
+    return out
+
+
 def reserved_contents(paths: DataPaths, canon: Mapping[int, int]) -> set[str]:
     """Canonical content IDs of MindCaptioning final-test videos (part == test).
 
@@ -244,6 +292,13 @@ def build_manifest(paths: DataPaths = DEFAULT_PATHS,
     reserved = reserved_contents(paths, canon)
     m["reserved"] = m.content_id.isin(reserved)
     m["run_group"] = compute_run_groups(m)
+    qc = load_qc_exclusions(paths)
+    by_participant = m.participant_id.map(qc["participants"])
+    by_run = m.run_id.map(qc["runs"])
+    m["qc_excluded"] = by_participant.notna() | by_run.notna()
+    m["qc_exclusion_reason"] = by_participant.fillna(by_run).fillna("")
+    info["qc_exclusions"] = {k: qc[k] for k in ("sha256", "status")} | {
+        "participants": sorted(qc["participants"]), "runs": sorted(qc["runs"])}
     info["near_duplicate_policy"] = near_duplicate_policy
     info["canonical_map"] = canon
     info["n_reserved_contents"] = len(reserved)
@@ -329,12 +384,19 @@ def attach_annotation(m: pd.DataFrame, join: pd.DataFrame) -> pd.DataFrame:
 
 
 def exclusion_manifest(m: pd.DataFrame) -> pd.DataFrame:
-    """Pilot-only quarantine. Rows stay in the manifest; only targets are masked."""
+    """Rows kept in the manifest but not usable: pilot-only annotation quarantine
+    (targets masked) and QC exclusions (rows never used for development)."""
+    cols = ["row_id", "content_id", "cohort", "participant_id", "video_id",
+            "annotation_status", "reason", "scope"]
     q = m[m.annotation_status != "ok"].copy()
     q["reason"] = "annotation_" + q.annotation_status
     q["scope"] = "pilot_only_not_a_study_exclusion"
-    return q[["row_id", "content_id", "cohort", "participant_id", "video_id",
-              "annotation_status", "reason", "scope"]]
+    if "qc_excluded" in m:
+        x = m[m.qc_excluded].copy()
+        x["reason"] = "qc: " + x.qc_exclusion_reason
+        x["scope"] = "study_exclusion_lab_server_qc"
+        q = pd.concat([q, x], ignore_index=True)
+    return q[cols]
 
 
 # ----------------------------------------------------------- contract rows --
@@ -366,7 +428,7 @@ def require_development_cohort(participant: str, cohort_roles: Mapping[str, str]
     cohort = participant.split("/")[0]
     if cohort_roles.get(cohort) != "development":
         raise ValueError(f"{participant}: cohort role is {cohort_roles.get(cohort)!r}, "
-                         "not 'development'; test-cohort data are not used for development fits")
+                         "not 'development'; validation-cohort data are not used for training or tuning")
     return cohort
 
 
@@ -383,16 +445,21 @@ def select_dev_subset(m: pd.DataFrame, participant: str,
     p = m[m.participant_id == participant]
     if p.empty:
         raise ValueError(f"no rows for {participant}")
+    if "qc_excluded" in p and p.qc_excluded.all():
+        raise ValueError(f"{participant} is excluded by QC: {p.qc_exclusion_reason.iloc[0]}")
+    p = p.assign(_qc=p.qc_excluded if "qc_excluded" in p else False)
     ordered = (p.groupby("run_group").agg(first_session=("session", "min"),
                                           first_run=("run", "min"),
-                                          reserved=("reserved", "any"))
+                                          reserved=("reserved", "any"),
+                                          qc=("_qc", "any"))
                .reset_index())
-    ordered = ordered[~ordered.reserved].sort_values(["first_session", "first_run", "run_group"])
+    # Whole components drop out when they hold reserved content or a QC-excluded run.
+    ordered = ordered[~ordered.reserved & ~ordered.qc].sort_values(["first_session", "first_run", "run_group"])
     need = sum(roles.values())
     if len(roles) < 3 or need < 3:
         raise ValueError("need at least three independent components across fit/tune/evaluate")
     if len(ordered) < need:
-        raise ValueError(f"only {len(ordered)} non-reserved components available, need {need}")
+        raise ValueError(f"only {len(ordered)} non-reserved, QC-included components available, need {need}")
     picked = list(ordered.run_group[:need])
     out, i = {}, 0
     for role, n in roles.items():
@@ -415,6 +482,7 @@ class StudentBatch:
     brain_valid: np.ndarray      # (n, v) bool; False where a voxel was constant in that run
     targets: Mapping[str, np.ndarray] = field(default_factory=dict)       # (n, d) float32, NaN if invalid
     target_masks: Mapping[str, np.ndarray] = field(default_factory=dict)  # (n, d) bool
+    input_digest: str = ""       # aggregate sha256 over student_dependencies() at load time
 
 
 @dataclass(frozen=True)
@@ -427,6 +495,7 @@ class ContentFeatures:
     caption: np.ndarray | None        # (n, ds) float32
     caption_valid: np.ndarray | None
     caption_source: str
+    input_digest: str = ""            # aggregate sha256 over content_dependencies() at load time
 
 
 @dataclass(frozen=True)
@@ -437,6 +506,78 @@ class TeacherBatch:
     def __post_init__(self):
         if self.student.observation_ids != self.content.observation_ids:
             raise ValueError("teacher content features are not row-aligned with brain rows")
+
+
+def student_dependencies(paths: DataPaths, cohort: str, sub: str,
+                         brain_variant: str = "runz") -> dict[str, Path]:
+    """Every file a StudentBatch of this participant is built from.
+
+    Brain rows and validity (array, samples, qc/runs.json constant voxels), voxel
+    mapping (mask), preprocessing identity (config, STATUS), targets and their join
+    (labels, 34-D order, crosswalk) and reserved content (all MindCaptioning samples).
+    """
+    d = response_dir(paths, cohort, sub)
+    deps = {f"{cohort}/{sub}/{brain_variant}": d / f"{sub}_{BRAIN_VARIANTS[brain_variant]}.npy",
+            f"{cohort}/{sub}/samples.tsv": d / f"{sub}_samples.tsv",
+            f"{cohort}/{sub}/mask.nii.gz": d / f"{sub}_mask.nii.gz",
+            f"{cohort}/{sub}/preprocessing_config.json": d / "preprocessing_config.json",
+            f"{cohort}/{sub}/STATUS.json": d / "STATUS.json",
+            f"{cohort}/{sub}/qc/runs.json": d / "qc" / "runs.json",
+            "shared/labels_csv": Path(paths.labels_csv), "shared/order34": Path(paths.order34),
+            "shared/crosswalk_tsv": Path(paths.crosswalk_tsv)}
+    for md in participant_dirs(paths, "mindcaptioning"):
+        deps[f"mindcaptioning/{md.parent.name}/samples.tsv"] = md / f"{md.parent.name}_samples.tsv"
+    if paths.qc_exclusions is not None:
+        deps["shared/qc_exclusions"] = Path(paths.qc_exclusions)  # which rows may be used
+    return deps
+
+
+def content_dependencies(paths: DataPaths) -> dict[str, Path]:
+    """Every file ContentFeatures are built from (feature rows go through stim_idx.npy)."""
+    vf = Path(paths.video_features)
+    return {"shared/video_features": vf, "shared/stim_idx": vf.parent / "stim_idx.npy",
+            "shared/labels_csv": Path(paths.labels_csv), "shared/crosswalk_tsv": Path(paths.crosswalk_tsv)}
+
+
+def file_records(deps: Mapping[str, Path], known: Mapping[str, str] | None = None) -> dict[str, dict]:
+    """name -> resolved path, bytes, sha256 (``known`` maps resolved paths to hashes already computed)."""
+    out = {}
+    for name, p in sorted(deps.items()):
+        r = Path(p).resolve()
+        if not r.is_file():
+            raise FileNotFoundError(f"dependency {name} missing: {p}")
+        sha = (known or {}).get(str(r)) or sha256_file(r)
+        out[name] = {"path": str(p), "resolved": str(r), "bytes": r.stat().st_size, "sha256": sha}
+    return out
+
+
+def aggregate_digest(records: Mapping[str, Mapping]) -> str:
+    """One sha256 over (name, sha256) pairs; any dependency change changes it."""
+    blob = json.dumps({k: v["sha256"] for k, v in sorted(records.items())}, separators=(",", ":"))
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def check_inventory(inventory: Mapping, paths: DataPaths, participant: str,
+                    brain_variant: str = "runz", content: bool = False) -> str:
+    """Recompute the participant's (and optionally content) dependencies and refuse any
+    difference from the audited inventory. Call before fitting; returns the digest."""
+    if inventory.get("schema", 1) < INVENTORY_SCHEMA:
+        raise ValueError(f"legacy inventory (schema {inventory.get('schema', 1)}) has no stim_idx/qc "
+                         "dependency records; rebuild the audit")
+    cohort, sub = participant.split("/")
+    audited = inventory["participants"].get(participant, {}).get("dependencies", {}).get(brain_variant)
+    if not audited:
+        raise ValueError(f"audit has no dependency record for {participant} {brain_variant}")
+    expected = dict(audited["files"])
+    current = file_records(student_dependencies(paths, cohort, sub, brain_variant))
+    if content:
+        expected.update(inventory["shared"]["content_dependencies"]["files"])
+        current.update(file_records(content_dependencies(paths)))
+    changed = sorted(k for k in set(expected) | set(current)
+                     if expected.get(k, {}).get("sha256") != current.get(k, {}).get("sha256"))
+    if changed:
+        raise ValueError(f"inputs changed since the audit, refusing stale manifest/cache: {changed}")
+    return aggregate_digest(current)
 
 
 def _constant_voxel_invalid(d: Path, sub: str) -> dict[tuple[str, str], np.ndarray]:
@@ -460,6 +601,8 @@ def load_student_batch(m_rows: pd.DataFrame, paths: DataPaths = DEFAULT_PATHS,
         raise ValueError("a StudentBatch holds one participant (voxel spaces differ)")
     if "annotation_status" not in m_rows:
         raise ValueError("attach_annotation() before loading targets")
+    if "qc_excluded" in m_rows and m_rows.qc_excluded.any():
+        raise ValueError(f"{int(m_rows.qc_excluded.sum())} requested rows are excluded by QC")
     cohort, sub = m_rows.cohort.iloc[0], m_rows.subject.iloc[0]
     d = response_dir(paths, cohort, sub)
     arr = np.load(d / f"{sub}_{BRAIN_VARIANTS[brain_variant]}.npy", mmap_mode="r")
@@ -484,9 +627,10 @@ def load_student_batch(m_rows: pd.DataFrame, paths: DataPaths = DEFAULT_PATHS,
             y[ok] = lab.loc[ann[ok], cols].to_numpy(dtype=np.float32)
         mk = np.isfinite(y)
         targets[space], masks[space] = y, mk
+    digest = aggregate_digest(file_records(student_dependencies(paths, cohort, sub, brain_variant)))
     return StudentBatch(m_rows.participant_id.iloc[0], m_rows.preprocessing_id.iloc[0], brain_variant,
                         tuple(m_rows.row_id), tuple(m_rows.content_id), brain, valid,
-                        targets, masks)
+                        targets, masks, digest)
 
 
 def load_content_features(m_rows: pd.DataFrame, paths: DataPaths = DEFAULT_PATHS,
@@ -516,7 +660,8 @@ def load_content_features(m_rows: pd.DataFrame, paths: DataPaths = DEFAULT_PATHS
     return ContentFeatures(tuple(m_rows.row_id), video, vvalid,
                            f"{paths.video_features} (provenance of checkpoint/layer/pooling unverified)",
                            None, None,
-                           "MISSING: no human-caption sentence embeddings on server; generated captions not substituted")
+                           "MISSING: no human-caption sentence embeddings on server; generated captions not substituted",
+                           aggregate_digest(file_records(content_dependencies(paths))))
 
 
 def voxel_ijk(paths: DataPaths, cohort: str, sub: str) -> np.ndarray:
@@ -578,7 +723,7 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
                             "dirty": _git("status", "--porcelain").splitlines()}}
 
     # inventory -------------------------------------------------------------
-    inv = {"shared": {}, "participants": {}}
+    inv = {"schema": INVENTORY_SCHEMA, "shared": {}, "participants": {}}
     for name in ("labels_csv", "order34", "captions_csv", "crosswalk_tsv"):
         p = Path(getattr(paths, name))
         inv["shared"][name] = {"path": str(p), "bytes": p.stat().st_size, "sha256": sha256_file(p)}
@@ -587,6 +732,17 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
     inv["shared"]["video_features"] = {"path": str(vf), "resolved": str(vf.resolve()),
                                        "shape": list(va.shape), "dtype": str(va.dtype),
                                        "sha256": sha256_file(vf.resolve())}
+    si = vf.parent / "stim_idx.npy"
+    inv["shared"]["stim_idx"] = {"path": str(si), "resolved": str(si.resolve()),
+                                 "bytes": si.resolve().stat().st_size, "sha256": sha256_file(si.resolve())}
+    content = file_records(content_dependencies(paths),
+                           known={inv["shared"]["video_features"]["resolved"]: inv["shared"]["video_features"]["sha256"],
+                                  inv["shared"]["stim_idx"]["resolved"]: inv["shared"]["stim_idx"]["sha256"]})
+    inv["shared"]["content_dependencies"] = {"files": content, "digest": aggregate_digest(content)}
+    qc = load_qc_exclusions(paths)
+    inv["shared"]["qc_exclusions"] = {"path": str(paths.qc_exclusions), "sha256": qc["sha256"],
+                                      "status": qc["status"], "participants": qc["participants"],
+                                      "runs": qc["runs"]}
     inv["shared"]["missing_artifacts"] = {
         "human_caption_sentence_embeddings": "absent; caption_ck20.csv text exists (20 per video)",
         "low_level_visual_features": "absent (no luminance/colour/motion-energy features found)",
@@ -605,8 +761,15 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
                                             and variant == "runz"):
                     rec[variant]["sha256"] = sha256_file(p)
             for small in (f"{sub}_samples.tsv", f"{sub}_mask.nii.gz", "preprocessing_config.json",
-                          "STATUS.json"):
-                rec[small] = {"sha256": sha256_file(d / small)}
+                          "STATUS.json", "qc/runs.json"):
+                rec[small] = {"sha256": sha256_file(d / small), "bytes": (d / small).stat().st_size}
+            # Dependency records only where the brain array itself was hashed.
+            rec["dependencies"] = {}
+            for variant in BRAIN_VARIANTS:
+                if rec[variant].get("sha256"):
+                    files = file_records(student_dependencies(paths, cohort, sub, variant),
+                                         known={str(Path(rec[variant]["path"]).resolve()): rec[variant]["sha256"]})
+                    rec["dependencies"][variant] = {"files": files, "digest": aggregate_digest(files)}
             inv["participants"][f"{cohort}/{sub}"] = rec
     report["inventory"] = inv
 
@@ -631,6 +794,9 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
             "n_rows": int(len(m)), "n_participants": int(m.participant_id.nunique()),
             "n_runs": int(m.run_id.nunique()), "n_contents": int(m.content_id.nunique()),
             "n_reserved_rows": int(m.reserved.sum()),
+            "n_qc_excluded_rows": int(m.qc_excluded.sum()),
+            "qc_excluded_participants": sorted(m.loc[m.qc_excluded, "participant_id"].unique())
+            if m.qc_excluded.any() else [],
             "n_reserved_contents": int(m.loc[m.reserved, "content_id"].nunique()),
             "annotation_status_rows": m.annotation_status.value_counts().to_dict(),
             "annotation_status_contents": join.annotation_status.value_counts().to_dict(),
@@ -658,6 +824,9 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
         participant = f"{cohort}/{pilot_participant}"
         if COHORT_ROLES[cohort] != "development":
             report["dev_subsets"][participant] = {"skipped": f"{cohort} is the {COHORT_ROLES[cohort]} cohort"}
+            continue
+        if participant in qc["participants"]:
+            report["dev_subsets"][participant] = {"skipped": f"excluded by QC: {qc['participants'][participant]}"}
             continue
         try:
             report["dev_subsets"][participant] = _dev_subset(

@@ -17,7 +17,7 @@ Work on `docs/unify-study-design-20261006`; do not merge main or create a PR. Pr
 #### Research context that must guide preprocessing
 
 - EmoBrain is a neuroscience study of brain–visual–semantic relationships, not only an affect-decoding benchmark.
-- Primary: MindCaptioning/Horikawa 2025 video-viewing fMRI, original videos and human captions. Replication: Horikawa 2020. Imagery is out of scope. Shared stimuli across cohorts do not establish generalization to a new stimulus distribution.
+- Training and development: Horikawa 2020. Later validation: MindCaptioning/Horikawa 2025 video-viewing fMRI (cohort roles fixed 2026-10-20, 04 D28); MindCaptioning fMRI is not used for training or tuning. Original videos and human captions are the shared stimulus materials. Imagery is out of scope. Shared stimuli across cohorts do not establish generalization to a new stimulus distribution.
 - Analysis 1: sensory–semantic encoding of brain responses and shared/conditional predictive relationships with normative affect profiles.
 - Analysis 2: joint Brain + Video + Caption teacher, output-guided brain-only student, followed by geometry, content probes, ROI/token dependence and independent neural validation. Geometry similarity or prediction success alone does not establish learned content use.
 - Analysis 3: affect readout and cohort replication. 34-D, 14-D and available VA/VAD targets use independent model runs, not joint target learning. Targets are stimulus-level crowdsourced annotations, not scanned participants' self-reports.
@@ -214,7 +214,7 @@ Minimum table fields: cohort, participant, session/run, ROI ID and definition, a
 #### 전처리 판단에 필요한 연구 배경
 
 - EmoBrain은 affect decoding 성능 경쟁만 하는 연구가 아니라, **뇌–시각–상황 의미의 관계를 모델이 무엇으로 학습하고 예측에 어떻게 사용하는지** 보는 neuroscience 연구다.
-- 주 데이터는 MindCaptioning/Horikawa 2025의 영상 시청 fMRI·원본 영상·원본 human caption, 재현은 Horikawa 2020이다. Imagery는 제외한다. 같은 영상의 다른 참가자 cohort는 새로운 자극 분포 일반화와 다르다.
+- 학습·개발은 Horikawa 2020, 후속 검증은 MindCaptioning/Horikawa 2025의 영상 시청 fMRI다 (2026-10-20 확정, 04 D28). MindCaptioning fMRI는 학습·튜닝에 쓰지 않는다. 원본 영상·원본 human caption은 공유 자극 자료다. Imagery는 제외한다. 같은 영상의 다른 참가자 cohort는 새로운 자극 분포 일반화와 다르다.
 - Analysis 1: 감각–의미 표상이 뇌 반응을 얼마나 설명하는지, 정서 프로필과 공유·조건부 설명력이 어떤지 본다.
 - Analysis 2: Brain + Video + Caption joint teacher와 출력 지도를 받는 brain-only student를 학습하고, geometry·content probe·ROI/token 의존성·독립 뇌 검증을 수행한다. 표상 유사성이나 성능만으로 내용 사용을 입증하지 않는다.
 - Analysis 3: 정서 프로필 readout과 cohort 재현이다. 34-D·14-D·가용 VA/VAD는 target별 독립 학습이며 공동학습하지 않는다. Crowdsourcing target은 fMRI 참가자의 자기보고가 아니다.
