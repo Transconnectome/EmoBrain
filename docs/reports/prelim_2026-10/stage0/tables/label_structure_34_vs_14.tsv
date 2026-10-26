@@ -1,0 +1,49 @@
+대상	종류	교차검증_R2
+valence	14개 척도 ← 34개 감정	0.794
+arousal	14개 척도 ← 34개 감정	0.274
+dominance	14개 척도 ← 34개 감정	0.229
+approach	14개 척도 ← 34개 감정	0.700
+attention	14개 척도 ← 34개 감정	0.237
+certainty	14개 척도 ← 34개 감정	0.507
+commitment	14개 척도 ← 34개 감정	0.460
+control	14개 척도 ← 34개 감정	0.682
+effort	14개 척도 ← 34개 감정	0.595
+fairness	14개 척도 ← 34개 감정	0.659
+identity	14개 척도 ← 34개 감정	0.390
+obstruction	14개 척도 ← 34개 감정	0.327
+safety	14개 척도 ← 34개 감정	0.724
+upswing	14개 척도 ← 34개 감정	0.663
+admiration	34개 감정 ← 14개 척도	0.126
+adoration	34개 감정 ← 14개 척도	0.356
+aesthetic appreciation	34개 감정 ← 14개 척도	0.211
+amusement	34개 감정 ← 14개 척도	0.234
+anger	34개 감정 ← 14개 척도	0.209
+anxiety	34개 감정 ← 14개 척도	0.445
+awe	34개 감정 ← 14개 척도	0.246
+awkwardness	34개 감정 ← 14개 척도	0.089
+boredom	34개 감정 ← 14개 척도	0.111
+calmness	34개 감정 ← 14개 척도	0.175
+confusion	34개 감정 ← 14개 척도	0.126
+contempt	34개 감정 ← 14개 척도	0.036
+craving	34개 감정 ← 14개 척도	0.084
+disappointment	34개 감정 ← 14개 척도	0.120
+disgust	34개 감정 ← 14개 척도	0.462
+empathic pain	34개 감정 ← 14개 척도	0.224
+entrancement	34개 감정 ← 14개 척도	0.165
+envy	34개 감정 ← 14개 척도	0.033
+excitement	34개 감정 ← 14개 척도	0.179
+fear	34개 감정 ← 14개 척도	0.497
+guilt	34개 감정 ← 14개 척도	0.088
+horror	34개 감정 ← 14개 척도	0.502
+interest	34개 감정 ← 14개 척도	0.171
+joy	34개 감정 ← 14개 척도	0.330
+nostalgia	34개 감정 ← 14개 척도	0.061
+pride	34개 감정 ← 14개 척도	0.027
+relief	34개 감정 ← 14개 척도	0.205
+romance	34개 감정 ← 14개 척도	0.073
+sadness	34개 감정 ← 14개 척도	0.423
+satisfaction	34개 감정 ← 14개 척도	0.133
+sexual desire	34개 감정 ← 14개 척도	0.134
+surprise	34개 감정 ← 14개 척도	0.143
+sympathy	34개 감정 ← 14개 척도	0.282
+triumph	34개 감정 ← 14개 척도	0.097

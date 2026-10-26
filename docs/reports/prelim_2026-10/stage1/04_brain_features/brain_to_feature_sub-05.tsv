@@ -1,0 +1,4 @@
+participant_id	feature	n_dims	r_mean	r_median	frac_r_gt_0p1	pair_identification
+sub-05	lowlevel_L	33	0.24462	0.14857	0.75758	0.61007
+sub-05	hk_vision1000	1000	0.31423	0.31530	0.99500	0.79261
+sub-05	hk_semantic73	73	0.24794	0.22040	0.87671	0.79548
