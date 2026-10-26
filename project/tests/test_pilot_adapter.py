@@ -82,7 +82,8 @@ class AdapterFixture(unittest.TestCase):
             cohort_roots={"mindcaptioning": self.tmp / "MC", "horikawa": self.tmp / "HK"},
             labels_csv=self.tmp / "labels.csv", order34=self.tmp / "order.txt",
             captions_csv=self.tmp / "labels.csv", video_features=fdir / "video.npy",
-            crosswalk_tsv=self.tmp / "crosswalk.tsv")
+            crosswalk_tsv=self.tmp / "crosswalk.tsv",
+            response_versions={"mindcaptioning": "v2", "horikawa": "v3"})  # base layout; QC layout in QcLayoutTests
         # MindCaptioning: two participants, identical runs; video 5 is final test.
         for sub in ("sub-01", "sub-02"):
             _write_participant(self.tmp, "MC", sub, [
@@ -470,6 +471,81 @@ class QcExclusionTests(AdapterFixture):
         qc = pa.load_qc_exclusions(dataclasses.replace(self.paths, qc_exclusions=pa.DEFAULT_PATHS.qc_exclusions))
         self.assertEqual((qc["participants"], qc["runs"]), ({}, {}))
         self.assertTrue(qc["status"].startswith("pending"))
+
+
+class QcLayoutTests(AdapterFixture):
+    """Lab-server QC folders (v3_qc): usable rows only, recomputed z, QC mask; record in base folder."""
+
+    def write_qc(self, cohort_dir="HK", sub="sub-01", version="v3_qc", drop_rows=(4,), drop_voxels=(5,),
+                 subject_qc="pass"):
+        base = self.tmp / cohort_dir / sub / {"HK": "v3", "MC": "v2"}[cohort_dir]
+        d = base.parent / version
+        d.mkdir()
+        sm = pd.read_csv(base / f"{sub}_samples.tsv", sep="\t")
+        usable = sm[~sm.row.isin(drop_rows)].reset_index(drop=True)
+        usable.insert(0, "qc_row", np.arange(len(usable)))
+        usable["usable_flag"] = True
+        usable.to_csv(d / f"{sub}_samples_qc_usable.tsv", sep="\t", index=False)
+        keep = [v for v in range(N_VOX) if v not in drop_voxels]
+        brain = np.random.default_rng(7).normal(size=(len(usable), len(keep))).astype(np.float32)
+        brain[:, 0] = usable.qc_row.to_numpy()    # column 0 encodes the QC array row
+        np.save(d / f"{sub}_blocks_common36_qc_runz.npy", brain)
+        np.save(d / f"{sub}_blocks_common36_qc.npy", brain * 2)
+        (d / f"{sub}_mask_qc.nii.gz").write_bytes(b"synthetic qc mask")
+        (d / "SUCCESS.json").write_text(json.dumps({"state": "complete"}))
+        (d / "QC_SUMMARY.json").write_text(json.dumps(dict(
+            subject_qc=subject_qc, subject_exclusion_reason="" if subject_qc == "pass" else "mean FD",
+            input_version=base.name, thresholds={"BLOCK_FD": 0.9}, code_sha256="c0de" * 16,
+            voxels_qc=len(keep), output_shape=[len(usable), len(keep)])))
+        import dataclasses
+        self.paths = dataclasses.replace(self.paths, response_versions={"mindcaptioning": "v2", "horikawa": version})
+        return d, usable
+
+    def test_rows_keep_original_ids_and_load_by_qc_row(self):
+        d, usable = self.write_qc()
+        m, info = self.manifest(("horikawa",))
+        self.assertEqual(len(m), len(usable))
+        self.assertEqual(list(m.array_row), list(usable.qc_row))
+        self.assertEqual(list(m.source_row), list(usable.row))
+        self.assertTrue(all(r.endswith(f"/r{src:05d}") for r, src in zip(m.row_id, m.source_row)))
+        self.assertIn("+qc-c0dec0de", m.preprocessing_id.iloc[0])
+        b = pa.load_student_batch(m, self.paths)
+        np.testing.assert_array_equal(b.brain[:, 0], m.array_row.to_numpy())
+        self.assertEqual(b.brain.shape[1], N_VOX - 1)
+        self.assertTrue(b.brain_valid.all())          # QC mask already dropped constant voxels
+
+    def test_reserved_from_full_pre_qc_table_and_dependencies(self):
+        self.write_qc()
+        m, info = self.manifest(("horikawa",))
+        self.assertEqual(set(m.loc[m.reserved, "content_id"]), {pa.content_key(5)})
+        deps = pa.student_dependencies(self.paths, "horikawa", "sub-01")
+        self.assertIn("horikawa/sub-01/QC_SUMMARY.json", deps)
+        self.assertEqual(deps["horikawa/sub-01/preprocessing_config.json"].parent.name, "v3")
+        self.assertEqual(deps["mindcaptioning/sub-01/reserved_source_samples.tsv"].parent.name, "v2")
+        self.assertNotIn("horikawa/sub-01/qc/runs.json", deps)
+
+    def test_failed_or_inconsistent_qc_is_refused(self):
+        d, usable = self.write_qc(subject_qc="fail")
+        with self.assertRaisesRegex(ValueError, "failed lab-server QC"):
+            self.manifest(("horikawa",))
+        q = json.loads((d / "QC_SUMMARY.json").read_text())
+        q.update(subject_qc="pass", output_shape=[len(usable) + 1, N_VOX - 1])
+        (d / "QC_SUMMARY.json").write_text(json.dumps(q))
+        with self.assertRaisesRegex(ValueError, "QC output rows"):
+            self.manifest(("horikawa",))
+
+    def test_qc_audit_inventory_and_check(self):
+        self.write_qc()
+        inv = pa.audit(self.tmp / "audit_qclayout", self.paths, hash_arrays="all")["inventory"]
+        rec = inv["participants"]["horikawa/sub-01"]
+        self.assertEqual(rec["version"], "v3_qc")
+        self.assertIn("QC_SUMMARY.json", rec)
+        self.assertIn("base/preprocessing_config.json", rec)
+        pa.check_inventory(inv, self.paths, "horikawa/sub-01")
+        q = self.tmp / "HK" / "sub-01" / "v3_qc" / "QC_SUMMARY.json"
+        q.write_text(q.read_text().replace('"BLOCK_FD": 0.9', '"BLOCK_FD": 0.5'))
+        with self.assertRaisesRegex(ValueError, "QC_SUMMARY"):
+            pa.check_inventory(inv, self.paths, "horikawa/sub-01")
 
 
 if __name__ == "__main__":

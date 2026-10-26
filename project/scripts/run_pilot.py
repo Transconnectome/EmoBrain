@@ -96,7 +96,6 @@ def verify_inputs(audit, m, chosen, config, *, content=False, paths=None):
         raise ValueError("Full manifest changed since audit; rebuild the audit before fitting")
     participant = config["participant"]
     cohort, sub = participant.split("/")
-    base = pa.response_dir(paths, cohort, sub)
     records = dict(audit["inventory"]["participants"][participant]["dependencies"][config["brain_variant"]]["files"])
     deps = pa.student_dependencies(paths, cohort, sub, config["brain_variant"])
     if content:
@@ -104,10 +103,10 @@ def verify_inputs(audit, m, chosen, config, *, content=False, paths=None):
         deps.update(pa.content_dependencies(paths))
     source = {str(deps[name]): item["sha256"] for name, item in records.items()}
     source["aggregate_input_digest"] = digest
-    cfg = json.loads((base / "preprocessing_config.json").read_text())
+    cfg = json.loads(pa.response_layout(paths, cohort, sub)["config"].read_text())  # base folder for *_qc
     if cfg.get("sdc_existing") in (None, "", "unknown") or not cfg.get("policy"):
         raise ValueError("Unknown preprocessing/SDC version")
-    if pa.preprocessing_id(cohort, cfg) != chosen.preprocessing_id.iloc[0]:
+    if pa.participant_preprocessing_id(paths, cohort, sub) != chosen.preprocessing_id.iloc[0]:
         raise ValueError("Preprocessing identity mismatch")
     return source
 

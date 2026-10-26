@@ -53,9 +53,14 @@ REPO = Path(__file__).resolve().parents[2]
 SCRATCH = Path("/pscratch/sd/s/sjmoon")
 
 COHORT_DIRS = {"mindcaptioning": "MindCaptioning", "horikawa": "Horikawa"}
-# Final response versions (Horikawa/PREPROCESSING_FINAL.md, 2026-10-13): Horikawa v3 is
-# v2 processing on fieldmap-less SyN-SDC fMRIPrep input; Horikawa v2 is record-only.
-RESPONSE_VERSIONS = {"mindcaptioning": "v2", "horikawa": "v3"}
+# Response versions (PREPROCESSING_FINAL.md): MindCaptioning v2 and Horikawa v3 (v2
+# processing on fieldmap-less SyN-SDC fMRIPrep input; Horikawa v2 is record-only). The
+# analysis inputs are their QC'd folders v2_qc / v3_qc (section 1.2, 2026-10-21): usable
+# blocks only (block FD > 0.9 mm within the response window +-2 volumes removed),
+# within-run z-score recomputed on the remaining blocks, and voxels constant in any run
+# removed from the mask. A *_qc folder holds the arrays and the usable-row table; the
+# processing record (config, code) and the full pre-QC sample table stay in the base folder.
+RESPONSE_VERSIONS = {"mindcaptioning": "v2_qc", "horikawa": "v3_qc"}
 # Cohort roles (decision 2026-10-20, docs/current/04 D28): Horikawa 2020 is the training and
 # development cohort, MindCaptioning the later validation cohort. Models and settings are
 # fixed on Horikawa; MindCaptioning fMRI is not read by any training or tuning fit.
@@ -125,6 +130,27 @@ def response_dir(paths: DataPaths, cohort: str, sub: str) -> Path:
     return Path(paths.cohort_roots[cohort]) / sub / paths.response_versions[cohort]
 
 
+def base_version(version: str) -> str:
+    return version[:-3] if version.endswith("_qc") else version
+
+
+def response_layout(paths: DataPaths, cohort: str, sub: str) -> dict:
+    """Files of one participant's response version (base v2/v3 or QC'd v2_qc/v3_qc)."""
+    d = response_dir(paths, cohort, sub)
+    b = d.parent / base_version(d.name)
+    if d.name.endswith("_qc"):
+        return {"dir": d, "samples": d / f"{sub}_samples_qc_usable.tsv", "array_row_column": "qc_row",
+                "runz": d / f"{sub}_blocks_common36_qc_runz.npy", "raw": d / f"{sub}_blocks_common36_qc.npy",
+                "mask": d / f"{sub}_mask_qc.nii.gz", "status": d / "SUCCESS.json",
+                "qc_summary": d / "QC_SUMMARY.json", "config": b / "preprocessing_config.json",
+                "constant_voxels": None, "base_samples": b / f"{sub}_samples.tsv"}
+    return {"dir": d, "samples": d / f"{sub}_samples.tsv", "array_row_column": "row",
+            "runz": d / f"{sub}_blocks_common36_runz.npy", "raw": d / f"{sub}_blocks_common36.npy",
+            "mask": d / f"{sub}_mask.nii.gz", "status": d / "STATUS.json", "qc_summary": None,
+            "config": d / "preprocessing_config.json", "constant_voxels": d / "qc" / "runs.json",
+            "base_samples": d / f"{sub}_samples.tsv"}
+
+
 def _sdc_label(config: Mapping) -> str:
     """Distortion-correction label. Horikawa v3 describes SyN-SDC in ``sdc`` while its
     legacy ``sdc_existing`` field still reads "none"; prefer ``sdc`` when present."""
@@ -134,15 +160,29 @@ def _sdc_label(config: Mapping) -> str:
     return str(config.get("sdc_existing", "unknown")).replace(" ", "-")
 
 
-def preprocessing_id(cohort: str, config: Mapping) -> str:
-    """Immutable ID: cohort, policy, distortion-correction status, config hash.
+QC_IDENTITY_KEYS = ("input_version", "thresholds", "code_sha256", "voxels_qc", "output_shape")
+
+
+def preprocessing_id(cohort: str, config: Mapping, qc: Mapping | None = None) -> str:
+    """Immutable ID: cohort, policy (+ QC code), distortion-correction status, hash.
 
     The config records mask, GM map, script and sample-table checksums, so any
-    change in SDC, response estimator, mask or atlas reuse changes the ID.
+    change in SDC, response estimator, mask or atlas reuse changes the ID; for a QC'd
+    version the QC thresholds, code hash and output shape are hashed as well.
     """
-    blob = json.dumps(config, sort_keys=True, separators=(",", ":")).encode()
-    sdc = _sdc_label(config)
-    return f"{cohort}:{config.get('policy', 'unknown')}:sdc={sdc}:{hashlib.sha256(blob).hexdigest()[:12]}"
+    payload = config if qc is None else {"config": config, "qc": {k: qc.get(k) for k in QC_IDENTITY_KEYS}}
+    blob = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+    policy = str(config.get("policy", "unknown"))
+    if qc is not None:
+        policy += f"+qc-{str(qc.get('code_sha256', 'unknown'))[:8]}"
+    return f"{cohort}:{policy}:sdc={_sdc_label(config)}:{hashlib.sha256(blob).hexdigest()[:12]}"
+
+
+def participant_preprocessing_id(paths: DataPaths, cohort: str, sub: str) -> str:
+    lay = response_layout(paths, cohort, sub)
+    config = json.loads(lay["config"].read_text())
+    qc = json.loads(lay["qc_summary"].read_text()) if lay["qc_summary"] else None
+    return preprocessing_id(cohort, config, qc)
 
 
 # ------------------------------------------------------- canonical content --
@@ -168,19 +208,33 @@ def content_key(canonical_number: int) -> str:
 
 
 # ----------------------------------------------------------------- manifest --
-def _read_participant(cohort: str, d: Path) -> tuple[pd.DataFrame, dict]:
-    sub = d.parent.name
-    sm = pd.read_csv(d / f"{sub}_samples.tsv", sep="\t")
-    status = json.loads((d / "STATUS.json").read_text())
-    config = json.loads((d / "preprocessing_config.json").read_text())
+def _read_participant(paths: DataPaths, cohort: str, sub: str,
+                      qc_excluded: bool = False) -> tuple[pd.DataFrame, dict]:
+    lay = response_layout(paths, cohort, sub)
+    sm = pd.read_csv(lay["samples"], sep="\t")
+    status = json.loads(lay["status"].read_text())
+    config = json.loads(lay["config"].read_text())
     if status.get("state") != "complete":
-        raise ValueError(f"{cohort}/{sub}: STATUS is not complete")
-    if not np.array_equal(sm["row"].to_numpy(), np.arange(len(sm))):
-        raise ValueError(f"{cohort}/{sub}: samples.row is not 0..n-1; refusing to map array rows")
-    if len(sm) != int(status["samples"]):
+        raise ValueError(f"{cohort}/{sub}: {lay['status'].name} is not complete")
+    rc = lay["array_row_column"]
+    if not np.array_equal(sm[rc].to_numpy(), np.arange(len(sm))):
+        raise ValueError(f"{cohort}/{sub}: samples {rc} is not 0..n-1; refusing to map array rows")
+    qc = None
+    if lay["qc_summary"] is not None:
+        qc = json.loads(lay["qc_summary"].read_text())
+        if qc.get("subject_qc") != "pass" and not qc_excluded:
+            raise ValueError(f"{cohort}/{sub}: subject failed lab-server QC "
+                             f"({qc.get('subject_exclusion_reason')}); list it in the QC exclusion file")
+        if int(qc["output_shape"][0]) != len(sm):
+            raise ValueError(f"{cohort}/{sub}: QC output rows != usable sample rows")
+        if "usable_flag" in sm and not sm["usable_flag"].astype(bool).all():
+            raise ValueError(f"{cohort}/{sub}: usable table lists unusable rows")
+        if sm["row"].duplicated().any() or not sm["row"].is_monotonic_increasing:
+            raise ValueError(f"{cohort}/{sub}: original row numbers are not unique and increasing")
+    elif len(sm) != int(status["samples"]):
         raise ValueError(f"{cohort}/{sub}: samples.tsv rows != STATUS samples")
-    info = {"participant_dir": str(d), "status": status, "config": config,
-            "preprocessing_id": preprocessing_id(cohort, config)}
+    info = {"participant_dir": str(lay["dir"]), "status": status, "config": config, "qc_summary": qc,
+            "preprocessing_id": preprocessing_id(cohort, config, qc)}
     return sm, info
 
 
@@ -233,7 +287,9 @@ def reserved_contents(paths: DataPaths, canon: Mapping[int, int]) -> set[str]:
     """
     reserved = set()
     for d in participant_dirs(paths, "mindcaptioning"):
-        sm = pd.read_csv(d / f"{d.parent.name}_samples.tsv", sep="\t", usecols=["video_id", "part"])
+        # Full pre-QC table: a test block removed by QC is still a final-test video.
+        lay = response_layout(paths, "mindcaptioning", d.parent.name)
+        sm = pd.read_csv(lay["base_samples"], sep="\t", usecols=["video_id", "part"])
         reserved |= {content_key(canon[int(v)]) for v in sm.loc[sm.part == "test", "video_id"]}
     if not reserved:
         raise ValueError("No MindCaptioning test content found; cannot mark reserved content")
@@ -247,13 +303,15 @@ def build_manifest(paths: DataPaths = DEFAULT_PATHS,
                    ) -> tuple[pd.DataFrame, dict]:
     """Full observation manifest. Never trim it before scope validation."""
     canon = load_canonical_map(paths.crosswalk_tsv, near_duplicate_policy)
+    qc = load_qc_exclusions(paths)
     frames, info = [], {}
     for cohort in cohorts:
         for d in participant_dirs(paths, cohort):
             sub = d.parent.name
             if participants and cohort in participants and sub not in participants[cohort]:
                 continue
-            sm, pinfo = _read_participant(cohort, d)
+            sm, pinfo = _read_participant(paths, cohort, sub, f"{cohort}/{sub}" in qc["participants"])
+            rc = response_layout(paths, cohort, sub)["array_row_column"]
             info[f"{cohort}/{sub}"] = pinfo
             f = pd.DataFrame({
                 "cohort": cohort,
@@ -261,7 +319,8 @@ def build_manifest(paths: DataPaths = DEFAULT_PATHS,
                 "subject": sub,
                 "session": sm["session"].astype(str),
                 "run": sm["run"].astype(str),
-                "array_row": sm["row"].astype(int),
+                "array_row": sm[rc].astype(int),      # row in this version's arrays
+                "source_row": sm["row"].astype(int),  # row in the full pre-QC table (stable ID)
                 "video_id": sm["video_id"].astype(int),
                 "source_content_id": sm["content_id"].astype(int),
                 "part": sm["part"].astype(str),
@@ -284,7 +343,7 @@ def build_manifest(paths: DataPaths = DEFAULT_PATHS,
         raise ValueError("No participant data found")
     m = pd.concat(frames, ignore_index=True)
     m["run_id"] = m.participant_id + "/" + m.session + "/" + m.run
-    m["row_id"] = m.run_id + "/r" + m.array_row.astype(str).str.zfill(5)
+    m["row_id"] = m.run_id + "/r" + m.source_row.astype(str).str.zfill(5)
     m["content_id"] = m.canonical_number.map(content_key)
     # Reserved = MindCaptioning final-test content, propagated to every row of
     # that content in every participant and cohort, also when MindCaptioning
@@ -292,7 +351,6 @@ def build_manifest(paths: DataPaths = DEFAULT_PATHS,
     reserved = reserved_contents(paths, canon)
     m["reserved"] = m.content_id.isin(reserved)
     m["run_group"] = compute_run_groups(m)
-    qc = load_qc_exclusions(paths)
     by_participant = m.participant_id.map(qc["participants"])
     by_run = m.run_id.map(qc["runs"])
     m["qc_excluded"] = by_participant.notna() | by_run.notna()
@@ -512,21 +570,27 @@ def student_dependencies(paths: DataPaths, cohort: str, sub: str,
                          brain_variant: str = "runz") -> dict[str, Path]:
     """Every file a StudentBatch of this participant is built from.
 
-    Brain rows and validity (array, samples, qc/runs.json constant voxels), voxel
-    mapping (mask), preprocessing identity (config, STATUS), targets and their join
-    (labels, 34-D order, crosswalk) and reserved content (all MindCaptioning samples).
+    Brain rows and validity (array, samples, constant-voxel QC or the lab-server QC
+    summary), voxel mapping (mask), preprocessing identity (config, STATUS/SUCCESS),
+    targets and their join (labels, 34-D order, crosswalk) and reserved content (the
+    full pre-QC sample table of every MindCaptioning participant).
     """
-    d = response_dir(paths, cohort, sub)
-    deps = {f"{cohort}/{sub}/{brain_variant}": d / f"{sub}_{BRAIN_VARIANTS[brain_variant]}.npy",
-            f"{cohort}/{sub}/samples.tsv": d / f"{sub}_samples.tsv",
-            f"{cohort}/{sub}/mask.nii.gz": d / f"{sub}_mask.nii.gz",
-            f"{cohort}/{sub}/preprocessing_config.json": d / "preprocessing_config.json",
-            f"{cohort}/{sub}/STATUS.json": d / "STATUS.json",
-            f"{cohort}/{sub}/qc/runs.json": d / "qc" / "runs.json",
+    lay = response_layout(paths, cohort, sub)
+    deps = {f"{cohort}/{sub}/{brain_variant}": lay[brain_variant],
+            f"{cohort}/{sub}/samples.tsv": lay["samples"],
+            f"{cohort}/{sub}/mask.nii.gz": lay["mask"],
+            f"{cohort}/{sub}/preprocessing_config.json": lay["config"],
+            f"{cohort}/{sub}/{lay['status'].name}": lay["status"],
             "shared/labels_csv": Path(paths.labels_csv), "shared/order34": Path(paths.order34),
             "shared/crosswalk_tsv": Path(paths.crosswalk_tsv)}
+    if lay["constant_voxels"] is not None:
+        deps[f"{cohort}/{sub}/qc/runs.json"] = lay["constant_voxels"]
+    if lay["qc_summary"] is not None:
+        deps[f"{cohort}/{sub}/QC_SUMMARY.json"] = lay["qc_summary"]
     for md in participant_dirs(paths, "mindcaptioning"):
-        deps[f"mindcaptioning/{md.parent.name}/samples.tsv"] = md / f"{md.parent.name}_samples.tsv"
+        msub = md.parent.name
+        deps[f"mindcaptioning/{msub}/reserved_source_samples.tsv"] = response_layout(
+            paths, "mindcaptioning", msub)["base_samples"]
     if paths.qc_exclusions is not None:
         deps["shared/qc_exclusions"] = Path(paths.qc_exclusions)  # which rows may be used
     return deps
@@ -580,10 +644,14 @@ def check_inventory(inventory: Mapping, paths: DataPaths, participant: str,
     return aggregate_digest(current)
 
 
-def _constant_voxel_invalid(d: Path, sub: str) -> dict[tuple[str, str], np.ndarray]:
-    """(session, run) -> voxel indices zero-filled because constant in that run."""
+def _constant_voxel_invalid(runs_json: Path | None) -> dict[tuple[str, str], np.ndarray]:
+    """(session, run) -> voxel indices zero-filled because constant in that run.
+
+    QC'd versions have no such voxels (removed from the mask), so ``None`` gives {}."""
     out = {}
-    for r in json.loads((d / "qc" / "runs.json").read_text()):
+    if runs_json is None:
+        return out
+    for r in json.loads(Path(runs_json).read_text()):
         idx = r.get("constant_voxel_indices") or []
         if idx:
             parts = r["run"].split("_")
@@ -604,14 +672,14 @@ def load_student_batch(m_rows: pd.DataFrame, paths: DataPaths = DEFAULT_PATHS,
     if "qc_excluded" in m_rows and m_rows.qc_excluded.any():
         raise ValueError(f"{int(m_rows.qc_excluded.sum())} requested rows are excluded by QC")
     cohort, sub = m_rows.cohort.iloc[0], m_rows.subject.iloc[0]
-    d = response_dir(paths, cohort, sub)
-    arr = np.load(d / f"{sub}_{BRAIN_VARIANTS[brain_variant]}.npy", mmap_mode="r")
+    lay = response_layout(paths, cohort, sub)
+    arr = np.load(lay[brain_variant], mmap_mode="r")
     rows = m_rows.array_row.to_numpy()
     if rows.max() >= arr.shape[0]:
         raise ValueError("array_row beyond brain array")
     brain = np.asarray(arr[rows], dtype=np.float32)
     valid = np.isfinite(brain)
-    invalid = _constant_voxel_invalid(d, sub)
+    invalid = _constant_voxel_invalid(lay["constant_voxels"])
     for i, (ses, run) in enumerate(zip(m_rows.session, m_rows.run)):
         if (ses, run) in invalid:
             valid[i, invalid[(ses, run)]] = False
@@ -667,8 +735,7 @@ def load_content_features(m_rows: pd.DataFrame, paths: DataPaths = DEFAULT_PATHS
 def voxel_ijk(paths: DataPaths, cohort: str, sub: str) -> np.ndarray:
     """Column -> voxel coordinates (mask order is numpy C order per preprocessing record)."""
     import nibabel as nib
-    d = response_dir(paths, cohort, sub)
-    mask = np.asarray(nib.load(d / f"{sub}_mask.nii.gz").dataobj) > 0
+    mask = np.asarray(nib.load(response_layout(paths, cohort, sub)["mask"]).dataobj) > 0
     return np.argwhere(mask)
 
 
@@ -752,17 +819,23 @@ def audit(out: Path, paths: DataPaths = DEFAULT_PATHS, hash_arrays: str = "pilot
         for d in participant_dirs(paths, cohort):
             sub = d.parent.name
             rec = {}
-            for variant, stem in BRAIN_VARIANTS.items():
-                p = d / f"{sub}_{stem}.npy"
+            lay = response_layout(paths, cohort, sub)
+            rec["version"] = d.name
+            for variant in BRAIN_VARIANTS:
+                p = lay[variant]
                 a = np.load(p, mmap_mode="r")
                 rec[variant] = {"path": str(p), "shape": list(a.shape), "dtype": str(a.dtype),
                                 "bytes": p.stat().st_size}
                 if hash_arrays == "all" or (hash_arrays == "pilot" and sub == pilot_participant
                                             and variant == "runz"):
                     rec[variant]["sha256"] = sha256_file(p)
-            for small in (f"{sub}_samples.tsv", f"{sub}_mask.nii.gz", "preprocessing_config.json",
-                          "STATUS.json", "qc/runs.json"):
-                rec[small] = {"sha256": sha256_file(d / small), "bytes": (d / small).stat().st_size}
+            for key in ("samples", "mask", "config", "status", "constant_voxels", "qc_summary", "base_samples"):
+                f = lay[key]
+                if f is None:
+                    continue
+                # Files inside the version folder keep their relative name; base-folder files get "base/".
+                name = str(f.relative_to(d)) if f.parent == d or d in f.parents else f"base/{f.name}"
+                rec[name] = {"sha256": sha256_file(f), "bytes": f.stat().st_size}
             # Dependency records only where the brain array itself was hashed.
             rec["dependencies"] = {}
             for variant in BRAIN_VARIANTS:
