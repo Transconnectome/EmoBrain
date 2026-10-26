@@ -14,7 +14,7 @@ _2026-10-06 · 기존 설계의 복원과 이번 검토의 제안을 분리한 �
 
 **Unchanged.** The MindCaptioning evaluation protocol (pipeline replication or transfer) remains D13. The current implementation keeps the 72 MindCaptioning final-test contents out of every Horikawa development scope (D03).
 
-**Participant counts pending QC (2026-10-21).** Lab-server QC of both cohorts is in progress and may exclude participants or runs, so the 5 and 6 above are upper bounds. Exclusions are recorded in `project/data/qc_exclusions.json` (reason, source, date) and enforced by the data adapter; results from an excluded participant or run are rerun on included data before they inform any choice.
+**QC outcome (lab server, 2026-10-21; PREPROCESSING_FINAL.md 1.2).** All 5 Horikawa and 6 MindCaptioning participants and all runs passed. 186 blocks (0.71%) with FD > 0.9 mm in the response window were removed, within-run z-scores were recomputed on the remaining blocks, and 125 voxels constant in any run were removed. The analysis inputs are the QC'd folders `v3_qc` (Horikawa) and `v2_qc` (MindCaptioning). Participant- or run-level exclusions, if ever needed, go in `project/data/qc_exclusions.json`.
 
 ### 한국어
 
@@ -24,7 +24,7 @@ _2026-10-06 · 기존 설계의 복원과 이번 검토의 제안을 분리한 �
 
 **그대로인 것.** MindCaptioning 검증 방식(pipeline replication 또는 transfer)은 D13에서 정한다. 현재 구현은 MindCaptioning 최종 시험 영상 72개를 Horikawa 개발 범위에서 모두 제외한다 (D03).
 
-**참가자 수는 QC 후 확정 (2026-10-21).** 연구실 서버에서 두 cohort의 QC가 진행 중이며 참가자나 run이 빠질 수 있다. 위의 5명과 6명은 상한이다. 제외는 `project/data/qc_exclusions.json`에 사유·근거·날짜와 함께 기록하고 데이터 어댑터가 적용한다. 제외된 참가자나 run으로 얻은 결과는 포함된 자료로 다시 돌린 뒤에만 선택에 쓴다.
+**QC 결과 (연구실 서버, 2026-10-21; PREPROCESSING_FINAL.md 1.2절).** Horikawa 5명과 MindCaptioning 6명, 모든 run이 통과했다. 반응 구간에 FD > 0.9 mm가 있는 블록 186개(0.71%)를 빼고 남은 블록으로 run 안 z-score를 다시 계산했으며, 어느 run에서든 상수인 voxel 125개를 제외했다. 분석 입력은 QC를 거친 `v3_qc`(Horikawa)와 `v2_qc`(MindCaptioning)다. 참가자·run 단위 제외가 필요해지면 `project/data/qc_exclusions.json`에 기록한다.
 
 ---
 
@@ -245,7 +245,7 @@ Training affect를 쓰는 것 자체는 cheating이 아니다. Warm-up부터 OOF
 | D22 | Brain encoder 후보와 외부 brain pretraining 제외 | 사용자 방향 기록; MLP/ROI Transformer 비교 후보; 구조 미동결 | 같은 block 입력·scope·capacity·안정성·해석 단위 |
 | D23 | ROI-masked JEPA-style auxiliary | 검토 후보; 원형 Brain-JEPA와 구별; 기본 loss 미변경 | Target view·EMA·mask·collapse·nuisance·적용 경로·예산 |
 | D24 | Multi-layer V-JEPA 2 추출과 명시적 L | 구체적 개발안 기록; 숫자·primary 미동결 | FPS/window/short-clip/crop QA·layer/pooling·추출 hash |
-| D28 | Cohort 역할 | 확정 (사용자, 2026-10-20): Horikawa 2020 학습·개발, MindCaptioning 후속 검증, MindCaptioning은 학습·튜닝에 쓰지 않음. 참가자 수는 연구실 서버 QC 후 확정 | 검증 방식은 D13; QC 제외 목록 |
+| D28 | Cohort 역할 | 확정 (사용자, 2026-10-20): Horikawa 2020 학습·개발, MindCaptioning 후속 검증, MindCaptioning은 학습·튜닝에 쓰지 않음. QC 통과 5명·6명, 입력 v3_qc·v2_qc (2026-10-21) | 검증 방식은 D13 |
 
 해당 결정이 다른 결과를 보기 전에 실제로 동결됐는지 기록한다. 과거 test에 이미 접근했다면 새로운 freeze 날짜를 붙여 과거를 사전등록처럼 보이게 하지 않는다.
 
