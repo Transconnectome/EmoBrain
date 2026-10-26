@@ -10,7 +10,7 @@
 # Brain-only decoding baseline (ridge vs training mean), one target per run.
 # Usage (login node): bash /pscratch/sd/s/sjmoon/EmoBrain/project/baseline/brain_decoding/run.sh TARGET EXPERIMENT_ID [PARTICIPANT]
 #   TARGET = cat34 | affect14; EXPERIMENT_ID must be new (runs are never overwritten);
-#   PARTICIPANT defaults to config.json (horikawa/sub-01); MindCaptioning is the test cohort and is refused.
+#   PARTICIPANT defaults to config.json (horikawa/sub-01); MindCaptioning (later validation cohort) is refused.
 #   AUDIT_DIR env var overrides the audit folder.
 #   Outside SLURM it passes --login-node (4 BLAS threads, ~2-3 GB RAM, a few minutes);
 #   the execution host is recorded in the run's metadata.json.
@@ -24,7 +24,7 @@ HERE=$REPO/project/baseline/brain_decoding
 PY=/pscratch/sd/s/sjmoon/brain-jepa-env/bin/python
 TARGET=$1
 EXP=$2
-AUDIT=${AUDIT_DIR:-$REPO/project/output/audits/pilot_data/audit_20261020T052441Z}
+AUDIT=${AUDIT_DIR:-$REPO/project/output/audits/pilot_data/audit_20261026T112907Z}
 mkdir -p "$HERE/runs/logs"
 exec > >(tee -a "$HERE/runs/logs/$EXP.log") 2>&1
 WHERE=()

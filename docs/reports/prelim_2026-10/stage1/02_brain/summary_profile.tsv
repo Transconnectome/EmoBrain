@@ -1,0 +1,11 @@
+target_space	input_condition	프로필r_5명평균	평균프로필_기준	평균프로필대비_증가
+A34	train_mean	0.3460	0.3460	0.0000
+A14	train_mean	0.5387	0.5387	0.0000
+A34	duration	0.3499	0.3460	0.0039
+A14	duration	0.5392	0.5387	0.0005
+A34	lowlevel_L	0.3963	0.3460	0.0504
+A14	lowlevel_L	0.5597	0.5387	0.0209
+A34	brain_global	0.3499	0.3460	0.0039
+A14	brain_global	0.5403	0.5387	0.0015
+A34	brain_roi469	0.5313	0.3460	0.1854
+A14	brain_roi469	0.6213	0.5387	0.0826

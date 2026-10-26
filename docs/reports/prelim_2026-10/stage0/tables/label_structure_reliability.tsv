@@ -1,0 +1,35 @@
+감정	라벨신뢰도	예측상관_상한(√신뢰도)
+sexual desire	0.956	0.978
+craving	0.947	0.973
+romance	0.934	0.966
+disgust	0.922	0.960
+nostalgia	0.873	0.934
+sadness	0.858	0.926
+fear	0.847	0.920
+amusement	0.846	0.920
+horror	0.841	0.917
+aesthetic appreciation	0.837	0.915
+adoration	0.793	0.890
+anxiety	0.778	0.882
+empathic pain	0.761	0.872
+relief	0.749	0.865
+joy	0.732	0.856
+anger	0.730	0.854
+awe	0.710	0.842
+calmness	0.708	0.841
+triumph	0.687	0.829
+confusion	0.676	0.822
+entrancement	0.671	0.819
+sympathy	0.668	0.817
+awkwardness	0.645	0.803
+surprise	0.636	0.798
+interest	0.623	0.789
+boredom	0.584	0.764
+excitement	0.555	0.745
+admiration	0.543	0.737
+pride	0.534	0.731
+disappointment	0.491	0.701
+satisfaction	0.411	0.641
+contempt	0.332	0.576
+envy	0.317	0.563
+guilt	0.284	0.533

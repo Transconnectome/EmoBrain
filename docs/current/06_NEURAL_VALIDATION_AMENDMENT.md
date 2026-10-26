@@ -118,7 +118,7 @@ shared_predictive_component =
 
 ### 최소 구현 권고: content-recoverable projection
 
-D는 discovery cohort, R은 validation cohort, T는 development/training stimulus groups, H는 평가 stimulus groups다. 같은 canonical H는 D와 R 어느 쪽에서도 model/probe/selection/bridge/encoding 학습에 사용하지 않는다. R의 H 뇌 반응은 마지막 평가 target으로만 사용한다.
+D는 discovery cohort, R은 validation cohort, T는 development/training stimulus groups, H는 평가 stimulus groups다. 2026-10-20 cohort 역할 결정(04 D28)에 따라 D는 Horikawa 2020, R은 MindCaptioning이다. 같은 canonical H는 D와 R 어느 쪽에서도 model/probe/selection/bridge/encoding 학습에 사용하지 않는다. R의 H 뇌 반응은 마지막 평가 target으로만 사용한다.
 
 1. **Discovery:** D의 T에서만 teacher/student를 학습한다. Frozen student stage z에서 V/S가 읽히는지 기존 train-only probes로 확인한다. Stage·rank·표현 선택은 T 내부 validation 또는 외부 개발 자료에서 동결한다.
 2. **Content-side bridge:** T에서 C=[V,S]로 해당 frozen z를 예측하는 작은 regularized linear map g를 fit한다. Rank reduction이 필요하면 T 내부에서만 fit한다. q_i=g(C_i)는 ‘내용으로 예측 가능한 student 표현’이며 실제 student latent와 동일하다고 부르지 않는다. Bridge fidelity는 T 내부 held-out 자료에서 검토한다. 각 outer fold의 하나의 reference student checkpoint에서 좌표를 정의하며 독립 seed/fold의 latent를 그대로 합치지 않는다. 동일 자극의 여러 discovery participant latent는 같은 checkpoint 좌표에서 동결한 equal-weight 집계로 stimulus-level target을 만들거나 동등한 weighting을 명시한다. 참가자별 특징까지 content로 복원한다고 해석하지 않는다.

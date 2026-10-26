@@ -55,7 +55,7 @@ Additional tests to implement: shuffled row-order joins; missing labels/masks; a
 
 Return an explicit batch with `observation_ids`, `content_ids`, `participant_ids`, brain voxel patterns/validity masks, targets/target masks, and optional V/S features. Keep teacher and student input interfaces separate. A block response is one spatial pattern per stimulus observation, not one scalar per ROI. Do not require Brain-JEPA, an LLM, or new foundation-model downloads.
 
-For the first real-data run, use one available primary-cohort participant and a small, deterministically selected set of development run-components. Select by metadata, not scores. Use at least three independent components for fit/tuning/evaluation; if unavailable, run synthetic/loader tests only. One seed and one fixed outer pilot split are enough for engineering verification; they are not the final CV or inference design. Record counts after exclusions. Add a second participant/cohort only after this path works.
+For the first real-data run, use one available development-cohort participant (Horikawa 2020 since 2026-10-20, 04 D28) and a small, deterministically selected set of development run-components. Select by metadata, not scores. Use at least three independent components for fit/tuning/evaluation; if unavailable, run synthetic/loader tests only. One seed and one fixed outer pilot split are enough for engineering verification; they are not the final CV or inference design. Record counts after exclusions. Add a second participant/cohort only after this path works.
 
 Implement training-only scaling and a regularized linear baseline, with tuning confined to pilot training groups. Compare with a training-mean predictor. No global PCA, ROI selection or target normalization before splitting. If ROI compression is needed, fit it within the training scope and preserve the voxel mapping. Match held-out rows and brain targets across model comparisons.
 
@@ -174,7 +174,7 @@ Return one concise report with: verified data facts; implemented versus not impl
 
 Batch는 observation/content/participant ID, brain voxel pattern과 유효 mask, target과 mask, 선택적 V/S feature를 명시적으로 반환한다. Teacher와 student 입력 interface를 분리한다. 자극당 block 반응은 공간 패턴이며 ROI당 scalar 평균으로 대체하지 않는다. Brain-JEPA·LLM·새 foundation model 다운로드는 필요 없다.
 
-첫 실제 실행은 주 cohort에서 가능한 참가자 1명, metadata로 결정한 소수의 개발 run-component, seed 1개, 고정 pilot outer split 1개로 시작한다. 이는 본실험 CV 확정이 아니다. 학습/튜닝/평가에 최소 3개의 독립 성분이 없으면 synthetic/loader 검사까지만 한다. 제외 후 표본 수를 기록하고 작동 확인 후 다른 참가자·cohort로 넓힌다.
+첫 실제 실행은 개발 cohort(2026-10-20부터 Horikawa 2020, 04 D28)에서 가능한 참가자 1명, metadata로 결정한 소수의 개발 run-component, seed 1개, 고정 pilot outer split 1개로 시작한다. 이는 본실험 CV 확정이 아니다. 학습/튜닝/평가에 최소 3개의 독립 성분이 없으면 synthetic/loader 검사까지만 한다. 제외 후 표본 수를 기록하고 작동 확인 후 다른 참가자·cohort로 넓힌다.
 
 Training-only scaling과 regularized linear baseline, training-mean baseline을 구현한다. Tuning은 pilot 학습 그룹 안에서 한다. 전체 데이터 PCA·ROI 선택·target 정규화는 하지 않는다. ROI 압축이 필요하면 training 안에서 fit하고 voxel mapping을 보존한다. 비교 모델의 평가 행·뇌 target을 맞춘다.
 

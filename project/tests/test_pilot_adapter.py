@@ -37,6 +37,7 @@ def _write_participant(root: Path, cohort_dir: str, sub: str, rows: list[dict],
     np.save(d / f"{sub}_blocks_common36_runz.npy", brain)
     np.save(d / f"{sub}_blocks_common36.npy", brain * 2)
     (d / "STATUS.json").write_text(json.dumps({"state": "complete", "samples": len(rows)}))
+    (d / f"{sub}_mask.nii.gz").write_bytes(f"synthetic mask {cohort_dir} {sub}".encode())  # hashed, not parsed
     cfg = {"policy": "test-policy", "sdc_existing": "none", "script_sha256": "abc"}
     cfg.update(config_extra or {})
     (d / "preprocessing_config.json").write_text(json.dumps(cfg))
@@ -81,7 +82,8 @@ class AdapterFixture(unittest.TestCase):
             cohort_roots={"mindcaptioning": self.tmp / "MC", "horikawa": self.tmp / "HK"},
             labels_csv=self.tmp / "labels.csv", order34=self.tmp / "order.txt",
             captions_csv=self.tmp / "labels.csv", video_features=fdir / "video.npy",
-            crosswalk_tsv=self.tmp / "crosswalk.tsv")
+            crosswalk_tsv=self.tmp / "crosswalk.tsv",
+            response_versions={"mindcaptioning": "v2", "horikawa": "v3"})  # base layout; QC layout in QcLayoutTests
         # MindCaptioning: two participants, identical runs; video 5 is final test.
         for sub in ("sub-01", "sub-02"):
             _write_participant(self.tmp, "MC", sub, [
@@ -307,18 +309,243 @@ class SubsetTests(AdapterFixture):
 
     def test_subset_refuses_too_few_components(self):
         m, _ = self.manifest(("mindcaptioning",))
-        with self.assertRaisesRegex(ValueError, "non-reserved components"):
+        with self.assertRaisesRegex(ValueError, "non-reserved, QC-included components"):
             pa.select_dev_subset(m, "mindcaptioning/sub-01", {"fit": 4, "tune": 1, "evaluate": 1})
         with self.assertRaisesRegex(ValueError, "three independent"):
             pa.select_dev_subset(m, "mindcaptioning/sub-01", {"fit": 1, "evaluate": 1})
 
     def test_test_cohort_refused_for_development(self):
-        # 2026-10-19: Horikawa develops, MindCaptioning is the held-out test cohort.
+        # 2026-10-20 (D28): Horikawa trains and develops, MindCaptioning is the later validation cohort.
         self.assertEqual(pa.require_development_cohort("horikawa/sub-01"), "horikawa")
         with self.assertRaisesRegex(ValueError, "not 'development'"):
             pa.require_development_cohort("mindcaptioning/sub-01")
         with self.assertRaisesRegex(ValueError, "not 'development'"):
             pa.require_development_cohort("sub-01")  # cohort-unqualified IDs are refused too
+
+
+class InputDigestTests(AdapterFixture):
+    """Issue #7: inputs that change feature rows or brain validity must change the digest."""
+
+    def audit_inventory(self):
+        return pa.audit(self.tmp / f"audit_{len(list(self.tmp.glob('audit_*')))}", self.paths,
+                        hash_arrays="all")["inventory"]
+
+    def rows(self, cohort, participant):
+        m, info = self.manifest((cohort,))
+        return m[m.participant_id == participant], info
+
+    def test_inventory_schema_records_stim_idx_and_qc(self):
+        inv = self.audit_inventory()
+        self.assertEqual(inv["schema"], pa.INVENTORY_SCHEMA)
+        self.assertIn("sha256", inv["shared"]["stim_idx"])
+        self.assertIn("shared/stim_idx", inv["shared"]["content_dependencies"]["files"])
+        rec = inv["participants"]["mindcaptioning/sub-02"]
+        self.assertIn("sha256", rec["qc/runs.json"])
+        self.assertIn("mindcaptioning/sub-02/qc/runs.json", rec["dependencies"]["runz"]["files"])
+
+    def test_unchanged_inputs_pass_and_match_batch_digests(self):
+        inv = self.audit_inventory()
+        rows, info = self.rows("horikawa", "horikawa/sub-01")
+        digest = pa.check_inventory(inv, self.paths, "horikawa/sub-01")
+        self.assertEqual(digest, pa.load_student_batch(rows, self.paths).input_digest)
+        self.assertEqual(digest, inv["participants"]["horikawa/sub-01"]["dependencies"]["runz"]["digest"])
+        pa.check_inventory(inv, self.paths, "horikawa/sub-01", content=True)
+        self.assertEqual(pa.load_content_features(rows, self.paths, info["canonical_map"]).input_digest,
+                         inv["shared"]["content_dependencies"]["digest"])
+
+    def test_stim_idx_change_changes_digest_and_is_refused(self):
+        inv = self.audit_inventory()
+        rows, info = self.rows("horikawa", "horikawa/sub-01")
+        before = pa.load_content_features(rows, self.paths, info["canonical_map"])
+        si = Path(self.paths.video_features).parent / "stim_idx.npy"
+        np.save(si, np.load(si)[::-1].copy())          # same bytes count, different row order
+        after = pa.load_content_features(rows, self.paths, info["canonical_map"])
+        self.assertFalse(np.array_equal(before.video, after.video))
+        self.assertNotEqual(before.input_digest, after.input_digest)
+        pa.check_inventory(inv, self.paths, "horikawa/sub-01")  # brain-only path does not read it
+        with self.assertRaisesRegex(ValueError, r"shared/stim_idx"):
+            pa.check_inventory(inv, self.paths, "horikawa/sub-01", content=True)
+        self.assertNotEqual(self.audit_inventory()["shared"]["stim_idx"]["sha256"], inv["shared"]["stim_idx"]["sha256"])
+
+    def test_constant_voxel_change_changes_validity_digest_and_is_refused(self):
+        inv = self.audit_inventory()
+        rows, _ = self.rows("mindcaptioning", "mindcaptioning/sub-02")
+        before = pa.load_student_batch(rows, self.paths)
+        q = self.tmp / "MC" / "sub-02" / "v2" / "qc" / "runs.json"
+        runs = json.loads(q.read_text())
+        runs[0]["constant_voxel_indices"] = [1, 2]
+        q.write_text(json.dumps(runs))
+        after = pa.load_student_batch(rows, self.paths)
+        self.assertFalse(np.array_equal(before.brain_valid, after.brain_valid))
+        np.testing.assert_array_equal(before.brain, after.brain)  # only validity changed
+        self.assertNotEqual(before.input_digest, after.input_digest)
+        with self.assertRaisesRegex(ValueError, r"mindcaptioning/sub-02/qc/runs.json"):
+            pa.check_inventory(inv, self.paths, "mindcaptioning/sub-02")
+        pa.check_inventory(inv, self.paths, "horikawa/sub-01")  # other participants unaffected
+
+    def test_legacy_or_unhashed_inventory_is_refused(self):
+        inv = self.audit_inventory()
+        legacy = {k: v for k, v in inv.items() if k != "schema"}
+        with self.assertRaisesRegex(ValueError, "legacy inventory"):
+            pa.check_inventory(legacy, self.paths, "horikawa/sub-01")
+        pilot = pa.audit(self.tmp / "audit_pilot", self.paths, hash_arrays="pilot")["inventory"]
+        with self.assertRaisesRegex(ValueError, "no dependency record"):
+            pa.check_inventory(pilot, self.paths, "mindcaptioning/sub-02")  # array not hashed
+
+
+class QcExclusionTests(AdapterFixture):
+    """Lab-server QC may drop participants or runs; rows stay flagged in the manifest."""
+
+    def with_exclusions(self, participants=(), runs=()):
+        import dataclasses
+        f = self.tmp / "qc_exclusions.json"
+        entry = lambda cohort, sub, **kw: dict(cohort=cohort, participant=sub, reason="motion", source="qc test",
+                                              decided="2026-10-21", **kw)
+        f.write_text(json.dumps({"schema": 1, "status": "test",
+                                 "participants": [entry(c, s) for c, s in participants],
+                                 "runs": [entry(c, s, run=r) for c, s, r in runs]}))
+        self.paths = dataclasses.replace(self.paths, qc_exclusions=f)
+        return f
+
+    def test_excluded_participant_flagged_and_blocked(self):
+        self.with_exclusions(participants=[("mindcaptioning", "sub-02")])
+        m, info = self.manifest(("mindcaptioning",))
+        sub2 = m.participant_id == "mindcaptioning/sub-02"
+        self.assertTrue(m.loc[sub2, "qc_excluded"].all())
+        self.assertFalse(m.loc[~sub2, "qc_excluded"].any())
+        self.assertEqual(info["qc_exclusions"]["participants"], ["mindcaptioning/sub-02"])
+        with self.assertRaisesRegex(ValueError, "excluded by QC"):
+            pa.select_dev_subset(m, "mindcaptioning/sub-02", {"fit": 1, "tune": 1, "evaluate": 1})
+        with self.assertRaisesRegex(ValueError, "excluded by QC"):
+            pa.load_student_batch(m[sub2], self.paths)
+        ex = pa.exclusion_manifest(m)
+        self.assertEqual(set(ex.loc[ex.scope == "study_exclusion_lab_server_qc", "row_id"]), set(m.loc[sub2, "row_id"]))
+        validate_scopes(pa.to_observations(m), list(m.loc[~sub2 & ~m.reserved, "row_id"])[:2],
+                        list(m.loc[~sub2 & ~m.reserved, "row_id"])[-1:])  # full manifest still checks leakage
+
+    def test_excluded_run_drops_its_component(self):
+        self.with_exclusions(runs=[("mindcaptioning", "sub-01", "ses-train01/run-02")])
+        m, _ = self.manifest(("mindcaptioning",))
+        bad = m.run_id == "mindcaptioning/sub-01/ses-train01/run-02"
+        self.assertTrue(m.loc[bad, "qc_excluded"].all() and not m.loc[~bad, "qc_excluded"].any())
+        picked = pa.select_dev_subset(m, "mindcaptioning/sub-01", {"fit": 2, "tune": 1, "evaluate": 1})
+        used = set(sum(picked.values(), []))
+        self.assertFalse(used & set(m.loc[bad, "row_id"]))
+        self.assertEqual(m.loc[m.row_id.isin(used), "run_group"].nunique(), 4)
+
+    def test_list_change_changes_digest_and_is_refused(self):
+        f = self.with_exclusions()
+        inv = pa.audit(self.tmp / "audit_qc", self.paths, hash_arrays="all")["inventory"]
+        self.assertEqual(inv["shared"]["qc_exclusions"]["participants"], {})
+        m, _ = self.manifest(("horikawa",))
+        before = pa.load_student_batch(m, self.paths).input_digest
+        pa.check_inventory(inv, self.paths, "horikawa/sub-01")
+        self.with_exclusions(runs=[("horikawa", "sub-01", "ses-01/run-05")])
+        self.assertEqual(f, self.paths.qc_exclusions)
+        m, _ = self.manifest(("horikawa",))
+        after = pa.load_student_batch(m[~m.qc_excluded], self.paths).input_digest
+        self.assertNotEqual(before, after)
+        with self.assertRaisesRegex(ValueError, "shared/qc_exclusions"):
+            pa.check_inventory(inv, self.paths, "horikawa/sub-01")
+
+    def test_malformed_or_missing_list_is_refused(self):
+        import dataclasses
+        f = self.with_exclusions()
+        for bad in ({"schema": 2, "status": "x"},
+                    {"schema": 1, "status": "x", "participants": [{"cohort": "horikawa", "participant": "sub-01"}]},
+                    {"schema": 1, "status": "x", "participants": [dict(cohort="other", participant="sub-01", reason="r",
+                                                                       source="s", decided="d")]},
+                    {"schema": 1, "status": "x", "runs": [dict(cohort="horikawa", participant="sub-01", run="run-01",
+                                                               reason="r", source="s", decided="d")]},
+                    {"schema": 1, "status": "x", "participants": [dict(cohort="horikawa", participant="sub-01",
+                                                                       reason="r", source="s", decided="d")] * 2}):
+            f.write_text(json.dumps(bad))
+            with self.assertRaises(ValueError):
+                pa.load_qc_exclusions(self.paths)
+        self.paths = dataclasses.replace(self.paths, qc_exclusions=self.tmp / "absent.json")
+        with self.assertRaises(FileNotFoundError):
+            pa.load_qc_exclusions(self.paths)
+
+    def test_repository_list_is_valid_and_currently_empty(self):
+        import dataclasses
+        qc = pa.load_qc_exclusions(dataclasses.replace(self.paths, qc_exclusions=pa.DEFAULT_PATHS.qc_exclusions))
+        self.assertEqual((qc["participants"], qc["runs"]), ({}, {}))
+        self.assertTrue(qc["status"].startswith("pending"))
+
+
+class QcLayoutTests(AdapterFixture):
+    """Lab-server QC folders (v3_qc): usable rows only, recomputed z, QC mask; record in base folder."""
+
+    def write_qc(self, cohort_dir="HK", sub="sub-01", version="v3_qc", drop_rows=(4,), drop_voxels=(5,),
+                 subject_qc="pass"):
+        base = self.tmp / cohort_dir / sub / {"HK": "v3", "MC": "v2"}[cohort_dir]
+        d = base.parent / version
+        d.mkdir()
+        sm = pd.read_csv(base / f"{sub}_samples.tsv", sep="\t")
+        usable = sm[~sm.row.isin(drop_rows)].reset_index(drop=True)
+        usable.insert(0, "qc_row", np.arange(len(usable)))
+        usable["usable_flag"] = True
+        usable.to_csv(d / f"{sub}_samples_qc_usable.tsv", sep="\t", index=False)
+        keep = [v for v in range(N_VOX) if v not in drop_voxels]
+        brain = np.random.default_rng(7).normal(size=(len(usable), len(keep))).astype(np.float32)
+        brain[:, 0] = usable.qc_row.to_numpy()    # column 0 encodes the QC array row
+        np.save(d / f"{sub}_blocks_common36_qc_runz.npy", brain)
+        np.save(d / f"{sub}_blocks_common36_qc.npy", brain * 2)
+        (d / f"{sub}_mask_qc.nii.gz").write_bytes(b"synthetic qc mask")
+        (d / "SUCCESS.json").write_text(json.dumps({"state": "complete"}))
+        (d / "QC_SUMMARY.json").write_text(json.dumps(dict(
+            subject_qc=subject_qc, subject_exclusion_reason="" if subject_qc == "pass" else "mean FD",
+            input_version=base.name, thresholds={"BLOCK_FD": 0.9}, code_sha256="c0de" * 16,
+            voxels_qc=len(keep), output_shape=[len(usable), len(keep)])))
+        import dataclasses
+        self.paths = dataclasses.replace(self.paths, response_versions={"mindcaptioning": "v2", "horikawa": version})
+        return d, usable
+
+    def test_rows_keep_original_ids_and_load_by_qc_row(self):
+        d, usable = self.write_qc()
+        m, info = self.manifest(("horikawa",))
+        self.assertEqual(len(m), len(usable))
+        self.assertEqual(list(m.array_row), list(usable.qc_row))
+        self.assertEqual(list(m.source_row), list(usable.row))
+        self.assertTrue(all(r.endswith(f"/r{src:05d}") for r, src in zip(m.row_id, m.source_row)))
+        self.assertIn("+qc-c0dec0de", m.preprocessing_id.iloc[0])
+        b = pa.load_student_batch(m, self.paths)
+        np.testing.assert_array_equal(b.brain[:, 0], m.array_row.to_numpy())
+        self.assertEqual(b.brain.shape[1], N_VOX - 1)
+        self.assertTrue(b.brain_valid.all())          # QC mask already dropped constant voxels
+
+    def test_reserved_from_full_pre_qc_table_and_dependencies(self):
+        self.write_qc()
+        m, info = self.manifest(("horikawa",))
+        self.assertEqual(set(m.loc[m.reserved, "content_id"]), {pa.content_key(5)})
+        deps = pa.student_dependencies(self.paths, "horikawa", "sub-01")
+        self.assertIn("horikawa/sub-01/QC_SUMMARY.json", deps)
+        self.assertEqual(deps["horikawa/sub-01/preprocessing_config.json"].parent.name, "v3")
+        self.assertEqual(deps["mindcaptioning/sub-01/reserved_source_samples.tsv"].parent.name, "v2")
+        self.assertNotIn("horikawa/sub-01/qc/runs.json", deps)
+
+    def test_failed_or_inconsistent_qc_is_refused(self):
+        d, usable = self.write_qc(subject_qc="fail")
+        with self.assertRaisesRegex(ValueError, "failed lab-server QC"):
+            self.manifest(("horikawa",))
+        q = json.loads((d / "QC_SUMMARY.json").read_text())
+        q.update(subject_qc="pass", output_shape=[len(usable) + 1, N_VOX - 1])
+        (d / "QC_SUMMARY.json").write_text(json.dumps(q))
+        with self.assertRaisesRegex(ValueError, "QC output rows"):
+            self.manifest(("horikawa",))
+
+    def test_qc_audit_inventory_and_check(self):
+        self.write_qc()
+        inv = pa.audit(self.tmp / "audit_qclayout", self.paths, hash_arrays="all")["inventory"]
+        rec = inv["participants"]["horikawa/sub-01"]
+        self.assertEqual(rec["version"], "v3_qc")
+        self.assertIn("QC_SUMMARY.json", rec)
+        self.assertIn("base/preprocessing_config.json", rec)
+        pa.check_inventory(inv, self.paths, "horikawa/sub-01")
+        q = self.tmp / "HK" / "sub-01" / "v3_qc" / "QC_SUMMARY.json"
+        q.write_text(q.read_text().replace('"BLOCK_FD": 0.9', '"BLOCK_FD": 0.5'))
+        with self.assertRaisesRegex(ValueError, "QC_SUMMARY"):
+            pa.check_inventory(inv, self.paths, "horikawa/sub-01")
 
 
 if __name__ == "__main__":

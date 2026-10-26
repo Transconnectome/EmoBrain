@@ -1,0 +1,6 @@
+{
+  "schema": 1,
+  "status": "lab-server QC (2026-10-21, PREPROCESSING_FINAL.md 1.2) is applied through the v2_qc / v3_qc inputs: blocks with FD > 0.9 mm in the response window removed and within-run z recomputed, voxels constant in any run removed. All 11 participants and all runs passed; no participant- or run-level exclusion",
+  "participants": [],
+  "runs": []
+}

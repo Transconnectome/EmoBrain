@@ -1,0 +1,10 @@
+item	내용	근거_수준	실행_상태	비고
+0-D/0-3	라벨 분포·자료량	verified	ready	label_distribution_*.tsv. 0.5 는 기술용 임계값, 제외 기준 아님
+0-1	34개 범주 중복·차원	verified	ready	Pearson 상관행렬 고유값(항목 표준화와 같음), 유효 차원=(Σλ)²/Σλ²
+0-2	34↔14 양방향 R²	verified	ready	약한 ridge(1e-3·n) 선형, 영상 무작위 5겹, 합친 예측의 R². 뇌 r 와 직접 비교 금지
+0-4	평정자 수 역산·라벨 신뢰도	verified	conditional	분모는 비율을 정수로 만드는 최소 n 이라 유일하지 않을 수 있음. 상한으로 정규화하지 않음
+0-5	제시 조건·움직임과 라벨	verified	conditional	라벨 부분은 2026-10-24 A14 관측값만으로 재계산(결과 변화 없음). 뇌 신호 크기×라벨 표(block_signal_vs_labels)는 결측 7개를 같은 내용 값으로 채운 판
+0-6	저수준 시각 특징 → 라벨	verified	ready	33개 정의는 lowlevel_features.py. 이번 기준선에서 같은 split 으로 다시 예측
+0-7	블록·run 품질	verified	ready	MAD×1.4826 기준 강건 z>5 또는 |z|>15. 표시만 했고 제외 안 함
+0-8	참가자 간 일치도·반복 안정성	verified	conditional	MindCaptioning 반복은 홀수 3회·짝수 2회에 동등 절반 Spearman-Brown 적용(근사). 라벨 미사용
+0-9	영상 길이 → 라벨, 뇌 신호 크기	verified	ready	길이 구간 경계·평균은 학습 fold 에서만 계산(누수 없음). 이번 기준선에서 같은 split 으로 다시 예측

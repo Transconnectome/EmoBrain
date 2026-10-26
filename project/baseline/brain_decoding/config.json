@@ -26,5 +26,5 @@
   "full_training": false,
   "subset_basis": "metadata-only development subset per participant from the audit (session/run order, components without reserved content); participant can be overridden with --participant",
   "alpha_basis": "declared before any fit: standardized voxels give a kernel diagonal near the voxel count (~2e5), so 1-100 is effectively unregularized; grid spans 1e2-1e7. A selected edge value is reported, not extended after scoring.",
-  "cohort_basis": "2026-10-19 user decision: Horikawa 2020 = development cohort, MindCaptioning = held-out test cohort; run_pilot refuses test-cohort participants"
+  "cohort_basis": "2026-10-20 decision (docs/current/04 D28): Horikawa 2020 = training and development cohort, MindCaptioning = later validation cohort, not used for training or tuning; run_pilot refuses MindCaptioning participants"
 }

@@ -1,0 +1,4 @@
+existing	target	preprocessing	compatible	reason
+EmoBrain project/data·scripts/train_label_query.py 계열	34-D log1p-z + MSE	옛 전처리 (v3_qc 이전)	False	target 변환·loss·전처리·분할이 계약과 다름 (구현 상태 문서 08)
+prelim 0단계 label_lowlevel_r2 / duration_r2	A34·A14 (교차검증 R²)	해당 없음 (영상 단위)	False	영상 무작위 5겹·선형 회귀 R². 이번 split·모델과 다르므로 원예측을 새로 만듦
+hk_v2_v3_compare (10/13)	내용 특징 → 뇌 (encoding)	v2·v3 (QC 전)	False	방향이 반대(내용→뇌)이고 정서 target 이 아님. 참고용

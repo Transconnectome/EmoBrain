@@ -6,6 +6,11 @@ _2026-10-06 · 2026-10-04 전달본의 후속 버전_
 
 ## 📋 변경 내용
 
+### Cohort roles / cohort 역할 — 2026-10-20
+
+- English: Recorded the user's decision (04 D28): Horikawa 2020 is the training and development cohort and MindCaptioning the later validation cohort; models and settings are fixed on Horikawa 2020 and MindCaptioning fMRI is not used for training or tuning. Updated 01, 02, 06, 09 and 10 accordingly. The 2026-10-07 MindCaptioning sub-01 baselines are kept only as executed runs and were not used for selection.
+- 한국어: 사용자 결정(04 D28)을 기록했다. Horikawa 2020은 학습·개발 cohort, MindCaptioning은 후속 검증 cohort이며, 모델과 설정은 Horikawa 2020에서 확정하고 MindCaptioning fMRI는 학습·튜닝에 쓰지 않는다. 01, 02, 06, 09, 10을 이에 맞췄다. 2026-10-07 MindCaptioning sub-01 기준선은 실행 사실만 보존하며 선택에 쓰지 않았다.
+
 ### Brain encoder and vision extraction detail / Brain Encoder·영상 추출 상세 — 2026-10-08
 
 - English: Separated Participant Map from Brain Encoder in both model paths; documented independently fitted teacher/student maps, MLP versus ROI-token Transformer, and optional ROI-masked JEPA-style learning without external brain checkpoints. Added explicit low-level descriptors, multi-layer V-JEPA extraction proposals, timestamp/pooling/cache QA, source references and six-question rationales (D22–D24, R18–R21). Synchronized actions, server handoff and editable model flow. Corrected the figure description: the existing PNG shows the student encoder but omits the teacher pre-fusion encoder. No PNG, code, experiment, server output or main-branch changes.
