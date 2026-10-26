@@ -1,0 +1,110 @@
+tasks:
+- task_id: hk_A34_brain_baseline_v1
+  scientific_question: 현재 전처리된 Horikawa 뇌 입력만으로 처음 보는 영상의 34개 범주 평정 차이를 얼마나 예측하는가?
+  target_source: /storage/bigdata/Horikawa/metadata/horikawa_meta_data_with_dimension_binary.csv (score_0~33, 이름 = cowen34_order.txt 알파벳 순)
+  target_version: horikawa_meta_data_with_dimension_binary.csv, 2026-01-19
+  dimension_names:
+  - admiration
+  - adoration
+  - aesthetic appreciation
+  - amusement
+  - anger
+  - anxiety
+  - awe
+  - awkwardness
+  - boredom
+  - calmness
+  - confusion
+  - contempt
+  - craving
+  - disappointment
+  - disgust
+  - empathic pain
+  - entrancement
+  - envy
+  - excitement
+  - fear
+  - guilt
+  - horror
+  - interest
+  - joy
+  - nostalgia
+  - pride
+  - relief
+  - romance
+  - sadness
+  - satisfaction
+  - sexual desire
+  - surprise
+  - sympathy
+  - triumph
+  raw_scale: '[0,1] 범주 응답 비율. 한 영상에 여러 범주 공존 (합 1~4.3). 합을 1로 강제하지 않음'
+  missing_policy: 결측 없음 (2,181개 모두 관측)
+  train_transform: 없음 (원 비율 그대로)
+  model_family: L2 정규화 선형 sigmoid 출력 (감정마다 독립)
+  training_loss: 'soft BCE: -y log p - (1-y) log(1-p)'
+  selection_metric: 안쪽 검증 soft BCE (차원마다 λ 선택, λ = 10 ~ 1e-3 의 9개)
+  unit: 피험자 1명이 영상 1개를 본 블록 반응 1개 (Horikawa v3_qc, QC 통과 블록, 같은 내용 중복의 나중 제시 15개 제외)
+  participant_scope: Horikawa 2020 (주 데이터) sub-01~05. 피험자마다 따로 학습·평가. MindCaptioning 은 재현용으로 이번 범위에서 쓰지 않음
+  generalization_target: 같은 피험자가 처음 보는 영상 (참가자 내 새 영상). 다른 사람·다른 내용 집단 일반화는 별도 후속 평가
+  preprocessing_version: Horikawa v3_qc (common36 블록 반응, run 안 z, fieldmap 없는 보정 SyN-SDC, QC D22)
+  stimulus_manifest: /storage/bigdata/EmoBrain_response/splits/horikawa_rungroup6_v1.tsv
+  split_id: horikawa_rungroup6_v1
+  split_rule: run_index 단위 6겹, 같은 내용 쌍이 든 run 은 묶음, 5명 공통. 안쪽 = 바깥 학습 fold 5개
+  sharing_structure: 출력(차원)마다 가중치와 손실이 분리된 독립 선형 모델. 감정 간 공유 표현 없음 (공유 학습 비교는 후속 F-3)
+  primary_metric: 차원별 영상 간 Pearson r (피험자별, 6개 fold 의 평가 예측을 모아 계산. fold 별 r 평균도 함께 보존)
+  metric_axis: 참가자와 차원을 고정하고 평가 영상 방향
+  secondary_metrics: &id001
+  - train 평균 대비 오차 감소율 1 - SSE/SSE(train 평균)
+  - 원척도 MSE
+  - 영상별 프로필 상관 (차원 방향, train 평균 프로필 기준선과 함께)
+  baseline: &id002
+  - train_mean
+  - duration (학습 분위 구간 원-핫)
+  - lowlevel_L (저수준 시각 33개)
+  - brain_global (블록 voxel 전체 평균·표준편차)
+  baseline_rule: 기준선은 대안 설명을 따로 보는 비교이며 모두 이겨야 하는 통과 조건이 아님
+  input_condition_main: 'brain_roi469: 기본 지도 469개 영역 평균 (run 안 z 의 영역 평균, 유효 영역만). voxel 패턴 입력은 후속'
+  dimension_exclusion: 낮은 점수·드문 감정이라는 이유로 차원을 빼지 않음. 상수이면 NA 와 이유 기록
+  supported_claim: 선택한 뇌 입력과 선형 readout 으로 외부 평정자 집단의 영상별 평정 차이를 예측하는 정도. fMRI 참가자 개인의 감정이나 정서 생성 원리가 아님
+- task_id: hk_A14_brain_baseline_v1
+  scientific_question: 같은 뇌 입력으로 14개 정서 척도의 영상 간 차이를 얼마나 예측하는가?
+  target_source: /scratch/connectome/seokjin14/EmoBrain/project/shared/data/cowen_horikawa_labels.csv (*_score)
+  target_version: cowen_horikawa_labels.csv (2,185행)
+  dimension_names:
+  - valence
+  - arousal
+  - dominance
+  - approach
+  - attention
+  - certainty
+  - commitment
+  - control
+  - effort
+  - fairness
+  - identity
+  - obstruction
+  - safety
+  - upswing
+  raw_scale: 1~9 척도 평정의 영상별 평균
+  missing_policy: '관측된 영상만 사용 (분석 영상 중 결측 7개: [2186, 2189, 2190, 2191, 2192, 2193, 2196]). 같은 내용 영상 값으로 채우지 않음'
+  train_transform: 차원별 train 평균·표준편차로 표준화 후 학습, 예측은 원척도로 되돌려 저장
+  model_family: ridge (척도마다 독립)
+  training_loss: 제곱오차 + α||w||²
+  selection_metric: 안쪽 검증 MSE (차원마다 α 선택, α = 0.1 ~ 1e6 의 15개)
+  unit: 피험자 1명이 영상 1개를 본 블록 반응 1개 (Horikawa v3_qc, QC 통과 블록, 같은 내용 중복의 나중 제시 15개 제외)
+  participant_scope: Horikawa 2020 (주 데이터) sub-01~05. 피험자마다 따로 학습·평가. MindCaptioning 은 재현용으로 이번 범위에서 쓰지 않음
+  generalization_target: 같은 피험자가 처음 보는 영상 (참가자 내 새 영상). 다른 사람·다른 내용 집단 일반화는 별도 후속 평가
+  preprocessing_version: Horikawa v3_qc (common36 블록 반응, run 안 z, fieldmap 없는 보정 SyN-SDC, QC D22)
+  stimulus_manifest: /storage/bigdata/EmoBrain_response/splits/horikawa_rungroup6_v1.tsv
+  split_id: horikawa_rungroup6_v1
+  split_rule: run_index 단위 6겹, 같은 내용 쌍이 든 run 은 묶음, 5명 공통. 안쪽 = 바깥 학습 fold 5개
+  sharing_structure: 출력(차원)마다 가중치와 손실이 분리된 독립 선형 모델. 감정 간 공유 표현 없음 (공유 학습 비교는 후속 F-3)
+  primary_metric: 차원별 영상 간 Pearson r (피험자별, 6개 fold 의 평가 예측을 모아 계산. fold 별 r 평균도 함께 보존)
+  metric_axis: 참가자와 차원을 고정하고 평가 영상 방향
+  secondary_metrics: *id001
+  baseline: *id002
+  baseline_rule: 기준선은 대안 설명을 따로 보는 비교이며 모두 이겨야 하는 통과 조건이 아님
+  input_condition_main: 'brain_roi469: 기본 지도 469개 영역 평균 (run 안 z 의 영역 평균, 유효 영역만). voxel 패턴 입력은 후속'
+  dimension_exclusion: 낮은 점수·드문 감정이라는 이유로 차원을 빼지 않음. 상수이면 NA 와 이유 기록
+  supported_claim: 선택한 뇌 입력과 선형 readout 으로 외부 평정자 집단의 영상별 평정 차이를 예측하는 정도. fMRI 참가자 개인의 감정이나 정서 생성 원리가 아님

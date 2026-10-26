@@ -1,0 +1,38 @@
+{
+ "데이터": "MindCaptioning",
+ "공통영상수": 2073,
+ "피험자": [
+  "01",
+  "02",
+  "03",
+  "04",
+  "05",
+  "06"
+ ],
+ "영역일치도_중앙값": 0.3320569389810165,
+ "영역일치도_0p1넘는영역수": 450,
+ "상위10영역": {
+  "7Networks_RH_Vis_11": 0.773,
+  "7Networks_RH_Vis_23": 0.771,
+  "7Networks_LH_Vis_11": 0.764,
+  "7Networks_RH_Vis_6": 0.752,
+  "7Networks_LH_Vis_5": 0.744,
+  "7Networks_LH_Vis_18": 0.735,
+  "7Networks_RH_Vis_15": 0.728,
+  "7Networks_RH_SalVentAttn_TempOccPar_2": 0.718,
+  "7Networks_LH_DorsAttn_Post_11": 0.709,
+  "7Networks_LH_Vis_9": 0.708
+ },
+ "네트워크별_중앙값": {
+  "Vis": 0.581,
+  "DorsAttn": 0.563,
+  "SalVentAttn": 0.355,
+  "Cont": 0.329,
+  "Default": 0.326,
+  "SomMot": 0.282,
+  "Limbic": 0.165,
+  "Subcortex": 0.146,
+  "Brainstem": 0.111,
+  "Hypothalamus": 0.036
+ }
+}

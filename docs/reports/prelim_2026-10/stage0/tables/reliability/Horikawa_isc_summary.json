@@ -1,0 +1,37 @@
+{
+ "데이터": "Horikawa",
+ "공통영상수": 2038,
+ "피험자": [
+  "01",
+  "02",
+  "03",
+  "04",
+  "05"
+ ],
+ "영역일치도_중앙값": 0.23861901760101317,
+ "영역일치도_0p1넘는영역수": 408,
+ "상위10영역": {
+  "7Networks_RH_Vis_23": 0.652,
+  "7Networks_RH_Vis_6": 0.652,
+  "7Networks_LH_DorsAttn_Post_15": 0.631,
+  "7Networks_LH_Vis_5": 0.613,
+  "7Networks_LH_SalVentAttn_Med_6": 0.611,
+  "7Networks_RH_Vis_9": 0.611,
+  "7Networks_RH_Vis_15": 0.605,
+  "7Networks_LH_Vis_24": 0.604,
+  "7Networks_RH_Vis_16": 0.601,
+  "7Networks_RH_DorsAttn_Post_17": 0.594
+ },
+ "네트워크별_중앙값": {
+  "Vis": 0.487,
+  "DorsAttn": 0.456,
+  "SalVentAttn": 0.255,
+  "Default": 0.239,
+  "Cont": 0.219,
+  "SomMot": 0.217,
+  "Brainstem": 0.106,
+  "Subcortex": 0.092,
+  "Limbic": 0.067,
+  "Hypothalamus": 0.007
+ }
+}

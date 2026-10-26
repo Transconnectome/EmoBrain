@@ -1,0 +1,113 @@
+{
+ "영상수": 2181,
+ "0-1": {
+  "상관_양의_상위5": [
+   "anxiety-fear: +0.76",
+   "sadness-sympathy: +0.63",
+   "adoration-joy: +0.62",
+   "aesthetic appreciation-entrancement: +0.56",
+   "fear-horror: +0.54"
+  ],
+  "상관_음의_상위5": [
+   "amusement-horror: -0.29",
+   "amusement-fear: -0.28",
+   "awe-disgust: -0.27",
+   "horror-joy: -0.26",
+   "fear-joy: -0.26"
+  ],
+  "주성분_50/80/90%_필요개수": [
+   8,
+   19,
+   25
+  ],
+  "유효차원수(participation_ratio)": 19.4,
+  "첫주성분_설명": 0.134
+ },
+ "0-2": {
+  "14개 척도를 34개 감정으로 설명(R²)": {
+   "valence": 0.79,
+   "safety": 0.72,
+   "approach": 0.7,
+   "control": 0.68,
+   "upswing": 0.66,
+   "fairness": 0.66,
+   "effort": 0.59,
+   "certainty": 0.51,
+   "commitment": 0.46,
+   "identity": 0.39,
+   "obstruction": 0.33,
+   "arousal": 0.27,
+   "attention": 0.24,
+   "dominance": 0.23
+  },
+  "34개 감정을 14개 척도로 설명(R²) 중앙값": 0.17,
+  "34개 감정을 14개 척도로 설명(R²) 하위5": {
+   "pride": 0.03,
+   "envy": 0.03,
+   "contempt": 0.04,
+   "nostalgia": 0.06,
+   "romance": 0.07
+  }
+ },
+ "0-3": {
+  "1위인_영상수_또는_0.3이상_영상수가_20개_미만": [
+   "satisfaction",
+   "admiration",
+   "sympathy",
+   "awkwardness",
+   "relief",
+   "anger",
+   "disappointment",
+   "contempt",
+   "envy",
+   "pride",
+   "guilt"
+  ]
+ },
+ "0-4": {
+  "평정자수_추정_성공비율": 1.0,
+  "평정자수_분위(최소/25/50/75/최대)": [
+   7.0,
+   12.0,
+   13.0,
+   22.0,
+   32.0
+  ],
+  "라벨신뢰도_중앙값": 0.71,
+  "신뢰도_상위5": {
+   "sexual desire": 0.96,
+   "craving": 0.95,
+   "romance": 0.93,
+   "disgust": 0.92,
+   "nostalgia": 0.87
+  },
+  "신뢰도_하위5": {
+   "disappointment": 0.49,
+   "satisfaction": 0.41,
+   "contempt": 0.33,
+   "envy": 0.32,
+   "guilt": 0.28
+  }
+ },
+ "0-9": {
+  "영상길이_분위(최소/25/50/75/최대)": [
+   10.0,
+   10.0,
+   10.0,
+   12.0,
+   94.0
+  ],
+  "10초인_영상비율": 0.717,
+  "R2_상위8": {
+   "감정:interest": 0.035,
+   "감정:surprise": 0.031,
+   "척도:attention": 0.015,
+   "감정:sexual desire": 0.015,
+   "감정:satisfaction": 0.012,
+   "감정:romance": 0.011,
+   "감정:triumph": 0.011,
+   "감정:nostalgia": 0.009
+  },
+  "R2_0.02넘는_라벨수": 2
+ }
+}
