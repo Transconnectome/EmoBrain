@@ -466,11 +466,11 @@ class QcExclusionTests(AdapterFixture):
         with self.assertRaises(FileNotFoundError):
             pa.load_qc_exclusions(self.paths)
 
-    def test_repository_list_is_valid_and_currently_empty(self):
+    def test_repository_list_is_valid_and_has_no_exclusions(self):
         import dataclasses
         qc = pa.load_qc_exclusions(dataclasses.replace(self.paths, qc_exclusions=pa.DEFAULT_PATHS.qc_exclusions))
-        self.assertEqual((qc["participants"], qc["runs"]), ({}, {}))
-        self.assertTrue(qc["status"].startswith("pending"))
+        self.assertEqual((qc["participants"], qc["runs"]), ({}, {}))  # lab QC 2026-10-21 excluded nobody
+        self.assertTrue(qc["status"].strip())
 
 
 class QcLayoutTests(AdapterFixture):
