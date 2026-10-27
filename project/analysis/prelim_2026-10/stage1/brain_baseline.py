@@ -37,7 +37,9 @@ DIMS14 = ["valence", "arousal", "dominance", "approach", "attention", "certainty
           "effort", "fairness", "identity", "obstruction", "safety", "upswing"]
 LAM_BCE = np.logspace(1, -3, 9)         # soft BCE: (1/n)ΣBCE + (λ/2)||w||², 큰 값부터 (warm start). 1e-4 는 사실상 규제 없음이라 뺌
 ALPHA_RIDGE = np.logspace(-1, 6, 15)     # ridge: ||y - Xw||² + α||w||² (표준화한 X, y)
+NOT_DISTINCT7 = ["pride", "triumph", "contempt", "disappointment", "sympathy", "guilt", "envy"]   # Cowen & Keltner 2017. 27개 요약은 제안 상태
 CONDITIONS = ["train_mean", "duration", "lowlevel_L", "brain_global", "brain_roi469"]
+OPT_LOG = []                             # L-BFGS 결과 기록 (λ, 성공 여부, 반복 수, 종료 코드). run_info 에 요약
 VERSIONS = dict(split_id="horikawa_rungroup6_v1",
                 preprocessing_version="Horikawa v3_qc (common36, fieldmap 없는 보정, QC D22)",
                 target_version="A34=horikawa_meta_data_with_dimension_binary.csv score_0-33 (cowen34_order.txt); "
@@ -60,8 +62,20 @@ def fit_softbce_path(X, Y, lams, W0=None):
             G = Xa.T @ (expit(Z) - Y) / n; G[:-1] += lam * T[:-1]
             return loss, G.ravel()
         res = minimize(f, theta.ravel(), jac=True, method="L-BFGS-B", options=dict(maxiter=500, gtol=1e-6))
+        OPT_LOG.append((float(lam), bool(res.success), int(res.nit), int(res.status), str(res.message)))
         theta = res.x.reshape(p + 1, k); path.append(theta.copy())
     return path
+
+
+def convergence_summary():
+    """지금까지의 L-BFGS fit 수렴 요약. status 1 = 반복 한도(500) 도달, 2 = 그 밖의 중단."""
+    if not OPT_LOG:
+        return dict(n_fits=0)
+    bad = [r for r in OPT_LOG if not r[1]]
+    msgs = sorted({r[4] for r in bad})
+    return dict(n_fits=len(OPT_LOG), n_not_converged=len(bad),
+                n_hit_maxiter=sum(r[3] == 1 for r in bad), max_nit=max(r[2] for r in OPT_LOG),
+                not_converged_lambdas=sorted({r[0] for r in bad}), messages=msgs[:5])
 
 
 def predict_softbce(X, theta):
@@ -194,6 +208,7 @@ def run_subject(sub):
     t0 = time.time(); OUT.mkdir(parents=True, exist_ok=True); (OUT / "predictions").mkdir(exist_ok=True)
     rows, fold, F, Y34, names, Y14, meta = load_subject(sub)
     print(f"sub-{sub}: {meta}", flush=True)
+    OPT_LOG.clear()
     obs14 = np.isfinite(Y14).all(1)
     preds, lams = [], []
     for f in np.unique(fold):
@@ -231,7 +246,8 @@ def run_subject(sub):
     dim.to_csv(OUT / f"dimension_metrics_sub-{sub}.tsv", sep="\t", index=False, float_format="%.5f")
     prof.to_csv(OUT / f"profile_metrics_sub-{sub}.tsv", sep="\t", index=False, float_format="%.5f")
     pd.DataFrame(lams).to_csv(OUT / f"selected_lambda_sub-{sub}.tsv", sep="\t", index=False)
-    meta.update(seconds=round(time.time() - t0), conditions=CONDITIONS, **VERSIONS)
+    meta.update(seconds=round(time.time() - t0), conditions=CONDITIONS, softbce_convergence=convergence_summary(), **VERSIONS)
+    print("L-BFGS 수렴:", meta["softbce_convergence"], flush=True)
     (OUT / f"run_info_sub-{sub}.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1))
     s = dim.groupby(["target_space", "input_condition"], sort=False).agg(
         r_mean=("r_oof", "mean"), r_median=("r_oof", "median"), err_red_mean=("error_reduction", "mean"),
@@ -258,6 +274,19 @@ def self_test():
     print("[self-test] 통과: soft BCE r", np.round(r, 3), "| ridge r", np.round(r2, 3), "| 절편만 = 평균 확인")
 
 
+def lambda_edges(out_dir):
+    """선택된 규제 강도가 격자 끝에 걸린 비율 (조건 × target 공간). 끝 선택이 많으면 격자를 넓혀야 한다."""
+    files = sorted(Path(out_dir).glob("selected_lambda_sub-*.tsv"))
+    if not files:
+        return None
+    L = pd.concat([pd.read_csv(f, sep="\t") for f in files]).dropna(subset=["selected_regularization"])
+    grid = {"A34": LAM_BCE, "A14": ALPHA_RIDGE}
+    L["at_max"] = [np.isclose(v, grid[s].max()) for v, s in zip(L.selected_regularization, L.target_space)]
+    L["at_min"] = [np.isclose(v, grid[s].min()) for v, s in zip(L.selected_regularization, L.target_space)]
+    return L.groupby(["target_space", "input_condition"], sort=False).agg(
+        n_selections=("at_max", "size"), frac_at_max=("at_max", "mean"), frac_at_min=("at_min", "mean")).reset_index()
+
+
 def summarize():
     """5명 결과를 합쳐 표로. 피험자별 값을 보존하고, 요약은 피험자별 값의 평균·범위."""
     dims = pd.concat([pd.read_csv(f, sep="\t") for f in sorted(OUT.glob("dimension_metrics_sub-*.tsv"))])
@@ -277,6 +306,10 @@ def summarize():
         프로필r_5명평균=("profile_r_mean", "mean"), 평균프로필_기준=("train_mean_profile_r_mean", "mean"),
         평균프로필대비_증가=("gain_over_mean_profile", "mean")).reset_index()
     P.to_csv(OUT / "summary_profile.tsv", sep="\t", index=False, float_format="%.4f")
+    E = lambda_edges(OUT)
+    if E is not None:
+        E.to_csv(OUT / "selected_lambda_edges.tsv", sep="\t", index=False, float_format="%.4f")
+        print(E.to_string(index=False))
     pd.set_option("display.width", 220); pd.set_option("display.max_rows", 200)
     print(f"피험자 {dims.participant_id.nunique()}명"); print(S.round(4).to_string(index=False)); print(P.round(4).to_string(index=False))
 

@@ -3,11 +3,16 @@
 
 기준선(brain_baseline.py)과 같은 분할(horikawa_rungroup6_v1), 같은 모델(A34 soft BCE 선형, A14 ridge), 같은 선택 절차를 쓴다.
 
---stimulus : 내용 특징 → 정서 (영상 단위, 피험자와 무관. 분석 영상 2,181개)
---sub XX   : 피험자별
+--stimulus : 내용 특징 → 정서 (영상 단위, 피험자와 무관. 분석 영상 2,181개). 뇌 QC 로 빠진 영상도 들어 있어
+             피험자별 행과 학습·평가 영상이 다르다. 뇌 조건과의 비교에는 --sub 의 같은 행 결과를 쓴다.
+--sub XX   : 피험자별. 아래 조건은 모두 그 피험자의 같은 학습·평가 영상(같은 fold)에서 계산한다.
+             brain_roi469 : 뇌만 (02_brain 의 같은 이름 조건과 같은 계산)
+             <특징>       : 내용만 (같은 피험자 행)
              뇌 → 내용 : 469개 영역 → 각 특징 (ridge, 특징 열마다 영상 간 r)
-             뇌 → 내용 → 정서 : 뇌에서 예측한 특징을, 학습 영상의 실제 특징으로 배운 "특징 → 정서" 모델에 넣음
-             뇌+내용 → 정서 : 469개 영역과 특징을 이어 붙여 같은 정서 모델
+             뇌 → 내용 → 정서 : 뇌에서 예측한 특징을, 학습 영상의 실제 특징으로 배운 "특징 → 정서" 모델에 넣음.
+                              정서 모델은 학습 영상의 실제 특징과 정서 라벨을 본다. 평가 영상에서만 뇌 예측 특징을 쓴다.
+             뇌+내용 → 정서 : 469개 영역과 특징을 열마다 표준화해 이어 붙이고, 출력마다 규제 강도 하나
+--summarize : 피험자별 같은 행 비교표 (04_brain_features/ladder_same_rows*.tsv)
 특징 (FEATURES): 표준 형식 /storage/bigdata/EmoBrain_response/features/<이름>.npy + <이름>_video_id.tsv 가 있으면 자동으로 추가된다.
   lowlevel_L      : 저수준 시각 33개 (0단계)
   hk_vision1000   : Horikawa 원자료 시각 특징 (VGG19 fc8, ImageNet 1000개 범주, 영상 평균)
@@ -110,7 +115,10 @@ def run_subject(sub):
     rows, fold, FB, Y34, names, Y14, meta = bb.load_subject(sub)
     vids = rows.video_id.values; B = FB["brain_roi469"]; pid = f"sub-{sub}"
     F = load_features()
-    feat_rows, preds = [], []
+    bb.OPT_LOG.clear()
+    feat_rows = []
+    # 뇌만: 아래 내용 조건과 같은 행·fold
+    preds = emotion_cv(lambda tr, te: std_fit(B[tr], B[te]), fold, vids, Y34, Y14, names, "brain_roi469", pid)
     for name, T in F.items():
         Z = T.loc[vids].values
         # 1) 뇌 → 내용 (특징 열마다 ridge; 열은 train 평균·표준편차로 표준화 후 학습)
@@ -130,6 +138,8 @@ def run_subject(sub):
                               r_median=float(np.nanmedian(rs)), frac_r_gt_0p1=float(np.nanmean(rs > 0.1)),
                               pair_identification=float(np.mean(acc))))
         np.save(od / f"predictions/{pid}_{name}_brain_predicted.npy", Zhat.astype(np.float32))
+        # 0) 내용만, 같은 피험자 행
+        preds += emotion_cv(lambda tr, te: std_fit(Z[tr], Z[te]), fold, vids, Y34, Y14, names, name, pid)
         # 2) 뇌 → 내용 → 정서: 정서 모델은 학습 영상의 실제 특징으로, 평가 영상에는 뇌에서 예측한 특징을 넣는다
         preds += emotion_cv(lambda tr, te: std_fit(Z[tr], Zhat[te]), fold, vids, Y34, Y14, names, f"brain→{name}→emotion", pid)
         # 3) 뇌 + 내용 → 정서
@@ -144,11 +154,49 @@ def run_subject(sub):
     prof.to_csv(od / f"ladder_profile_metrics_sub-{sub}.tsv", sep="\t", index=False, float_format="%.5f")
     s = dim.groupby(["target_space", "input_condition"], sort=False).agg(r_mean=("r_oof", "mean")).reset_index()
     pd.set_option("display.width", 200); print(pd.DataFrame(feat_rows).round(3).to_string(index=False)); print(s.round(4).to_string(index=False))
-    (od / f"run_info_sub-{sub}.json").write_text(json.dumps(dict(features=list(F), seconds=round(time.time() - t0), **meta), ensure_ascii=False, indent=1))
+    conv = bb.convergence_summary(); print("L-BFGS 수렴:", conv, flush=True)
+    (od / f"run_info_sub-{sub}.json").write_text(json.dumps(dict(features=list(F), seconds=round(time.time() - t0),
+                                                                 softbce_convergence=conv, **meta), ensure_ascii=False, indent=1))
     print(f"sub-{sub} 완료 ({time.time() - t0:.0f}초)")
+
+
+def summarize():
+    """피험자별 같은 학습·평가 영상에서 내용만, 뇌만, 뇌 → 내용 → 정서, 뇌 + 내용을 비교한다.
+
+    r 의 비율(뇌 → 내용 → 정서 / 뇌만)은 두 예측의 성능 비율이다. 공유 정보나 설명 분산의 비율이 아니다.
+    """
+    od = S1 / "04_brain_features"
+    dims = pd.concat([pd.read_csv(f, sep="\t") for f in sorted(od.glob("ladder_dimension_metrics_sub-*.tsv"))])
+    n_eval = dims.groupby(["participant_id", "target_space", "dimension"]).n_eval.nunique()
+    assert (n_eval == 1).all(), f"같은 피험자·차원에서 조건마다 평가 행 수가 다름: {n_eval[n_eval > 1].head()}"
+    sets = [("A34 전체 34개", lambda d: d.target_space == "A34"),
+            ("A34 27개 (기술 요약)", lambda d: (d.target_space == "A34") & ~d.dimension.isin(bb.NOT_DISTINCT7)),
+            ("A14 척도 14개", lambda d: d.target_space == "A14")]
+    feats = [c for c in dims.input_condition.unique() if f"brain+{c}" in set(dims.input_condition)]
+    rows = []
+    for pid, g in dims.groupby("participant_id"):
+        for label, sel in sets:
+            h = g[sel(g)].pivot_table(index="dimension", columns="input_condition", values="r_oof")
+            for name in feats:
+                c, b, via, both = h[name], h["brain_roi469"], h[f"brain→{name}→emotion"], h[f"brain+{name}"]
+                rows.append(dict(participant_id=pid, 묶음=label, feature=name, n_dims=len(h),
+                                 n_eval_rows=int(g[sel(g)].n_eval.max()),
+                                 r_content_only=c.mean(), r_brain_only=b.mean(), r_brain_via_content=via.mean(), r_brain_plus_content=both.mean(),
+                                 plus_minus_content=(both - c).mean(), n_dims_plus_gt_content=int((both > c).sum()),
+                                 via_over_brain_ratio=via.mean() / b.mean()))
+    D = pd.DataFrame(rows)
+    D.to_csv(od / "ladder_same_rows_by_subject.tsv", sep="\t", index=False, float_format="%.4f")
+    cols = ["r_content_only", "r_brain_only", "r_brain_via_content", "r_brain_plus_content", "plus_minus_content", "via_over_brain_ratio"]
+    S = D.groupby(["묶음", "feature"], sort=False)[cols].agg(["mean", "min", "max"])
+    S.columns = [f"{a}_{b}" for a, b in S.columns]
+    S["n_subjects_plus_gt_content"] = D.assign(pos=D.plus_minus_content > 0).groupby(["묶음", "feature"], sort=False).pos.sum()
+    S = S.reset_index(); S.to_csv(od / "ladder_same_rows_summary.tsv", sep="\t", index=False, float_format="%.4f")
+    pd.set_option("display.width", 250); pd.set_option("display.max_columns", 40)
+    print(S[["묶음", "feature"] + [f"{c}_mean" for c in cols] + ["n_subjects_plus_gt_content"]].round(4).to_string(index=False))
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--stimulus", action="store_true"); ap.add_argument("--sub")
+    ap.add_argument("--summarize", action="store_true")
     a = ap.parse_args()
-    run_stimulus() if a.stimulus else run_subject(a.sub)
+    run_stimulus() if a.stimulus else summarize() if a.summarize else run_subject(a.sub)

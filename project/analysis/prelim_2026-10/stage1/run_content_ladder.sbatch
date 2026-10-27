@@ -10,6 +10,7 @@
 #SBATCH --error=/storage/bigdata/EmoBrain_response/stage1/logs/%x_%A_%a.err
 # 1단계 비교 사다리. 배열 0 = 내용 특징 → 정서 (영상 단위), 1~5 = 피험자별 뇌 → 내용, 뇌 → 내용 → 정서, 뇌+내용 → 정서.
 # 결과는 stage1/03_stimulus/, stage1/04_brain_features/ 에만 씀. 특징은 /storage/bigdata/EmoBrain_response/features/ 에 넣으면 자동 추가.
+# 배열이 모두 끝난 뒤 같은 행 비교표: $PY $CODE --summarize (04_brain_features/ladder_same_rows_*.tsv)
 set -euo pipefail
 export PYTHONPATH=/storage/bigdata/Horikawa/preprocessing_code_v2/pylib PYTHONDONTWRITEBYTECODE=1
 export OPENBLAS_NUM_THREADS=${SLURM_CPUS_PER_TASK:-4} MKL_NUM_THREADS=${SLURM_CPUS_PER_TASK:-4} OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-4}
