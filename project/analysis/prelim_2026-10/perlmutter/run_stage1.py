@@ -105,6 +105,89 @@ bb.load_subject = load_subject
 cl.load_features = load_features
 
 
+def emotion_cv_shared(make, fold, vids, Y34, Y14, names, conds, pid):
+    """cl.emotion_cv 와 같은 계산. make(trm, tem) -> (Xtr, [Xte...]) 로 학습이 같은 조건들을 한 번만 fit 한다.
+    내용만과 뇌 → 내용 → 정서는 학습 입력(학습 영상의 실제 특징)과 라벨이 같아 같은 모델이고, 평가 입력만 다르다."""
+    obs14 = np.isfinite(Y14).all(1); out = []
+    for f in np.unique(fold):
+        tr, te = fold != f, fold == f
+        for space, Y, mask, dims in [("A34", Y34, np.ones(len(fold), bool), names), ("A14", Y14, obs14, bb.DIMS14)]:
+            trm, tem = tr & mask, te & mask
+            Xtr, Xtes = make(trm, tem)
+            P, _ = cl.emotion_fit(space, Xtr, Y[trm], np.vstack(Xtes), fold[trm])
+            mu = Y[trm].mean(0); idx = np.flatnonzero(tem); m = len(idx)
+            for c, cond in enumerate(conds):
+                Pc = P[c * m:(c + 1) * m]
+                for k, d in enumerate(dims):
+                    out.append(pd.DataFrame(dict(participant_id=pid, video_id=vids[idx], outer_fold=int(f), input_condition=cond,
+                                                 target_space=space, dimension=d, y_true=Y[idx, k], y_pred=Pc[:, k], train_mean=mu[k])))
+    return out
+
+
+UNIT_FEATURES = ["hk_semantic73", "caption_human_mpnet", "vjepa2_vitg_final"]
+
+
+def run_unit(sub, unit):
+    """피험자 하나의 일부 조건. unit = brain | <특징>:content | <특징>:plus | <특징>:all. 결과는 04_brain_features/units/."""
+    import time
+    t0 = time.time(); od = OUT / "04_brain_features"; ud = od / "units"; ud.mkdir(parents=True, exist_ok=True)
+    (od / "predictions").mkdir(exist_ok=True)
+    rows, fold, FB, Y34, names, Y14, meta = load_subject(sub)
+    vids = rows.video_id.values; B = FB["brain_roi469"]; pid = f"sub-{sub}"
+    bb.OPT_LOG.clear(); preds = []
+    if unit == "brain":
+        preds = cl.emotion_cv(lambda tr, te: cl.std_fit(B[tr], B[te]), fold, vids, Y34, Y14, names, "brain_roi469", pid)
+    else:
+        name, part = unit.split(":")
+        Z = load_features()[name].loc[vids].values
+        if part in ("content", "all"):
+            Zhat = np.zeros_like(Z)
+            for f in np.unique(fold):
+                tr, te = fold != f, fold == f
+                Btr, Bte = cl.std_fit(B[tr], B[te])
+                Zhat[te], _ = bb.fit_predict_a14(Btr, Z[tr], Bte, fold[tr])
+            rs = np.array([bb.pearson(Z[:, j], Zhat[:, j]) if Z[:, j].std() > 0 else np.nan for j in range(Z.shape[1])])
+            acc = []
+            for f in np.unique(fold):
+                te = fold == f; a = Zhat[te] - Z[fold != f].mean(0); b_ = Z[te] - Z[fold != f].mean(0)
+                a /= np.linalg.norm(a, axis=1, keepdims=True) + 1e-12; b_ /= np.linalg.norm(b_, axis=1, keepdims=True) + 1e-12
+                S = a @ b_.T; d = np.diag(S); acc.append(np.mean([(d[i] > np.delete(S[i], i)).mean() for i in range(len(S))]))
+            pd.DataFrame([dict(participant_id=pid, feature=name, n_dims=Z.shape[1], r_mean=float(np.nanmean(rs)),
+                               r_median=float(np.nanmedian(rs)), frac_r_gt_0p1=float(np.nanmean(rs > 0.1)),
+                               pair_identification=float(np.mean(acc)))]).to_csv(ud / f"brain_to_feature_{pid}_{name}.tsv", sep="\t", index=False, float_format="%.5f")
+            np.save(od / f"predictions/{pid}_{name}_brain_predicted.npy", Zhat.astype(np.float32))
+            print(f"  {name}: 뇌→내용 r 평균 {np.nanmean(rs):.3f}, 짝 구별 {np.mean(acc):.3f} ({time.time() - t0:.0f}초)", flush=True)
+            def make(tr, te):
+                Xtr, Xc = cl.std_fit(Z[tr], Z[te]); _, Xv = cl.std_fit(Z[tr], Zhat[te]); return Xtr, [Xc, Xv]
+            preds += emotion_cv_shared(make, fold, vids, Y34, Y14, names, [name, f"brain→{name}→emotion"], pid)
+        if part in ("plus", "all"):
+            X = np.hstack([B, Z])
+            preds += cl.emotion_cv(lambda tr, te: cl.std_fit(X[tr], X[te]), fold, vids, Y34, Y14, names, f"brain+{name}", pid)
+    pred = pd.concat(preds, ignore_index=True); pred["split_id"] = "horikawa_rungroup6_v1"
+    tag = unit.replace(":", "_")
+    pred.to_csv(ud / f"{pid}_{tag}.tsv.gz", sep="\t", index=False, float_format="%.6g")
+    import json
+    (ud / f"{pid}_{tag}_run_info.json").write_text(json.dumps(dict(unit=unit, seconds=round(time.time() - t0),
+                                                                   softbce_convergence=bb.convergence_summary(), **meta), ensure_ascii=False, indent=1))
+    dim, _ = bb.evaluate(pred, sub)
+    print(dim.groupby(["target_space", "input_condition"], sort=False).r_oof.mean().round(4).to_string(), flush=True)
+    print(f"{pid} {unit} 완료 ({time.time() - t0:.0f}초)", flush=True)
+
+
+def collect_units():
+    """units/ 의 원예측을 피험자별로 합쳐 ladder 지표 파일을 만든다 (cl.run_subject 와 같은 파일 이름)."""
+    od = OUT / "04_brain_features"; ud = od / "units"
+    for sub in ["01", "02", "03", "04", "05"]:
+        fs = sorted(ud.glob(f"sub-{sub}_*.tsv.gz"))
+        if not fs:
+            continue
+        pred = pd.concat([pd.read_csv(f, sep="\t") for f in fs], ignore_index=True)
+        dim, prof = bb.evaluate(pred, sub)
+        dim.to_csv(od / f"ladder_dimension_metrics_sub-{sub}.tsv", sep="\t", index=False, float_format="%.5f")
+        prof.to_csv(od / f"ladder_profile_metrics_sub-{sub}.tsv", sep="\t", index=False, float_format="%.5f")
+        print(f"sub-{sub}: 단위 {len(fs)}개, 조건 {sorted(pred.input_condition.unique())}")
+
+
 def reproduction_check():
     """Perlmutter 의 뇌만 결과가 랩서버 02_brain 뇌 기준선과 같은지 (같은 자료·코드면 거의 같아야 한다)."""
     lab = pd.read_csv(LAB_REPORT / "02_brain/dimension_metrics.tsv", sep="\t")
@@ -120,8 +203,8 @@ def reproduction_check():
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("step", choices=["roi", "stimulus", "sub", "summarize"])
-    ap.add_argument("--sub")
+    ap.add_argument("step", choices=["roi", "stimulus", "sub", "unit", "summarize"])
+    ap.add_argument("--sub"); ap.add_argument("--unit")
     a = ap.parse_args()
     if a.step == "roi":
         for s in (a.sub.split(",") if a.sub else ["01", "02", "03", "04", "05"]):
@@ -130,5 +213,7 @@ if __name__ == "__main__":
         cl.run_stimulus()
     elif a.step == "sub":
         cl.run_subject(a.sub)
+    elif a.step == "unit":
+        run_unit(a.sub, a.unit)
     else:
-        cl.summarize(); reproduction_check()
+        collect_units(); cl.summarize(); reproduction_check()
