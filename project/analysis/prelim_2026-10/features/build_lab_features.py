@@ -99,7 +99,7 @@ def main():
     human = np.vstack([emb[(cap.video_id == v).values].mean(0) for v in range(1, N_VIDEOS + 1)])
     n_per = cap.groupby("video_id").size()
     names34 = [l.strip().lower() for l in open(a.bundle / "index/cowen34_order.txt") if l.strip()]
-    pat = re.compile(r"\b(" + "|".join(re.escape(w) for w in names34) + r")\b", re.I)
+    pat = re.compile(r"\b(?:" + "|".join(re.escape(w) for w in names34) + r")\b", re.I)
     has_emo = cap.description.fillna("").str.contains(pat)
 
     feats = {
