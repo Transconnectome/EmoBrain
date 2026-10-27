@@ -11,6 +11,7 @@
   - 평가 영상에서 student 는 뇌만 쓴다.
 pilot 단순화: 34개 범주도 ridge (비율을 그대로 target). 랩서버 soft BCE 기준선과 숫자가 다르며 비교는 이 pilot 안에서만 한다.
 조건: student_w0 (뇌 단독 ridge), student_wsel (안쪽에서 고른 w), student_w<값> (w 고정, 참고용), teacher_content (내용만, 참고)
+대조 (--labelpca): teacher 대신 학습 라벨의 주성분 k 개 smoothing. 내용 없이 target 만 매끄럽게 해도 같은 이득이 나는지 본다.
 사용: python linear_distill.py --sub 01 | --summarize
 """
 import argparse
@@ -105,9 +106,60 @@ def run_subject(sub):
     print(f"{pid} 완료 ({time.time() - t0:.0f}초)")
 
 
-def summarize():
-    D = pd.concat([pd.read_csv(f, sep="\t") for f in sorted(OUT.glob("dimension_metrics_sub-*.tsv"))])
-    W = pd.concat([pd.read_csv(f, sep="\t") for f in sorted(OUT.glob("selected_w_sub-*.tsv"))])
+KS = [1, 2, 3, 5, 8]
+
+
+def label_smooth(Y, k):
+    """내용 없는 대조 teacher: 학습 라벨을 학습 라벨의 주성분 k 개로 투영 (라벨 공간 smoothing)."""
+    mu = Y.mean(0); Vt = np.linalg.svd(Y - mu, full_matrices=False)[2][:k]
+    return (Y - mu) @ Vt.T @ Vt + mu
+
+
+def run_subject_labelpca(sub):
+    """대조: teacher 를 라벨 주성분 smoothing 으로 바꾼 같은 student. (k, w, α) 는 안쪽 검증으로 선택."""
+    t0 = time.time(); od = OUT / "labelpca"; od.mkdir(parents=True, exist_ok=True)
+    rows, fold, FB, Y34, names, Y14, meta = rs.load_subject(sub)
+    vids = rows.video_id.values; B = FB["brain_roi469"]; pid = f"sub-{sub}"
+    obs14 = np.isfinite(Y14).all(1); preds, sel = [], []
+    for f in np.unique(fold):
+        tr, te = fold != f, fold == f
+        for space, Y, mask, dims in [("A34", Y34, np.ones(len(fold), bool), names), ("A14", Y14, obs14, bb.DIMS14)]:
+            trm, tem = tr & mask, te & mask
+            g = fold[trm]; Ytr = Y[trm]; idx = np.flatnonzero(tem); K = Ytr.shape[1]
+            err = np.zeros((len(KS), len(WS), len(ALPHAS), K))
+            for h in np.unique(g):
+                a, b = g != h, g == h
+                Ba, Bb = cl.std_fit(B[trm][a], B[trm][b])
+                for ki, k in enumerate(KS):
+                    T = label_smooth(Ytr[a], k)
+                    for wi, w in enumerate(WS):
+                        err[ki, wi] += ((student_paths(Ba, (1 - w) * Ytr[a] + w * T, Bb) - Ytr[b][None]) ** 2).sum(1)
+            ki, wi, ai = np.unravel_index(err.reshape(-1, K).argmin(0), err.shape[:3])
+            Btr, Bte = cl.std_fit(B[trm], B[tem])
+            P = np.zeros((len(idx), K))
+            for j in range(K):
+                T = label_smooth(Ytr, KS[ki[j]]); w = WS[wi[j]]
+                P[:, j] = student_paths(Btr, (1 - w) * Ytr[:, [j]] + w * T[:, [j]], Bte)[ai[j], :, 0]
+            P0 = student_paths(Btr, Ytr, Bte)[err[0, 0].argmin(0), :, np.arange(K)].T     # w = 0 (k 와 무관)
+            mu = Ytr.mean(0)
+            for cond, PP in [("student_w0", P0), ("labelpca_wsel", P)]:
+                for j, d in enumerate(dims):
+                    preds.append(pd.DataFrame(dict(participant_id=pid, video_id=vids[idx], outer_fold=int(f), input_condition=cond,
+                                                   target_space=space, dimension=d, y_true=Y[idx, j], y_pred=PP[:, j], train_mean=mu[j])))
+            sel += [dict(participant_id=pid, outer_fold=int(f), target_space=space, dimension=d, k_selected=KS[ki[j]],
+                         w_selected=WS[wi[j]], alpha_selected=float(ALPHAS[ai[j]])) for j, d in enumerate(dims)]
+    pred = pd.concat(preds, ignore_index=True)
+    dim, _ = bb.evaluate(pred, sub)
+    dim.to_csv(od / f"dimension_metrics_{pid}.tsv", sep="\t", index=False, float_format="%.5f")
+    pd.DataFrame(sel).to_csv(od / f"selected_w_{pid}.tsv", sep="\t", index=False)
+    print(dim.groupby(["target_space", "input_condition"], sort=False).r_oof.mean().round(4).to_string())
+    print(f"{pid} labelpca 완료 ({time.time() - t0:.0f}초)")
+
+
+def summarize(out=None):
+    out = out or OUT
+    D = pd.concat([pd.read_csv(f, sep="\t") for f in sorted(out.glob("dimension_metrics_sub-*.tsv"))])
+    W = pd.concat([pd.read_csv(f, sep="\t") for f in sorted(out.glob("selected_w_sub-*.tsv"))])
     rows = []
     for space, g in D.groupby("target_space", sort=False):
         h = g.pivot_table(index=["participant_id", "dimension"], columns="input_condition", values="r_oof")
@@ -117,13 +169,17 @@ def summarize():
             rows.append(dict(target_space=space, condition=cond, r_mean=per[cond].mean(), r_min=per[cond].min(), r_max=per[cond].max(),
                              r_w0=per["student_w0"].mean(), delta_vs_w0=dlt.mean(), delta_min=dlt.min(), delta_max=dlt.max(),
                              n_subjects_gain=int((dlt > 0).sum()), n_dims_gain=int((dd > 0).sum()), n_dims=len(dd)))
-    S = pd.DataFrame(rows); S.to_csv(OUT / "summary.tsv", sep="\t", index=False, float_format="%.4f")
+    S = pd.DataFrame(rows); S.to_csv(out / "summary.tsv", sep="\t", index=False, float_format="%.4f")
     wsum = W.groupby("target_space").w_selected.agg(["mean", lambda x: (x == 0).mean(), lambda x: (x == 1).mean()])
-    wsum.columns = ["w_mean", "frac_w0", "frac_w1"]; wsum.to_csv(OUT / "selected_w_summary.tsv", sep="\t", float_format="%.3f")
+    wsum.columns = ["w_mean", "frac_w0", "frac_w1"]; wsum.to_csv(out / "selected_w_summary.tsv", sep="\t", float_format="%.3f")
     pd.set_option("display.width", 220); print(S.round(4).to_string(index=False)); print(wsum.round(3))
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--sub"); ap.add_argument("--summarize", action="store_true")
+    ap.add_argument("--labelpca", action="store_true", help="내용 없는 대조 teacher (라벨 주성분 smoothing)")
     a = ap.parse_args()
-    summarize() if a.summarize else run_subject(a.sub)
+    if a.summarize:
+        summarize(OUT / "labelpca" if a.labelpca else OUT)
+    else:
+        run_subject_labelpca(a.sub) if a.labelpca else run_subject(a.sub)
