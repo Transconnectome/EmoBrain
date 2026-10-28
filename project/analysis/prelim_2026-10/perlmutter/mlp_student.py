@@ -8,6 +8,7 @@ teacher
   content  : 내용 (V-JEPA 2 + 사람 캡션) → 정서 ridge 의 교차검증 밖 예측 (teacher_cache.py)
   labelpca : 내용 없는 대조. 학습 라벨의 주성분 4개 smoothing
 선택: 안쪽 5묶음 검증에서 실제 평정 손실(출력 합)이 가장 작은 (w, k, epoch) 를 공간마다 하나 고른다. w = 0 도 후보.
+  검증 손실은 매 epoch 기록한다 (2026-10-28 수정: 10 epoch 간격이면 14개 차원의 뇌 단독이 첫 평가점 10 에 몰려 범위가 최적을 감싸지 못했다).
 최종: 바깥 학습 fold 전체로 고른 설정을 seed 3개로 학습해 예측 평균. 평가 영상에는 뇌만 넣는다.
 조건: mlp_w0 (뇌 단독 MLP), mlp_content_wsel, mlp_labelpca_wsel
 사용: python mlp_student.py --sub 01 | --summarize   (torch 가 있는 brainvlm_qwen_env)
@@ -29,7 +30,7 @@ import teacher_cache as tc  # noqa: E402
 
 ld, bb, cl = tc.ld, tc.bb, tc.rs.cl
 OUT = tc.rs.OUT / "07_students/mlp"
-HID, DROP, WD, LR, EPOCHS, EVAL = 128, 0.3, 1e-2, 3e-3, 300, 10
+HID, DROP, WD, LR, EPOCHS, EVAL = 128, 0.3, 1e-2, 3e-3, 300, 1
 WS = [0.0, 0.5, 0.75, 1.0]
 KS = [4]
 SEEDS = [0, 1, 2]
@@ -143,6 +144,8 @@ def summarize():
         dl = per["mlp_content_wsel"] - base
         print(f"  mlp_content_wsel − 선형 기준선: 평균 {dl.mean():+.4f} (피험자 {dl.min():+.4f}~{dl.max():+.4f}, 증가 {(dl > 0).sum()}/5)")
     print(S.groupby(["target_space", "condition"])[["w", "epochs"]].mean().round(2).to_string())
+    edge = S.groupby(["target_space", "condition"]).epochs.apply(lambda x: ((x <= EVAL) | (x >= EPOCHS)).mean()).rename("epoch 범위 끝 비율")
+    print(edge.round(2).to_string())
     print(S[S.condition != "mlp_w0"].groupby(["target_space", "condition"]).w.apply(lambda x: (x > 0).mean()).round(2).rename("w>0 비율").to_string())
 
 
