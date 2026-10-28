@@ -1,0 +1,83 @@
+feature	kind	rho	abs_rho
+err_w0	자료 특성	0.2516	0.2516
+total	자료 특성	0.1742	0.1742
+peak	자료 특성	0.1332	0.1332
+Art	의미 개념	-0.0985	0.0985
+Dogs	의미 개념	0.0951	0.0951
+Men	의미 개념	-0.0877	0.0877
+Nighttime scenes	의미 개념	0.0855	0.0855
+Couples	의미 개념	0.0829	0.0829
+Land animals	의미 개념	0.0768	0.0768
+n_ge01	자료 특성	0.0766	0.0766
+Boys	의미 개념	-0.0745	0.0745
+Stunts	의미 개념	-0.0743	0.0743
+err_teacher	자료 특성	-0.0693	0.0693
+Dead bodies	의미 개념	0.0686	0.0686
+Sports	의미 개념	-0.0663	0.0663
+White people	의미 개념	-0.0653	0.0653
+Smoke	의미 개념	0.0592	0.0592
+Vast landscapes	의미 개념	0.0508	0.0508
+Reporters	의미 개념	-0.0505	0.0505
+Celebrities	의미 개념	-0.0494	0.0494
+Sexual activity	의미 개념	0.0488	0.0488
+People	의미 개념	-0.0482	0.0482
+Indoor scenes	의미 개념	-0.0468	0.0468
+Outdoor scenes	의미 개념	0.0466	0.0466
+Hands/feet	의미 개념	-0.0458	0.0458
+Cartoons	의미 개념	-0.0444	0.0444
+Clouds	의미 개념	0.0442	0.0442
+Cats	의미 개념	0.0428	0.0428
+Nature	의미 개념	0.0421	0.0421
+Television	의미 개념	-0.0373	0.0373
+Paper	의미 개념	-0.0366	0.0366
+fd	자료 특성	-0.0354	0.0354
+Women	의미 개념	0.0343	0.0343
+Stores	의미 개념	-0.0331	0.0331
+Daytime scenes	의미 개념	0.0329	0.0329
+Snow	의미 개념	0.0323	0.0323
+Blood	의미 개념	0.0322	0.0322
+Guns	의미 개념	0.0315	0.0315
+Small animals	의미 개념	0.0288	0.0288
+Injuries	의미 개념	0.0279	0.0279
+Bottles/cans	의미 개념	-0.0274	0.0274
+Historical footage	의미 개념	0.0272	0.0272
+Hospitals	의미 개념	0.0268	0.0268
+duration	자료 특성	-0.0268	0.0268
+Large animals	의미 개념	0.0252	0.0252
+Birds	의미 개념	-0.0251	0.0251
+Food	의미 개념	-0.0246	0.0246
+Feces/urine/vomit	의미 개념	-0.0238	0.0238
+Explosions	의미 개념	0.0229	0.0229
+Flags	의미 개념	0.0223	0.0223
+entropy	자료 특성	0.0212	0.0212
+Paranormal creatures	의미 개념	-0.0210	0.0210
+Machines	의미 개념	-0.0208	0.0208
+Crowds of people	의미 개념	-0.0201	0.0201
+Roads	의미 개념	0.0199	0.0199
+Elderly people	의미 개념	0.0196	0.0196
+Furniture	의미 개념	0.0191	0.0191
+Fire	의미 개념	0.0189	0.0189
+Babies	의미 개념	-0.0186	0.0186
+Mountains	의미 개념	0.0185	0.0185
+Buildings	의미 개념	-0.0164	0.0164
+dvars	자료 특성	0.0162	0.0162
+Sharp objects	의미 개념	-0.0150	0.0150
+Boats	의미 개념	-0.0137	0.0137
+Girls	의미 개념	0.0127	0.0127
+Cities	의미 개념	0.0124	0.0124
+Insects	의미 개념	-0.0102	0.0102
+Aquatic animals	의미 개념	-0.0077	0.0077
+Politicians	의미 개념	0.0077	0.0077
+Weapons	의미 개념	0.0071	0.0071
+Automobiles	의미 개념	-0.0069	0.0069
+Above water scenes	의미 개념	0.0059	0.0059
+Soldiers	의미 개념	0.0056	0.0056
+Black people	의미 개념	0.0056	0.0056
+Underwater scenes	의미 개념	-0.0051	0.0051
+Naked people	의미 개념	-0.0043	0.0043
+Gymnasiums	의미 개념	-0.0042	0.0042
+Plants	의미 개념	0.0036	0.0036
+Video games	의미 개념	0.0031	0.0031
+Genitalia	의미 개념	-0.0025	0.0025
+Planes	의미 개념	-0.0010	0.0010
+Fast-moving objects	의미 개념	-0.0001	0.0001
