@@ -11,6 +11,10 @@ teacher
   검증 손실은 매 epoch 기록한다 (2026-10-28 수정: 10 epoch 간격이면 14개 차원의 뇌 단독이 첫 평가점 10 에 몰려 범위가 최적을 감싸지 못했다).
 최종: 바깥 학습 fold 전체로 고른 설정을 seed 3개로 학습해 예측 평균. 평가 영상에는 뇌만 넣는다.
 조건: mlp_w0 (뇌 단독 MLP), mlp_content_wsel, mlp_labelpca_wsel
+--balanced: 희소성 통제. 34개 범주 학습 손실에 감정별 양성 가중치 pos_weight = clip((1 − m) / m, 1, 20) (m = 학습 target 평균)를 주어
+  드문 감정의 양성 영상을 더 크게 반영한다. 뇌 단독도 희소한 라벨을 잘 배우도록 해서, teacher 이득 중 "희소 라벨 학습 개선" 몫을 뺀다.
+  가중 학습은 logit 을 log(pos_weight) 만큼 올리므로, 검증과 예측에서는 그만큼 빼서 비율 척도를 되돌린다 (logit adjustment).
+  선택 기준(검증 손실)은 가중치 없는 실제 평정 soft BCE 로 같다. 결과 07_students/mlp_balanced/
 사용: python mlp_student.py --sub 01 | --summarize   (torch 가 있는 brainvlm_qwen_env)
 """
 import argparse
@@ -35,6 +39,7 @@ WS = [0.0, 0.5, 0.75, 1.0]
 KS = [4]
 SEEDS = [0, 1, 2]
 torch.set_num_threads(int(os.environ.get("OMP_NUM_THREADS", "4")))
+BALANCED = False
 
 
 def fit(X, T, space, seed, epochs, Xv=None, Yv=None):
@@ -44,10 +49,14 @@ def fit(X, T, space, seed, epochs, Xv=None, Yv=None):
     if space == "A34":
         m0 = np.clip(T.mean(0), 1e-4, 1 - 1e-4); bias = np.log(m0 / (1 - m0))
         L = lambda o, y: nn.functional.binary_cross_entropy_with_logits(o, y, reduction="none")  # noqa: E731
+        pw = torch.as_tensor(np.clip((1 - m0) / m0, 1, 20), dtype=torch.float32)
+        Ltr = (lambda o, y: nn.functional.binary_cross_entropy_with_logits(o, y, pos_weight=pw, reduction="none")) if BALANCED else L  # noqa: E731
     else:
         bias = T.mean(0)
         L = lambda o, y: (o - y) ** 2  # noqa: E731
+        Ltr = L
     model = nn.Sequential(nn.Linear(X.shape[1], HID), nn.GELU(), nn.Dropout(DROP), nn.Linear(HID, T.shape[1]))
+    model.logit_shift = torch.log(pw) if (space == "A34" and BALANCED) else torch.zeros(T.shape[1])
     with torch.no_grad():
         model[-1].bias.copy_(torch.as_tensor(bias, dtype=torch.float32))
     opt = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WD)
@@ -55,18 +64,18 @@ def fit(X, T, space, seed, epochs, Xv=None, Yv=None):
         Xv_, Yv_ = torch.as_tensor(Xv, dtype=torch.float32), torch.as_tensor(Yv, dtype=torch.float32)
     curve = []
     for ep in range(1, epochs + 1):
-        model.train(); opt.zero_grad(); L(model(X_), T_).mean().backward(); opt.step()
+        model.train(); opt.zero_grad(); Ltr(model(X_), T_).mean().backward(); opt.step()
         if Xv is not None and ep % EVAL == 0:
             model.eval()
             with torch.no_grad():
-                curve.append(L(model(Xv_), Yv_).sum().item())
+                curve.append(L(model(Xv_) - model.logit_shift, Yv_).sum().item())
     model.eval()
     return model, np.array(curve)
 
 
 def predict(model, X, space):
     with torch.no_grad():
-        o = model(torch.as_tensor(X, dtype=torch.float32)).numpy().astype(np.float64)
+        o = (model(torch.as_tensor(X, dtype=torch.float32)) - model.logit_shift).numpy().astype(np.float64)
     return 1 / (1 + np.exp(-o)) if space == "A34" else o
 
 
@@ -248,7 +257,10 @@ def summarize_pooled():
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--sub"); ap.add_argument("--summarize", action="store_true")
     ap.add_argument("--pooled-fold", type=int, help="5명 통합 MLP, 바깥 fold 하나"); ap.add_argument("--summarize-pooled", action="store_true")
+    ap.add_argument("--balanced", action="store_true", help="34개 범주 학습 손실에 감정별 양성 가중치 (희소성 통제)")
     a = ap.parse_args()
+    if a.balanced:
+        BALANCED = True; OUT = tc.rs.OUT / "07_students/mlp_balanced"
     if a.pooled_fold is not None:
         run_pooled(a.pooled_fold)
     elif a.summarize_pooled:
