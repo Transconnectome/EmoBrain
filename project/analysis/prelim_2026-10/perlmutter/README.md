@@ -12,6 +12,9 @@
 | `mlp_student.py` | 작은 MLP student (내용 teacher, 라벨 smoothing 대조, 뇌 단독) | `07_students/mlp/` |
 | `students.sh` | 위 세 파일을 피험자 5명 병렬로 실행하고 요약 | 위와 같음 |
 | `mlp_student.sh` | MLP student 만 다시 실행 (cache 재사용) | `07_students/mlp/` |
+| `softbce_student.sh` | soft BCE student 만 다시 실행 (가중치 저장, `--effect-size` 로 bootstrap·효과 크기) | `07_students/softbce/` |
+| `roi_networks_distill.sh` | 영역 묶음별 선형 teacher–student (`roi_networks.py --distill`) | `08_roi_networks/distill/` |
+| `interpret_students.py` | 피험자·감정별 차이, 영상별 변화, 네트워크별 내용/잔차 분해, 가중치 활성 패턴 (저장된 결과만 읽음) | `09_interpretation/` |
 | `roi_networks.py` · `roi_networks.sh` | 영역 묶음별(7개 네트워크, 소뇌, 편도체, 해마, 그 밖 피질하, 시상하부·뇌간) 직접 예측, 캡션 경로, V-JEPA 2 위 추가분 | `08_roi_networks/` |
 
 입력 특징(V-JEPA 2, 캡션 임베딩)은 `../features/build_lab_features.py`, 감정어를 지운 캡션은 `../features/build_caption_noemo.py` 가 `/pscratch/sd/s/sjmoon/transfer/emobrain_lab_features_20261026/` 에 만든다.
