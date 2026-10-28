@@ -51,8 +51,13 @@ def load(sub, protocol, features, max_rows=None):
 
 
 def inner_groups(n, protocol, fold_tr, seed=0, k=5):
-    """학습 자료 안 검증 묶음. ours 는 남은 바깥 fold, lit 는 무작위 5묶음."""
-    return fold_tr if protocol == "ours" else np.random.RandomState(seed).randint(0, k, n)
+    """학습 자료 안 검증 묶음. ours 는 남은 바깥 fold 5개, ours10·ours46 은 남은 바깥 fold 를 5묶음으로 합침 (run 묶음 유지),
+    lit 는 무작위 5묶음."""
+    if protocol == "ours":
+        return fold_tr
+    if protocol.startswith("ours"):
+        u = np.unique(fold_tr); return pd.Series(fold_tr).map(dict(zip(u, np.arange(len(u)) % k))).values
+    return np.random.RandomState(seed).randint(0, k, n)
 
 
 def run_ridge(Xtr, Ytr, Xte, groups):
@@ -143,7 +148,7 @@ def run_ged(node_tr, area_tr, Ytr, node_te, Yte, epochs, seed=0, device="cpu"):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--protocol", choices=["ours", "lit"], required=True); ap.add_argument("--features", choices=["roi469", "subroi4"], required=True)
+    ap.add_argument("--protocol", choices=["ours", "ours10", "ours46", "lit"], required=True); ap.add_argument("--features", choices=["roi469", "subroi4"], required=True)
     ap.add_argument("--model", choices=["ridge", "mlp", "ged"], required=True); ap.add_argument("--sub", required=True)
     ap.add_argument("--folds"); ap.add_argument("--epochs", type=int, default=300); ap.add_argument("--max-rows", type=int)
     ap.add_argument("--out-root", type=Path, default=HERE / "runs")

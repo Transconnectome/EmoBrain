@@ -8,8 +8,9 @@
 
 | 파일 | 하는 일 |
 |---|---|
-| `make_protocols.py` · `.sh` | 분할표 `runs/protocols/{ours,lit}_sub-XX.tsv`. ours = run 묶음 6겹 (중복 제외, `horikawa_rungroup6_v1`), lit = 참가자별 무작위 10겹 (중복 포함) |
+| `make_protocols.py` · `.sh` | 분할표 `runs/protocols/{ours,ours10,ours46,lit}_sub-XX.tsv`. ours10·ours46 = 같은 run 묶음으로 fold 수만 늘림 (학습 약 90%·98%). ours = run 묶음 6겹 (중복 제외, `horikawa_rungroup6_v1`), lit = 참가자별 무작위 10겹 (중복 포함) |
 | `build_subroi_features.py` · `.sh` | GED 식 영역 하위 구역 평균 (469개 영역 × 4³, `runs/features/`) |
+| `run_foldsize.sh` | 학습 자료 양: run 묶음을 유지한 10겹(ours10)·46겹(ours46)에서 ridge·MLP |
 | `run_baselines.py` · `run_baselines.sh` | ridge, MLP, GED. 입력 roi469 (영역 평균) · subroi4 (하위 구역). 결과 `runs/<protocol>/<입력>_<모델>/` |
 | `summarize_baselines.py` | 모든 예측에 지표 묶음 (`project/analysis/prelim_2026-10/perlmutter/metrics_panel.py`) + GED 식 정규화 MAE, GED 의 평가 세트 선택 MAE |
 | `third_party/GED/` | GED 공개 코드 (https://github.com/zhongyu1998/GED, commit 3ea8492, MIT). git 에 넣지 않음. 모델 `models/graphcnn.py` 를 그대로 쓰고, 간선 생성 `utils.load_adj` 는 `run_baselines.ged_edges` 로 옮김 |
