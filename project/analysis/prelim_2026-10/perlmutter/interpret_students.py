@@ -100,6 +100,33 @@ def videos():
     print("== 가장 나빠진 영상"); print(A.sort_values("gain")[cols].head(8).round(3).to_string(index=False))
 
 
+def video_characteristics():
+    """영상별 이득(5명 평균)이 영상의 자료 특성으로 설명되는지: 길이, 평정 분포, 머리 움직임, 오차, 의미 개념 73개."""
+    from scipy.stats import spearmanr
+    A = pd.read_csv(OUT / "videos_softbce.tsv", sep="\t").set_index("video_id")
+    lab = pd.read_csv(rs.REPO / "project/shared/data/cowen_horikawa_labels.csv").set_index("stim_num_int")
+    Y = lab.reindex(A.index)[[f"score_{i}" for i in range(34)]].values
+    pn = Y / np.clip(Y.sum(1, keepdims=True), 1e-9, None)
+    smp = pd.concat([pd.read_csv(f"/pscratch/sd/s/sjmoon/Horikawa/sub-{s}/v3_qc/sub-{s}_samples_qc_usable.tsv", sep="\t") for s in ["01", "02", "03", "04", "05"]])
+    smp = smp[~smp.exclude_duplicate.astype(bool)].groupby("video_id")[["duration_sec", "fd_max_window", "std_dvars_max_window"]].mean()
+    X = pd.DataFrame(dict(duration=smp.duration_sec.reindex(A.index).values, fd=smp.fd_max_window.reindex(A.index).values,
+                          dvars=smp.std_dvars_max_window.reindex(A.index).values, peak=Y.max(1), total=Y.sum(1),
+                          n_ge01=(Y >= .1).sum(1), entropy=-(pn * np.log(np.clip(pn, 1e-12, None))).sum(1),
+                          err_w0=A.se_w0.values, err_teacher=A.se_teacher.values), index=A.index)
+    sem = pd.read_csv("/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/semantic_features.csv")
+    sem.index = sem.pop("stimulus_num").str.replace("stimulus_", "").astype(int); sem = sem.reindex(A.index)
+    rows = [dict(feature=c, kind="자료 특성", rho=spearmanr(X[c], A.gain, nan_policy="omit").correlation) for c in X]
+    rows += [dict(feature=c, kind="의미 개념", rho=spearmanr(sem[c], A.gain, nan_policy="omit").correlation) for c in sem if sem[c].std() > 0]
+    R = pd.DataFrame(rows).assign(abs_rho=lambda d: d.rho.abs()).sort_values("abs_rho", ascending=False)
+    R.to_csv(OUT / "video_gain_characteristics.tsv", sep="\t", index=False, float_format="%.4f")
+    Z = X.rank().fillna(X.rank().mean()); yv = A.gain.rank()
+    D = np.column_stack([np.ones(len(Z)), Z.values]); b = np.linalg.lstsq(D, yv, rcond=None)[0]
+    r2 = 1 - ((yv - D @ b) ** 2).sum() / ((yv - yv.mean()) ** 2).sum()
+    print(f"영상 {len(A)}개 | 자료 특성 {X.shape[1]}개로 이득 순위 분산의 {100 * r2:.1f}% 설명 (순위 회귀)")
+    print(R[R.kind == "자료 특성"].round(3).to_string(index=False))
+    print("== 이득과 관련이 큰 의미 개념 (상위 12)"); print(R[R.kind == "의미 개념"].head(12).round(3).to_string(index=False))
+
+
 def networks():
     rows = []
     for space in ["A34", "A14"]:
@@ -119,38 +146,74 @@ def networks():
 
 
 def weights():
+    """soft BCE 가중치의 활성 패턴 (학습 자료 공분산 × 가중치, fold 평균). 469개 영역 id 로 맞춰 피험자 간 비교."""
     import teacher_cache as tc
-    rows, maps = [], {}
+    from itertools import combinations
+    info = pd.read_csv(O / "roi_blocks/Horikawa_sub-01_roi469_info.tsv", sep="\t")
+    maps, names = {}, None
     for f in sorted((O / "07_students/softbce").glob("weights_sub-*.npz")):
         pid = f.stem.replace("weights_", ""); sub = pid[-2:]
-        w = np.load(f); d = np.load(tc.CACHE / f"{pid}.npz"); B = d["B"].astype(np.float64); fold = d["fold"]
-        grp = rn.roi_groups(sub); A0, A1 = [], []
-        for i, fo in enumerate(w["folds"]):
-            Xtr = B[fold != fo]; Z = (Xtr - Xtr.mean(0)) / np.where(Xtr.std(0) > 0, Xtr.std(0), 1)
-            C = Z.T @ Z / len(Z)
-            A0.append(C @ w["W0"][i][:-1]); A1.append(C @ w["Wsel"][i][:-1])        # 활성 패턴 (영역 × 범주)
-        A0, A1 = np.mean(A0, 0), np.mean(A1, 0); maps[pid] = (A0, A1, grp)
-        for k, dim in enumerate(w["names"]):
-            rows.append(dict(participant_id=pid, dimension=dim, pattern_r_w0_vs_wsel=np.corrcoef(A0[:, k], A1[:, k])[0, 1]))
-            for gname in rn.ORDER[:-1]:
-                m = grp == gname
-                rows.append(dict(participant_id=pid, dimension=dim, group=gname, abs_w0=np.abs(A0[m, k]).mean(), abs_wsel=np.abs(A1[m, k]).mean()))
-    R = pd.DataFrame(rows); OUT.mkdir(parents=True, exist_ok=True); R.to_csv(OUT / "weights_patterns.tsv", sep="\t", index=False, float_format="%.5f")
-    print(f"뇌 단독과 student 의 활성 패턴 상관 (범주·피험자 평균): {R.pattern_r_w0_vs_wsel.mean():.3f}")
-    G = R.dropna(subset=["group"]).groupby(["group"])[["abs_w0", "abs_wsel"]].mean()
-    G["change_pct"] = 100 * (G.abs_wsel / G.abs_w0 - 1); print(G.reindex(rn.ORDER[:-1]).round(4).to_string())
-    print("※ 같은 영역 id 에 대한 피험자 간 패턴 일치도는 영역 구성이 거의 같아 추가로 볼 수 있다 (유효 영역 467~469개).")
+        w = np.load(f); d = np.load(tc.CACHE / f"{pid}.npz"); B = d["B"].astype(np.float64); fold = d["fold"]; names = list(w["names"])
+        rows = pd.read_csv(O / f"roi_blocks/Horikawa_{pid}_roi469_rows.tsv", sep="\t")
+        R = np.load(O / f"roi_blocks/Horikawa_{pid}_roi469_runz.npy"); inf = pd.read_csv(O / f"roi_blocks/Horikawa_{pid}_roi469_info.tsv", sep="\t")
+        valid = inf.roi_valid.values & np.isfinite(R[~rows.exclude_duplicate.astype(bool).values]).all(0)
+        A = {}
+        for key in ["W0", "Wsel"]:
+            acc = []
+            for i, fo in enumerate(w["folds"]):
+                Xtr = B[fold != fo]; Z = (Xtr - Xtr.mean(0)) / np.where(Xtr.std(0) > 0, Xtr.std(0), 1)
+                acc.append((Z.T @ Z / len(Z)) @ w[key][i][:-1])
+            full = np.full((len(valid), len(names)), np.nan); full[valid] = np.mean(acc, 0); A[key] = full
+        maps[pid] = A
+    grp = np.array(rn.roi_groups.__wrapped__(info) if hasattr(rn.roi_groups, "__wrapped__") else None, dtype=object) if False else None
+    name, net = info.name.astype(str), info.network.values
+    g = np.where(name.str.startswith("7Networks"), net, "").astype(object)
+    g[name.str.startswith("Cereb7N").values] = "Cerebellum"; g[name.str.contains("AMY").values] = "Amygdala"
+    g[name.str.startswith("HIP").values] = "Hippocampus"; g[(net == "Subcortex") & (g == "")] = "OtherSubcortex"
+    g[np.isin(net, ["Hypothalamus", "Brainstem"])] = "Hypothal+Brainstem"
+    subs = sorted(maps); out = []
+    for k, emo in enumerate(names):
+        A0 = np.stack([maps[s]["W0"][:, k] for s in subs]); A1 = np.stack([maps[s]["Wsel"][:, k] for s in subs])
+        ok = np.isfinite(A0).all(0)
+        cons = lambda M: np.mean([np.corrcoef(M[i, ok], M[j, ok])[0, 1] for i, j in combinations(range(len(subs)), 2)])
+        same = np.mean([np.corrcoef(A0[i, ok], A1[i, ok])[0, 1] for i in range(len(subs))])
+        rec = dict(dimension=emo, pattern_r_w0_vs_wsel=same, subj_consistency_w0=cons(A0), subj_consistency_wsel=cons(A1))
+        m0, m1 = np.nanmean(A0, 0), np.nanmean(A1, 0)                 # 5명 평균 패턴
+        for gname in rn.ORDER[:-1]:
+            sel = g == gname
+            rec[f"{gname}_w0"] = np.nanmean(m0[sel]); rec[f"{gname}_delta"] = np.nanmean(m1[sel] - m0[sel])
+        top = np.argsort(-np.nan_to_num(m1, nan=-9))[:5]
+        rec["top_rois_wsel"] = "; ".join(f"{name.iloc[i]}" for i in top)
+        out.append(rec)
+    W = pd.DataFrame(out).set_index("dimension"); OUT.mkdir(parents=True, exist_ok=True)
+    W.to_csv(OUT / "weights_patterns_by_emotion.tsv", sep="\t", float_format="%.5f")
+    np.savez(OUT / "activation_patterns.npz", **{f"{s}_{key}": maps[s][key] for s in subs for key in ["W0", "Wsel"]}, names=np.array(names),
+             roi_names=info.name.values, groups=g)
+    E = pd.read_csv(OUT / "emotion_softbce.tsv", sep="\t").set_index("dimension")
+    W = W.join(E[["delta"]]).sort_values("delta", ascending=False)
+    pd.set_option("display.width", 260); pd.set_option("display.max_colwidth", 120)
+    print(f"뇌 단독 대 student 패턴 상관 (평균) {W.pattern_r_w0_vs_wsel.mean():.3f} | 피험자 간 패턴 일치도 w0 {W.subj_consistency_w0.mean():.3f} → wsel {W.subj_consistency_wsel.mean():.3f}")
+    from scipy.stats import spearmanr
+    print(f"감정별 이득 vs 패턴 변화량(1 − 상관) 순위상관 {spearmanr(W.delta, 1 - W.pattern_r_w0_vs_wsel).correlation:+.2f}")
+    cols = ["delta", "pattern_r_w0_vs_wsel", "subj_consistency_w0", "subj_consistency_wsel"]
+    print(W[cols].round(3).to_string())
+    dcols = [f"{gname}_delta" for gname in rn.ORDER[:-1]]
+    print("== 네트워크별 패턴 변화 (5명 평균 활성 패턴의 student − 뇌 단독, 영역 평균; 이득 상위·하위 감정)")
+    print(pd.concat([W.head(8), W.tail(6)])[dcols].rename(columns=lambda c: c.replace("_delta", "")).round(4).to_string())
+    print("== student 패턴의 상위 영역 (이득 상위 6개 감정)"); print(W.head(6)[["top_rois_wsel"]].to_string())
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    for k in ["subject-emotion", "videos", "networks", "weights"]:
+    for k in ["subject-emotion", "videos", "video-characteristics", "networks", "weights"]:
         ap.add_argument(f"--{k}", action="store_true")
     a = ap.parse_args(); OUT.mkdir(parents=True, exist_ok=True)
     if a.subject_emotion:
         subject_emotion()
     if a.videos:
         videos()
+    if a.video_characteristics:
+        video_characteristics()
     if a.networks:
         networks()
     if a.weights:

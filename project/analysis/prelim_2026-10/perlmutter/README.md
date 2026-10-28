@@ -15,6 +15,8 @@
 | `softbce_student.sh` | soft BCE student 만 다시 실행 (가중치 저장, `--effect-size` 로 bootstrap·효과 크기) | `07_students/softbce/` |
 | `roi_networks_distill.sh` | 영역 묶음별 선형 teacher–student (`roi_networks.py --distill`) | `08_roi_networks/distill/` |
 | `interpret_students.py` | 피험자·감정별 차이, 영상별 변화, 네트워크별 내용/잔차 분해, 가중치 활성 패턴 (저장된 결과만 읽음) | `09_interpretation/` |
+| `vision_ladder.sh` | 시각 특징(Horikawa VGG19, CLIP, DINOv2, VideoMAE) 비교 사다리 단위 실행 | `04_brain_features/` |
+| `metrics_panel.py` | 저장된 예측에서 지표 약 26개 계산 (Pearson, R², soft BCE, CCC, AUC, mAP, MAE 합산, F1, 프로필, 짝 구별 등) | `10_metrics/` |
 | `roi_networks.py` · `roi_networks.sh` | 영역 묶음별(7개 네트워크, 소뇌, 편도체, 해마, 그 밖 피질하, 시상하부·뇌간) 직접 예측, 캡션 경로, V-JEPA 2 위 추가분 | `08_roi_networks/` |
 
 입력 특징(V-JEPA 2, 캡션 임베딩)은 `../features/build_lab_features.py`, 감정어를 지운 캡션은 `../features/build_caption_noemo.py` 가 `/pscratch/sd/s/sjmoon/transfer/emobrain_lab_features_20261026/` 에 만든다.
