@@ -12,7 +12,9 @@
 pilot 단순화: 34개 범주도 ridge (비율을 그대로 target). 랩서버 soft BCE 기준선과 숫자가 다르며 비교는 이 pilot 안에서만 한다.
 조건: student_w0 (뇌 단독 ridge), student_wsel (안쪽에서 고른 w), student_w<값> (w 고정, 참고용), teacher_content (내용만, 참고)
 대조 (--labelpca): teacher 대신 학습 라벨의 주성분 k 개 smoothing. 내용 없이 target 만 매끄럽게 해도 같은 이득이 나는지 본다.
-사용: python linear_distill.py --sub 01 | --summarize
+teacher 변형 (--teacher a+b, --shuffle): 내용 특징 조합을 바꾸거나, 학습 영상끼리 teacher 예측을 섞어 짝을 깬다 (pairing 대조).
+결과: 06_linear_distill/<teacher 이름>[_shuffled]/, 06_linear_distill/labelpca/
+사용: python linear_distill.py --sub 01 [--teacher a+b] [--shuffle] | --summarize [--teacher ...] | --summarize-variants
 """
 import argparse
 import json
@@ -27,8 +29,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 import run_stage1 as rs  # noqa: E402  (Perlmutter 경로·load_subject·load_features)
 
 bb, cl = rs.bb, rs.cl
-OUT = rs.OUT / "06_linear_distill"
+OUT_ROOT = rs.OUT / "06_linear_distill"
 TEACHER = ["vjepa2_vitg_final", "caption_human_mpnet"]
+SHUFFLE = False
+OUT = OUT_ROOT / "+".join(TEACHER)
 WS = [0.0, 0.25, 0.5, 0.75, 1.0]
 ALPHAS = bb.ALPHA_RIDGE
 
@@ -43,6 +47,12 @@ def teacher_oof(C, Y, groups):
     return out
 
 
+def teacher_pred(C, Y, groups):
+    """teacher 의 교차검증 밖 예측. SHUFFLE 이면 학습 영상끼리 예측을 섞어 뇌 반응과의 짝을 깬다 (분포는 그대로)."""
+    T = teacher_oof(C, Y, groups)
+    return T[np.random.RandomState(0).permutation(len(T))] if SHUFFLE else T
+
+
 def student_paths(Btr, Ymix, Bte):
     """표준화된 뇌 입력에서 α 격자별 예측 (출력 열마다 독립 ridge)."""
     U, s, Vt = np.linalg.svd(Btr, full_matrices=False)
@@ -55,7 +65,7 @@ def select_w_alpha(B, C, Y, groups):
     err = np.zeros((len(WS), len(ALPHAS), Y.shape[1]))
     for g in np.unique(groups):
         a, b = groups != g, groups == g
-        T = teacher_oof(C[a], Y[a], groups[a])
+        T = teacher_pred(C[a], Y[a], groups[a])
         Ba, Bb = cl.std_fit(B[a], B[b])
         for i, w in enumerate(WS):
             P = student_paths(Ba, (1 - w) * Y[a] + w * T, Bb)
@@ -78,7 +88,7 @@ def run_subject(sub):
             trm, tem = tr & mask, te & mask
             g = fold[trm]; Ytr = Y[trm]; idx = np.flatnonzero(tem)
             wi, ai, a_fixed = select_w_alpha(B[trm], C[trm], Ytr, g)
-            T = teacher_oof(C[trm], Ytr, g)                                   # 학습 영상의 teacher 예측
+            T = teacher_pred(C[trm], Ytr, g)                                  # 학습 영상의 teacher 예측
             Btr, Bte = cl.std_fit(B[trm], B[tem])
             P_by_w = [student_paths(Btr, (1 - w) * Ytr + w * T, Bte) for w in WS]
             k = np.arange(Ytr.shape[1])
@@ -100,7 +110,7 @@ def run_subject(sub):
     pd.DataFrame(sel).to_csv(OUT / f"selected_w_{pid}.tsv", sep="\t", index=False)
     dim, _ = bb.evaluate(pred, sub)
     dim.to_csv(OUT / f"dimension_metrics_{pid}.tsv", sep="\t", index=False, float_format="%.5f")
-    (OUT / f"run_info_{pid}.json").write_text(json.dumps(dict(teacher=TEACHER, ws=WS, seconds=round(time.time() - t0), **meta),
+    (OUT / f"run_info_{pid}.json").write_text(json.dumps(dict(teacher=TEACHER, shuffle=SHUFFLE, ws=WS, seconds=round(time.time() - t0), **meta),
                                                        ensure_ascii=False, indent=1))
     print(dim.groupby(["target_space", "input_condition"], sort=False).r_oof.mean().round(4).to_string())
     print(f"{pid} 완료 ({time.time() - t0:.0f}초)")
@@ -117,7 +127,7 @@ def label_smooth(Y, k):
 
 def run_subject_labelpca(sub):
     """대조: teacher 를 라벨 주성분 smoothing 으로 바꾼 같은 student. (k, w, α) 는 안쪽 검증으로 선택."""
-    t0 = time.time(); od = OUT / "labelpca"; od.mkdir(parents=True, exist_ok=True)
+    t0 = time.time(); od = OUT_ROOT / "labelpca"; od.mkdir(parents=True, exist_ok=True)
     rows, fold, FB, Y34, names, Y14, meta = rs.load_subject(sub)
     vids = rows.video_id.values; B = FB["brain_roi469"]; pid = f"sub-{sub}"
     obs14 = np.isfinite(Y14).all(1); preds, sel = [], []
@@ -156,6 +166,30 @@ def run_subject_labelpca(sub):
     print(f"{pid} labelpca 완료 ({time.time() - t0:.0f}초)")
 
 
+def summarize_variants():
+    """teacher 변형마다 같은 뇌 단독 ridge (w0) 대비 이득과 라벨 smoothing 대조 대비 이득."""
+    def per(d, cond, sp):
+        return d[(d.input_condition == cond) & (d.target_space == sp)].groupby("participant_id").r_oof.mean()
+    lab = pd.concat([pd.read_csv(f, sep="\t") for f in sorted((OUT_ROOT / "labelpca").glob("dimension_metrics_sub-*.tsv"))])
+    rows = []
+    for vd in sorted(p for p in OUT_ROOT.iterdir() if p.is_dir() and p.name != "labelpca"):
+        fs = sorted(vd.glob("dimension_metrics_sub-*.tsv"))
+        if len(fs) < 5:
+            continue
+        D = pd.concat([pd.read_csv(f, sep="\t") for f in fs])
+        for sp in ["A34", "A14"]:
+            w0, ws, lp = per(D, "student_w0", sp), per(D, "student_wsel", sp), per(lab, "labelpca_wsel", sp)
+            h = D[D.target_space == sp].pivot_table(index=["participant_id", "dimension"], columns="input_condition", values="r_oof")
+            hl = lab[(lab.target_space == sp) & (lab.input_condition == "labelpca_wsel")].set_index(["participant_id", "dimension"]).r_oof
+            dd = (h.student_wsel - hl.reindex(h.index)).groupby("dimension").mean()
+            rows.append(dict(teacher=vd.name, target_space=sp, r_w0=w0.mean(), r_wsel=ws.mean(), gain=(ws - w0).mean(),
+                             gain_min=(ws - w0).min(), n_subj_gain=int((ws > w0).sum()), minus_labelpca=(ws - lp).mean(),
+                             minus_labelpca_min=(ws - lp).min(), n_subj_gt_labelpca=int((ws > lp).sum()),
+                             n_dims_gt_labelpca=f"{int((dd > 0).sum())}/{len(dd)}", r_teacher_content=per(D, "teacher_content", sp).mean()))
+    S = pd.DataFrame(rows); S.to_csv(OUT_ROOT / "summary_variants.tsv", sep="\t", index=False, float_format="%.4f")
+    pd.set_option("display.width", 250); print(S.round(4).to_string(index=False))
+
+
 def summarize(out=None):
     out = out or OUT
     D = pd.concat([pd.read_csv(f, sep="\t") for f in sorted(out.glob("dimension_metrics_sub-*.tsv"))])
@@ -178,8 +212,17 @@ def summarize(out=None):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--sub"); ap.add_argument("--summarize", action="store_true")
     ap.add_argument("--labelpca", action="store_true", help="내용 없는 대조 teacher (라벨 주성분 smoothing)")
+    ap.add_argument("--teacher", help="teacher 내용 특징, + 로 연결 (기본 vjepa2_vitg_final+caption_human_mpnet)")
+    ap.add_argument("--shuffle", action="store_true", help="학습 영상끼리 teacher 예측을 섞는 pairing 대조")
+    ap.add_argument("--summarize-variants", action="store_true")
     a = ap.parse_args()
-    if a.summarize:
-        summarize(OUT / "labelpca" if a.labelpca else OUT)
+    if a.teacher:
+        TEACHER = a.teacher.split("+")
+    SHUFFLE = a.shuffle
+    OUT = OUT_ROOT / ("+".join(TEACHER) + ("_shuffled" if SHUFFLE else ""))
+    if a.summarize_variants:
+        summarize_variants()
+    elif a.summarize:
+        summarize(OUT_ROOT / "labelpca" if a.labelpca else OUT)
     else:
         run_subject_labelpca(a.sub) if a.labelpca else run_subject(a.sub)

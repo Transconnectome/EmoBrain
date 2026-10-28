@@ -4,7 +4,7 @@
 set -euo pipefail
 PY=/pscratch/sd/s/sjmoon/tribev2/.venv/bin/python
 CODE=/pscratch/sd/s/sjmoon/EmoBrain/project/analysis/prelim_2026-10/perlmutter/linear_distill.py
-LOG=/pscratch/sd/s/sjmoon/EmoBrain/project/output/prelim_2026-10/logs
+LOG=/pscratch/sd/s/sjmoon/EmoBrain/project/output/prelim_2026-10/logs/linear_distill
 mkdir -p "$LOG"
 export OPENBLAS_NUM_THREADS=4 OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 PYTHONDONTWRITEBYTECODE=1
 MODE=${1:-}   # --labelpca 이면 내용 없는 대조 teacher

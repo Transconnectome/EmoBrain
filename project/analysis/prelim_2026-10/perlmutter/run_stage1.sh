@@ -5,7 +5,7 @@
 set -euo pipefail
 PY=/pscratch/sd/s/sjmoon/tribev2/.venv/bin/python
 CODE=/pscratch/sd/s/sjmoon/EmoBrain/project/analysis/prelim_2026-10/perlmutter/run_stage1.py
-LOG=/pscratch/sd/s/sjmoon/EmoBrain/project/output/prelim_2026-10/logs
+LOG=/pscratch/sd/s/sjmoon/EmoBrain/project/output/prelim_2026-10/logs/ladder
 mkdir -p "$LOG"
 export PYTHONDONTWRITEBYTECODE=1
 [ "${1:-}" = "--skip-roi" ] || "$PY" -u "$CODE" roi > "$LOG/roi.log" 2>&1
