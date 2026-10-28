@@ -149,7 +149,109 @@ def summarize():
     print(S[S.condition != "mlp_w0"].groupby(["target_space", "condition"]).w.apply(lambda x: (x > 0).mean()).round(2).rename("w>0 비율").to_string())
 
 
+OUT_POOLED = tc.rs.OUT / "07_students/mlp_pooled"
+SUBS = ["01", "02", "03", "04", "05"]
+
+
+def common_columns():
+    """피험자마다 cache B 의 열(유효 영역) 중, 5명 모두에서 유효한 영역의 열 번호."""
+    valid = {}
+    for sb in SUBS:
+        rows = pd.read_csv(tc.rs.OUT / f"roi_blocks/Horikawa_sub-{sb}_roi469_rows.tsv", sep="\t")
+        R = np.load(tc.rs.OUT / f"roi_blocks/Horikawa_sub-{sb}_roi469_runz.npy")
+        info = pd.read_csv(tc.rs.OUT / f"roi_blocks/Horikawa_sub-{sb}_roi469_info.tsv", sep="\t")
+        valid[sb] = info.roi_valid.values & np.isfinite(R[~rows.exclude_duplicate.astype(bool).values]).all(0)
+    common = np.logical_and.reduce(list(valid.values()))
+    return {sb: np.flatnonzero(common[valid[sb]]) for sb in SUBS}, int(common.sum())
+
+
+def run_pooled(f):
+    """5명 통합 MLP (바깥 fold f 하나). 469개 영역은 같은 지도라 그대로 합치고, 피험자마다 그 사람의 학습 행으로 표준화한 뒤
+    피험자 표시(one-hot 5개)를 붙인다. 분할은 5명 공통이라 한 영상이 어떤 피험자에게 학습, 다른 피험자에게 평가가 되는 일은 없다.
+    (w, epoch) 는 5명을 합친 안쪽 검증 손실로 고르고, 평가는 피험자마다 그 사람의 평가 영상에서 한다."""
+    t0 = time.time(); OUT_POOLED.mkdir(parents=True, exist_ok=True)
+    D = {s: np.load(tc.CACHE / f"sub-{s}.npz") for s in SUBS}
+    cols, n_common = common_columns(); print(f"5명 공통 유효 영역 {n_common}개", flush=True)
+    configs = [("w0", 0, 0.0)] + [("content", 0, w) for w in WS[1:]]
+    families = {"mlp_pooled_w0": ["w0"], "mlp_pooled_content_wsel": ["w0", "content"]}
+    eye = np.eye(len(SUBS)); preds, sel = [], []
+    for space in ["A34", "A14"]:
+        P = []
+        for i, s in enumerate(SUBS):
+            d = D[s]; fold = d["fold"]
+            Y = d["Y34"] if space == "A34" else d["Y14"]
+            mask = np.ones(len(fold), bool) if space == "A34" else np.isfinite(d["Y14"]).all(1)
+            trm, tem = (fold != f) & mask, (fold == f) & mask
+            P.append(dict(s=s, i=i, d=d, B=d["B"].astype(np.float64)[:, cols[s]], trm=trm, tem=tem, g=fold[trm], Ytr=Y[trm], Y=Y,
+                          dims=list(d["names"]) if space == "A34" else list(d["dims14"])))
+        Yall = np.vstack([p["Ytr"] for p in P])
+        if space == "A14":
+            ym, ys = Yall.mean(0), Yall.std(0); ys[ys == 0] = 1
+        else:
+            ym, ys = np.zeros(Yall.shape[1]), np.ones(Yall.shape[1])
+        z = lambda A: (A - ym) / ys  # noqa: E731
+        clipT = (lambda T: np.clip(T, 1e-4, 1 - 1e-4)) if space == "A34" else (lambda T: T)  # noqa: E731
+        curves = {c: 0 for c in configs}
+        for h in np.unique(P[0]["g"]):
+            Xa, Xb, Ya, Yb, Ta = [], [], [], [], []
+            for p in P:
+                a, b = p["g"] != h, p["g"] == h
+                Ba, Bb = cl.std_fit(p["B"][p["trm"]][a], p["B"][p["trm"]][b])
+                Xa.append(np.hstack([Ba, np.tile(eye[p["i"]], (len(Ba), 1))])); Xb.append(np.hstack([Bb, np.tile(eye[p["i"]], (len(Bb), 1))]))
+                Ya.append(p["Ytr"][a]); Yb.append(p["Ytr"][b]); Ta.append(clipT(p["d"][f"T_{space}_f{f}_h{h}"]))
+            Xa, Xb, Ya, Yb, Ta = map(np.vstack, (Xa, Xb, Ya, Yb, Ta))
+            for c in configs:
+                _, _, w = c
+                T = z(Ya) if c[0] == "w0" else (1 - w) * z(Ya) + w * z(Ta)
+                curves[c] = curves[c] + fit(Xa, T, space, 0, EPOCHS, Xb, z(Yb))[1]
+        Xtr, Ytr_all, Tout, Xte = [], [], [], []
+        for p in P:
+            Btr, Bte = cl.std_fit(p["B"][p["trm"]], p["B"][p["tem"]])
+            Xtr.append(np.hstack([Btr, np.tile(eye[p["i"]], (len(Btr), 1))])); Xte.append(np.hstack([Bte, np.tile(eye[p["i"]], (len(Bte), 1))]))
+            Ytr_all.append(p["Ytr"]); Tout.append(clipT(p["d"][f"T_{space}_f{f}"]))
+        Xtr, Ytr_all, Tout = map(np.vstack, (Xtr, Ytr_all, Tout))
+        for fam, kinds in families.items():
+            cand = [(curves[c].min(), c, int((curves[c].argmin() + 1) * EVAL)) for c in configs if c[0] in kinds]
+            _, (kind, k, w), ep = min(cand, key=lambda x: x[0])
+            T = z(Ytr_all) if kind == "w0" else (1 - w) * z(Ytr_all) + w * z(Tout)
+            models = [fit(Xtr, T, space, sd, ep)[0] for sd in SEEDS]
+            for p, X in zip(P, Xte):
+                Pp = np.mean([predict(m, X, space) for m in models], axis=0) * ys + ym
+                idx = np.flatnonzero(p["tem"]); mu = p["Ytr"].mean(0)
+                for j, dim in enumerate(p["dims"]):
+                    preds.append(pd.DataFrame(dict(participant_id=f"sub-{p['s']}", video_id=p["d"]["vids"][idx], outer_fold=int(f), input_condition=fam,
+                                                   target_space=space, dimension=dim, y_true=p["Y"][idx, j], y_pred=Pp[:, j], train_mean=mu[j])))
+            sel.append(dict(outer_fold=int(f), target_space=space, condition=fam, teacher=kind, w=w, epochs=ep))
+        print(f"  fold {f} {space} 완료 ({time.time() - t0:.0f}초)", flush=True)
+    pd.concat(preds, ignore_index=True).to_csv(OUT_POOLED / f"predictions_fold{f}.tsv.gz", sep="\t", index=False, float_format="%.6g")
+    pd.DataFrame(sel).to_csv(OUT_POOLED / f"selected_fold{f}.tsv", sep="\t", index=False)
+
+
+def summarize_pooled():
+    pred = pd.concat([pd.read_csv(x, sep="\t") for x in sorted(OUT_POOLED.glob("predictions_fold*.tsv.gz"))])
+    dims = pd.concat([bb.evaluate(g, pid[-2:])[0] for pid, g in pred.groupby("participant_id")])
+    dims.to_csv(OUT_POOLED / "dimension_metrics.tsv", sep="\t", index=False, float_format="%.5f")
+    for pid, g in pred.groupby("participant_id"):
+        g.to_csv(OUT_POOLED / f"predictions_{pid}.tsv.gz", sep="\t", index=False, float_format="%.6g")
+    single = pd.concat([pd.read_csv(x, sep="\t") for x in sorted(OUT.glob("dimension_metrics_sub-*.tsv"))])
+    A = pd.concat([dims, single[single.input_condition.isin(["mlp_w0", "mlp_content_wsel"])]])
+    for space, g in A.groupby("target_space", sort=False):
+        per = g.groupby(["participant_id", "input_condition"]).r_oof.mean().unstack()
+        print(f"== {space}"); print(per.round(4).to_string())
+        for a, b in [("mlp_pooled_w0", "mlp_w0"), ("mlp_pooled_content_wsel", "mlp_content_wsel"), ("mlp_pooled_content_wsel", "mlp_pooled_w0")]:
+            dl = per[a] - per[b]
+            print(f"  {a} − {b}: 평균 {dl.mean():+.4f} (피험자 {dl.min():+.4f}~{dl.max():+.4f}, 증가 {(dl > 0).sum()}/5)")
+    S = pd.concat([pd.read_csv(x, sep="\t") for x in sorted(OUT_POOLED.glob("selected_fold*.tsv"))])
+    print(S.groupby(["target_space", "condition"])[["w", "epochs"]].mean().round(2).to_string())
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--sub"); ap.add_argument("--summarize", action="store_true")
+    ap.add_argument("--pooled-fold", type=int, help="5명 통합 MLP, 바깥 fold 하나"); ap.add_argument("--summarize-pooled", action="store_true")
     a = ap.parse_args()
-    summarize() if a.summarize else run_subject(a.sub)
+    if a.pooled_fold is not None:
+        run_pooled(a.pooled_fold)
+    elif a.summarize_pooled:
+        summarize_pooled()
+    else:
+        summarize() if a.summarize else run_subject(a.sub)

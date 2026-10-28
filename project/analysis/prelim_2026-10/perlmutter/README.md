@@ -12,6 +12,7 @@
 | `mlp_student.py` | 작은 MLP student (내용 teacher, 라벨 smoothing 대조, 뇌 단독) | `07_students/mlp/` |
 | `students.sh` | 위 세 파일을 피험자 5명 병렬로 실행하고 요약 | 위와 같음 |
 | `mlp_student.sh` | MLP student 만 다시 실행 (cache 재사용) | `07_students/mlp/` |
+| `mlp_pooled.sh` | 5명 통합 MLP student (`mlp_student.py --pooled-fold`, 공통 유효 영역 466개 + 피험자 표시) | `07_students/mlp_pooled/` |
 | `softbce_student.sh` | soft BCE student 만 다시 실행 (가중치 저장, `--effect-size` 로 bootstrap·효과 크기) | `07_students/softbce/` |
 | `roi_networks_distill.sh` | 영역 묶음별 선형 teacher–student (`roi_networks.py --distill`) | `08_roi_networks/distill/` |
 | `interpret_students.py` | 피험자·감정별 차이, 영상별 변화, 네트워크별 내용/잔차 분해, 가중치 활성 패턴 (저장된 결과만 읽음) | `09_interpretation/` |

@@ -104,8 +104,7 @@ def video_characteristics():
     """영상별 이득(5명 평균)이 영상의 자료 특성으로 설명되는지: 길이, 평정 분포, 머리 움직임, 오차, 의미 개념 73개."""
     from scipy.stats import spearmanr
     A = pd.read_csv(OUT / "videos_softbce.tsv", sep="\t").set_index("video_id")
-    lab = pd.read_csv(rs.REPO / "project/shared/data/cowen_horikawa_labels.csv").set_index("stim_num_int")
-    Y = lab.reindex(A.index)[[f"score_{i}" for i in range(34)]].values
+    Y = rs.cl.labels_for(A.index.values)[1]                                # 기준선과 같은 라벨 (Horikawa metadata)
     pn = Y / np.clip(Y.sum(1, keepdims=True), 1e-9, None)
     smp = pd.concat([pd.read_csv(f"/pscratch/sd/s/sjmoon/Horikawa/sub-{s}/v3_qc/sub-{s}_samples_qc_usable.tsv", sep="\t") for s in ["01", "02", "03", "04", "05"]])
     smp = smp[~smp.exclude_duplicate.astype(bool)].groupby("video_id")[["duration_sec", "fd_max_window", "std_dvars_max_window"]].mean()
@@ -125,6 +124,43 @@ def video_characteristics():
     print(f"영상 {len(A)}개 | 자료 특성 {X.shape[1]}개로 이득 순위 분산의 {100 * r2:.1f}% 설명 (순위 회귀)")
     print(R[R.kind == "자료 특성"].round(3).to_string(index=False))
     print("== 이득과 관련이 큰 의미 개념 (상위 12)"); print(R[R.kind == "의미 개념"].head(12).round(3).to_string(index=False))
+
+
+def label_characteristics():
+    """감정별 이득이 라벨 자체의 특성으로 설명되는지. 라벨 특성은 모두 분석 영상 2,181개의 규범 평정에서 계산 (뇌·모델과 무관).
+    mean (평균 비율), frac_zero (0 인 영상 비율), n_ge05 (0.5 이상 영상 수), skew (왜도), reliab (평정자 신뢰도, 0단계 표),
+    redundancy (다른 33개 감정 라벨로 이 감정을 예측한 교차검증 R², 라벨끼리 겹치는 정도), content_r (내용 teacher 의 r, 내용으로 예측되는 정도)."""
+    from scipy.stats import skew, spearmanr
+    from sklearn.linear_model import RidgeCV
+    from sklearn.model_selection import cross_val_predict
+    sp = pd.read_csv(rs.REPO / "docs/reports/prelim_2026-10/splits/horikawa_rungroup6_v1.tsv", sep="\t"); sp = sp[sp.analysis_row]
+    names, Y34, _ = rs.cl.labels_for(sp.video_id.values)                  # 기준선과 같은 라벨 (Horikawa metadata, 2196개)
+    Y = pd.DataFrame(Y34, columns=names); fold = sp.fold.values
+    rel = pd.read_csv(rs.REPO / "docs/reports/prelim_2026-10/stage0/tables/label_structure_reliability.tsv", sep="\t").set_index("감정")["라벨신뢰도"]
+    red = {}
+    for c in names:
+        X = Y.drop(columns=c).values; p = cross_val_predict(RidgeCV(alphas=np.logspace(-2, 3, 11)), X, Y[c].values, groups=fold, cv=6)
+        red[c] = 1 - ((Y[c] - p) ** 2).sum() / ((Y[c] - Y[c].mean()) ** 2).sum()
+    L = pd.DataFrame(dict(mean=Y.mean(), frac_zero=(Y == 0).mean(), n_ge05=(Y >= .5).sum(), skew=Y.apply(skew), reliab=rel.reindex(names),
+                          redundancy=pd.Series(red)))
+    T = pd.concat([pd.read_csv(f, sep="\t") for f in sorted((O / "06_linear_distill/vjepa2_vitg_final+caption_human_mpnet").glob("dimension_metrics_sub-*.tsv"))])
+    L["content_r"] = T[(T.input_condition == "teacher_content") & (T.target_space == "A34")].groupby("dimension").r_oof.mean()
+    E = pd.read_csv(OUT / "emotion_softbce.tsv", sep="\t").set_index("dimension")
+    M = pd.concat([pd.read_csv(f, sep="\t") for f in sorted((O / "07_students/mlp").glob("dimension_metrics_sub-*.tsv"))])
+    m = M[M.target_space == "A34"].pivot_table(index="dimension", columns="input_condition", values="r_oof")
+    G = pd.DataFrame(dict(gain_softbce=E.delta, gain_mlp=m.mlp_content_wsel - m.mlp_w0, content_specific_mlp=m.mlp_content_wsel - m.mlp_labelpca_wsel,
+                          r_w0=E.r_w0, resid_w0=E.resid_w0))
+    D = L.join(G); D.to_csv(OUT / "label_characteristics.tsv", sep="\t", float_format="%.4f")
+    feats = list(L.columns)
+    C = pd.DataFrame({g: {f: spearmanr(D[f], D[g]).correlation for f in feats + ["r_w0", "resid_w0"]} for g in ["gain_softbce", "gain_mlp", "content_specific_mlp"]})
+    def r2(y, cols):
+        Z = D[cols].rank(); X = np.column_stack([np.ones(len(Z)), Z.values]); yy = D[y].rank()
+        return 1 - ((yy - X @ np.linalg.lstsq(X, yy, rcond=None)[0]) ** 2).sum() / ((yy - yy.mean()) ** 2).sum()
+    pd.set_option("display.width", 220)
+    print("== 라벨 특성과 이득의 순위상관 (34개 범주)"); print(C.round(2).to_string())
+    print(f"라벨 특성 {len(feats)}개로 설명되는 순위 분산: soft BCE 이득 {r2('gain_softbce', feats):.2f}, MLP 이득 {r2('gain_mlp', feats):.2f}, "
+          f"MLP 내용 특이적 이득 {r2('content_specific_mlp', feats):.2f} (감정 34개라 과적합 주의)")
+    print(D.sort_values("gain_softbce", ascending=False)[feats + ["gain_softbce", "content_specific_mlp"]].round(3).to_string())
 
 
 def networks():
@@ -205,7 +241,7 @@ def weights():
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    for k in ["subject-emotion", "videos", "video-characteristics", "networks", "weights"]:
+    for k in ["subject-emotion", "videos", "video-characteristics", "label-characteristics", "networks", "weights"]:
         ap.add_argument(f"--{k}", action="store_true")
     a = ap.parse_args(); OUT.mkdir(parents=True, exist_ok=True)
     if a.subject_emotion:
@@ -214,6 +250,8 @@ if __name__ == "__main__":
         videos()
     if a.video_characteristics:
         video_characteristics()
+    if a.label_characteristics:
+        label_characteristics()
     if a.networks:
         networks()
     if a.weights:

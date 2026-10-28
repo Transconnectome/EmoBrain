@@ -197,3 +197,6 @@ archive/v5_direction_split_20260628/dir3_ccn/study1/results/poster_export/*.tar.
 archive/v5_direction_split_20260628/dir3_ccn/study1/results/poster_export/figure_*
 archive/v5_direction_split_20260628/dir3_ccn/study1/results/poster_export/poster_figure_manifest.*
 archive/v5_direction_split_20260628/dir3_ccn/study1/results/poster_export/CCN_POSTER_HANDOFF/FILE_CHECKSUMS.sha256
+
+# 공정 비교 baseline 의 외부 코드 (출처·commit 은 README 에 기록)
+project/baseline/*/third_party/
