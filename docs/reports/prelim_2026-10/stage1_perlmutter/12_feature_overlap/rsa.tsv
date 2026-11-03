@@ -1,0 +1,29 @@
+a	b	rsa_spearman
+V-JEPA 2 (영상)	VideoMAE (영상)	0.2498
+V-JEPA 2 (영상)	CLIP (이미지)	0.3008
+V-JEPA 2 (영상)	DINOv2 (이미지)	0.2702
+V-JEPA 2 (영상)	VGG19 fc8 (이미지)	0.2534
+V-JEPA 2 (영상)	사람 캡션	0.2438
+V-JEPA 2 (영상)	의미 73 (사람 개념)	0.2333
+V-JEPA 2 (영상)	VLM 캡션 v1	0.2086
+VideoMAE (영상)	CLIP (이미지)	0.2754
+VideoMAE (영상)	DINOv2 (이미지)	0.2794
+VideoMAE (영상)	VGG19 fc8 (이미지)	0.2221
+VideoMAE (영상)	사람 캡션	0.2815
+VideoMAE (영상)	의미 73 (사람 개념)	0.2505
+VideoMAE (영상)	VLM 캡션 v1	0.2268
+CLIP (이미지)	DINOv2 (이미지)	0.3814
+CLIP (이미지)	VGG19 fc8 (이미지)	0.2803
+CLIP (이미지)	사람 캡션	0.3803
+CLIP (이미지)	의미 73 (사람 개념)	0.3510
+CLIP (이미지)	VLM 캡션 v1	0.3148
+DINOv2 (이미지)	VGG19 fc8 (이미지)	0.3175
+DINOv2 (이미지)	사람 캡션	0.3535
+DINOv2 (이미지)	의미 73 (사람 개념)	0.3838
+DINOv2 (이미지)	VLM 캡션 v1	0.3186
+VGG19 fc8 (이미지)	사람 캡션	0.3181
+VGG19 fc8 (이미지)	의미 73 (사람 개념)	0.4260
+VGG19 fc8 (이미지)	VLM 캡션 v1	0.3228
+사람 캡션	의미 73 (사람 개념)	0.5037
+사람 캡션	VLM 캡션 v1	0.4666
+의미 73 (사람 개념)	VLM 캡션 v1	0.4108

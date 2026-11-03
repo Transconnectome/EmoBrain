@@ -1,0 +1,1293 @@
+pairs	features	category	r2
+matched	저수준: 색	admiration	-0.0043
+matched	저수준: 색	adoration	-0.0033
+matched	저수준: 색	aesthetic appreciation	0.0069
+matched	저수준: 색	amusement	0.0017
+matched	저수준: 색	anger	0.0009
+matched	저수준: 색	anxiety	-0.0021
+matched	저수준: 색	awe	0.0014
+matched	저수준: 색	awkwardness	-0.0001
+matched	저수준: 색	boredom	0.0010
+matched	저수준: 색	calmness	-0.0029
+matched	저수준: 색	confusion	-0.0029
+matched	저수준: 색	contempt	-0.0092
+matched	저수준: 색	craving	-0.0049
+matched	저수준: 색	disappointment	-0.0030
+matched	저수준: 색	disgust	0.0023
+matched	저수준: 색	empathic pain	-0.0050
+matched	저수준: 색	entrancement	-0.0082
+matched	저수준: 색	envy	-0.0024
+matched	저수준: 색	excitement	0.0019
+matched	저수준: 색	fear	-0.0028
+matched	저수준: 색	guilt	-0.0031
+matched	저수준: 색	horror	-0.0011
+matched	저수준: 색	interest	0.0003
+matched	저수준: 색	joy	-0.0028
+matched	저수준: 색	nostalgia	0.0009
+matched	저수준: 색	pride	-0.0019
+matched	저수준: 색	relief	-0.0042
+matched	저수준: 색	romance	0.0064
+matched	저수준: 색	sadness	-0.0019
+matched	저수준: 색	satisfaction	-0.0036
+matched	저수준: 색	sexual desire	0.0157
+matched	저수준: 색	surprise	0.0035
+matched	저수준: 색	sympathy	-0.0004
+matched	저수준: 색	triumph	-0.0054
+matched	저수준: 밝기·선명도	admiration	-0.0015
+matched	저수준: 밝기·선명도	adoration	0.0024
+matched	저수준: 밝기·선명도	aesthetic appreciation	-0.0007
+matched	저수준: 밝기·선명도	amusement	0.0003
+matched	저수준: 밝기·선명도	anger	0.0001
+matched	저수준: 밝기·선명도	anxiety	0.0038
+matched	저수준: 밝기·선명도	awe	-0.0011
+matched	저수준: 밝기·선명도	awkwardness	-0.0003
+matched	저수준: 밝기·선명도	boredom	0.0038
+matched	저수준: 밝기·선명도	calmness	0.0066
+matched	저수준: 밝기·선명도	confusion	0.0007
+matched	저수준: 밝기·선명도	contempt	-0.0022
+matched	저수준: 밝기·선명도	craving	0.0001
+matched	저수준: 밝기·선명도	disappointment	-0.0019
+matched	저수준: 밝기·선명도	disgust	-0.0024
+matched	저수준: 밝기·선명도	empathic pain	-0.0011
+matched	저수준: 밝기·선명도	entrancement	0.0108
+matched	저수준: 밝기·선명도	envy	0.0009
+matched	저수준: 밝기·선명도	excitement	-0.0004
+matched	저수준: 밝기·선명도	fear	-0.0001
+matched	저수준: 밝기·선명도	guilt	-0.0034
+matched	저수준: 밝기·선명도	horror	-0.0020
+matched	저수준: 밝기·선명도	interest	0.0005
+matched	저수준: 밝기·선명도	joy	0.0017
+matched	저수준: 밝기·선명도	nostalgia	0.0002
+matched	저수준: 밝기·선명도	pride	0.0048
+matched	저수준: 밝기·선명도	relief	0.0044
+matched	저수준: 밝기·선명도	romance	-0.0009
+matched	저수준: 밝기·선명도	sadness	-0.0041
+matched	저수준: 밝기·선명도	satisfaction	0.0010
+matched	저수준: 밝기·선명도	sexual desire	0.0002
+matched	저수준: 밝기·선명도	surprise	0.0009
+matched	저수준: 밝기·선명도	sympathy	0.0101
+matched	저수준: 밝기·선명도	triumph	-0.0024
+matched	저수준: 움직임	admiration	0.0044
+matched	저수준: 움직임	adoration	0.0037
+matched	저수준: 움직임	aesthetic appreciation	-0.0021
+matched	저수준: 움직임	amusement	-0.0003
+matched	저수준: 움직임	anger	0.0045
+matched	저수준: 움직임	anxiety	0.0007
+matched	저수준: 움직임	awe	-0.0012
+matched	저수준: 움직임	awkwardness	-0.0017
+matched	저수준: 움직임	boredom	0.0002
+matched	저수준: 움직임	calmness	-0.0011
+matched	저수준: 움직임	confusion	-0.0019
+matched	저수준: 움직임	contempt	-0.0009
+matched	저수준: 움직임	craving	-0.0042
+matched	저수준: 움직임	disappointment	-0.0020
+matched	저수준: 움직임	disgust	-0.0022
+matched	저수준: 움직임	empathic pain	-0.0005
+matched	저수준: 움직임	entrancement	0.0013
+matched	저수준: 움직임	envy	-0.0007
+matched	저수준: 움직임	excitement	-0.0004
+matched	저수준: 움직임	fear	-0.0017
+matched	저수준: 움직임	guilt	-0.0002
+matched	저수준: 움직임	horror	-0.0029
+matched	저수준: 움직임	interest	0.0037
+matched	저수준: 움직임	joy	-0.0009
+matched	저수준: 움직임	nostalgia	-0.0019
+matched	저수준: 움직임	pride	0.0077
+matched	저수준: 움직임	relief	-0.0009
+matched	저수준: 움직임	romance	-0.0021
+matched	저수준: 움직임	sadness	-0.0008
+matched	저수준: 움직임	satisfaction	-0.0027
+matched	저수준: 움직임	sexual desire	-0.0031
+matched	저수준: 움직임	surprise	-0.0004
+matched	저수준: 움직임	sympathy	0.0050
+matched	저수준: 움직임	triumph	0.0010
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	admiration	-0.0139
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	adoration	-0.0150
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	aesthetic appreciation	0.0161
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	amusement	0.0055
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	anger	0.0077
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	anxiety	-0.0072
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	awe	-0.0178
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	awkwardness	-0.0111
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	boredom	-0.0128
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	calmness	0.0035
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	confusion	-0.0112
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	contempt	-0.0348
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	craving	-0.0146
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	disappointment	-0.0025
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	disgust	0.0014
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	empathic pain	-0.0076
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	entrancement	0.0072
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	envy	-0.0053
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	excitement	-0.0052
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	fear	-0.0100
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	guilt	-0.0004
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	horror	-0.0189
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	interest	-0.0060
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	joy	-0.0159
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	nostalgia	-0.0093
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	pride	-0.0036
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	relief	0.0026
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	romance	0.0042
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	sadness	-0.0234
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	satisfaction	-0.0177
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	sexual desire	0.0141
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	surprise	0.0039
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	sympathy	0.0031
+matched	저수준: 전체 (+정지 화면 Gabor·대칭)	triumph	0.0050
+matched	V-JEPA 2 블록 8	admiration	-0.0478
+matched	V-JEPA 2 블록 8	adoration	-0.0421
+matched	V-JEPA 2 블록 8	aesthetic appreciation	-0.0146
+matched	V-JEPA 2 블록 8	amusement	-0.0340
+matched	V-JEPA 2 블록 8	anger	-0.0160
+matched	V-JEPA 2 블록 8	anxiety	-0.0284
+matched	V-JEPA 2 블록 8	awe	-0.0304
+matched	V-JEPA 2 블록 8	awkwardness	-0.0017
+matched	V-JEPA 2 블록 8	boredom	0.0010
+matched	V-JEPA 2 블록 8	calmness	-0.0195
+matched	V-JEPA 2 블록 8	confusion	-0.0137
+matched	V-JEPA 2 블록 8	contempt	-0.0366
+matched	V-JEPA 2 블록 8	craving	-0.0352
+matched	V-JEPA 2 블록 8	disappointment	-0.0208
+matched	V-JEPA 2 블록 8	disgust	-0.0012
+matched	V-JEPA 2 블록 8	empathic pain	-0.0219
+matched	V-JEPA 2 블록 8	entrancement	-0.0064
+matched	V-JEPA 2 블록 8	envy	-0.0358
+matched	V-JEPA 2 블록 8	excitement	0.0202
+matched	V-JEPA 2 블록 8	fear	-0.0393
+matched	V-JEPA 2 블록 8	guilt	-0.0079
+matched	V-JEPA 2 블록 8	horror	-0.0275
+matched	V-JEPA 2 블록 8	interest	-0.0239
+matched	V-JEPA 2 블록 8	joy	-0.0211
+matched	V-JEPA 2 블록 8	nostalgia	-0.0309
+matched	V-JEPA 2 블록 8	pride	-0.0184
+matched	V-JEPA 2 블록 8	relief	-0.0077
+matched	V-JEPA 2 블록 8	romance	-0.0198
+matched	V-JEPA 2 블록 8	sadness	-0.0168
+matched	V-JEPA 2 블록 8	satisfaction	-0.0473
+matched	V-JEPA 2 블록 8	sexual desire	-0.0100
+matched	V-JEPA 2 블록 8	surprise	-0.0144
+matched	V-JEPA 2 블록 8	sympathy	-0.0364
+matched	V-JEPA 2 블록 8	triumph	-0.0123
+matched	V-JEPA 2 블록 16	admiration	-0.0596
+matched	V-JEPA 2 블록 16	adoration	-0.0411
+matched	V-JEPA 2 블록 16	aesthetic appreciation	-0.0007
+matched	V-JEPA 2 블록 16	amusement	-0.0312
+matched	V-JEPA 2 블록 16	anger	-0.0259
+matched	V-JEPA 2 블록 16	anxiety	-0.0292
+matched	V-JEPA 2 블록 16	awe	-0.0126
+matched	V-JEPA 2 블록 16	awkwardness	-0.0271
+matched	V-JEPA 2 블록 16	boredom	-0.0190
+matched	V-JEPA 2 블록 16	calmness	-0.0230
+matched	V-JEPA 2 블록 16	confusion	-0.0161
+matched	V-JEPA 2 블록 16	contempt	-0.0597
+matched	V-JEPA 2 블록 16	craving	-0.0532
+matched	V-JEPA 2 블록 16	disappointment	-0.0180
+matched	V-JEPA 2 블록 16	disgust	-0.0312
+matched	V-JEPA 2 블록 16	empathic pain	-0.0271
+matched	V-JEPA 2 블록 16	entrancement	0.0073
+matched	V-JEPA 2 블록 16	envy	-0.0610
+matched	V-JEPA 2 블록 16	excitement	0.0130
+matched	V-JEPA 2 블록 16	fear	-0.0148
+matched	V-JEPA 2 블록 16	guilt	-0.0054
+matched	V-JEPA 2 블록 16	horror	-0.0227
+matched	V-JEPA 2 블록 16	interest	-0.0478
+matched	V-JEPA 2 블록 16	joy	-0.0323
+matched	V-JEPA 2 블록 16	nostalgia	-0.0345
+matched	V-JEPA 2 블록 16	pride	-0.0291
+matched	V-JEPA 2 블록 16	relief	-0.0106
+matched	V-JEPA 2 블록 16	romance	-0.0108
+matched	V-JEPA 2 블록 16	sadness	-0.0259
+matched	V-JEPA 2 블록 16	satisfaction	-0.0455
+matched	V-JEPA 2 블록 16	sexual desire	0.0038
+matched	V-JEPA 2 블록 16	surprise	-0.0142
+matched	V-JEPA 2 블록 16	sympathy	-0.0588
+matched	V-JEPA 2 블록 16	triumph	0.0128
+matched	V-JEPA 2 블록 24	admiration	-0.0704
+matched	V-JEPA 2 블록 24	adoration	-0.0530
+matched	V-JEPA 2 블록 24	aesthetic appreciation	-0.0040
+matched	V-JEPA 2 블록 24	amusement	-0.0220
+matched	V-JEPA 2 블록 24	anger	-0.0817
+matched	V-JEPA 2 블록 24	anxiety	-0.0460
+matched	V-JEPA 2 블록 24	awe	-0.0089
+matched	V-JEPA 2 블록 24	awkwardness	-0.0343
+matched	V-JEPA 2 블록 24	boredom	-0.0725
+matched	V-JEPA 2 블록 24	calmness	-0.0768
+matched	V-JEPA 2 블록 24	confusion	-0.0454
+matched	V-JEPA 2 블록 24	contempt	-0.0240
+matched	V-JEPA 2 블록 24	craving	-0.0643
+matched	V-JEPA 2 블록 24	disappointment	-0.0411
+matched	V-JEPA 2 블록 24	disgust	-0.0500
+matched	V-JEPA 2 블록 24	empathic pain	-0.0433
+matched	V-JEPA 2 블록 24	entrancement	0.0374
+matched	V-JEPA 2 블록 24	envy	-0.0716
+matched	V-JEPA 2 블록 24	excitement	-0.0275
+matched	V-JEPA 2 블록 24	fear	-0.0299
+matched	V-JEPA 2 블록 24	guilt	-0.0320
+matched	V-JEPA 2 블록 24	horror	0.0119
+matched	V-JEPA 2 블록 24	interest	-0.0534
+matched	V-JEPA 2 블록 24	joy	-0.0403
+matched	V-JEPA 2 블록 24	nostalgia	-0.0429
+matched	V-JEPA 2 블록 24	pride	-0.0399
+matched	V-JEPA 2 블록 24	relief	-0.0231
+matched	V-JEPA 2 블록 24	romance	-0.0312
+matched	V-JEPA 2 블록 24	sadness	-0.0504
+matched	V-JEPA 2 블록 24	satisfaction	-0.0684
+matched	V-JEPA 2 블록 24	sexual desire	0.0159
+matched	V-JEPA 2 블록 24	surprise	-0.0022
+matched	V-JEPA 2 블록 24	sympathy	-0.0428
+matched	V-JEPA 2 블록 24	triumph	-0.0075
+matched	V-JEPA 2 블록 32	admiration	-0.0649
+matched	V-JEPA 2 블록 32	adoration	-0.0693
+matched	V-JEPA 2 블록 32	aesthetic appreciation	-0.0381
+matched	V-JEPA 2 블록 32	amusement	-0.0330
+matched	V-JEPA 2 블록 32	anger	-0.0840
+matched	V-JEPA 2 블록 32	anxiety	-0.0931
+matched	V-JEPA 2 블록 32	awe	-0.0502
+matched	V-JEPA 2 블록 32	awkwardness	-0.0301
+matched	V-JEPA 2 블록 32	boredom	-0.0636
+matched	V-JEPA 2 블록 32	calmness	-0.0886
+matched	V-JEPA 2 블록 32	confusion	-0.0287
+matched	V-JEPA 2 블록 32	contempt	-0.0126
+matched	V-JEPA 2 블록 32	craving	-0.1059
+matched	V-JEPA 2 블록 32	disappointment	-0.0574
+matched	V-JEPA 2 블록 32	disgust	-0.0447
+matched	V-JEPA 2 블록 32	empathic pain	-0.0796
+matched	V-JEPA 2 블록 32	entrancement	0.0419
+matched	V-JEPA 2 블록 32	envy	-0.0988
+matched	V-JEPA 2 블록 32	excitement	-0.0504
+matched	V-JEPA 2 블록 32	fear	-0.0433
+matched	V-JEPA 2 블록 32	guilt	-0.0555
+matched	V-JEPA 2 블록 32	horror	-0.0655
+matched	V-JEPA 2 블록 32	interest	-0.0454
+matched	V-JEPA 2 블록 32	joy	-0.0870
+matched	V-JEPA 2 블록 32	nostalgia	-0.0460
+matched	V-JEPA 2 블록 32	pride	-0.0578
+matched	V-JEPA 2 블록 32	relief	-0.0134
+matched	V-JEPA 2 블록 32	romance	-0.0286
+matched	V-JEPA 2 블록 32	sadness	-0.0164
+matched	V-JEPA 2 블록 32	satisfaction	-0.0515
+matched	V-JEPA 2 블록 32	sexual desire	0.0116
+matched	V-JEPA 2 블록 32	surprise	-0.0018
+matched	V-JEPA 2 블록 32	sympathy	-0.0492
+matched	V-JEPA 2 블록 32	triumph	0.0160
+matched	V-JEPA 2 블록 40	admiration	-0.1020
+matched	V-JEPA 2 블록 40	adoration	-0.0859
+matched	V-JEPA 2 블록 40	aesthetic appreciation	-0.0265
+matched	V-JEPA 2 블록 40	amusement	-0.0393
+matched	V-JEPA 2 블록 40	anger	-0.0442
+matched	V-JEPA 2 블록 40	anxiety	-0.0651
+matched	V-JEPA 2 블록 40	awe	-0.0818
+matched	V-JEPA 2 블록 40	awkwardness	-0.0352
+matched	V-JEPA 2 블록 40	boredom	-0.0613
+matched	V-JEPA 2 블록 40	calmness	-0.0605
+matched	V-JEPA 2 블록 40	confusion	-0.0486
+matched	V-JEPA 2 블록 40	contempt	-0.0177
+matched	V-JEPA 2 블록 40	craving	-0.0928
+matched	V-JEPA 2 블록 40	disappointment	-0.0478
+matched	V-JEPA 2 블록 40	disgust	-0.0222
+matched	V-JEPA 2 블록 40	empathic pain	-0.0105
+matched	V-JEPA 2 블록 40	entrancement	-0.0753
+matched	V-JEPA 2 블록 40	envy	-0.1198
+matched	V-JEPA 2 블록 40	excitement	-0.0574
+matched	V-JEPA 2 블록 40	fear	-0.0584
+matched	V-JEPA 2 블록 40	guilt	-0.0101
+matched	V-JEPA 2 블록 40	horror	-0.0217
+matched	V-JEPA 2 블록 40	interest	-0.0231
+matched	V-JEPA 2 블록 40	joy	-0.0613
+matched	V-JEPA 2 블록 40	nostalgia	-0.0409
+matched	V-JEPA 2 블록 40	pride	-0.0281
+matched	V-JEPA 2 블록 40	relief	-0.0107
+matched	V-JEPA 2 블록 40	romance	-0.0214
+matched	V-JEPA 2 블록 40	sadness	-0.0157
+matched	V-JEPA 2 블록 40	satisfaction	-0.0352
+matched	V-JEPA 2 블록 40	sexual desire	0.0653
+matched	V-JEPA 2 블록 40	surprise	0.0036
+matched	V-JEPA 2 블록 40	sympathy	-0.0755
+matched	V-JEPA 2 블록 40	triumph	0.0124
+matched	CLIP 블록 6	admiration	-0.0439
+matched	CLIP 블록 6	adoration	-0.0288
+matched	CLIP 블록 6	aesthetic appreciation	0.0164
+matched	CLIP 블록 6	amusement	-0.0139
+matched	CLIP 블록 6	anger	-0.0215
+matched	CLIP 블록 6	anxiety	-0.0075
+matched	CLIP 블록 6	awe	0.0117
+matched	CLIP 블록 6	awkwardness	-0.0103
+matched	CLIP 블록 6	boredom	0.0093
+matched	CLIP 블록 6	calmness	-0.0201
+matched	CLIP 블록 6	confusion	0.0045
+matched	CLIP 블록 6	contempt	-0.0621
+matched	CLIP 블록 6	craving	-0.0454
+matched	CLIP 블록 6	disappointment	-0.0154
+matched	CLIP 블록 6	disgust	0.0062
+matched	CLIP 블록 6	empathic pain	-0.0318
+matched	CLIP 블록 6	entrancement	0.0248
+matched	CLIP 블록 6	envy	-0.0423
+matched	CLIP 블록 6	excitement	0.0085
+matched	CLIP 블록 6	fear	-0.0026
+matched	CLIP 블록 6	guilt	0.0008
+matched	CLIP 블록 6	horror	-0.0132
+matched	CLIP 블록 6	interest	-0.0252
+matched	CLIP 블록 6	joy	-0.0319
+matched	CLIP 블록 6	nostalgia	-0.0393
+matched	CLIP 블록 6	pride	-0.0229
+matched	CLIP 블록 6	relief	-0.0346
+matched	CLIP 블록 6	romance	-0.0149
+matched	CLIP 블록 6	sadness	-0.0274
+matched	CLIP 블록 6	satisfaction	-0.0352
+matched	CLIP 블록 6	sexual desire	0.0063
+matched	CLIP 블록 6	surprise	-0.0327
+matched	CLIP 블록 6	sympathy	-0.0471
+matched	CLIP 블록 6	triumph	-0.0189
+matched	CLIP 블록 12	admiration	-0.0955
+matched	CLIP 블록 12	adoration	-0.0931
+matched	CLIP 블록 12	aesthetic appreciation	-0.0524
+matched	CLIP 블록 12	amusement	-0.0135
+matched	CLIP 블록 12	anger	-0.1142
+matched	CLIP 블록 12	anxiety	-0.0691
+matched	CLIP 블록 12	awe	-0.0324
+matched	CLIP 블록 12	awkwardness	-0.0723
+matched	CLIP 블록 12	boredom	-0.0416
+matched	CLIP 블록 12	calmness	-0.0706
+matched	CLIP 블록 12	confusion	-0.0602
+matched	CLIP 블록 12	contempt	-0.0771
+matched	CLIP 블록 12	craving	-0.0794
+matched	CLIP 블록 12	disappointment	-0.0592
+matched	CLIP 블록 12	disgust	-0.0400
+matched	CLIP 블록 12	empathic pain	-0.0392
+matched	CLIP 블록 12	entrancement	-0.0133
+matched	CLIP 블록 12	envy	-0.1061
+matched	CLIP 블록 12	excitement	-0.0376
+matched	CLIP 블록 12	fear	-0.0540
+matched	CLIP 블록 12	guilt	-0.0097
+matched	CLIP 블록 12	horror	-0.0286
+matched	CLIP 블록 12	interest	-0.0745
+matched	CLIP 블록 12	joy	-0.0509
+matched	CLIP 블록 12	nostalgia	-0.0779
+matched	CLIP 블록 12	pride	-0.0576
+matched	CLIP 블록 12	relief	-0.0602
+matched	CLIP 블록 12	romance	-0.0208
+matched	CLIP 블록 12	sadness	-0.0869
+matched	CLIP 블록 12	satisfaction	-0.0296
+matched	CLIP 블록 12	sexual desire	-0.0773
+matched	CLIP 블록 12	surprise	-0.1285
+matched	CLIP 블록 12	sympathy	-0.0667
+matched	CLIP 블록 12	triumph	-0.0507
+matched	CLIP 블록 18	admiration	-0.0913
+matched	CLIP 블록 18	adoration	-0.0901
+matched	CLIP 블록 18	aesthetic appreciation	-0.0758
+matched	CLIP 블록 18	amusement	-0.0176
+matched	CLIP 블록 18	anger	-0.0531
+matched	CLIP 블록 18	anxiety	-0.1108
+matched	CLIP 블록 18	awe	-0.0098
+matched	CLIP 블록 18	awkwardness	-0.0487
+matched	CLIP 블록 18	boredom	-0.0590
+matched	CLIP 블록 18	calmness	-0.0603
+matched	CLIP 블록 18	confusion	-0.0369
+matched	CLIP 블록 18	contempt	-0.0310
+matched	CLIP 블록 18	craving	-0.0620
+matched	CLIP 블록 18	disappointment	-0.0969
+matched	CLIP 블록 18	disgust	-0.0141
+matched	CLIP 블록 18	empathic pain	-0.0506
+matched	CLIP 블록 18	entrancement	0.0476
+matched	CLIP 블록 18	envy	-0.0499
+matched	CLIP 블록 18	excitement	-0.0430
+matched	CLIP 블록 18	fear	-0.0365
+matched	CLIP 블록 18	guilt	-0.0500
+matched	CLIP 블록 18	horror	-0.0140
+matched	CLIP 블록 18	interest	-0.0338
+matched	CLIP 블록 18	joy	-0.0833
+matched	CLIP 블록 18	nostalgia	-0.0108
+matched	CLIP 블록 18	pride	-0.0441
+matched	CLIP 블록 18	relief	-0.0683
+matched	CLIP 블록 18	romance	-0.0141
+matched	CLIP 블록 18	sadness	-0.0991
+matched	CLIP 블록 18	satisfaction	-0.0192
+matched	CLIP 블록 18	sexual desire	-0.0399
+matched	CLIP 블록 18	surprise	-0.0530
+matched	CLIP 블록 18	sympathy	-0.0680
+matched	CLIP 블록 18	triumph	-0.0442
+matched	CLIP 블록 24	admiration	-0.0768
+matched	CLIP 블록 24	adoration	-0.0053
+matched	CLIP 블록 24	aesthetic appreciation	-0.0239
+matched	CLIP 블록 24	amusement	0.0791
+matched	CLIP 블록 24	anger	0.0282
+matched	CLIP 블록 24	anxiety	-0.0805
+matched	CLIP 블록 24	awe	-0.0033
+matched	CLIP 블록 24	awkwardness	-0.0355
+matched	CLIP 블록 24	boredom	0.0006
+matched	CLIP 블록 24	calmness	-0.0082
+matched	CLIP 블록 24	confusion	-0.0226
+matched	CLIP 블록 24	contempt	-0.0121
+matched	CLIP 블록 24	craving	-0.0635
+matched	CLIP 블록 24	disappointment	-0.0259
+matched	CLIP 블록 24	disgust	0.0570
+matched	CLIP 블록 24	empathic pain	-0.0317
+matched	CLIP 블록 24	entrancement	0.0310
+matched	CLIP 블록 24	envy	-0.0212
+matched	CLIP 블록 24	excitement	-0.0194
+matched	CLIP 블록 24	fear	0.0194
+matched	CLIP 블록 24	guilt	-0.0054
+matched	CLIP 블록 24	horror	-0.0117
+matched	CLIP 블록 24	interest	-0.0239
+matched	CLIP 블록 24	joy	-0.0129
+matched	CLIP 블록 24	nostalgia	0.0948
+matched	CLIP 블록 24	pride	-0.0079
+matched	CLIP 블록 24	relief	-0.0685
+matched	CLIP 블록 24	romance	0.1487
+matched	CLIP 블록 24	sadness	0.0126
+matched	CLIP 블록 24	satisfaction	-0.0465
+matched	CLIP 블록 24	sexual desire	0.1226
+matched	CLIP 블록 24	surprise	0.0053
+matched	CLIP 블록 24	sympathy	-0.0079
+matched	CLIP 블록 24	triumph	-0.0920
+matched	DINOv2	admiration	-0.0816
+matched	DINOv2	adoration	-0.0659
+matched	DINOv2	aesthetic appreciation	-0.0200
+matched	DINOv2	amusement	-0.0009
+matched	DINOv2	anger	-0.0195
+matched	DINOv2	anxiety	-0.1036
+matched	DINOv2	awe	-0.0715
+matched	DINOv2	awkwardness	-0.0502
+matched	DINOv2	boredom	-0.0934
+matched	DINOv2	calmness	-0.0573
+matched	DINOv2	confusion	-0.0284
+matched	DINOv2	contempt	-0.0118
+matched	DINOv2	craving	-0.0875
+matched	DINOv2	disappointment	0.0253
+matched	DINOv2	disgust	0.0474
+matched	DINOv2	empathic pain	-0.0171
+matched	DINOv2	entrancement	-0.0139
+matched	DINOv2	envy	-0.0964
+matched	DINOv2	excitement	-0.0493
+matched	DINOv2	fear	-0.0276
+matched	DINOv2	guilt	-0.0713
+matched	DINOv2	horror	-0.0474
+matched	DINOv2	interest	-0.0528
+matched	DINOv2	joy	-0.0237
+matched	DINOv2	nostalgia	-0.0187
+matched	DINOv2	pride	-0.0178
+matched	DINOv2	relief	-0.0482
+matched	DINOv2	romance	0.0671
+matched	DINOv2	sadness	-0.0292
+matched	DINOv2	satisfaction	-0.0405
+matched	DINOv2	sexual desire	-0.0724
+matched	DINOv2	surprise	-0.0129
+matched	DINOv2	sympathy	-0.0480
+matched	DINOv2	triumph	-0.0287
+matched	VideoMAE	admiration	-0.0313
+matched	VideoMAE	adoration	0.0101
+matched	VideoMAE	aesthetic appreciation	0.0205
+matched	VideoMAE	amusement	-0.0124
+matched	VideoMAE	anger	-0.0024
+matched	VideoMAE	anxiety	-0.0137
+matched	VideoMAE	awe	-0.0132
+matched	VideoMAE	awkwardness	-0.0581
+matched	VideoMAE	boredom	-0.0401
+matched	VideoMAE	calmness	-0.0113
+matched	VideoMAE	confusion	-0.0082
+matched	VideoMAE	contempt	0.0060
+matched	VideoMAE	craving	0.0131
+matched	VideoMAE	disappointment	-0.0069
+matched	VideoMAE	disgust	0.0660
+matched	VideoMAE	empathic pain	-0.0214
+matched	VideoMAE	entrancement	-0.0009
+matched	VideoMAE	envy	-0.0331
+matched	VideoMAE	excitement	-0.0481
+matched	VideoMAE	fear	-0.0116
+matched	VideoMAE	guilt	-0.0322
+matched	VideoMAE	horror	-0.0137
+matched	VideoMAE	interest	-0.0364
+matched	VideoMAE	joy	-0.0252
+matched	VideoMAE	nostalgia	0.0239
+matched	VideoMAE	pride	-0.0255
+matched	VideoMAE	relief	0.0116
+matched	VideoMAE	romance	0.0403
+matched	VideoMAE	sadness	-0.0295
+matched	VideoMAE	satisfaction	-0.0039
+matched	VideoMAE	sexual desire	0.0299
+matched	VideoMAE	surprise	-0.0140
+matched	VideoMAE	sympathy	-0.0286
+matched	VideoMAE	triumph	0.0043
+matched	남은 의미 차이 (캡션)	admiration	-0.0388
+matched	남은 의미 차이 (캡션)	adoration	0.0280
+matched	남은 의미 차이 (캡션)	aesthetic appreciation	-0.0249
+matched	남은 의미 차이 (캡션)	amusement	0.0090
+matched	남은 의미 차이 (캡션)	anger	-0.0275
+matched	남은 의미 차이 (캡션)	anxiety	-0.0150
+matched	남은 의미 차이 (캡션)	awe	0.0407
+matched	남은 의미 차이 (캡션)	awkwardness	-0.0246
+matched	남은 의미 차이 (캡션)	boredom	-0.0361
+matched	남은 의미 차이 (캡션)	calmness	0.0151
+matched	남은 의미 차이 (캡션)	confusion	-0.0246
+matched	남은 의미 차이 (캡션)	contempt	-0.0020
+matched	남은 의미 차이 (캡션)	craving	0.0192
+matched	남은 의미 차이 (캡션)	disappointment	0.0042
+matched	남은 의미 차이 (캡션)	disgust	0.0075
+matched	남은 의미 차이 (캡션)	empathic pain	0.0769
+matched	남은 의미 차이 (캡션)	entrancement	-0.0448
+matched	남은 의미 차이 (캡션)	envy	-0.0095
+matched	남은 의미 차이 (캡션)	excitement	-0.0124
+matched	남은 의미 차이 (캡션)	fear	-0.0466
+matched	남은 의미 차이 (캡션)	guilt	-0.0301
+matched	남은 의미 차이 (캡션)	horror	0.0539
+matched	남은 의미 차이 (캡션)	interest	-0.0573
+matched	남은 의미 차이 (캡션)	joy	0.0006
+matched	남은 의미 차이 (캡션)	nostalgia	-0.0143
+matched	남은 의미 차이 (캡션)	pride	-0.0208
+matched	남은 의미 차이 (캡션)	relief	0.0547
+matched	남은 의미 차이 (캡션)	romance	0.1401
+matched	남은 의미 차이 (캡션)	sadness	0.0701
+matched	남은 의미 차이 (캡션)	satisfaction	-0.0266
+matched	남은 의미 차이 (캡션)	sexual desire	-0.0223
+matched	남은 의미 차이 (캡션)	surprise	0.0418
+matched	남은 의미 차이 (캡션)	sympathy	0.0237
+matched	남은 의미 차이 (캡션)	triumph	0.0204
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	admiration	-0.0491
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	adoration	0.0024
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	aesthetic appreciation	-0.0023
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	amusement	0.0179
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	anger	-0.0166
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	anxiety	-0.0154
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	awe	0.0291
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	awkwardness	-0.0321
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	boredom	-0.0429
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	calmness	0.0163
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	confusion	-0.0270
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	contempt	-0.0342
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	craving	-0.0128
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	disappointment	0.0080
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	disgust	0.0068
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	empathic pain	0.0711
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	entrancement	-0.0148
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	envy	-0.0179
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	excitement	-0.0119
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	fear	-0.0529
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	guilt	-0.0190
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	horror	0.0430
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	interest	-0.0497
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	joy	-0.0173
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	nostalgia	-0.0245
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	pride	-0.0199
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	relief	0.0582
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	romance	0.1366
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	sadness	0.0319
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	satisfaction	-0.0432
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	sexual desire	-0.0054
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	surprise	0.0499
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	sympathy	0.0315
+matched	남은 의미 + 저수준: 전체 (+정지 화면 Gabor·대칭)	triumph	0.0197
+matched	남은 의미 + V-JEPA 2 블록 8	admiration	-0.0842
+matched	남은 의미 + V-JEPA 2 블록 8	adoration	-0.0277
+matched	남은 의미 + V-JEPA 2 블록 8	aesthetic appreciation	-0.0498
+matched	남은 의미 + V-JEPA 2 블록 8	amusement	-0.0198
+matched	남은 의미 + V-JEPA 2 블록 8	anger	-0.0432
+matched	남은 의미 + V-JEPA 2 블록 8	anxiety	-0.0429
+matched	남은 의미 + V-JEPA 2 블록 8	awe	-0.0077
+matched	남은 의미 + V-JEPA 2 블록 8	awkwardness	-0.0181
+matched	남은 의미 + V-JEPA 2 블록 8	boredom	-0.0078
+matched	남은 의미 + V-JEPA 2 블록 8	calmness	-0.0153
+matched	남은 의미 + V-JEPA 2 블록 8	confusion	-0.0260
+matched	남은 의미 + V-JEPA 2 블록 8	contempt	-0.0428
+matched	남은 의미 + V-JEPA 2 블록 8	craving	-0.0488
+matched	남은 의미 + V-JEPA 2 블록 8	disappointment	-0.0163
+matched	남은 의미 + V-JEPA 2 블록 8	disgust	-0.0027
+matched	남은 의미 + V-JEPA 2 블록 8	empathic pain	0.0260
+matched	남은 의미 + V-JEPA 2 블록 8	entrancement	-0.0287
+matched	남은 의미 + V-JEPA 2 블록 8	envy	-0.0589
+matched	남은 의미 + V-JEPA 2 블록 8	excitement	0.0110
+matched	남은 의미 + V-JEPA 2 블록 8	fear	-0.0784
+matched	남은 의미 + V-JEPA 2 블록 8	guilt	-0.0332
+matched	남은 의미 + V-JEPA 2 블록 8	horror	0.0265
+matched	남은 의미 + V-JEPA 2 블록 8	interest	-0.0670
+matched	남은 의미 + V-JEPA 2 블록 8	joy	-0.0134
+matched	남은 의미 + V-JEPA 2 블록 8	nostalgia	-0.0516
+matched	남은 의미 + V-JEPA 2 블록 8	pride	-0.0417
+matched	남은 의미 + V-JEPA 2 블록 8	relief	0.0278
+matched	남은 의미 + V-JEPA 2 블록 8	romance	0.0875
+matched	남은 의미 + V-JEPA 2 블록 8	sadness	0.0216
+matched	남은 의미 + V-JEPA 2 블록 8	satisfaction	-0.0764
+matched	남은 의미 + V-JEPA 2 블록 8	sexual desire	-0.0333
+matched	남은 의미 + V-JEPA 2 블록 8	surprise	0.0236
+matched	남은 의미 + V-JEPA 2 블록 8	sympathy	-0.0284
+matched	남은 의미 + V-JEPA 2 블록 8	triumph	0.0003
+matched	남은 의미 + V-JEPA 2 블록 40	admiration	-0.1061
+matched	남은 의미 + V-JEPA 2 블록 40	adoration	-0.0533
+matched	남은 의미 + V-JEPA 2 블록 40	aesthetic appreciation	-0.0212
+matched	남은 의미 + V-JEPA 2 블록 40	amusement	-0.0102
+matched	남은 의미 + V-JEPA 2 블록 40	anger	-0.0474
+matched	남은 의미 + V-JEPA 2 블록 40	anxiety	-0.0538
+matched	남은 의미 + V-JEPA 2 블록 40	awe	-0.0490
+matched	남은 의미 + V-JEPA 2 블록 40	awkwardness	-0.0258
+matched	남은 의미 + V-JEPA 2 블록 40	boredom	-0.0688
+matched	남은 의미 + V-JEPA 2 블록 40	calmness	-0.0421
+matched	남은 의미 + V-JEPA 2 블록 40	confusion	-0.0446
+matched	남은 의미 + V-JEPA 2 블록 40	contempt	-0.0053
+matched	남은 의미 + V-JEPA 2 블록 40	craving	-0.0693
+matched	남은 의미 + V-JEPA 2 블록 40	disappointment	-0.0396
+matched	남은 의미 + V-JEPA 2 블록 40	disgust	-0.0021
+matched	남은 의미 + V-JEPA 2 블록 40	empathic pain	0.0390
+matched	남은 의미 + V-JEPA 2 블록 40	entrancement	-0.0732
+matched	남은 의미 + V-JEPA 2 블록 40	envy	-0.1099
+matched	남은 의미 + V-JEPA 2 블록 40	excitement	-0.0412
+matched	남은 의미 + V-JEPA 2 블록 40	fear	-0.0735
+matched	남은 의미 + V-JEPA 2 블록 40	guilt	-0.0243
+matched	남은 의미 + V-JEPA 2 블록 40	horror	0.0446
+matched	남은 의미 + V-JEPA 2 블록 40	interest	-0.0303
+matched	남은 의미 + V-JEPA 2 블록 40	joy	-0.0449
+matched	남은 의미 + V-JEPA 2 블록 40	nostalgia	-0.0433
+matched	남은 의미 + V-JEPA 2 블록 40	pride	-0.0319
+matched	남은 의미 + V-JEPA 2 블록 40	relief	0.0416
+matched	남은 의미 + V-JEPA 2 블록 40	romance	0.0728
+matched	남은 의미 + V-JEPA 2 블록 40	sadness	0.0393
+matched	남은 의미 + V-JEPA 2 블록 40	satisfaction	-0.0347
+matched	남은 의미 + V-JEPA 2 블록 40	sexual desire	0.0581
+matched	남은 의미 + V-JEPA 2 블록 40	surprise	0.0390
+matched	남은 의미 + V-JEPA 2 블록 40	sympathy	-0.0423
+matched	남은 의미 + V-JEPA 2 블록 40	triumph	0.0381
+matched	남은 의미 + CLIP 블록 6	admiration	-0.1028
+matched	남은 의미 + CLIP 블록 6	adoration	-0.0165
+matched	남은 의미 + CLIP 블록 6	aesthetic appreciation	0.0051
+matched	남은 의미 + CLIP 블록 6	amusement	-0.0003
+matched	남은 의미 + CLIP 블록 6	anger	-0.0529
+matched	남은 의미 + CLIP 블록 6	anxiety	-0.0264
+matched	남은 의미 + CLIP 블록 6	awe	0.0389
+matched	남은 의미 + CLIP 블록 6	awkwardness	-0.0366
+matched	남은 의미 + CLIP 블록 6	boredom	-0.0242
+matched	남은 의미 + CLIP 블록 6	calmness	-0.0269
+matched	남은 의미 + CLIP 블록 6	confusion	-0.0175
+matched	남은 의미 + CLIP 블록 6	contempt	-0.0892
+matched	남은 의미 + CLIP 블록 6	craving	-0.0586
+matched	남은 의미 + CLIP 블록 6	disappointment	-0.0088
+matched	남은 의미 + CLIP 블록 6	disgust	0.0132
+matched	남은 의미 + CLIP 블록 6	empathic pain	0.0032
+matched	남은 의미 + CLIP 블록 6	entrancement	-0.0012
+matched	남은 의미 + CLIP 블록 6	envy	-0.0760
+matched	남은 의미 + CLIP 블록 6	excitement	-0.0100
+matched	남은 의미 + CLIP 블록 6	fear	-0.0441
+matched	남은 의미 + CLIP 블록 6	guilt	-0.0427
+matched	남은 의미 + CLIP 블록 6	horror	0.0301
+matched	남은 의미 + CLIP 블록 6	interest	-0.0778
+matched	남은 의미 + CLIP 블록 6	joy	-0.0409
+matched	남은 의미 + CLIP 블록 6	nostalgia	-0.0759
+matched	남은 의미 + CLIP 블록 6	pride	-0.0428
+matched	남은 의미 + CLIP 블록 6	relief	-0.0116
+matched	남은 의미 + CLIP 블록 6	romance	0.0771
+matched	남은 의미 + CLIP 블록 6	sadness	-0.0024
+matched	남은 의미 + CLIP 블록 6	satisfaction	-0.0817
+matched	남은 의미 + CLIP 블록 6	sexual desire	-0.0337
+matched	남은 의미 + CLIP 블록 6	surprise	-0.0148
+matched	남은 의미 + CLIP 블록 6	sympathy	-0.0368
+matched	남은 의미 + CLIP 블록 6	triumph	-0.0076
+matched	남은 의미 + CLIP 블록 24	admiration	-0.0972
+matched	남은 의미 + CLIP 블록 24	adoration	0.0154
+matched	남은 의미 + CLIP 블록 24	aesthetic appreciation	-0.0505
+matched	남은 의미 + CLIP 블록 24	amusement	0.0737
+matched	남은 의미 + CLIP 블록 24	anger	0.0229
+matched	남은 의미 + CLIP 블록 24	anxiety	-0.0898
+matched	남은 의미 + CLIP 블록 24	awe	0.0108
+matched	남은 의미 + CLIP 블록 24	awkwardness	-0.0457
+matched	남은 의미 + CLIP 블록 24	boredom	-0.0226
+matched	남은 의미 + CLIP 블록 24	calmness	-0.0099
+matched	남은 의미 + CLIP 블록 24	confusion	-0.0321
+matched	남은 의미 + CLIP 블록 24	contempt	-0.0227
+matched	남은 의미 + CLIP 블록 24	craving	-0.0716
+matched	남은 의미 + CLIP 블록 24	disappointment	-0.0256
+matched	남은 의미 + CLIP 블록 24	disgust	0.0525
+matched	남은 의미 + CLIP 블록 24	empathic pain	0.0136
+matched	남은 의미 + CLIP 블록 24	entrancement	0.0085
+matched	남은 의미 + CLIP 블록 24	envy	-0.0448
+matched	남은 의미 + CLIP 블록 24	excitement	-0.0175
+matched	남은 의미 + CLIP 블록 24	fear	-0.0077
+matched	남은 의미 + CLIP 블록 24	guilt	-0.0269
+matched	남은 의미 + CLIP 블록 24	horror	0.0265
+matched	남은 의미 + CLIP 블록 24	interest	-0.0645
+matched	남은 의미 + CLIP 블록 24	joy	-0.0243
+matched	남은 의미 + CLIP 블록 24	nostalgia	0.0893
+matched	남은 의미 + CLIP 블록 24	pride	-0.0360
+matched	남은 의미 + CLIP 블록 24	relief	-0.0113
+matched	남은 의미 + CLIP 블록 24	romance	0.2142
+matched	남은 의미 + CLIP 블록 24	sadness	0.0470
+matched	남은 의미 + CLIP 블록 24	satisfaction	-0.0446
+matched	남은 의미 + CLIP 블록 24	sexual desire	0.0995
+matched	남은 의미 + CLIP 블록 24	surprise	0.0183
+matched	남은 의미 + CLIP 블록 24	sympathy	0.0043
+matched	남은 의미 + CLIP 블록 24	triumph	-0.0779
+matched	남은 의미 + DINOv2	admiration	-0.0880
+matched	남은 의미 + DINOv2	adoration	-0.0188
+matched	남은 의미 + DINOv2	aesthetic appreciation	-0.0166
+matched	남은 의미 + DINOv2	amusement	0.0228
+matched	남은 의미 + DINOv2	anger	-0.0199
+matched	남은 의미 + DINOv2	anxiety	-0.0901
+matched	남은 의미 + DINOv2	awe	-0.0471
+matched	남은 의미 + DINOv2	awkwardness	-0.0500
+matched	남은 의미 + DINOv2	boredom	-0.0892
+matched	남은 의미 + DINOv2	calmness	-0.0381
+matched	남은 의미 + DINOv2	confusion	-0.0320
+matched	남은 의미 + DINOv2	contempt	-0.0081
+matched	남은 의미 + DINOv2	craving	-0.0697
+matched	남은 의미 + DINOv2	disappointment	0.0407
+matched	남은 의미 + DINOv2	disgust	0.0592
+matched	남은 의미 + DINOv2	empathic pain	0.0348
+matched	남은 의미 + DINOv2	entrancement	-0.0119
+matched	남은 의미 + DINOv2	envy	-0.0815
+matched	남은 의미 + DINOv2	excitement	-0.0382
+matched	남은 의미 + DINOv2	fear	-0.0336
+matched	남은 의미 + DINOv2	guilt	-0.0753
+matched	남은 의미 + DINOv2	horror	0.0207
+matched	남은 의미 + DINOv2	interest	-0.0544
+matched	남은 의미 + DINOv2	joy	-0.0064
+matched	남은 의미 + DINOv2	nostalgia	-0.0155
+matched	남은 의미 + DINOv2	pride	-0.0120
+matched	남은 의미 + DINOv2	relief	0.0099
+matched	남은 의미 + DINOv2	romance	0.1565
+matched	남은 의미 + DINOv2	sadness	0.0325
+matched	남은 의미 + DINOv2	satisfaction	-0.0323
+matched	남은 의미 + DINOv2	sexual desire	-0.0787
+matched	남은 의미 + DINOv2	surprise	0.0343
+matched	남은 의미 + DINOv2	sympathy	-0.0135
+matched	남은 의미 + DINOv2	triumph	0.0105
+random	저수준: 색	admiration	-0.0171
+random	저수준: 색	adoration	0.0209
+random	저수준: 색	aesthetic appreciation	0.0371
+random	저수준: 색	amusement	0.0046
+random	저수준: 색	anger	-0.0012
+random	저수준: 색	anxiety	0.0221
+random	저수준: 색	awe	0.0134
+random	저수준: 색	awkwardness	0.0026
+random	저수준: 색	boredom	0.0329
+random	저수준: 색	calmness	0.0010
+random	저수준: 색	confusion	-0.0061
+random	저수준: 색	contempt	-0.0073
+random	저수준: 색	craving	0.0303
+random	저수준: 색	disappointment	-0.0087
+random	저수준: 색	disgust	0.0095
+random	저수준: 색	empathic pain	-0.0007
+random	저수준: 색	entrancement	0.0094
+random	저수준: 색	envy	-0.0108
+random	저수준: 색	excitement	0.0203
+random	저수준: 색	fear	0.0323
+random	저수준: 색	guilt	-0.0029
+random	저수준: 색	horror	0.0145
+random	저수준: 색	interest	-0.0070
+random	저수준: 색	joy	0.0229
+random	저수준: 색	nostalgia	0.0297
+random	저수준: 색	pride	-0.0043
+random	저수준: 색	relief	0.0132
+random	저수준: 색	romance	0.0322
+random	저수준: 색	sadness	0.0206
+random	저수준: 색	satisfaction	-0.0107
+random	저수준: 색	sexual desire	0.0488
+random	저수준: 색	surprise	0.0306
+random	저수준: 색	sympathy	0.0460
+random	저수준: 색	triumph	-0.0016
+random	저수준: 밝기·선명도	admiration	-0.0066
+random	저수준: 밝기·선명도	adoration	0.0267
+random	저수준: 밝기·선명도	aesthetic appreciation	0.0416
+random	저수준: 밝기·선명도	amusement	0.0015
+random	저수준: 밝기·선명도	anger	-0.0049
+random	저수준: 밝기·선명도	anxiety	0.0214
+random	저수준: 밝기·선명도	awe	0.0051
+random	저수준: 밝기·선명도	awkwardness	0.0025
+random	저수준: 밝기·선명도	boredom	0.0015
+random	저수준: 밝기·선명도	calmness	0.0276
+random	저수준: 밝기·선명도	confusion	0.0049
+random	저수준: 밝기·선명도	contempt	-0.0027
+random	저수준: 밝기·선명도	craving	0.0025
+random	저수준: 밝기·선명도	disappointment	-0.0105
+random	저수준: 밝기·선명도	disgust	-0.0018
+random	저수준: 밝기·선명도	empathic pain	-0.0078
+random	저수준: 밝기·선명도	entrancement	0.0785
+random	저수준: 밝기·선명도	envy	-0.0105
+random	저수준: 밝기·선명도	excitement	0.0073
+random	저수준: 밝기·선명도	fear	0.0141
+random	저수준: 밝기·선명도	guilt	-0.0023
+random	저수준: 밝기·선명도	horror	0.0151
+random	저수준: 밝기·선명도	interest	-0.0047
+random	저수준: 밝기·선명도	joy	0.0068
+random	저수준: 밝기·선명도	nostalgia	0.0156
+random	저수준: 밝기·선명도	pride	-0.0019
+random	저수준: 밝기·선명도	relief	0.0107
+random	저수준: 밝기·선명도	romance	0.0037
+random	저수준: 밝기·선명도	sadness	-0.0018
+random	저수준: 밝기·선명도	satisfaction	-0.0124
+random	저수준: 밝기·선명도	sexual desire	0.0312
+random	저수준: 밝기·선명도	surprise	0.0193
+random	저수준: 밝기·선명도	sympathy	-0.0069
+random	저수준: 밝기·선명도	triumph	0.0043
+random	저수준: 움직임	admiration	0.0005
+random	저수준: 움직임	adoration	0.0005
+random	저수준: 움직임	aesthetic appreciation	0.1057
+random	저수준: 움직임	amusement	0.0287
+random	저수준: 움직임	anger	-0.0234
+random	저수준: 움직임	anxiety	0.0041
+random	저수준: 움직임	awe	0.0134
+random	저수준: 움직임	awkwardness	0.0072
+random	저수준: 움직임	boredom	0.0028
+random	저수준: 움직임	calmness	0.0709
+random	저수준: 움직임	confusion	0.0007
+random	저수준: 움직임	contempt	-0.0117
+random	저수준: 움직임	craving	-0.0019
+random	저수준: 움직임	disappointment	-0.0102
+random	저수준: 움직임	disgust	-0.0038
+random	저수준: 움직임	empathic pain	0.0014
+random	저수준: 움직임	entrancement	0.0440
+random	저수준: 움직임	envy	-0.0115
+random	저수준: 움직임	excitement	0.0311
+random	저수준: 움직임	fear	0.0130
+random	저수준: 움직임	guilt	-0.0041
+random	저수준: 움직임	horror	0.0278
+random	저수준: 움직임	interest	-0.0068
+random	저수준: 움직임	joy	0.0143
+random	저수준: 움직임	nostalgia	0.0060
+random	저수준: 움직임	pride	-0.0199
+random	저수준: 움직임	relief	0.0060
+random	저수준: 움직임	romance	-0.0141
+random	저수준: 움직임	sadness	-0.0011
+random	저수준: 움직임	satisfaction	0.0168
+random	저수준: 움직임	sexual desire	0.0151
+random	저수준: 움직임	surprise	0.0479
+random	저수준: 움직임	sympathy	-0.0012
+random	저수준: 움직임	triumph	-0.0000
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	admiration	-0.0174
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	adoration	0.0301
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	aesthetic appreciation	0.1992
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	amusement	0.0873
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	anger	-0.0138
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	anxiety	0.0414
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	awe	0.0518
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	awkwardness	0.0236
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	boredom	0.0296
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	calmness	0.0931
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	confusion	-0.0096
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	contempt	-0.0174
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	craving	0.0547
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	disappointment	-0.0170
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	disgust	0.0365
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	empathic pain	-0.0197
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	entrancement	0.1538
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	envy	-0.0171
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	excitement	0.0454
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	fear	0.0805
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	guilt	-0.0217
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	horror	0.0439
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	interest	-0.0010
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	joy	0.0285
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	nostalgia	0.0549
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	pride	-0.0213
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	relief	0.0229
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	romance	0.0375
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	sadness	0.0209
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	satisfaction	0.0034
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	sexual desire	0.1254
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	surprise	0.0918
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	sympathy	0.0286
+random	저수준: 전체 (+정지 화면 Gabor·대칭)	triumph	0.0267
+random	V-JEPA 2 블록 8	admiration	-0.0056
+random	V-JEPA 2 블록 8	adoration	0.0519
+random	V-JEPA 2 블록 8	aesthetic appreciation	0.3401
+random	V-JEPA 2 블록 8	amusement	0.1243
+random	V-JEPA 2 블록 8	anger	-0.0305
+random	V-JEPA 2 블록 8	anxiety	0.0748
+random	V-JEPA 2 블록 8	awe	0.0653
+random	V-JEPA 2 블록 8	awkwardness	-0.0035
+random	V-JEPA 2 블록 8	boredom	0.0522
+random	V-JEPA 2 블록 8	calmness	0.1416
+random	V-JEPA 2 블록 8	confusion	0.0315
+random	V-JEPA 2 블록 8	contempt	-0.0361
+random	V-JEPA 2 블록 8	craving	0.1382
+random	V-JEPA 2 블록 8	disappointment	-0.0067
+random	V-JEPA 2 블록 8	disgust	0.0504
+random	V-JEPA 2 블록 8	empathic pain	-0.0155
+random	V-JEPA 2 블록 8	entrancement	0.2291
+random	V-JEPA 2 블록 8	envy	-0.0427
+random	V-JEPA 2 블록 8	excitement	0.0877
+random	V-JEPA 2 블록 8	fear	0.1149
+random	V-JEPA 2 블록 8	guilt	-0.0190
+random	V-JEPA 2 블록 8	horror	0.0496
+random	V-JEPA 2 블록 8	interest	0.0531
+random	V-JEPA 2 블록 8	joy	0.0450
+random	V-JEPA 2 블록 8	nostalgia	0.0453
+random	V-JEPA 2 블록 8	pride	-0.0034
+random	V-JEPA 2 블록 8	relief	0.0398
+random	V-JEPA 2 블록 8	romance	0.0514
+random	V-JEPA 2 블록 8	sadness	-0.0003
+random	V-JEPA 2 블록 8	satisfaction	-0.0183
+random	V-JEPA 2 블록 8	sexual desire	0.2100
+random	V-JEPA 2 블록 8	surprise	0.1249
+random	V-JEPA 2 블록 8	sympathy	0.0103
+random	V-JEPA 2 블록 8	triumph	0.0823
+random	V-JEPA 2 블록 16	admiration	-0.0136
+random	V-JEPA 2 블록 16	adoration	0.0876
+random	V-JEPA 2 블록 16	aesthetic appreciation	0.4186
+random	V-JEPA 2 블록 16	amusement	0.1629
+random	V-JEPA 2 블록 16	anger	0.0113
+random	V-JEPA 2 블록 16	anxiety	0.0955
+random	V-JEPA 2 블록 16	awe	0.0780
+random	V-JEPA 2 블록 16	awkwardness	0.0366
+random	V-JEPA 2 블록 16	boredom	0.0566
+random	V-JEPA 2 블록 16	calmness	0.1792
+random	V-JEPA 2 블록 16	confusion	0.0028
+random	V-JEPA 2 블록 16	contempt	-0.0354
+random	V-JEPA 2 블록 16	craving	0.1792
+random	V-JEPA 2 블록 16	disappointment	0.0077
+random	V-JEPA 2 블록 16	disgust	0.0679
+random	V-JEPA 2 블록 16	empathic pain	-0.0262
+random	V-JEPA 2 블록 16	entrancement	0.2606
+random	V-JEPA 2 블록 16	envy	-0.0563
+random	V-JEPA 2 블록 16	excitement	0.1154
+random	V-JEPA 2 블록 16	fear	0.1180
+random	V-JEPA 2 블록 16	guilt	-0.0253
+random	V-JEPA 2 블록 16	horror	0.0621
+random	V-JEPA 2 블록 16	interest	0.0719
+random	V-JEPA 2 블록 16	joy	0.0779
+random	V-JEPA 2 블록 16	nostalgia	0.0714
+random	V-JEPA 2 블록 16	pride	-0.0469
+random	V-JEPA 2 블록 16	relief	0.0466
+random	V-JEPA 2 블록 16	romance	0.1046
+random	V-JEPA 2 블록 16	sadness	-0.0054
+random	V-JEPA 2 블록 16	satisfaction	0.0214
+random	V-JEPA 2 블록 16	sexual desire	0.2706
+random	V-JEPA 2 블록 16	surprise	0.1427
+random	V-JEPA 2 블록 16	sympathy	-0.0079
+random	V-JEPA 2 블록 16	triumph	0.0948
+random	V-JEPA 2 블록 24	admiration	0.0154
+random	V-JEPA 2 블록 24	adoration	0.2067
+random	V-JEPA 2 블록 24	aesthetic appreciation	0.5851
+random	V-JEPA 2 블록 24	amusement	0.2845
+random	V-JEPA 2 블록 24	anger	0.0642
+random	V-JEPA 2 블록 24	anxiety	0.2302
+random	V-JEPA 2 블록 24	awe	0.2125
+random	V-JEPA 2 블록 24	awkwardness	0.0739
+random	V-JEPA 2 블록 24	boredom	0.1183
+random	V-JEPA 2 블록 24	calmness	0.2981
+random	V-JEPA 2 블록 24	confusion	0.0159
+random	V-JEPA 2 블록 24	contempt	-0.0175
+random	V-JEPA 2 블록 24	craving	0.3252
+random	V-JEPA 2 블록 24	disappointment	0.0207
+random	V-JEPA 2 블록 24	disgust	0.1303
+random	V-JEPA 2 블록 24	empathic pain	-0.0041
+random	V-JEPA 2 블록 24	entrancement	0.3923
+random	V-JEPA 2 블록 24	envy	-0.0218
+random	V-JEPA 2 블록 24	excitement	0.1820
+random	V-JEPA 2 블록 24	fear	0.2534
+random	V-JEPA 2 블록 24	guilt	-0.0117
+random	V-JEPA 2 블록 24	horror	0.1515
+random	V-JEPA 2 블록 24	interest	0.1886
+random	V-JEPA 2 블록 24	joy	0.1576
+random	V-JEPA 2 블록 24	nostalgia	0.1692
+random	V-JEPA 2 블록 24	pride	-0.0078
+random	V-JEPA 2 블록 24	relief	0.0781
+random	V-JEPA 2 블록 24	romance	0.2174
+random	V-JEPA 2 블록 24	sadness	0.0671
+random	V-JEPA 2 블록 24	satisfaction	0.0737
+random	V-JEPA 2 블록 24	sexual desire	0.4673
+random	V-JEPA 2 블록 24	surprise	0.2257
+random	V-JEPA 2 블록 24	sympathy	0.0582
+random	V-JEPA 2 블록 24	triumph	0.2114
+random	V-JEPA 2 블록 32	admiration	0.0443
+random	V-JEPA 2 블록 32	adoration	0.3805
+random	V-JEPA 2 블록 32	aesthetic appreciation	0.6122
+random	V-JEPA 2 블록 32	amusement	0.3672
+random	V-JEPA 2 블록 32	anger	0.1006
+random	V-JEPA 2 블록 32	anxiety	0.3211
+random	V-JEPA 2 블록 32	awe	0.2887
+random	V-JEPA 2 블록 32	awkwardness	0.0393
+random	V-JEPA 2 블록 32	boredom	0.1071
+random	V-JEPA 2 블록 32	calmness	0.3183
+random	V-JEPA 2 블록 32	confusion	0.0291
+random	V-JEPA 2 블록 32	contempt	0.0169
+random	V-JEPA 2 블록 32	craving	0.4335
+random	V-JEPA 2 블록 32	disappointment	0.0151
+random	V-JEPA 2 블록 32	disgust	0.2175
+random	V-JEPA 2 블록 32	empathic pain	0.0416
+random	V-JEPA 2 블록 32	entrancement	0.4670
+random	V-JEPA 2 블록 32	envy	-0.0327
+random	V-JEPA 2 블록 32	excitement	0.2319
+random	V-JEPA 2 블록 32	fear	0.3025
+random	V-JEPA 2 블록 32	guilt	-0.0355
+random	V-JEPA 2 블록 32	horror	0.1548
+random	V-JEPA 2 블록 32	interest	0.2363
+random	V-JEPA 2 블록 32	joy	0.2298
+random	V-JEPA 2 블록 32	nostalgia	0.2112
+random	V-JEPA 2 블록 32	pride	0.0077
+random	V-JEPA 2 블록 32	relief	0.0640
+random	V-JEPA 2 블록 32	romance	0.3557
+random	V-JEPA 2 블록 32	sadness	0.0787
+random	V-JEPA 2 블록 32	satisfaction	0.0345
+random	V-JEPA 2 블록 32	sexual desire	0.5839
+random	V-JEPA 2 블록 32	surprise	0.2495
+random	V-JEPA 2 블록 32	sympathy	0.0428
+random	V-JEPA 2 블록 32	triumph	0.2953
+random	V-JEPA 2 블록 40	admiration	0.0494
+random	V-JEPA 2 블록 40	adoration	0.3327
+random	V-JEPA 2 블록 40	aesthetic appreciation	0.5783
+random	V-JEPA 2 블록 40	amusement	0.3440
+random	V-JEPA 2 블록 40	anger	0.0815
+random	V-JEPA 2 블록 40	anxiety	0.2571
+random	V-JEPA 2 블록 40	awe	0.2429
+random	V-JEPA 2 블록 40	awkwardness	0.0413
+random	V-JEPA 2 블록 40	boredom	0.0912
+random	V-JEPA 2 블록 40	calmness	0.3129
+random	V-JEPA 2 블록 40	confusion	0.0152
+random	V-JEPA 2 블록 40	contempt	-0.0026
+random	V-JEPA 2 블록 40	craving	0.4177
+random	V-JEPA 2 블록 40	disappointment	0.0153
+random	V-JEPA 2 블록 40	disgust	0.2010
+random	V-JEPA 2 블록 40	empathic pain	0.0111
+random	V-JEPA 2 블록 40	entrancement	0.4441
+random	V-JEPA 2 블록 40	envy	-0.0183
+random	V-JEPA 2 블록 40	excitement	0.2031
+random	V-JEPA 2 블록 40	fear	0.2610
+random	V-JEPA 2 블록 40	guilt	-0.0504
+random	V-JEPA 2 블록 40	horror	0.1187
+random	V-JEPA 2 블록 40	interest	0.1558
+random	V-JEPA 2 블록 40	joy	0.1803
+random	V-JEPA 2 블록 40	nostalgia	0.1930
+random	V-JEPA 2 블록 40	pride	-0.0034
+random	V-JEPA 2 블록 40	relief	0.0603
+random	V-JEPA 2 블록 40	romance	0.3354
+random	V-JEPA 2 블록 40	sadness	0.0824
+random	V-JEPA 2 블록 40	satisfaction	0.0542
+random	V-JEPA 2 블록 40	sexual desire	0.5612
+random	V-JEPA 2 블록 40	surprise	0.2114
+random	V-JEPA 2 블록 40	sympathy	0.0708
+random	V-JEPA 2 블록 40	triumph	0.2559
+random	CLIP 블록 6	admiration	-0.0041
+random	CLIP 블록 6	adoration	0.0810
+random	CLIP 블록 6	aesthetic appreciation	0.4095
+random	CLIP 블록 6	amusement	0.1205
+random	CLIP 블록 6	anger	0.0050
+random	CLIP 블록 6	anxiety	0.1140
+random	CLIP 블록 6	awe	0.1186
+random	CLIP 블록 6	awkwardness	0.0372
+random	CLIP 블록 6	boredom	0.0267
+random	CLIP 블록 6	calmness	0.1374
+random	CLIP 블록 6	confusion	-0.0210
+random	CLIP 블록 6	contempt	-0.0276
+random	CLIP 블록 6	craving	0.1639
+random	CLIP 블록 6	disappointment	-0.0104
+random	CLIP 블록 6	disgust	0.0775
+random	CLIP 블록 6	empathic pain	-0.0413
+random	CLIP 블록 6	entrancement	0.2643
+random	CLIP 블록 6	envy	-0.0432
+random	CLIP 블록 6	excitement	0.0666
+random	CLIP 블록 6	fear	0.1232
+random	CLIP 블록 6	guilt	-0.0266
+random	CLIP 블록 6	horror	0.0663
+random	CLIP 블록 6	interest	0.0681
+random	CLIP 블록 6	joy	0.0373
+random	CLIP 블록 6	nostalgia	0.0651
+random	CLIP 블록 6	pride	-0.0333
+random	CLIP 블록 6	relief	0.0438
+random	CLIP 블록 6	romance	0.1125
+random	CLIP 블록 6	sadness	0.0184
+random	CLIP 블록 6	satisfaction	0.0010
+random	CLIP 블록 6	sexual desire	0.2156
+random	CLIP 블록 6	surprise	0.1254
+random	CLIP 블록 6	sympathy	-0.0192
+random	CLIP 블록 6	triumph	0.0897
+random	CLIP 블록 12	admiration	-0.0370
+random	CLIP 블록 12	adoration	0.1225
+random	CLIP 블록 12	aesthetic appreciation	0.5128
+random	CLIP 블록 12	amusement	0.1427
+random	CLIP 블록 12	anger	0.0275
+random	CLIP 블록 12	anxiety	0.1660
+random	CLIP 블록 12	awe	0.1733
+random	CLIP 블록 12	awkwardness	0.0186
+random	CLIP 블록 12	boredom	0.0557
+random	CLIP 블록 12	calmness	0.2081
+random	CLIP 블록 12	confusion	-0.0382
+random	CLIP 블록 12	contempt	-0.0246
+random	CLIP 블록 12	craving	0.2464
+random	CLIP 블록 12	disappointment	-0.0279
+random	CLIP 블록 12	disgust	0.0816
+random	CLIP 블록 12	empathic pain	-0.0431
+random	CLIP 블록 12	entrancement	0.3577
+random	CLIP 블록 12	envy	-0.0504
+random	CLIP 블록 12	excitement	0.1142
+random	CLIP 블록 12	fear	0.1889
+random	CLIP 블록 12	guilt	-0.0145
+random	CLIP 블록 12	horror	0.1438
+random	CLIP 블록 12	interest	0.1100
+random	CLIP 블록 12	joy	0.0853
+random	CLIP 블록 12	nostalgia	0.1507
+random	CLIP 블록 12	pride	-0.0298
+random	CLIP 블록 12	relief	0.0132
+random	CLIP 블록 12	romance	0.2015
+random	CLIP 블록 12	sadness	0.0271
+random	CLIP 블록 12	satisfaction	0.0468
+random	CLIP 블록 12	sexual desire	0.3268
+random	CLIP 블록 12	surprise	0.1281
+random	CLIP 블록 12	sympathy	-0.0151
+random	CLIP 블록 12	triumph	0.0982
+random	CLIP 블록 18	admiration	0.0479
+random	CLIP 블록 18	adoration	0.3451
+random	CLIP 블록 18	aesthetic appreciation	0.6234
+random	CLIP 블록 18	amusement	0.3265
+random	CLIP 블록 18	anger	0.0996
+random	CLIP 블록 18	anxiety	0.3567
+random	CLIP 블록 18	awe	0.2909
+random	CLIP 블록 18	awkwardness	0.0624
+random	CLIP 블록 18	boredom	0.0840
+random	CLIP 블록 18	calmness	0.2790
+random	CLIP 블록 18	confusion	0.0144
+random	CLIP 블록 18	contempt	0.0028
+random	CLIP 블록 18	craving	0.4712
+random	CLIP 블록 18	disappointment	0.0137
+random	CLIP 블록 18	disgust	0.1858
+random	CLIP 블록 18	empathic pain	0.0238
+random	CLIP 블록 18	entrancement	0.4429
+random	CLIP 블록 18	envy	-0.0072
+random	CLIP 블록 18	excitement	0.1934
+random	CLIP 블록 18	fear	0.3364
+random	CLIP 블록 18	guilt	-0.0117
+random	CLIP 블록 18	horror	0.2155
+random	CLIP 블록 18	interest	0.2604
+random	CLIP 블록 18	joy	0.2285
+random	CLIP 블록 18	nostalgia	0.3242
+random	CLIP 블록 18	pride	0.0155
+random	CLIP 블록 18	relief	0.1066
+random	CLIP 블록 18	romance	0.3502
+random	CLIP 블록 18	sadness	0.1219
+random	CLIP 블록 18	satisfaction	0.0747
+random	CLIP 블록 18	sexual desire	0.5910
+random	CLIP 블록 18	surprise	0.2072
+random	CLIP 블록 18	sympathy	0.0233
+random	CLIP 블록 18	triumph	0.2447
+random	CLIP 블록 24	admiration	0.1172
+random	CLIP 블록 24	adoration	0.5421
+random	CLIP 블록 24	aesthetic appreciation	0.6830
+random	CLIP 블록 24	amusement	0.4849
+random	CLIP 블록 24	anger	0.3149
+random	CLIP 블록 24	anxiety	0.4557
+random	CLIP 블록 24	awe	0.3856
+random	CLIP 블록 24	awkwardness	0.1451
+random	CLIP 블록 24	boredom	0.1133
+random	CLIP 블록 24	calmness	0.3718
+random	CLIP 블록 24	confusion	0.1523
+random	CLIP 블록 24	contempt	0.0939
+random	CLIP 블록 24	craving	0.6049
+random	CLIP 블록 24	disappointment	0.1387
+random	CLIP 블록 24	disgust	0.4376
+random	CLIP 블록 24	empathic pain	0.0647
+random	CLIP 블록 24	entrancement	0.4603
+random	CLIP 블록 24	envy	0.0274
+random	CLIP 블록 24	excitement	0.2177
+random	CLIP 블록 24	fear	0.4835
+random	CLIP 블록 24	guilt	0.0481
+random	CLIP 블록 24	horror	0.3868
+random	CLIP 블록 24	interest	0.3645
+random	CLIP 블록 24	joy	0.4262
+random	CLIP 블록 24	nostalgia	0.4928
+random	CLIP 블록 24	pride	0.1178
+random	CLIP 블록 24	relief	0.1315
+random	CLIP 블록 24	romance	0.6805
+random	CLIP 블록 24	sadness	0.3235
+random	CLIP 블록 24	satisfaction	0.0735
+random	CLIP 블록 24	sexual desire	0.8091
+random	CLIP 블록 24	surprise	0.2822
+random	CLIP 블록 24	sympathy	0.2112
+random	CLIP 블록 24	triumph	0.2719
+random	DINOv2	admiration	0.0105
+random	DINOv2	adoration	0.3530
+random	DINOv2	aesthetic appreciation	0.5278
+random	DINOv2	amusement	0.3456
+random	DINOv2	anger	0.2130
+random	DINOv2	anxiety	0.3673
+random	DINOv2	awe	0.2716
+random	DINOv2	awkwardness	0.0654
+random	DINOv2	boredom	0.0292
+random	DINOv2	calmness	0.2394
+random	DINOv2	confusion	0.0644
+random	DINOv2	contempt	0.0646
+random	DINOv2	craving	0.4139
+random	DINOv2	disappointment	0.0353
+random	DINOv2	disgust	0.3104
+random	DINOv2	empathic pain	0.0180
+random	DINOv2	entrancement	0.3614
+random	DINOv2	envy	-0.0212
+random	DINOv2	excitement	0.1367
+random	DINOv2	fear	0.3757
+random	DINOv2	guilt	-0.0242
+random	DINOv2	horror	0.2373
+random	DINOv2	interest	0.2790
+random	DINOv2	joy	0.2708
+random	DINOv2	nostalgia	0.2304
+random	DINOv2	pride	0.0591
+random	DINOv2	relief	0.0335
+random	DINOv2	romance	0.4854
+random	DINOv2	sadness	0.2372
+random	DINOv2	satisfaction	-0.0248
+random	DINOv2	sexual desire	0.6839
+random	DINOv2	surprise	0.1907
+random	DINOv2	sympathy	0.1699
+random	DINOv2	triumph	0.2267
+random	VideoMAE	admiration	0.0388
+random	VideoMAE	adoration	0.3064
+random	VideoMAE	aesthetic appreciation	0.5422
+random	VideoMAE	amusement	0.3254
+random	VideoMAE	anger	0.1605
+random	VideoMAE	anxiety	0.2541
+random	VideoMAE	awe	0.2548
+random	VideoMAE	awkwardness	0.0746
+random	VideoMAE	boredom	0.0870
+random	VideoMAE	calmness	0.2823
+random	VideoMAE	confusion	0.0610
+random	VideoMAE	contempt	0.0306
+random	VideoMAE	craving	0.3824
+random	VideoMAE	disappointment	0.0701
+random	VideoMAE	disgust	0.1974
+random	VideoMAE	empathic pain	0.0905
+random	VideoMAE	entrancement	0.3417
+random	VideoMAE	envy	0.0453
+random	VideoMAE	excitement	0.1743
+random	VideoMAE	fear	0.2651
+random	VideoMAE	guilt	0.0072
+random	VideoMAE	horror	0.1672
+random	VideoMAE	interest	0.1636
+random	VideoMAE	joy	0.1990
+random	VideoMAE	nostalgia	0.1544
+random	VideoMAE	pride	0.0753
+random	VideoMAE	relief	0.0584
+random	VideoMAE	romance	0.3920
+random	VideoMAE	sadness	0.0796
+random	VideoMAE	satisfaction	0.0649
+random	VideoMAE	sexual desire	0.5766
+random	VideoMAE	surprise	0.2357
+random	VideoMAE	sympathy	0.1045
+random	VideoMAE	triumph	0.2026
+random	남은 의미 차이 (캡션)	admiration	0.1498
+random	남은 의미 차이 (캡션)	adoration	0.5265
+random	남은 의미 차이 (캡션)	aesthetic appreciation	0.6680
+random	남은 의미 차이 (캡션)	amusement	0.4900
+random	남은 의미 차이 (캡션)	anger	0.3517
+random	남은 의미 차이 (캡션)	anxiety	0.4042
+random	남은 의미 차이 (캡션)	awe	0.4302
+random	남은 의미 차이 (캡션)	awkwardness	0.1939
+random	남은 의미 차이 (캡션)	boredom	0.0998
+random	남은 의미 차이 (캡션)	calmness	0.3784
+random	남은 의미 차이 (캡션)	confusion	0.0434
+random	남은 의미 차이 (캡션)	contempt	0.0170
+random	남은 의미 차이 (캡션)	craving	0.6595
+random	남은 의미 차이 (캡션)	disappointment	0.0889
+random	남은 의미 차이 (캡션)	disgust	0.5276
+random	남은 의미 차이 (캡션)	empathic pain	0.2194
+random	남은 의미 차이 (캡션)	entrancement	0.4364
+random	남은 의미 차이 (캡션)	envy	-0.0278
+random	남은 의미 차이 (캡션)	excitement	0.2521
+random	남은 의미 차이 (캡션)	fear	0.4586
+random	남은 의미 차이 (캡션)	guilt	-0.0554
+random	남은 의미 차이 (캡션)	horror	0.4461
+random	남은 의미 차이 (캡션)	interest	0.2961
+random	남은 의미 차이 (캡션)	joy	0.4199
+random	남은 의미 차이 (캡션)	nostalgia	0.2212
+random	남은 의미 차이 (캡션)	pride	0.1351
+random	남은 의미 차이 (캡션)	relief	0.2455
+random	남은 의미 차이 (캡션)	romance	0.6985
+random	남은 의미 차이 (캡션)	sadness	0.3680
+random	남은 의미 차이 (캡션)	satisfaction	0.0730
+random	남은 의미 차이 (캡션)	sexual desire	0.7507
+random	남은 의미 차이 (캡션)	surprise	0.3145
+random	남은 의미 차이 (캡션)	sympathy	0.2770
+random	남은 의미 차이 (캡션)	triumph	0.3261

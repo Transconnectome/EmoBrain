@@ -18,7 +18,22 @@
 | `interpret_students.py` | 피험자·감정별 차이, 영상별 변화, 네트워크별 내용/잔차 분해, 가중치 활성 패턴 (저장된 결과만 읽음) | `09_interpretation/` |
 | `vision_ladder.sh` | 시각 특징(Horikawa VGG19, CLIP, DINOv2, VideoMAE) 비교 사다리 단위 실행 | `04_brain_features/` |
 | `metrics_panel.py` | 저장된 예측에서 지표 약 26개 계산 (Pearson, R², soft BCE, CCC, AUC, mAP, MAE 합산, F1, 프로필, 짝 구별 등) | `10_metrics/` |
+| `feature_decoding_metrics.py` · `.sh` | 저장된 뇌 → 특징 OOF 예측으로 차원별 r·R², 영상별 프로필 상관, 두 영상 식별, 100개 중 top-1·top-5 (재학습 없음) | `04_brain_features/feature_decoding_metrics*.tsv` |
+| `feature_overlap.py` · `.sh` | 시각·캡션 특징 겹침: CKA·RSA, 서로 예측, 34개 범주 정서 예측의 시각 고유·캡션 고유·공유 (자극 수준) | `12_feature_overlap/` |
+| `layer_overlap.py` · `.sh` | V-JEPA 2·CLIP 층별 캡션 겹침과 정서 예측 기여 (EmoViS 층별 특징 사용) | `12_feature_overlap/layerwise.tsv` |
+| `feature_content_map.py` · `feature_content_figures.py` · `.sh` | V-JEPA 2·캡션이 각각 잡아낸 것: 저수준 특징 대 캡션 감정별 비교, 장면 개념 73개 예측, 그림 두 장 (그림은 swift_PTL2 환경의 matplotlib) | `12_feature_overlap/` |
+| `action_object_test.py` · `.sh` | 캡션의 동작 단어 대 물체 단어를 시각 특징으로 예측 (영상 모델의 시간 정보 확인) | `12_feature_overlap/action_object_*.tsv` |
+| `evaluative_words_test.py` · `.sh` | 평가어를 지운 캡션과의 비교, 시각 특징의 평가어 예측 | `12_feature_overlap/` |
+| `perturbation_readout.py` · `.sh` | 밝기·채도·대비·색조·흐림·시간 순서 조작 전후 시각 모델 정서 예측 변화 (`../features/build_video_model_features.py --perturb` 결과 사용) | `13_perturbation/` |
+| `perturb_quick.py` · `perturb_quick_figures.py` · `.sh` | 채도·밝기 조작 빠른 확인판 (영상 79개, CLIP·DINOv2, CPU) | `13_perturbation/quick/` |
+| `semantic_matched_pairs.py` · `.sh` | 의미를 맞춘 영상 쌍에서 정서 차이를 저수준·층별 시각 특징 차이가 설명하는지 (34개 감정) | `14_matched_pairs/` |
+| `within_context_lowlevel.py` · `.sh` | 같은 대상(맥락) 안에서 저수준 특징이 정서를 가르는지, 캡션 뒤에도 남는지 (맥락 8개 × 감정 4개, null 200회) | `15_within_context/` |
+| `hierarchy_components.py` · `hierarchy_figures.py` · `.sh` | 정서 평정을 시각에만·둘 다·캡션에만·나머지로 나눈 뒤 뇌 영역 묶음 24개마다 디코딩, 피질 위계 순서로 비교 (그림은 swift_PTL2) | `16_hierarchy/` |
 | `roi_networks.py` · `roi_networks.sh` | 영역 묶음별(7개 네트워크, 소뇌, 편도체, 해마, 그 밖 피질하, 시상하부·뇌간) 직접 예측, 캡션 경로, V-JEPA 2 위 추가분 | `08_roi_networks/` |
 
 입력 특징(V-JEPA 2, 캡션 임베딩)은 `../features/build_lab_features.py`, 감정어를 지운 캡션은 `../features/build_caption_noemo.py` 가 `/pscratch/sd/s/sjmoon/transfer/emobrain_lab_features_20261026/` 에 만든다.
+VLM 생성 캡션 점검은 `../features/caption_vlm_qc.py` · `.sh` 이고 결과는 `11_caption_qc/` 에 있다.
+영상 입력 VLM 캡션 생성은 `../features/build_caption_vlm_video.py` · `.sh` (pilot → all → merge) 이고, 캡션은 특징 폴더의 `caption_vlm_video/<모델 태그>/`, 임베딩은 `caption_<모델 태그>_mpnet.npy` 로 저장된다.
+색·밝기·선명도·움직임 저수준 특징 28개는 `../features/build_lowlevel_motion.py` · `.sh` (특징 폴더 `lowlevel_motion.npy`).
+영상·이미지 모델 특징을 같은 시간 정보(영상 모델은 2초 창 + 시간 4구간 × 공간 2×2, 이미지 모델은 초당 2장 + 시간 4구간)로 다시 뽑는 스크립트는 `../features/build_video_model_features.py` · `.sh` 이고, 결과는 특징 폴더의 `video_models/<모델>/` 에 저장된다.
 로그는 `project/output/prelim_2026-10/logs/<분석>/` 에 쓴다.

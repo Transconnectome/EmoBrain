@@ -4,6 +4,33 @@ _2026-10-06 · 기존 설계의 복원과 이번 검토의 제안을 분리한 �
 
 ---
 
+## 결정 현황 한눈에 (2026-10-28 정리)
+
+아래 상세 기록(D01~D32)을 상태별로 묶었다. 세부 근거는 각 항목을 본다. 결정은 사용자가 한다.
+
+**확정 (사용자 결정)**
+- **D28 cohort 역할 (10-20):** Horikawa 2020 5명 = 학습·개발, MindCaptioning 6명 = 후속 검증. MindCaptioning fMRI 는 학습·튜닝에 쓰지 않는다.
+- **D29 레포 방향 유지 (10-28):** `docs/current` 설계가 기준이다. LLM 은 기본에서 뺀 상태를 유지한다 (§5). 2026-10 사전 분석의 ridge·선형·MLP 모델은 사전 분석이며 본 모델이 아니다.
+- **D30 EmoViS 는 EmoBrain 의 한 축 (10-28):** 별도 프로젝트가 아니다. EmoViS 의 내용–정서 분석과 뇌 대응 분석은 EmoBrain 논문 안에서 Study 1·2 와 이어지는 축이며, 둘 사이에 경계를 따로 긋지 않는다.
+- **D31 34개 범주 보고 (10-28):** 34개 전체를 주 결과로 보고하고, 라벨 신뢰도로 나눈 noise ceiling 정규화 값(r / √신뢰도)을 함께 낸다. Cowen & Keltner (2017) 이 구별되지 않는다고 본 7개를 뺀 27개 요약은 지금 미리 정한 보조 결과로 따로 보고한다.
+- **D32 참가자 중복 없음 (10-28, 사용자 확인):** Horikawa 2020 5명과 MindCaptioning 6명은 서로 다른 사람이다. MindCaptioning S1 이 예비 실험에서 같은 자극을 여러 번 봤다는 원문 기술은 자극 노출 문제로 따로 기록한다.
+
+**방향은 정했고 세부는 미동결**
+- **D02** run 묶음 분할 (6겹·안쪽 5겹 권고, 사전 분석에서 사용), **D03** MindCaptioning 최종 test 72개는 Horikawa 개발 범위에서 제외 (adapter 구현 완료, 사전 분석 분할 `horikawa_rungroup6_v1` 에는 아직 포함 → 분할 재작성 필요), **D04** 반응 추정 (v3_qc·v2_qc 의 4초 지연 블록 평균 사용 중), **D16** 1b score, **D17** 2d bridge, **D18** affect-neighborhood retrieval (보조 분석 채택), **D20** joint 기본 학습, **D22** brain encoder 후보 (외부 brain pretraining 제외), **D24** multi-layer V-JEPA 2 추출안.
+
+**아직 미정 (본 실험 전에 정할 것)**
+- **D01** canonical 영상·중복 정의, **D05** ROI rank·encoder 크기, **D06** V/S checkpoint·층·pooling, **D07** 14-D codebook·VA/VAD, **D08** λ·η·dropout·seed, **D09** primary 비교·다중비교, **D10** 구간 추정·소수 참가자 추론, **D11** permutation·swap 규칙, **D12** selective patch, **D13** MindCaptioning 검증 방식 (pipeline replication 또는 transfer), **D14** VS-guided student 추가 여부, **D15** caption 어휘 통제.
+
+**후보·제안 (채택 안 됨)**
+- **D19** 시각 피질 대비 추가 ROI 의 예측 증분, **D21** 공유 affect head 보조 loss, **D23** ROI-masked JEPA 보조, **D25** 34D·14D 평정 QC·차원별 결과 (보고 형식은 D31 로 일부 정함), **D26** 정서 차원별 시각·caption 조건부 기여, **D27** V-JEPA 2 층별 파일럿.
+
+**지금 정해야 할 것 (우선순위)**
+1. D03 분할 재작성 시점: 본 실험 전에 72개를 빼고 분할을 다시 만든다. 그 전까지의 사전 분석 수치는 모두 72개가 포함된 결과로 표시한다.
+2. D13 MindCaptioning 검증 방식.
+3. D01·D06·D08 본 모델 학습 전 설정.
+
+---
+
 ## Cohort roles / cohort 역할 — 2026-10-20 (D28)
 
 ### English
@@ -246,6 +273,10 @@ Training affect를 쓰는 것 자체는 cheating이 아니다. Warm-up부터 OOF
 | D23 | ROI-masked JEPA-style auxiliary | 검토 후보; 원형 Brain-JEPA와 구별; 기본 loss 미변경 | Target view·EMA·mask·collapse·nuisance·적용 경로·예산 |
 | D24 | Multi-layer V-JEPA 2 추출과 명시적 L | 구체적 개발안 기록; 숫자·primary 미동결 | FPS/window/short-clip/crop QA·layer/pooling·추출 hash |
 | D28 | Cohort 역할 | 확정 (사용자, 2026-10-20): Horikawa 2020 학습·개발, MindCaptioning 후속 검증, MindCaptioning은 학습·튜닝에 쓰지 않음. QC 통과 5명·6명, 입력 v3_qc·v2_qc (2026-10-21) | 검증 방식은 D13 |
+| D29 | 레포 방향 | 확정 (사용자, 2026-10-28): `docs/current` 설계 유지, LLM 기본 제외 유지 (§5). 2026-10 사전 분석의 ridge·선형·MLP·내용만 쓴 teacher 는 사전 분석이며 본 모델·BVS teacher 가 아님 | 외부 검토 2026-10-28 (프로젝트 지침과의 차이 지적) |
+| D30 | EmoViS 의 위치 | 확정 (사용자, 2026-10-28): EmoViS 는 EmoBrain 의 한 축. 경계를 따로 긋지 않는다 | 01 §2 기초 분석 |
+| D31 | 34개 범주 보고 | 확정 (사용자, 2026-10-28): 34개 전체가 주 결과, noise ceiling 정규화(r / √라벨 신뢰도) 함께 보고. 27개 요약(Cowen & Keltner 2017 이 구별되지 않는다고 본 pride·triumph·contempt·disappointment·sympathy·guilt·envy 제외)은 미리 정한 보조 결과. 7개의 라벨 신뢰도 guilt 0.28·envy 0.32·contempt 0.33 (27개 최저 0.41 보다 낮음), disappointment 0.49·pride 0.53·sympathy 0.67·triumph 0.69 | `docs/reports/prelim_2026-10/stage0/tables/label_structure_reliability.tsv` |
+| D32 | Cohort 간 참가자 중복 | 확정 (사용자 확인, 2026-10-28): 중복 없음. MindCaptioning S1 의 예비 실험 자극 노출(원문)은 별도 기록 | Horikawa 2020: ATR·교토 Verio, Mind captioning: NTT·도쿄 Prisma |
 
 해당 결정이 다른 결과를 보기 전에 실제로 동결됐는지 기록한다. 과거 test에 이미 접근했다면 새로운 freeze 날짜를 붙여 과거를 사전등록처럼 보이게 하지 않는다.
 

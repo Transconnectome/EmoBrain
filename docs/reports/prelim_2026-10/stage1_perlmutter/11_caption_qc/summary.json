@@ -1,0 +1,30 @@
+{
+ "n_videos": 2185,
+ "tau": 0.7,
+ "majority": 0.5,
+ "n_flag_gross": 19,
+ "n_flag_substitution": 266,
+ "n_sexual_majority": 105,
+ "n_flag_sexual_softened": 75,
+ "n_sexual_softened_with_soft_word": 25,
+ "n_missed_action_ge07": 335,
+ "rank1": 0.4805491990846682,
+ "rank_median": 2.0,
+ "rank_le50": 0.9194508009153318,
+ "n_rank_gt_k": {
+  "10": 480,
+  "50": 176,
+  "100": 96,
+  "200": 56,
+  "500": 19
+ },
+ "n_missed_share_ge": {
+  "0.5": 1014,
+  "0.6": 864,
+  "0.7": 564,
+  "0.8": 349,
+  "0.9": 186
+ },
+ "n_any_unsupported": 1928,
+ "consensus_words_per_video": 2.2100686498855837
+}
