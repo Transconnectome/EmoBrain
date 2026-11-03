@@ -74,7 +74,7 @@
 | Codex(검토) | 자기 검토 보고서와 재현 테스트 | 확인 지점에서 코드 검토: 데이터 누출, 조용한 타협, 경계 조건. 석진 님이 요청하면 문서 변경도 검토한다. 01~04와 레포 코드를 직접 고치거나 push하지 않는다 |
 | Antigravity | Wiki | Wiki 관리와 문헌 원문 확인. 석진 님이 요청할 때 글을 다듬는 의견을 낸다. 01~04는 고치지 않는다 |
 
-- 한 파일은 한 도구만 고친다. 통합문서의 원본은 석진 님 컴퓨터의 `EmoBrain_final_2026-11-03/01_integrated_document.md` 하나다.
+- 한 파일은 한 도구만 고친다. 통합문서의 원본은 레포 `design/emobrain-final-2026-11-03` 브랜치의 `docs/final/01_integrated_document.md` 하나다(2절).
 - Codex의 확인 지점과 넘길 것
     - S2 manifest와 S3 추출 코드 뒤, 특징 추출 GPU 작업 전: commit, manifest, 분할과 추출 코드
     - S6 뇌 모델 구현 뒤, 파일럿 전: commit, 모델과 학습 코드, 합성 자료 테스트 결과
