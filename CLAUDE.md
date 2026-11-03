@@ -14,3 +14,5 @@ They are historical evidence, not the current protocol.
 Do not treat existing label-query/LLM training scripts as implementations of the current teacher–student design.
 Consult [implementation status](docs/current/08_IMPLEMENTATION_STATUS.md) before proposing execution.
 GPU jobs are run by the user unless explicitly authorized otherwise.
+
+@docs/final/CLAUDE_EmoBrain.md
