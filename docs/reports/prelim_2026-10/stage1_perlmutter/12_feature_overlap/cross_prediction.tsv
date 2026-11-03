@@ -1,0 +1,57 @@
+source	target	explained_variance
+V-JEPA 2 (영상)	VideoMAE (영상)	0.2257
+V-JEPA 2 (영상)	CLIP (이미지)	0.2699
+V-JEPA 2 (영상)	DINOv2 (이미지)	0.1756
+V-JEPA 2 (영상)	VGG19 fc8 (이미지)	0.4767
+V-JEPA 2 (영상)	사람 캡션	0.3103
+V-JEPA 2 (영상)	의미 73 (사람 개념)	0.5136
+V-JEPA 2 (영상)	VLM 캡션 v1	0.2237
+VideoMAE (영상)	V-JEPA 2 (영상)	0.4611
+VideoMAE (영상)	CLIP (이미지)	0.2451
+VideoMAE (영상)	DINOv2 (이미지)	0.1754
+VideoMAE (영상)	VGG19 fc8 (이미지)	0.4264
+VideoMAE (영상)	사람 캡션	0.3162
+VideoMAE (영상)	의미 73 (사람 개념)	0.4890
+VideoMAE (영상)	VLM 캡션 v1	0.2182
+CLIP (이미지)	V-JEPA 2 (영상)	0.3381
+CLIP (이미지)	VideoMAE (영상)	0.2361
+CLIP (이미지)	DINOv2 (이미지)	0.2541
+CLIP (이미지)	VGG19 fc8 (이미지)	0.4685
+CLIP (이미지)	사람 캡션	0.4659
+CLIP (이미지)	의미 73 (사람 개념)	0.6504
+CLIP (이미지)	VLM 캡션 v1	0.3358
+DINOv2 (이미지)	V-JEPA 2 (영상)	0.3140
+DINOv2 (이미지)	VideoMAE (영상)	0.2466
+DINOv2 (이미지)	CLIP (이미지)	0.3419
+DINOv2 (이미지)	VGG19 fc8 (이미지)	0.4455
+DINOv2 (이미지)	사람 캡션	0.3986
+DINOv2 (이미지)	의미 73 (사람 개념)	0.5898
+DINOv2 (이미지)	VLM 캡션 v1	0.3153
+VGG19 fc8 (이미지)	V-JEPA 2 (영상)	0.2339
+VGG19 fc8 (이미지)	VideoMAE (영상)	0.1264
+VGG19 fc8 (이미지)	CLIP (이미지)	0.1752
+VGG19 fc8 (이미지)	DINOv2 (이미지)	0.1077
+VGG19 fc8 (이미지)	사람 캡션	0.1939
+VGG19 fc8 (이미지)	의미 73 (사람 개념)	0.3856
+VGG19 fc8 (이미지)	VLM 캡션 v1	0.1656
+사람 캡션	V-JEPA 2 (영상)	0.2300
+사람 캡션	VideoMAE (영상)	0.1995
+사람 캡션	CLIP (이미지)	0.2885
+사람 캡션	DINOv2 (이미지)	0.1881
+사람 캡션	VGG19 fc8 (이미지)	0.3580
+사람 캡션	의미 73 (사람 개념)	0.6707
+사람 캡션	VLM 캡션 v1	0.3766
+의미 73 (사람 개념)	V-JEPA 2 (영상)	0.1777
+의미 73 (사람 개념)	VideoMAE (영상)	0.1433
+의미 73 (사람 개념)	CLIP (이미지)	0.2375
+의미 73 (사람 개념)	DINOv2 (이미지)	0.1430
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	0.3415
+의미 73 (사람 개념)	사람 캡션	0.3935
+의미 73 (사람 개념)	VLM 캡션 v1	0.2494
+VLM 캡션 v1	V-JEPA 2 (영상)	0.1991
+VLM 캡션 v1	VideoMAE (영상)	0.1598
+VLM 캡션 v1	CLIP (이미지)	0.2427
+VLM 캡션 v1	DINOv2 (이미지)	0.1655
+VLM 캡션 v1	VGG19 fc8 (이미지)	0.3628
+VLM 캡션 v1	사람 캡션	0.4441
+VLM 캡션 v1	의미 73 (사람 개념)	0.5452

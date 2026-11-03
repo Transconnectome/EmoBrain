@@ -1,0 +1,5 @@
+caption	visual	r2_visual	r2_caption	r2_both	visual_only	caption_only	common
+caption_human_mpnet	V-JEPA 2 (영상)	0.2363	0.3922	0.4065	0.0142	0.1702	0.2221
+caption_human_mpnet	CLIP (이미지)	0.3722	0.3922	0.4405	0.0483	0.0683	0.3239
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	0.2363	0.3903	0.4049	0.0146	0.1686	0.2217
+caption_human_noemo_mpnet	CLIP (이미지)	0.3722	0.3903	0.4395	0.0492	0.0673	0.3230
