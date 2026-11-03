@@ -11,6 +11,8 @@
    시험 영상(test_video_in_train_session)이 든 run, 입력층 학습 자료(나머지 run의 학습 블록)의 수를 센다. QC 뒤 남은 수도 함께.
 4. 8초 반복의 종료 시점(3-2): events_audited.tsv(5명)의 블록 길이와 stimuli.tsv의 영상 길이를 비교한다.
    블록 길이는 TR(2초) 단위이고 "영상 제시 + 뒤따르는 2초 휴지"다(PREPROCESSING_FINAL.md 2.3절).
+MC 최종 시험 72개와 같은 내용(manifests/mc_test72.tsv)은 HK 개발의 모든 단계에서 빼므로(0절), 1, 2, 4의 요약은 개발 영상(분석 영상에서 72개를 뺀 2,109개) 기준으로 낸다.
+표에는 MC 72개 해당 여부(in_mc_test72)를 남긴다.
 출력: manifests/{duplicates_15.tsv, rater_count_inferred.tsv, mc_train_runs.tsv, presentation_length.tsv}와 표준 출력 요약
 사용: python s1_sets_raters_runs.py
 """
@@ -26,9 +28,21 @@ SPLIT = REPO / "docs/reports/prelim_2026-10/splits/horikawa_rungroup6_v1.tsv"
 EVENTS = REPO / "prereg_v2/manifests/events_audited.tsv"
 STIMULI = REPO / "prereg_v2/manifests/stimuli.tsv"
 LABELS = REPO / "project/shared/data/cowen_horikawa_labels.csv"
+CROSSWALK = REPO / "prereg_v2/manifests/stimulus_crosswalk.tsv"
 HK = ["01", "02", "03", "04", "05"]
 MC = ["01", "02", "03", "04", "05", "06"]
 TOL, NMAX = 2e-3, 60
+
+
+def mc72_videos():
+    cw = pd.read_csv(CROSSWALK, sep="\t", comment="#")
+    mc = set(pd.read_csv(OUT / "mc_test72.tsv", sep="\t").canonical_stimulus_id)
+    return set(cw.video_number[cw.canonical_stimulus_id.isin(mc)])
+
+
+def dev_videos(mc):
+    sp = pd.read_csv(SPLIT, sep="\t"); a = sp[sp.analysis_row & ~sp.exclude_duplicate]
+    return a[~a.video_id.isin(mc)]
 
 
 def duplicates():
@@ -48,6 +62,7 @@ def duplicates():
                          kept=",".join(map(str, kept)), kept_is_first=kept == [int(first.video_id)],
                          fold_kept=",".join(str(int(x)) for x in g[~g.exclude_duplicate.astype(bool)].fold)))
     D = pd.DataFrame(rows)
+    mc = mc72_videos(); D["in_mc_test72"] = D.first_presented.isin(mc) | D.later_presented.isin(mc)
     nd = sp[sp.video_id.isin([1349, 1363])][["video_id", "content_id", "run_index", "fold", "exclude_duplicate"]]
     return D, nd
 
@@ -60,7 +75,11 @@ def raters():
         for n in range(1, NMAX + 1):
             if np.abs(p * n - np.round(p * n)).max() <= TOL:
                 n_inf[k] = n; break
-    return pd.DataFrame(dict(content_id=lab.index, n_inferred=n_inf))
+    R = pd.DataFrame(dict(content_id=lab.index, n_inferred=n_inf))
+    mc = mc72_videos(); dev_c = set(dev_videos(mc).content_id)
+    R["in_dev_videos"] = R.content_id.isin(dev_c)
+    R["in_mc_test72"] = R.content_id.isin({c for c in R.content_id if c in mc} | set(pd.read_csv(OUT / "mc_test72.tsv", sep="\t").canonical_stimulus_id))
+    return R
 
 
 def mc_runs():
@@ -90,19 +109,22 @@ def presentation():
     ev["video_s"] = ev.stimulus_number.astype(int).map(st.container_duration_s)
     ev["block_s"] = ev.duration_sec
     ev["short"] = ev.video_s < 8
+    ev["in_mc_test72"] = ev.stimulus_number.astype(int).isin(mc72_videos())
     ev["block_minus_video_minus_rest"] = ev.block_s - 2 - np.where(ev.short, 8.0, ev.video_s)
-    return ev[["participant_id", "session", "run", "stimulus_number", "video_s", "block_s", "short", "block_minus_video_minus_rest"]]
+    return ev[["participant_id", "session", "run", "stimulus_number", "in_mc_test72", "video_s", "block_s", "short", "block_minus_video_minus_rest"]]
 
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     D, nd = duplicates(); D.to_csv(OUT / "duplicates_15.tsv", sep="\t", index=False)
-    print(f"[중복] 같은 content_id 파일 쌍 {len(D)}개, 먼저 제시된 쪽을 남긴 쌍 {int(D.kept_is_first.sum())}개")
+    print(f"[중복] 같은 content_id 파일 쌍 {len(D)}개, 먼저 제시된 쪽을 남긴 쌍 {int(D.kept_is_first.sum())}개, MC 72개에 해당해 개발 영상에서 빠지는 쌍 {int(D.in_mc_test72.sum())}개")
     print(D.to_string(index=False))
     print("[1349/1363]", nd.to_dict("records"))
 
     R = raters(); R.to_csv(OUT / "rater_count_inferred.tsv", sep="\t", index=False)
     dup_c = set(D.content_id) | {1349}
+    R_all = R; R = R[R.in_dev_videos]
+    print(f"[평정자 수 역산] 개발 영상 기준({len(R)}개 내용). 전체 2,185개 기준 17 초과 {int((R_all.n_inferred > 17).sum())}개")
     over = R[R.n_inferred > 17]
     print(f"[평정자 수 역산] 정해진 영상 {int(R.n_inferred.notna().sum())}/{len(R)}, 분포 {R.n_inferred.describe()[['min', '50%', 'max']].to_dict()}")
     print(f"  17 초과 {len(over)}개 (중복 내용과 겹침 {len(set(over.content_id) & dup_c)}개): {over.content_id.tolist()[:30]}")
@@ -111,12 +133,12 @@ def main():
     M, MS = mc_runs(); M.to_csv(OUT / "mc_train_runs.tsv", sep="\t", index=False)
     print("[MC run]"); print(MS.to_string(index=False))
 
-    P = presentation()
+    P = presentation(); P = P[~P.in_mc_test72]
     S = P.groupby(["participant_id", "short"]).agg(n=("block_s", "size"), block_min=("block_s", "min"), block_max=("block_s", "max"),
                                                   extra_min=("block_minus_video_minus_rest", "min"),
                                                   extra_max=("block_minus_video_minus_rest", "max")).reset_index()
     S.to_csv(OUT / "presentation_length.tsv", sep="\t", index=False, float_format="%.3f")
-    print("[제시 길이] short = 영상 8초 미만. extra = 블록 − 2초 휴지 − 제시 길이(짧은 영상은 8초로 가정)"); print(S.to_string(index=False))
+    print("[제시 길이, 개발 영상] short = 영상 8초 미만. extra = 블록 − 2초 휴지 − 제시 길이(짧은 영상은 8초로 가정)"); print(S.to_string(index=False))
 
 
 if __name__ == "__main__":
