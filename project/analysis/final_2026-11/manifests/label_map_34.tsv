@@ -1,0 +1,35 @@
+score_col	name	category_mat_col	category_mat_name	max_abs_diff	n_nonzero
+score_0	admiration	0	Admiration	0.0	606
+score_1	adoration	1	Adoration	0.0	619
+score_2	aesthetic appreciation	2	Aesthetic_appreciation	0.0	727
+score_3	amusement	3	Amusement	0.0	1402
+score_4	anger	4	Anger	0.0	233
+score_5	anxiety	5	Anxiety	0.0	770
+score_6	awe	6	Awe	0.0	1148
+score_7	awkwardness	7	Awkwardness	0.0	459
+score_8	boredom	8	Boredom	0.0	727
+score_9	calmness	9	Calmness	0.0	552
+score_10	confusion	10	Confusion	0.0	870
+score_11	contempt	11	Contempt	0.0	247
+score_12	craving	12	Craving	0.0	159
+score_13	disappointment	13	Disappointment	0.0	276
+score_14	disgust	14	Disgust	0.0	622
+score_15	empathic pain	15	Empathic_pain	0.0	353
+score_16	entrancement	16	Entrancement	0.0	622
+score_17	envy	17	Envy	0.0	177
+score_18	excitement	18	Excitement	0.0	794
+score_19	fear	19	Fear	0.0	685
+score_20	guilt	20	Guilt	0.0	114
+score_21	horror	21	Horror	0.0	618
+score_22	interest	22	Interest	0.0	1387
+score_23	joy	23	Joy	0.0	940
+score_24	nostalgia	24	Nostalgia	0.0	316
+score_25	pride	25	Pride	0.0	144
+score_26	relief	26	Relief	0.0	264
+score_27	romance	27	Romance	0.0	187
+score_28	sadness	28	Sadness	0.0	485
+score_29	satisfaction	29	Satisfaction	0.0	775
+score_30	sexual desire	30	Sexual_desire	0.0	265
+score_31	surprise	31	Surprise	0.0	1145
+score_32	sympathy	32	Sympathy	0.0	504
+score_33	triumph	33	Triumph	0.0	306
