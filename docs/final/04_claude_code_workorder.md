@@ -190,8 +190,9 @@
         - 거꾸로 센 값은 가중치나 신뢰도 계산에 쓰지 않는다.
     - voxel과 ROI(5-5, C6, N39, 부록 3)
         - 참가자별 voxel 수와 ROI별 voxel 수를 HK 5명과 MC 6명 모두에서 센다. S7에서 d 후보와 가중치 수를 정하는 자료다.
-        - 피질하 10개(편도체, 뇌간, 미상핵, 소뇌, 해마, 시상하부, 측좌핵, 창백핵, 조가비핵, 시상)의 정의 방법을 확인한다.
-        - Horikawa 외(2020)의 공개 자료(figshare 11988351)에 영역 정의가 들어 있으면 그 정의를 그대로 쓴다(5-5). 좌우를 합친 영역인지도 확인한다.
+        - 개인 공간 지도를 원문 방식으로 만든다(5-5, 불일치 7). 피질은 fsaverage 표면의 HCP360 label을 개인 표면으로 옮겨 2 mm voxel로 다시 보간한다(원문은 FreeSurfer와 FSL flirt). 피질하 10개(편도체, 뇌간, 미상핵, 소뇌, 해마, 시상하부, 측좌핵, 창백핵, 조가비핵, 시상)는 WFU PickAtlas의 AAL과 Talairach Daemon mask를 표준 공간에서 개인 T1w로 옮겨 2 mm로 다시 보간한다. 측좌핵은 원문대로 Brodmann area 34다. HK 5명과 MC 6명 모두 만든다(C6, 6-3).
+            - 필요한 파일(fsaverage HCP360 label, WFU PickAtlas mask)은 Perlmutter에 없다. 내려받기 전에 석진 님에게 묻는다. 도구(연구실 서버의 개인 FreeSurfer 폴더, 또는 fMRIPrep의 표면과 등록 구면)는 기록 칸의 정할 것 3이다.
+            - 피질하 영역이 좌우를 합친 것인지 확인한다. 원문 기준 ROI당 voxel 수(92~2,122개, 중앙값 339개)와 새 지도의 값을 나란히 적는다.
         - 공통 ROI(C6): HK 5명과 MC 참가자 모두에서 유효한 ROI만 남긴다.
             - 유효 여부는 해부학적 mask와 촬영 범위의 교집합으로만 정한다.
             - MC 시험 반응의 신뢰도나 예측 성능으로 고르지 않는다.
@@ -483,7 +484,7 @@
 - 근거: 2-1, 2-2, 3-2, 3-3, H3, N5, N15, N16, N21, I7, I10, B4, 2-0 (나), C1, C5, 6-1의 0행과 2-1행, 6-2, 7-L 실행 순서 5
 - 입력: 참가자별 voxel 반응, S2의 manifest와 공통 ROI, S3의 특징, 정답 34개
 - 공통
-    - 영상당 반응은 Horikawa 외(2020)의 절차다. 영상 동안의 volume을 4초 밀어 평균한다(C1, run 안 z, v3_qc).
+    - 영상당 반응은 v3_qc의 블록 평균이다. 신호를 4초 밀어 영상 제시 구간과 뒤따르는 2초 휴지로 된 블록 안에서 평균하고(Horikawa 외(2020)의 구간), run 안에서 voxel마다 z-score했다(C1).
     - 입력은 뇌 모델과 같은 voxel이다. 공통 ROI 안의 voxel을 모두 이어 붙인다(I10).
     - 학습 자료의 encoding 성능으로 voxel을 고르지 않는다(3-2).
     - 표준화: voxel마다 D_k의 참가자별 평균과 표준편차로 한다(C5). 특징 목표는 차원마다 D_k로 표준화한다(D9).
@@ -1106,7 +1107,7 @@
 | S1. 거꾸로 센 평정자 수 17 초과 목록과 중복의 관계 | | B8 | |
 | S1. 참가자별 voxel 수(HK 5명, MC 6명) | | 5-5 | |
 | S1. ROI별 voxel 수 | | 5-5 | |
-| S1. 피질하 10개의 정의와 출처 | | 5-5 | |
+| S1. 피질하 10개의 정의와 출처 | 원문(Horikawa 외(2020) Transparent Methods): WFU PickAtlas의 AAL과 Talairach Daemon mask를 표준 공간에서 개인 T1w로 옮겨 2 mm로 다시 보간. 측좌핵은 Brodmann area 34(Mac 세션 11/3 확인). 파일은 Perlmutter에 없다(정할 것 3). 좌우 처리는 확인 전 | 5-5 | 2026-11-03 |
 | S1. 남은 공통 ROI 수와 결정에 쓴 자료 | | C6 | |
 | S1. 새 지도의 0단계 신뢰도 | | 5-5 | |
 | S1. MC와 HK 참가자 겹침 | | 6-3 | |
@@ -1156,12 +1157,13 @@
 | 불일치 2. 1349/1363을 같은 fold로 묶지 않았다 | crosswalk와 near_duplicate_pairs.tsv:26은 같은 내용으로 보지만 분할은 fold 4와 5에 따로 둔다. 두 제시를 모두 남길지는 threads/T002에서 석진 님 결정으로 남아 있다. 정함(11/3 석진 님): Horikawa 외(2020)처럼 둘 다 분석 영상에 남기고(분석 영상 2,181개 그대로) 같은 fold에 묶는다. S2의 새 분할에 넣는다. 01의 0절, 2-0, B2를 고쳤고 03, 04(S1)를 맞췄다(11/3) | B2, 2-0 | 2026-11-03 |
 | 불일치 3. 중복 쌍에서 어느 제시를 남기는지 | 분할은 쌍마다 먼저 제시된 쪽을 남긴다. 그래서 1~11과 2186~2196 쌍 가운데 7쌍은 2186~2196 쪽 반응을 쓴다(빠진 것: 1, 4, 5, 6, 7, 8, 11, 2187, 2188, 2194, 2195, 859, 866, 1673, 2157). B2는 "2186~2196 제외"라고 적었다. 라벨은 content_id(1~2185)로 붙으므로 어느 쪽을 남겨도 라벨은 맞는다 | B2 | 2026-11-03 |
 | 불일치 4. fold 번호 | 분할 파일의 fold는 0~5이고 통합문서는 1~6이다(H2, O7). 구현은 "통합문서의 fold k = 파일의 fold k − 1"로 옮긴다. ex) O7의 fold 1 = 파일의 fold 0 | H2, O7 | 2026-11-03 |
-| 불일치 5. 영상당 반응을 평균하는 구간 | docs/current/07_RESPONSE_ESTIMATION_REVIEW.md:41은 Horikawa 외(2020)의 평균 구간에 영상 뒤 2초 휴지기가 들어간다고 적었다. C1은 "영상 동안의 volume을 4초 밀어 평균"이라고만 적었다. v3_qc의 실제 생성 규칙은 서버의 PREPROCESSING_FINAL.md로 확인한다(S1) 확인(11/3): PM/Horikawa/PREPROCESSING_FINAL.md 2.3절 5번은 블록을 "영상 제시 구간 + 뒤따르는 2초 쉼"으로, 평균 구간을 [onset + 4초, onset + 블록 길이 + 4초)로 적는다. 그래서 v3_qc의 영상당 반응에는 영상 뒤 2초 쉼이 들어 있다. 8초 미만 영상은 8초를 넘을 때까지 반복 제시되어 블록이 10초다. Horikawa 외(2020)가 같은 구간을 썼다면 C1의 문구만 고치면 되고, 다르다면 반응을 다시 추정해야 한다. Horikawa 외(2020) 원문의 구간은 [미확인]이다. 석진 님 결정 | C1 | 2026-11-03 |
+| 불일치 5. 영상당 반응을 평균하는 구간 | 정함(11/3 석진 님): 반응을 다시 추정하지 않고 01 C1의 문구를 고친다(02, 03, 04를 맞춤). 평균 구간: Horikawa 외(2020) Transparent Methods는 신호를 4초(volume 2개) 밀어 "영상 제시 구간과 뒤따르는 2초 휴지" 블록 안에서 평균했다(Mac 세션 11/3 확인). PM/Horikawa/PREPROCESSING_FINAL.md 2.3절 5번의 v3_qc 구간 [onset + 4초, onset + 블록 길이 + 4초)도 같은 블록이다. PMC 본문은 "volumes measured over the course of each video presentation were shifted by 4 s and averaged"까지만 적어, Perlmutter 세션은 보충자료를 직접 확인하지 못했다. 정규화 대조: 원문은 블록 평균 뒤 영상 전체에 걸쳐 voxel마다 z-score했고(Mac 세션 확인), v3_qc는 같은 run의 블록들로 voxel마다 z-score했다(같은 문서 6번). 둘은 다르다. 원문 방식은 시험 영상의 통계까지 표준화에 쓰므로 H5와 맞지 않는다. 지금 설계(run 안 z 위에 학습 fold 통계로 표준화, C5)를 유지하고 원문과 다른 점으로 방법 절에 적는다. 바꿀지는 석진 님 결정 | C1, C5 | 2026-11-03 |
 | 불일치 6. pilot 코드가 MC 참가자를 거부한다 | project/baseline/brain_decoding/config.json:29와 pilot_adapter.py:64는 "MC는 학습과 tuning에 쓰지 않는다"(옛 D28)를 따른다. 6-3은 MC 입력층을 MC 시청 자료로 학습한다. 다시 쓸 때 이 제한을 고친다 | 6-3 | 2026-11-03 |
-| 불일치 7. 개인 공간의 HCP360 지도가 없다 | 5-5와 C2는 피질 HCP360 360개와 Horikawa 외(2020)의 피질하 10개(모두 370개)를 정했지만, 전처리 결과의 지도 19종(v3/atlas/, roi_valid.tsv)에 HCP360이 없다. 피질하 10개에 쓸 수 있는 지도(Tian S1, FSaseg, CerebLobules, HypoBNSTNBM, 469개 조합의 Brain-Stem)는 있지만 10개의 정의(S1)는 확인 전이다. 만들 재료는 있다: fMRIPrep의 개인 표면, fsLR과 fsaverage 등록 구면, T1w와 fsnative, MNI 사이 변환(S0 자료 경로 행). 투영 방법(표면 지도를 개인 표면으로 옮겨 피질 리본에 채우기, MNI 부피 지도를 개인 공간으로 옮기기 등)은 ROI마다 들어가는 voxel을 바꾸므로 Claude Code가 정하지 않는다. 5-5는 Horikawa 외(2020) 공개 자료(figshare 11988351)에 영역 정의가 있으면 그대로 쓰기로 했는데, 그 자료를 Perlmutter에서 찾지 못했다 | 5-5, C2, S1 | 2026-11-03 |
+| 불일치 7. 개인 공간의 HCP360 지도가 없다 | 전처리 결과의 지도 19종(v3/atlas/, roi_valid.tsv)에 HCP360이 없다. 정함(11/3 석진 님): 원문 방식을 따른다. 원문은 fsaverage 표면의 HCP360 label을 FreeSurfer로 개인 표면에 옮기고 FSL flirt로 2 mm voxel에 다시 보간했다(fsLR이 아님). 피질하 10개는 WFU PickAtlas의 AAL과 Talairach Daemon mask를 표준 공간에서 개인 T1w로 옮겨 2 mm로 다시 보간했고, 측좌핵은 Brodmann area 34다(Mac 세션이 Transparent Methods로 11/3 확인). 원문 기준 ROI당 voxel 수는 92~2,122개, 중앙값 339개(5명 평균). 01 5-5를 고치고 02, 03, 04(S1)를 맞췄다. 만들 재료와 도구는 정할 것 3 | 5-5, C2, S1 | 2026-11-03 |
 | 통합문서로 정할 수 없던 것 | 아래 행들 | 0-2 | 2026-11-03 |
 | 정할 것 1. 중복 쌍에서 남길 제시 | 정함(11/3 석진 님): (가) 먼저 제시된 쪽을 남긴다. Horikawa 외(2020) Methods가 같은 규칙이다("discarded samples that were presented later in the experiment"). 지금 분할이 이 규칙이므로 바꾸지 않고, 01의 B2를 고쳤고 02, 03, 04를 맞췄다(11/3) | B2 | 2026-11-03 |
 | 정할 것 2. H2 검증 fold의 정답이 teacher 점수를 거쳐 student 학습에 들어간다 | E4와 O16은 teacher의 fold 밖 출력을 D_k의 5개 fold 전체로 만든다. 그래서 학습 영상의 teacher 점수를 낸 안쪽 모델 가운데 4개는 H2 검증 fold의 정답으로도 학습한다. 뇌 모델이 이 점수로 학습한 뒤 같은 검증 fold로 α와 조기 종료를 정하면, 출력 distillation이 들어간 조건만 검증 점수에서 유리해질 수 있다. 시험 fold로 새지는 않는다. 옛 규칙(docs/current/04 C01, 02:78~110)은 teacher를 검증 fold 밖에서 다시 만들어 이를 막았다. 정함(11/3 석진 님): 출력 distillation에 쓰는 teacher 점수는 H2의 학습 fold 4개 안에서만 안쪽 4겹으로 만든다. 검증 fold와 바깥 시험 fold는 teacher의 학습, 설정 선택, 조기 종료에 쓰지 않는다. 01의 E4, O16, H3, 5-0을 고쳤고 02, 03과 04의 0-3 표, S4를 맞췄다(11/3) | E4, O16, H2 | 2026-11-03 |
+| 정할 것 3. 원문 방식의 지도를 만들 재료와 도구 | (1) 파일: fsaverage의 HCP360 label(HCP-MMP1.0 annot)과 WFU PickAtlas(AAL, Talairach Daemon)가 Perlmutter에 없어 내려받아야 한다. 받기 전에 석진 님 허락을 받는다. (2) 도구: 원문은 개인 FreeSurfer 폴더로 label을 옮겼다. HK의 FreeSurfer 폴더는 Perlmutter에 없다(PREPROCESSING_FINAL.md 2.2절: Horikawa는 처음 실행의 FreeSurfer 결과를 재사용, 연구실 서버에 있을 것으로 보임). Perlmutter에는 fMRIPrep이 만든 개인 표면(white, pial, midthickness), fsaverage 등록 구면, T1w와 fsnative 변환이 있고, shifter에 FreeSurfer 7.4.1과 fMRIPrep 25.0.0 이미지가 있다. 연구실 서버의 FreeSurfer 폴더를 옮겨 와 원문과 같은 도구(FreeSurfer, flirt)로 할지, fMRIPrep의 표면과 등록 구면으로 같은 절차를 할지는 ROI마다 들어가는 voxel에 영향을 줄 수 있어 석진 님이 정한다. Claude 추천은 앞쪽이다(원문과 같은 도구). MC 6명도 같은 지도가 필요하다(C6, 6-3) | 5-5, 불일치 7 | 2026-11-03 |
 | 보류된 결정 1. 질문 2의 뒷부분 | 질문 2는 "처음 보는 장면에서 어떤 정보를 이용해 예측하는가"를 묻지만, 6-2는 성능만 비교하고 바꿔 끼우기는 기본 분할에서만 한다(A4). 석진 님이 "나중에"로 미룸(11/3). (가) 6-2에서 학습하는 주 조건 모델로 빠진 구역의 시험 영상에서도 바꿔 끼우기를 한다. 저장된 모델로 하므로 학습이 늘지 않는다. 짝을 구역 안에서 찾는 규칙이 하나 필요하다 (나) 질문 문구를 "처음 보는 장면에서도 예측이 유지되는가"로 줄인다. Claude 추천은 (가) | 1-3, 6-2, A4 | 2026-11-03 |
 | 보류된 결정 2. 1-1의 주 검정 | 가설이 01(1-3: 정서마다 두 경로의 효과가 다르다, 정서 하나 안의 시각 대 캡션)과 03(1.7.2: differ across emotions, 정서 사이의 차이)에서 다르게 적혀 있고, 6-1의 검정은 앞쪽이다. 사전 분석에서 캡션 특징이 시각 특징보다 정서를 잘 맞혔으므로(부록 2: r 0.629 대 0.477), 모든 정서에서 캡션 경로가 크게 나와도 정서의 성질이 아닐 수 있다. Claude 추천: 주 검정을 "두 경로의 차이가 정서에 따라 달라지는가"로 두고 정서별 결과는 그 아래에서 보고한다. Kragel 외(2019)의 정지 프레임 성능 높음 대 낮음 비교를 주 비교로 올린다. 경로별 decoding 정확도를 함께 보고한다 | 1-3, 6-1, 03 1.7.2 | 2026-11-03 |
 | 보류된 결정 3. G13 weight decay 0.01의 범위 | 입력층 weight decay는 d와 함께 고르는데(5-5, H2), 나머지 가중치(encoder, query, head)에 0.01을 쓰는지 01에 없다. 결과에 영향이 있으므로 Claude Code가 정하지 않는다 | G13, 5-5 | 2026-11-03 |
