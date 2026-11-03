@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """S1: HK 이상 block과 이상 run 목록(B6, 04_claude_code_workorder.md S1, 2026-11-03).
 
+B6 결정(11/3 석진 님): 이 목록으로 block이나 run을 빼지 않는다. 기록용으로만 남긴다.
+
 0단계 코드(project/analysis/prelim_2026-10/prelim/confound_and_block_check.py, 연구실 서버에서 실행)와 같은 정의를
 Perlmutter의 v3_qc 사본에 다시 적용한다. 0단계 결과 표는 연구실 서버에만 있어 목록을 여기서 다시 만든다.
 - 블록 신호 크기 = QC 후 정규화 전 블록 반응(blocks_common36_qc.npy)의 voxel 간 표준편차
