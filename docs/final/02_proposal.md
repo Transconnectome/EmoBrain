@@ -148,7 +148,7 @@
 | 항목 | 정한 것 | 이유 |
 | --- | --- | --- |
 | 영상 집합 | 파일 2,196개, 분석 영상 2,181개(중복 15개 뺌), 개발 영상 약 2,109개(MC 72개 뺌. 목록 파일 위치 [미확인]) | 따로 밝히지 않으면 분석 영상 |
-| 중복 영상 | 영상 2186~2196(1~11과 같은 파일)은 빼고, 같은 내용 쌍은 같은 fold | 레포 stimulus_crosswalk.tsv |
+| 중복 영상 | 두 번 제시된 15쌍은 먼저 제시된 반응을 남긴다. 거의 같은 내용인 1349와 1363은 둘 다 남기고, 같은 내용 쌍은 모두 같은 fold에 둔다 | Horikawa 외(2020) Methods, 레포 stimulus_crosswalk.tsv |
 | 정답 형태 | 34개 비율(0~1) 그대로. z-score하지 않음 | soft BCE에 0~1이 필요. 정서별 r은 선형 변환에 영향받지 않아 Horikawa 외(2020)와 비교 가능 |
 | 제외 자료 | 이상 block 5개, sub-03 이상 run 1개. sub-05는 있는 block(2,085개)만 쓰고 5명 공통 영상 결과도 냄 | 움직임 지표(FD, DVARS) 기준 |
 | 영상당 뇌 반응 | 영상 동안의 volume을 4초 밀어 평균(run 안 z) | Horikawa 외(2020)의 절차 |
@@ -286,7 +286,7 @@
 
 - teacher: 시각 특징과 캡션 특징만 받는 특징 모델(T_VS)이다. 뇌는 보지 않는다.
     - 근거: 학습 때만 있는 정보로 teacher를 학습하는 generalized distillation(Lopez-Paz 외, 2016)
-    - teacher가 주는 것은 학습 영상마다의 정서 점수 34개(nested OOF)뿐이다. 목표 = (1 − α) × 정답 + α × teacher 점수
+    - teacher가 주는 것은 학습 영상마다의 정서 점수 34개(nested OOF)뿐이다. 이 점수는 뇌 모델의 학습 fold 4개 안에서만 만들고, 검증 fold는 쓰지 않는다(E4). 목표 = (1 − α) × 정답 + α × teacher 점수
     - 주 조건에는 teacher가 없다. 그래서 주 방법을 distillation이라고 부르지 않는다.
 - frozen head: 다섯 학습 조건에는 쓰지 않는다. 특징 모델의 head는 경로 평가(7-5)에만, 멀티모달 teacher의 head는 보조 비교(7-3)에만 쓴다.
 - 외부 baseline: GED(Huang 외, 2022), ML-BVAE(Fu 외, 2024), EmoGrowth(Fu 외, 2025)
