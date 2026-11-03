@@ -30,6 +30,18 @@ Cowen, A. S., & Keltner, D. *Self-report captures 27 distinct categories of emot
 
 연결: 영상 기반 고차원 annotation의 원천 맥락. 이 논문의 최종 category 수와 Horikawa release의 34-D 열 수를 같은 것으로 취급하지 않는다. 실제 분석 target은 release codebook으로 결정한다.
 
+### Popham et al., 2021
+
+Popham, S. F., Huth, A. G., Bilenko, N. Y., Deniz, F., Gao, J. S., Nunez-Elizalde, A. O., & Gallant, J. L. *Visual and linguistic semantic representations are aligned at the border of human visual cortex*. Nature Neuroscience, 24, 1628–1636. [원문](https://doi.org/10.1038/s41593-021-00921-6).
+
+연결: 시각 특징(V)과 언어 서술 특징(S)을 함께 두는 근거. 무성 영화가 일으키는 시각적 의미 표상은 시각 피질에, 이야기가 일으키는 언어적 의미 표상은 그 바로 앞쪽에 있으며 두 지도가 경계를 따라 정렬된다. 우리 V·S 가 이 두 네트워크에 각각 대응한다고 쓰지 않는다. PubMed 로 서지 확인 (2026-10-30), 원문 본문은 아직 확인하지 않았다.
+
+### Doerig et al., 2025
+
+Doerig, A., Kietzmann, T. C., Allen, E., Wu, Y., Naselaris, T., Kay, K., & Charest, I. *High-level visual representations in the human brain are aligned with large language models*. Nature Machine Intelligence, 7, 1220–1234. [원문](https://doi.org/10.1038/s42256-025-01072-0).
+
+연결: 장면 캡션의 언어 모델 표현이 고차 시각 피질 반응을 잘 설명한다. 따라서 언어 서술 특징이 시각 특징과 겹치는 것은 예상된 일이고, 언어 서술 특징 하나로는 정보가 시각 피질 쪽인지 언어망 쪽인지 가를 수 없다. 영상 모델(V)을 대립 가설 좌표로 함께 두는 이유와 연결된다. PubMed 로 서지 확인 (2026-10-30). 캡션 encoder 가 같은지는 원문으로 다시 확인한다.
+
 ## ⚙️ 2. 표현·모델·학습 근거
 
 ### V-JEPA 2
