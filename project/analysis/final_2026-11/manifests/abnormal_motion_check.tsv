@@ -1,0 +1,9 @@
+kind	participant	item	where	fd	fd_pct	dvars	dvars_pct	fd_median_all	dvars_median_all	fd_max	censor_frac	frac_dvars_gt_1_5
+block	sub-02	video 892	ses-06 run-05	0.2763	88.8	1.431	84.3	0.1316	1.337			
+block	sub-02	video 289	ses-07 run-04	0.3125	93	1.553	97	0.1316	1.337			
+block	sub-02	video 312	ses-07 run-05	0.1877	71.3	1.171	3.1	0.1316	1.337			
+block	sub-03	video 1158	ses-05 run-05	0.1749	24.4	1.354	50.1	0.2281	1.354			
+block	sub-04	video 879	ses-07 run-08	0.232	21.8	1.44	72.5	0.3162	1.375			
+run	sub-03	run_index 31	sub-03_ses-05_task-CowenKeltnerEmotionMovie_run-03	0.193	77	1.219	41	0.1673	1.251	1.193	0.02193	0.07489
+run	sub-03	run_index 32	sub-03_ses-05_task-CowenKeltnerEmotionMovie_run-04	0.1806	68.9	1.155	4.9	0.1673	1.251	0.5141	0	0.0339
+run	sub-03	run_index 33	sub-03_ses-05_task-CowenKeltnerEmotionMovie_run-05	0.1516	21.3	1.157	6.6	0.1673	1.251	0.5785	0	0.04167
