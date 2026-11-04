@@ -1,0 +1,371 @@
+roi_index	roi	display	kind	source	group	group_ko
+0	hcp180_L_10d	L_10d	cortex	저자 공개 ROI	Default	Default
+1	hcp180_L_10pp	L_10pp	cortex	저자 공개 ROI	Default	Default
+2	hcp180_L_10r	L_10r	cortex	저자 공개 ROI	Default	Default
+3	hcp180_L_10v	L_10v	cortex	저자 공개 ROI	Default	Default
+4	hcp180_L_11l	L_11l	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+5	hcp180_L_13l	L_13l	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+6	hcp180_L_1	L_1	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+7	hcp180_L_23c	L_23c	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+8	hcp180_L_23d	L_23d	cortex	저자 공개 ROI	Default	Default
+9	hcp180_L_24dd	L_24dd	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+10	hcp180_L_24dv	L_24dv	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+11	hcp180_L_25	L_25	cortex	저자 공개 ROI	Default	Default
+12	hcp180_L_2	L_2	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+13	hcp180_L_31a	L_31a	cortex	저자 공개 ROI	Default	Default
+14	hcp180_L_31pd	L_31pd	cortex	저자 공개 ROI	Default	Default
+15	hcp180_L_31pv	L_31pv	cortex	저자 공개 ROI	Default	Default
+16	hcp180_L_33pr	L_33pr	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+17	hcp180_L_3a	L_3a	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+18	hcp180_L_3b	L_3b	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+19	hcp180_L_43	L_43	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+20	hcp180_L_44	L_44	cortex	저자 공개 ROI	Language	언어
+21	hcp180_L_45	L_45	cortex	저자 공개 ROI	Language	언어
+22	hcp180_L_46	L_46	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+23	hcp180_L_47l	L_47l	cortex	저자 공개 ROI	Default	Default
+24	hcp180_L_47m	L_47m	cortex	저자 공개 ROI	Default	Default
+25	hcp180_L_47s	L_47s	cortex	저자 공개 ROI	Default	Default
+26	hcp180_L_4	L_4	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+27	hcp180_L_52	L_52	cortex	저자 공개 ROI	Auditory	청각
+28	hcp180_L_55b	L_55b	cortex	저자 공개 ROI	Language	언어
+29	hcp180_L_5L	L_5L	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+30	hcp180_L_5m	L_5m	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+31	hcp180_L_5mv	L_5mv	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+32	hcp180_L_6a	L_6a	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+33	hcp180_L_6d	L_6d	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+34	hcp180_L_6ma	L_6ma	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+35	hcp180_L_6mp	L_6mp	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+36	hcp180_L_6r	L_6r	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+37	hcp180_L_6v	L_6v	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+38	hcp180_L_7AL	L_7AL	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+39	hcp180_L_7Am	L_7Am	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+40	hcp180_L_7PC	L_7PC	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+41	hcp180_L_7PL	L_7PL	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+42	hcp180_L_7Pm	L_7Pm	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+43	hcp180_L_7m	L_7m	cortex	저자 공개 ROI	Default	Default
+44	hcp180_L_8Ad	L_8Ad	cortex	저자 공개 ROI	Default	Default
+45	hcp180_L_8Av	L_8Av	cortex	저자 공개 ROI	Default	Default
+46	hcp180_L_8BL	L_8BL	cortex	저자 공개 ROI	Default	Default
+47	hcp180_L_8BM	L_8BM	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+48	hcp180_L_8C	L_8C	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+49	hcp180_L_9-46d	L_9-46d	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+50	hcp180_L_9a	L_9a	cortex	저자 공개 ROI	Default	Default
+51	hcp180_L_9m	L_9m	cortex	저자 공개 ROI	Default	Default
+52	hcp180_L_9p	L_9p	cortex	저자 공개 ROI	Default	Default
+53	hcp180_L_A1	L_A1	cortex	저자 공개 ROI	Auditory	청각
+54	hcp180_L_A4	L_A4	cortex	저자 공개 ROI	Auditory	청각
+55	hcp180_L_A5	L_A5	cortex	저자 공개 ROI	Language	언어
+56	hcp180_L_AAIC	L_AAIC	cortex	저자 공개 ROI	Orbito-Affective	orbito-affective
+57	hcp180_L_AIP	L_AIP	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+58	hcp180_L_AVI	L_AVI	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+59	hcp180_L_DVT	L_DVT	cortex	저자 공개 ROI	Visual1	1차 시각
+60	hcp180_L_EC	L_EC	cortex	저자 공개 ROI	Default	Default
+61	hcp180_L_FEF	L_FEF	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+62	hcp180_L_FFC	L_FFC	cortex	저자 공개 ROI	Visual2	2차 시각
+63	hcp180_L_FOP1	L_FOP1	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+64	hcp180_L_FOP2	L_FOP2	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+65	hcp180_L_FOP3	L_FOP3	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+66	hcp180_L_FOP4	L_FOP4	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+67	hcp180_L_FOP5	L_FOP5	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+68	hcp180_L_FST	L_FST	cortex	저자 공개 ROI	Visual2	2차 시각
+69	hcp180_L_H	L_H	cortex	저자 공개 ROI	Default	Default
+70	hcp180_L_IFJa	L_IFJa	cortex	저자 공개 ROI	Language	언어
+71	hcp180_L_IFJp	L_IFJp	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+72	hcp180_L_IFSa	L_IFSa	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+73	hcp180_L_IFSp	L_IFSp	cortex	저자 공개 ROI	Language	언어
+74	hcp180_L_IP0	L_IP0	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+75	hcp180_L_IP1	L_IP1	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+76	hcp180_L_IP2	L_IP2	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+77	hcp180_L_IPS1	L_IPS1	cortex	저자 공개 ROI	Visual2	2차 시각
+78	hcp180_L_Ig	L_Ig	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+79	hcp180_L_LBelt	L_LBelt	cortex	저자 공개 ROI	Auditory	청각
+80	hcp180_L_LIPd	L_LIPd	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+81	hcp180_L_LIPv	L_LIPv	cortex	저자 공개 ROI	Visual2	2차 시각
+82	hcp180_L_LO1	L_LO1	cortex	저자 공개 ROI	Visual2	2차 시각
+83	hcp180_L_LO2	L_LO2	cortex	저자 공개 ROI	Visual2	2차 시각
+84	hcp180_L_LO3	L_LO3	cortex	저자 공개 ROI	Visual2	2차 시각
+85	hcp180_L_MBelt	L_MBelt	cortex	저자 공개 ROI	Auditory	청각
+86	hcp180_L_MIP	L_MIP	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+87	hcp180_L_MI	L_MI	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+88	hcp180_L_MST	L_MST	cortex	저자 공개 ROI	Visual2	2차 시각
+89	hcp180_L_MT	L_MT	cortex	저자 공개 ROI	Visual2	2차 시각
+90	hcp180_L_OFC	L_OFC	cortex	저자 공개 ROI	Default	Default
+91	hcp180_L_OP1	L_OP1	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+92	hcp180_L_OP2-3	L_OP2-3	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+93	hcp180_L_OP4	L_OP4	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+94	hcp180_L_PBelt	L_PBelt	cortex	저자 공개 ROI	Auditory	청각
+95	hcp180_L_PCV	L_PCV	cortex	저자 공개 ROI	Posterior-Multimodal	posterior multimodal
+96	hcp180_L_PEF	L_PEF	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+97	hcp180_L_PF	L_PF	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+98	hcp180_L_PFcm	L_PFcm	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+99	hcp180_L_PFm	L_PFm	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+100	hcp180_L_PFop	L_PFop	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+101	hcp180_L_PFt	L_PFt	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+102	hcp180_L_PGi	L_PGi	cortex	저자 공개 ROI	Default	Default
+103	hcp180_L_PGp	L_PGp	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+104	hcp180_L_PGs	L_PGs	cortex	저자 공개 ROI	Default	Default
+105	hcp180_L_PHA1	L_PHA1	cortex	저자 공개 ROI	Default	Default
+106	hcp180_L_PHA2	L_PHA2	cortex	저자 공개 ROI	Default	Default
+107	hcp180_L_PHA3	L_PHA3	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+108	hcp180_L_PHT	L_PHT	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+109	hcp180_L_PH	L_PH	cortex	저자 공개 ROI	Visual2	2차 시각
+110	hcp180_L_PIT	L_PIT	cortex	저자 공개 ROI	Visual2	2차 시각
+111	hcp180_L_PI	L_PI	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+112	hcp180_L_POS1	L_POS1	cortex	저자 공개 ROI	Default	Default
+113	hcp180_L_POS2	L_POS2	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+114	hcp180_L_PSL	L_PSL	cortex	저자 공개 ROI	Language	언어
+115	hcp180_L_PeEc	L_PeEc	cortex	저자 공개 ROI	Ventral-Multimodal	ventral multimodal
+116	hcp180_L_Pir	L_Pir	cortex	저자 공개 ROI	Orbito-Affective	orbito-affective
+117	hcp180_L_PoI1	L_PoI1	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+118	hcp180_L_PoI2	L_PoI2	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+119	hcp180_L_PreS	L_PreS	cortex	저자 공개 ROI	Default	Default
+120	hcp180_L_ProS	L_ProS	cortex	저자 공개 ROI	Visual1	1차 시각
+121	hcp180_L_RI	L_RI	cortex	저자 공개 ROI	Auditory	청각
+122	hcp180_L_RSC	L_RSC	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+123	hcp180_L_SCEF	L_SCEF	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+124	hcp180_L_SFL	L_SFL	cortex	저자 공개 ROI	Language	언어
+125	hcp180_L_STGa	L_STGa	cortex	저자 공개 ROI	Language	언어
+126	hcp180_L_STSda	L_STSda	cortex	저자 공개 ROI	Language	언어
+127	hcp180_L_STSdp	L_STSdp	cortex	저자 공개 ROI	Language	언어
+128	hcp180_L_STSva	L_STSva	cortex	저자 공개 ROI	Default	Default
+129	hcp180_L_STSvp	L_STSvp	cortex	저자 공개 ROI	Default	Default
+130	hcp180_L_STV	L_STV	cortex	저자 공개 ROI	Language	언어
+131	hcp180_L_TA2	L_TA2	cortex	저자 공개 ROI	Auditory	청각
+132	hcp180_L_TE1a	L_TE1a	cortex	저자 공개 ROI	Default	Default
+133	hcp180_L_TE1m	L_TE1m	cortex	저자 공개 ROI	Default	Default
+134	hcp180_L_TE1p	L_TE1p	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+135	hcp180_L_TE2a	L_TE2a	cortex	저자 공개 ROI	Default	Default
+136	hcp180_L_TE2p	L_TE2p	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+137	hcp180_L_TF	L_TF	cortex	저자 공개 ROI	Ventral-Multimodal	ventral multimodal
+138	hcp180_L_TGd	L_TGd	cortex	저자 공개 ROI	Default	Default
+139	hcp180_L_TGv	L_TGv	cortex	저자 공개 ROI	Language	언어
+140	hcp180_L_TPOJ1	L_TPOJ1	cortex	저자 공개 ROI	Language	언어
+141	hcp180_L_TPOJ2	L_TPOJ2	cortex	저자 공개 ROI	Posterior-Multimodal	posterior multimodal
+142	hcp180_L_TPOJ3	L_TPOJ3	cortex	저자 공개 ROI	Posterior-Multimodal	posterior multimodal
+143	hcp180_L_V1	L_V1	cortex	저자 공개 ROI	Visual1	1차 시각
+144	hcp180_L_V2	L_V2	cortex	저자 공개 ROI	Visual2	2차 시각
+145	hcp180_L_V3A	L_V3A	cortex	저자 공개 ROI	Visual2	2차 시각
+146	hcp180_L_V3B	L_V3B	cortex	저자 공개 ROI	Visual2	2차 시각
+147	hcp180_L_V3CD	L_V3CD	cortex	저자 공개 ROI	Visual2	2차 시각
+148	hcp180_L_V3	L_V3	cortex	저자 공개 ROI	Visual2	2차 시각
+149	hcp180_L_V4	L_V4	cortex	저자 공개 ROI	Visual2	2차 시각
+150	hcp180_L_V4t	L_V4t	cortex	저자 공개 ROI	Visual2	2차 시각
+151	hcp180_L_V6A	L_V6A	cortex	저자 공개 ROI	Visual2	2차 시각
+152	hcp180_L_V6	L_V6	cortex	저자 공개 ROI	Visual2	2차 시각
+153	hcp180_L_V7	L_V7	cortex	저자 공개 ROI	Visual2	2차 시각
+154	hcp180_L_V8	L_V8	cortex	저자 공개 ROI	Visual2	2차 시각
+155	hcp180_L_VIP	L_VIP	cortex	저자 공개 ROI	Visual2	2차 시각
+156	hcp180_L_VMV1	L_VMV1	cortex	저자 공개 ROI	Visual2	2차 시각
+157	hcp180_L_VMV2	L_VMV2	cortex	저자 공개 ROI	Visual2	2차 시각
+158	hcp180_L_VMV3	L_VMV3	cortex	저자 공개 ROI	Visual2	2차 시각
+159	hcp180_L_VVC	L_VVC	cortex	저자 공개 ROI	Visual2	2차 시각
+160	hcp180_L_a10p	L_a10p	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+161	hcp180_L_a24	L_a24	cortex	저자 공개 ROI	Default	Default
+162	hcp180_L_a24pr	L_a24pr	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+163	hcp180_L_a32pr	L_a32pr	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+164	hcp180_L_a47r	L_a47r	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+165	hcp180_L_a9-46v	L_a9-46v	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+166	hcp180_L_d23ab	L_d23ab	cortex	저자 공개 ROI	Default	Default
+167	hcp180_L_d32	L_d32	cortex	저자 공개 ROI	Default	Default
+168	hcp180_L_i6-8	L_i6-8	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+169	hcp180_L_p10p	L_p10p	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+170	hcp180_L_p24	L_p24	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+171	hcp180_L_p24pr	L_p24pr	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+172	hcp180_L_p32	L_p32	cortex	저자 공개 ROI	Default	Default
+173	hcp180_L_p32pr	L_p32pr	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+174	hcp180_L_p47r	L_p47r	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+175	hcp180_L_p9-46v	L_p9-46v	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+176	hcp180_L_pOFC	L_pOFC	cortex	저자 공개 ROI	Orbito-Affective	orbito-affective
+177	hcp180_L_s32	L_s32	cortex	저자 공개 ROI	Default	Default
+178	hcp180_L_s6-8	L_s6-8	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+179	hcp180_L_v23ab	L_v23ab	cortex	저자 공개 ROI	Default	Default
+180	hcp180_R_10d	R_10d	cortex	저자 공개 ROI	Default	Default
+181	hcp180_R_10pp	R_10pp	cortex	저자 공개 ROI	Default	Default
+182	hcp180_R_10r	R_10r	cortex	저자 공개 ROI	Default	Default
+183	hcp180_R_10v	R_10v	cortex	저자 공개 ROI	Default	Default
+184	hcp180_R_11l	R_11l	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+185	hcp180_R_13l	R_13l	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+186	hcp180_R_1	R_1	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+187	hcp180_R_23c	R_23c	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+188	hcp180_R_23d	R_23d	cortex	저자 공개 ROI	Default	Default
+189	hcp180_R_24dd	R_24dd	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+190	hcp180_R_24dv	R_24dv	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+191	hcp180_R_25	R_25	cortex	저자 공개 ROI	Default	Default
+192	hcp180_R_2	R_2	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+193	hcp180_R_31a	R_31a	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+194	hcp180_R_31pd	R_31pd	cortex	저자 공개 ROI	Default	Default
+195	hcp180_R_31pv	R_31pv	cortex	저자 공개 ROI	Default	Default
+196	hcp180_R_33pr	R_33pr	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+197	hcp180_R_3a	R_3a	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+198	hcp180_R_3b	R_3b	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+199	hcp180_R_43	R_43	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+200	hcp180_R_44	R_44	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+201	hcp180_R_45	R_45	cortex	저자 공개 ROI	Language	언어
+202	hcp180_R_46	R_46	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+203	hcp180_R_47l	R_47l	cortex	저자 공개 ROI	Default	Default
+204	hcp180_R_47m	R_47m	cortex	저자 공개 ROI	Default	Default
+205	hcp180_R_47s	R_47s	cortex	저자 공개 ROI	Default	Default
+206	hcp180_R_4	R_4	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+207	hcp180_R_52	R_52	cortex	저자 공개 ROI	Auditory	청각
+208	hcp180_R_55b	R_55b	cortex	저자 공개 ROI	Language	언어
+209	hcp180_R_5L	R_5L	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+210	hcp180_R_5m	R_5m	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+211	hcp180_R_5mv	R_5mv	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+212	hcp180_R_6a	R_6a	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+213	hcp180_R_6d	R_6d	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+214	hcp180_R_6ma	R_6ma	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+215	hcp180_R_6mp	R_6mp	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+216	hcp180_R_6r	R_6r	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+217	hcp180_R_6v	R_6v	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+218	hcp180_R_7AL	R_7AL	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+219	hcp180_R_7Am	R_7Am	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+220	hcp180_R_7PC	R_7PC	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+221	hcp180_R_7PL	R_7PL	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+222	hcp180_R_7Pm	R_7Pm	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+223	hcp180_R_7m	R_7m	cortex	저자 공개 ROI	Default	Default
+224	hcp180_R_8Ad	R_8Ad	cortex	저자 공개 ROI	Default	Default
+225	hcp180_R_8Av	R_8Av	cortex	저자 공개 ROI	Default	Default
+226	hcp180_R_8BL	R_8BL	cortex	저자 공개 ROI	Default	Default
+227	hcp180_R_8BM	R_8BM	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+228	hcp180_R_8C	R_8C	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+229	hcp180_R_9-46d	R_9-46d	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+230	hcp180_R_9a	R_9a	cortex	저자 공개 ROI	Default	Default
+231	hcp180_R_9m	R_9m	cortex	저자 공개 ROI	Default	Default
+232	hcp180_R_9p	R_9p	cortex	저자 공개 ROI	Default	Default
+233	hcp180_R_A1	R_A1	cortex	저자 공개 ROI	Auditory	청각
+234	hcp180_R_A4	R_A4	cortex	저자 공개 ROI	Auditory	청각
+235	hcp180_R_A5	R_A5	cortex	저자 공개 ROI	Language	언어
+236	hcp180_R_AAIC	R_AAIC	cortex	저자 공개 ROI	Orbito-Affective	orbito-affective
+237	hcp180_R_AIP	R_AIP	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+238	hcp180_R_AVI	R_AVI	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+239	hcp180_R_DVT	R_DVT	cortex	저자 공개 ROI	Visual1	1차 시각
+240	hcp180_R_EC	R_EC	cortex	저자 공개 ROI	Default	Default
+241	hcp180_R_FEF	R_FEF	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+242	hcp180_R_FFC	R_FFC	cortex	저자 공개 ROI	Visual2	2차 시각
+243	hcp180_R_FOP1	R_FOP1	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+244	hcp180_R_FOP2	R_FOP2	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+245	hcp180_R_FOP3	R_FOP3	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+246	hcp180_R_FOP4	R_FOP4	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+247	hcp180_R_FOP5	R_FOP5	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+248	hcp180_R_FST	R_FST	cortex	저자 공개 ROI	Visual2	2차 시각
+249	hcp180_R_H	R_H	cortex	저자 공개 ROI	Default	Default
+250	hcp180_R_IFJa	R_IFJa	cortex	저자 공개 ROI	Language	언어
+251	hcp180_R_IFJp	R_IFJp	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+252	hcp180_R_IFSa	R_IFSa	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+253	hcp180_R_IFSp	R_IFSp	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+254	hcp180_R_IP0	R_IP0	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+255	hcp180_R_IP1	R_IP1	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+256	hcp180_R_IP2	R_IP2	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+257	hcp180_R_IPS1	R_IPS1	cortex	저자 공개 ROI	Visual2	2차 시각
+258	hcp180_R_Ig	R_Ig	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+259	hcp180_R_LBelt	R_LBelt	cortex	저자 공개 ROI	Auditory	청각
+260	hcp180_R_LIPd	R_LIPd	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+261	hcp180_R_LIPv	R_LIPv	cortex	저자 공개 ROI	Visual2	2차 시각
+262	hcp180_R_LO1	R_LO1	cortex	저자 공개 ROI	Visual2	2차 시각
+263	hcp180_R_LO2	R_LO2	cortex	저자 공개 ROI	Visual2	2차 시각
+264	hcp180_R_LO3	R_LO3	cortex	저자 공개 ROI	Visual2	2차 시각
+265	hcp180_R_MBelt	R_MBelt	cortex	저자 공개 ROI	Auditory	청각
+266	hcp180_R_MIP	R_MIP	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+267	hcp180_R_MI	R_MI	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+268	hcp180_R_MST	R_MST	cortex	저자 공개 ROI	Visual2	2차 시각
+269	hcp180_R_MT	R_MT	cortex	저자 공개 ROI	Visual2	2차 시각
+270	hcp180_R_OFC	R_OFC	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+271	hcp180_R_OP1	R_OP1	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+272	hcp180_R_OP2-3	R_OP2-3	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+273	hcp180_R_OP4	R_OP4	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+274	hcp180_R_PBelt	R_PBelt	cortex	저자 공개 ROI	Auditory	청각
+275	hcp180_R_PCV	R_PCV	cortex	저자 공개 ROI	Posterior-Multimodal	posterior multimodal
+276	hcp180_R_PEF	R_PEF	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+277	hcp180_R_PF	R_PF	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+278	hcp180_R_PFcm	R_PFcm	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+279	hcp180_R_PFm	R_PFm	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+280	hcp180_R_PFop	R_PFop	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+281	hcp180_R_PFt	R_PFt	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+282	hcp180_R_PGi	R_PGi	cortex	저자 공개 ROI	Default	Default
+283	hcp180_R_PGp	R_PGp	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+284	hcp180_R_PGs	R_PGs	cortex	저자 공개 ROI	Default	Default
+285	hcp180_R_PHA1	R_PHA1	cortex	저자 공개 ROI	Default	Default
+286	hcp180_R_PHA2	R_PHA2	cortex	저자 공개 ROI	Default	Default
+287	hcp180_R_PHA3	R_PHA3	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+288	hcp180_R_PHT	R_PHT	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+289	hcp180_R_PH	R_PH	cortex	저자 공개 ROI	Visual2	2차 시각
+290	hcp180_R_PIT	R_PIT	cortex	저자 공개 ROI	Visual2	2차 시각
+291	hcp180_R_PI	R_PI	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+292	hcp180_R_POS1	R_POS1	cortex	저자 공개 ROI	Default	Default
+293	hcp180_R_POS2	R_POS2	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+294	hcp180_R_PSL	R_PSL	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+295	hcp180_R_PeEc	R_PeEc	cortex	저자 공개 ROI	Ventral-Multimodal	ventral multimodal
+296	hcp180_R_Pir	R_Pir	cortex	저자 공개 ROI	Orbito-Affective	orbito-affective
+297	hcp180_R_PoI1	R_PoI1	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+298	hcp180_R_PoI2	R_PoI2	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+299	hcp180_R_PreS	R_PreS	cortex	저자 공개 ROI	Default	Default
+300	hcp180_R_ProS	R_ProS	cortex	저자 공개 ROI	Visual1	1차 시각
+301	hcp180_R_RI	R_RI	cortex	저자 공개 ROI	Somatomotor	체성감각운동
+302	hcp180_R_RSC	R_RSC	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+303	hcp180_R_SCEF	R_SCEF	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+304	hcp180_R_SFL	R_SFL	cortex	저자 공개 ROI	Language	언어
+305	hcp180_R_STGa	R_STGa	cortex	저자 공개 ROI	Language	언어
+306	hcp180_R_STSda	R_STSda	cortex	저자 공개 ROI	Default	Default
+307	hcp180_R_STSdp	R_STSdp	cortex	저자 공개 ROI	Language	언어
+308	hcp180_R_STSva	R_STSva	cortex	저자 공개 ROI	Default	Default
+309	hcp180_R_STSvp	R_STSvp	cortex	저자 공개 ROI	Default	Default
+310	hcp180_R_STV	R_STV	cortex	저자 공개 ROI	Posterior-Multimodal	posterior multimodal
+311	hcp180_R_TA2	R_TA2	cortex	저자 공개 ROI	Auditory	청각
+312	hcp180_R_TE1a	R_TE1a	cortex	저자 공개 ROI	Default	Default
+313	hcp180_R_TE1m	R_TE1m	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+314	hcp180_R_TE1p	R_TE1p	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+315	hcp180_R_TE2a	R_TE2a	cortex	저자 공개 ROI	Default	Default
+316	hcp180_R_TE2p	R_TE2p	cortex	저자 공개 ROI	Dorsal-Attention	dorsal attention
+317	hcp180_R_TF	R_TF	cortex	저자 공개 ROI	Ventral-Multimodal	ventral multimodal
+318	hcp180_R_TGd	R_TGd	cortex	저자 공개 ROI	Default	Default
+319	hcp180_R_TGv	R_TGv	cortex	저자 공개 ROI	Language	언어
+320	hcp180_R_TPOJ1	R_TPOJ1	cortex	저자 공개 ROI	Language	언어
+321	hcp180_R_TPOJ2	R_TPOJ2	cortex	저자 공개 ROI	Posterior-Multimodal	posterior multimodal
+322	hcp180_R_TPOJ3	R_TPOJ3	cortex	저자 공개 ROI	Posterior-Multimodal	posterior multimodal
+323	hcp180_R_V1	R_V1	cortex	저자 공개 ROI	Visual1	1차 시각
+324	hcp180_R_V2	R_V2	cortex	저자 공개 ROI	Visual2	2차 시각
+325	hcp180_R_V3A	R_V3A	cortex	저자 공개 ROI	Visual2	2차 시각
+326	hcp180_R_V3B	R_V3B	cortex	저자 공개 ROI	Visual2	2차 시각
+327	hcp180_R_V3CD	R_V3CD	cortex	저자 공개 ROI	Visual2	2차 시각
+328	hcp180_R_V3	R_V3	cortex	저자 공개 ROI	Visual2	2차 시각
+329	hcp180_R_V4	R_V4	cortex	저자 공개 ROI	Visual2	2차 시각
+330	hcp180_R_V4t	R_V4t	cortex	저자 공개 ROI	Visual2	2차 시각
+331	hcp180_R_V6A	R_V6A	cortex	저자 공개 ROI	Visual2	2차 시각
+332	hcp180_R_V6	R_V6	cortex	저자 공개 ROI	Visual2	2차 시각
+333	hcp180_R_V7	R_V7	cortex	저자 공개 ROI	Visual2	2차 시각
+334	hcp180_R_V8	R_V8	cortex	저자 공개 ROI	Visual2	2차 시각
+335	hcp180_R_VIP	R_VIP	cortex	저자 공개 ROI	Visual2	2차 시각
+336	hcp180_R_VMV1	R_VMV1	cortex	저자 공개 ROI	Visual2	2차 시각
+337	hcp180_R_VMV2	R_VMV2	cortex	저자 공개 ROI	Visual2	2차 시각
+338	hcp180_R_VMV3	R_VMV3	cortex	저자 공개 ROI	Visual2	2차 시각
+339	hcp180_R_VVC	R_VVC	cortex	저자 공개 ROI	Visual2	2차 시각
+340	hcp180_R_a10p	R_a10p	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+341	hcp180_R_a24	R_a24	cortex	저자 공개 ROI	Default	Default
+342	hcp180_R_a24pr	R_a24pr	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+343	hcp180_R_a32pr	R_a32pr	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+344	hcp180_R_a47r	R_a47r	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+345	hcp180_R_a9-46v	R_a9-46v	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+346	hcp180_R_d23ab	R_d23ab	cortex	저자 공개 ROI	Default	Default
+347	hcp180_R_d32	R_d32	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+348	hcp180_R_i6-8	R_i6-8	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+349	hcp180_R_p10p	R_p10p	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+350	hcp180_R_p24	R_p24	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+351	hcp180_R_p24pr	R_p24pr	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+352	hcp180_R_p32	R_p32	cortex	저자 공개 ROI	Default	Default
+353	hcp180_R_p32pr	R_p32pr	cortex	저자 공개 ROI	Cingulo-Opercular	cingulo-opercular
+354	hcp180_R_p47r	R_p47r	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+355	hcp180_R_p9-46v	R_p9-46v	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+356	hcp180_R_pOFC	R_pOFC	cortex	저자 공개 ROI	Orbito-Affective	orbito-affective
+357	hcp180_R_s32	R_s32	cortex	저자 공개 ROI	Default	Default
+358	hcp180_R_s6-8	R_s6-8	cortex	저자 공개 ROI	Frontoparietal	frontoparietal
+359	hcp180_R_v23ab	R_v23ab	cortex	저자 공개 ROI	Default	Default
+360	thalamus	thalamus	subcortex	새 mask(PickAtlas, 1 mm 중심 방식)	Subcortex	피질하 해부학적 묶음
+361	hyppocampus	hippocampus	subcortex	새 mask(PickAtlas, 1 mm 중심 방식)	Subcortex	피질하 해부학적 묶음
+362	hypothalamus	hypothalamus	subcortex	새 mask(PickAtlas, 1 mm 중심 방식)	Subcortex	피질하 해부학적 묶음
+363	pallidum	pallidum	subcortex	새 mask(PickAtlas, 1 mm 중심 방식)	Subcortex	피질하 해부학적 묶음
+364	brainstem	brainstem	subcortex	새 mask(PickAtlas, 1 mm 중심 방식)	Subcortex	피질하 해부학적 묶음
+365	caudate	caudate	subcortex	새 mask(PickAtlas, 1 mm 중심 방식)	Subcortex	피질하 해부학적 묶음
+366	putamen	putamen	subcortex	새 mask(PickAtlas, 1 mm 중심 방식)	Subcortex	피질하 해부학적 묶음
+367	nuc_accum	BA34 ROI	subcortex	새 mask(PickAtlas, 1 mm 중심 방식)	Subcortex	피질하 해부학적 묶음
+368	amygdala	amygdala	subcortex	새 mask(PickAtlas, 1 mm 중심 방식)	Subcortex	피질하 해부학적 묶음
+369	cerebellum	cerebellum	subcortex	새 mask(PickAtlas, 1 mm 중심 방식)	Subcortex	피질하 해부학적 묶음

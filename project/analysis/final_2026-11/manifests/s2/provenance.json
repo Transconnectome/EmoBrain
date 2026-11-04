@@ -1,0 +1,25 @@
+{
+ "split_id": "hk_dev_rungroup6_v2",
+ "code": "project/analysis/final_2026-11/s2_manifest.py",
+ "code_sha256": "7dbcfebc17121bf06692a157f49d7847a6ddff1f84a0103326d024f23081f731",
+ "git_head_when_checked": "a0299850049e062a6ffc988df05e3a373334a80a",
+ "sklearn": "1.8.0",
+ "kmeans": {
+  "n_clusters": 5,
+  "n_init": 10,
+  "random_state": 0
+ },
+ "seed_control_sample": 20261104,
+ "seed_distance_check": 20261105,
+ "input_sha256": {
+  "/pscratch/sd/s/sjmoon/EmoBrain/docs/reports/prelim_2026-10/splits/horikawa_rungroup6_v1.tsv": "c331eedd901f18b1a09aa8d6e010be4ad8889a0fb2758e63846e3c7e187c4cb4",
+  "/pscratch/sd/s/sjmoon/EmoBrain/prereg_v2/manifests/stimulus_crosswalk.tsv": "fd4e980a3ce912ae036cccea9d7a6cd6d97457f7357d6a8ec9a01930a6e4b626",
+  "/pscratch/sd/s/sjmoon/EmoBrain/project/analysis/final_2026-11/manifests/mc_test72.tsv": "8f8fdb119592e8ee49753bcedef171e858bf609cde97d63036b48ef8b73c6e2a",
+  "/pscratch/sd/s/sjmoon/EmoBrain/project/analysis/final_2026-11/manifests/label_map_34.tsv": "39f8358562500b4b18bdc6e2afc419912cb7f46cebce2f8392fd795eeb15a3d9",
+  "/pscratch/sd/s/sjmoon/EmoBrain/project/shared/data/cowen_horikawa_labels.csv": "a462c851d7f8849f4a51fbc8a63097931452629bfd2b51af42b00ade85633134",
+  "/pscratch/sd/s/sjmoon/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/semantic_features.csv": "2fc4466ae951899fe4e8d334cff250be94a8abfe24569c70e9caf2ef06f1339a",
+  "/pscratch/sd/s/sjmoon/EmoBrain/project/analysis/final_2026-11/manifests/abnormal_blocks_hk.tsv": "e51b3551d2b947bb222a34c8b2c0788b5896616255001a33339a4d0f2e692b8d",
+  "/pscratch/sd/s/sjmoon/EmoBrain/project/analysis/final_2026-11/manifests/mc_train_runs.tsv": "666832907558daab3e5a2c6f8c175556a8aa84ce7726934e965c1d048b78a07c",
+  "/pscratch/sd/s/sjmoon/atlas_sources/cab_np/CortexSubcortex_ColeAnticevic_NetPartition_wSubcorGSR_parcels_LR_LabelKey.txt": "2d12fea6d84be2d82f9d146e7fa9fa2fe54a91fade32e6febb74adf53b583adf"
+ }
+}

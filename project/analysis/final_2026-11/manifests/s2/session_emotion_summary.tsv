@@ -1,0 +1,6 @@
+participant	n_sessions	median_abs_diff_in_sd	max_abs_diff_in_sd	emotion_at_max
+sub-01	8	0.0439616	0.195936	craving
+sub-02	8	0.039224	0.166005	joy
+sub-03	8	0.0404677	0.157189	fear
+sub-04	8	0.041614	0.225729	fear
+sub-05	8	0.0411319	0.24048	joy
