@@ -29,6 +29,7 @@
 | `semantic_matched_pairs.py` · `.sh` | 의미를 맞춘 영상 쌍에서 정서 차이를 저수준·층별 시각 특징 차이가 설명하는지 (34개 감정) | `14_matched_pairs/` |
 | `within_context_lowlevel.py` · `.sh` | 같은 대상(맥락) 안에서 저수준 특징이 정서를 가르는지, 캡션 뒤에도 남는지 (맥락 8개 × 감정 4개, null 200회) | `15_within_context/` |
 | `hierarchy_components.py` · `hierarchy_figures.py` · `.sh` | 정서 평정을 시각에만·둘 다·캡션에만·나머지로 나눈 뒤 뇌 영역 묶음 24개마다 디코딩, 피질 위계 순서로 비교 (그림은 swift_PTL2) | `16_hierarchy/` |
+| `khbm_pilot.py` · `khbm_pilot.sh` · `khbm_pilot_resume.sh` | KHBM 초록용 빠른 예비 분석 (MC 72개 제외, 선형, 공유 MLP 조건 비교, 바꿔 끼우기, 영역 분해) | `17_khbm_pilot/` |
 | `roi_networks.py` · `roi_networks.sh` | 영역 묶음별(7개 네트워크, 소뇌, 편도체, 해마, 그 밖 피질하, 시상하부·뇌간) 직접 예측, 캡션 경로, V-JEPA 2 위 추가분 | `08_roi_networks/` |
 
 입력 특징(V-JEPA 2, 캡션 임베딩)은 `../features/build_lab_features.py`, 감정어를 지운 캡션은 `../features/build_caption_noemo.py` 가 `/pscratch/sd/s/sjmoon/transfer/emobrain_lab_features_20261026/` 에 만든다.
