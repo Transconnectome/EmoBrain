@@ -325,7 +325,7 @@
 
 | 항목 | 정한 것 | 이유 |
 | --- | --- | --- |
-| ROI 지도 | 피질 HCP360 360개 + 피질하 10개(편도체, 뇌간, 미상핵, 소뇌, 해마, 시상하부, 측좌핵, 창백핵, 조가비핵, 시상), 모두 370개 | 같은 자료의 Horikawa 외(2020)와 GED(Huang 외, 2022)가 쓴 지도(Glasser 외, 2016). 5명이 함께 쓰는 공통 단위이자 영역 분석의 단위. 기능 군집 token(Beliy 외, 2026)은 쓰지 않는다. 시각 encoding으로 묶은 단위가 시각 경로와 캡션 경로의 비교에 섞이고, 그 군집은 시각 피질에서만 만들어졌다. 개인 공간 지도는 원문 방식으로 만든다. 피질은 fsaverage의 HCP360 label을 개인 표면으로 옮겨 2 mm로 다시 보간하고, 피질하는 WFU PickAtlas의 AAL과 Talairach Daemon mask를 개인 T1w로 옮긴다(측좌핵은 원문대로 Brodmann area 34). 피질하의 좌우 처리는 [미확인] |
+| ROI 지도 | 피질 HCP360 360개 + 피질하 10개(편도체, 뇌간, 미상핵, 소뇌, 해마, 시상하부, BA34 기반 ROI, 창백핵, 조가비핵, 시상), 모두 370개 | 같은 자료의 Horikawa 외(2020)와 GED(Huang 외, 2022)가 쓴 지도(Glasser 외, 2016). 5명이 함께 쓰는 공통 단위이자 영역 분석의 단위. 기능 군집 token(Beliy 외, 2026)은 쓰지 않는다. 시각 encoding으로 묶은 단위가 시각 경로와 캡션 경로의 비교에 섞이고, 그 군집은 시각 피질에서만 만들어졌다. 피질은 저자가 공개한 참가자별 ROI를 그대로 쓴다. 피질하는 같은 지도 정의(WFU PickAtlas의 AAL과 Talairach Daemon, 좌우 합침)로 11명 모두 같은 절차로 새로 만든다. 저자 공개 mask가 HK sub-03에서 해부 구조와 크게 어긋났기 때문이고, 정확도 측정의 결론은 아니다. BA34 기반 ROI는 원문이 nucleus accumbens라고 부른 영역이며 측좌핵의 기능으로 해석하지 않는다. QC mask 안에 voxel이 남으면 유효한 ROI로 보고, 그 결과 370개가 남았다 |
 | 영역 안 표현 | t(s, r) = W(s, r) x(s, r) + b(s, r) + e(r). 참가자별, ROI별 선형 투영으로 그 ROI의 voxel만으로 d차원 ROI token을 만듦. e(r)는 참가자 공통 영역 embedding | 영역 안 voxel 패턴을 선형으로 읽는 계보(Horikawa 외, 2020; Horikawa & Kamitani, 2017; Horikawa, 2025). 참가자별 선형층 뒤 공유 모델(MindEye2, Scotti 외, 2024) |
 | 공통 유효 영역 | HK 5명과 MC 참가자 모두에서 유효한 영역만. 해부학적 mask와 촬영 범위로만 정함 | MC 전이(6-3) 때 빈 token을 만들 수 없음 |
 | 모델 폭 d | 바깥 fold마다 검증 fold에서 입력층 weight decay와 함께 고름. 기준은 직접 학습의 정서 r. 고른 d는 그 fold의 모든 조건에 씀. 후보는 실제 mask로 비용을 본 뒤 성능 전에 고정 | nested cross-validation(Varma & Simon, 2006). 후보를 적게 둠(Cawley & Talbot, 2010) |
@@ -539,8 +539,8 @@
 - [ ] 거꾸로 센 평정자 수가 17을 넘는 영상과 중복 영상의 관계
 - [ ] semantic_features.csv가 Horikawa 공개 자료와 같은지, 캡션 파일 출처와 영상당 캡션 수
 - [ ] voxel 원자료 캐시와 참가자별 voxel 수, 실제 mask의 ROI별 voxel 수와 입력층 메모리
-- [ ] 원문 방식의 지도 만들기에 필요한 파일(fsaverage HCP360 label, WFU PickAtlas mask) 받기, 피질하 10개의 좌우 처리
-- [ ] 새 지도로 사전 신뢰도와 5명 공통 유효 영역 수 다시 내기
+- [x] 지도 재료 받기와 대조(저자 공개 ROI, WFU PickAtlas 공식본), 피질하 10개의 좌우 처리(합침)
+- [ ] 새 지도로 사전 신뢰도 다시 내기(유효 영역 수는 11명 공통 370개로 확인)
 - [ ] 서버 분할 파일로 세션 조건 확인, 세션별 정서 평균 차이 확인
 - [ ] 개발 영상으로 k-means 구역과 거리 점검 다시 하기
 - [ ] V-JEPA 2 공식 평가 설정과 기존 캐시의 추출 설정, 8초 반복 종료 시점
