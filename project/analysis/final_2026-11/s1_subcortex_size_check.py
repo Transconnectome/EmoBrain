@@ -2,9 +2,10 @@
 """S1: 저자 공개 피질하 mask가 새 mask보다 큰 이유가 경계 처리인지 잰다 (04 정할 것 7, 2026-11-04).
 
 궁금한 것: 저자 키 이름은 pickatlas_r_w...로, 지도를 개인 공간으로 옮긴 뒤(w) 기능 영상 격자로 다시 보간한(r) 것으로 보인다.
-이진 지도를 선형 보간하면 경계 voxel이 0과 1 사이 값을 갖고, 어느 문턱에서 자르느냐에 따라 크기가 달라진다.
-그래서 같은 변환으로 ROI를 선형 보간한 뒤 문턱을 바꿔 가며 voxel 수와 공개 mask와의 Dice를 본다.
-저자의 실제 문턱은 공개 코드에 없다. 이 표는 설명을 확인하는 진단이고, 문턱을 고르는 근거로 자동으로 쓰지 않는다. 뇌 반응은 읽지 않는다.
+이진 지도를 선형 보간하면 경계 voxel이 0과 1 사이 값을 갖고, 어느 값에서 자르느냐에 따라 크기가 달라진다.
+그래서 같은 변환으로 ROI를 선형 보간한 뒤 보간값 기준을 바꿔 가며 voxel 수와 공개 mask와의 Dice를 본다.
+보간값은 voxel 중심 위치에서 계산한 값이고 부피 겹침 비율이 아니다. 0.001 이상은 0보다 큼과도 다르다.
+저자의 실제 처리는 공개 코드에 없다. 이 표는 경계 처리에 대한 민감도를 보는 진단이고, 차이의 기여량을 정하거나 기준을 고르는 근거가 아니다. 0.001 기준은 채택하지 않았다(04 정할 것 7). 뇌 반응은 읽지 않는다.
 입력: s1_subcortex_rebuild의 변환(<work>/<tag>_1Warp.nii.gz, _0GenericAffine.mat), s1_original_rois의 npz
 출력: manifests/subcortex_size_check.tsv
 """
@@ -25,7 +26,7 @@ PUB = REPO / "project/output/final_2026-11/s1_original_rois"
 WORK = REPO / "project/output/final_2026-11/s1_subcortex_rebuild"
 ATLAS = PM / "atlas_sources/wfu_pickatlas/official/WFU_PickAtlas_3.0.5b/wfu_pickatlas/MNI_atlas_templates"
 COHORT = {"hk": ("Horikawa", "v3", "01 02 03 04 05"), "mc": ("MindCaptioning", "v2", "01 02 03 04 05 06")}
-THRESHOLDS = [0.5, 0.25, 0.1, 0.001]  # 0.001은 "조금이라도 걸치면 포함"을 숫자로 쓴 것이다.
+THRESHOLDS = [0.5, 0.25, 0.1, 0.001]  # 선형 보간값의 기준. 부피 겹침 비율이 아니다.
 ASEG = {"hyppocampus": [17, 53], "thalamus": [10, 49], "amygdala": [18, 54], "caudate": [11, 50], "putamen": [12, 51], "pallidum": [13, 52], "brainstem": [16], "cerebellum": [7, 8, 46, 47]}
 IMG = "docker:nipreps/fmriprep:25.0.0"
 
@@ -136,20 +137,21 @@ def summary():
     cols = ["n_atlas_2mm", "n_atlas_dilated_1", "n_public"] + [f"n_ge_{t}" for t in THRESHOLDS]
     g = o.groupby("roi")[cols].mean().round(1).sort_values("n_public")
     print(g.to_string())
-    print("크기 비(문턱별 ÷ 공개):")
-    print(g[[f"n_ge_{t}" for t in THRESHOLDS]].div(g.n_public, axis=0).round(2).to_string())
-    print("공개 mask와 Dice:")
+    print("크기 비(보간값 기준별 ÷ 공개, ROI별 10명 평균):")
+    raw = o.groupby("roi")[cols].mean().reindex(g.index)
+    print(raw[[f"n_ge_{t}" for t in THRESHOLDS]].div(raw.n_public, axis=0).round(2).to_string())
+    print("공개 mask와 Dice(ROI별 10명 평균):")
     print(o.groupby("roi")[[f"dice_public_ge_{t}" for t in THRESHOLDS]].mean().round(3).reindex(g.index).to_string())
     print("10개 ROI 평균 Dice:", o[[f"dice_public_ge_{t}" for t in THRESHOLDS]].mean().round(3).to_dict())
     a = o[o.dice_aseg_public.notna()]
     print("aseg와 Dice (10명, 8종 ROI별 평균):")
     print(a.groupby("roi")[["dice_aseg_public"] + [f"dice_aseg_ge_{t}" for t in THRESHOLDS]].mean().round(3).to_string())
     print("8종 평균:", a[["dice_aseg_public"] + [f"dice_aseg_ge_{t}" for t in THRESHOLDS]].groupby(a.roi).mean().mean().round(3).to_dict())
-    print("|best_z_mm| >0 규칙, 10명:", a["best_z_mm_ge_0.001"].abs().value_counts().sort_index().to_dict())
+    print("|best_z_mm| 보간값 0.001 이상, 10명:", a["best_z_mm_ge_0.001"].abs().value_counts().sort_index().to_dict())
     s3 = T[(T.cohort == "hk") & (T.participant == "sub-03")]
     print("HK sub-03:")
     print(s3[["roi", "n_public", "n_ge_0.001", "n_qc_ge_0.001", "dice_aseg_public", "dice_aseg_ge_0.001", "best_z_mm_ge_0.001"]].to_string(index=False))
-    print("QC 안 최솟값(>0 규칙):", int(T["n_qc_ge_0.001"].min()), "시상하부 10명 평균 QC 안:", round(o[o.roi == "hypothalamus"]["n_qc_ge_0.001"].mean(), 1))
+    print("QC 안 최솟값(보간값 0.001 이상):", int(T["n_qc_ge_0.001"].min()), "시상하부 10명 평균 QC 안:", round(o[o.roi == "hypothalamus"]["n_qc_ge_0.001"].mean(), 1))
 
 
 def main():

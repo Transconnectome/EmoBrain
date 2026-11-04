@@ -9,7 +9,7 @@ aseg는 수작업 정답이 아니고 지도와 정의도 다르므로(ex) Talai
        MNI 공간끼리 같다고 놓지 않기 위해서이고, 설정은 antsRegistrationSyNQuick.sh 기본값(-t s)이다.
 복셀화 후보 두 개(미리 고정, 팽창이나 문턱을 더하지 않음)
   nn_2mm      : 지도 라벨을 우리 2 mm 격자로 최근접 이웃으로 바로 옮긴다
-  overlap_2mm : 지도 라벨을 T1w 1 mm로 최근접 이웃으로 옮긴 뒤, 그 voxel 중심이 드는 2 mm voxel을 모두 포함한다
+  overlap_2mm : 지도 라벨을 T1w 1 mm로 최근접 이웃으로 옮긴 뒤, ROI에 속한 1 mm voxel의 중심이 드는 2 mm voxel을 모두 포함한다. 정확한 부피 교차 판정이 아니다
 입력: <work>/<tag>_<atlas>_{nn2mm,t1w}.nii.gz, manifests/subcortex_definition.tsv, s1_original_rois의 npz
 출력: <work>/<tag>_new_masks.npz, <work>/<tag>_check.tsv, --summary로 manifests/subcortex_rebuild_check.tsv
 """
@@ -86,7 +86,7 @@ def on_grid(img, m):
 
 
 def overlap_to_grid(flag, img1mm, m):
-    """1 mm voxel 중심이 드는 2 mm voxel을 모두 True로 한다."""
+    """ROI에 속한 1 mm voxel의 중심이 드는 2 mm voxel을 모두 True로 한다. np.round의 반칸 동점은 짝수 인덱스로 간다."""
     out = np.zeros(m.shape, bool)
     p = np.argwhere(flag)
     if len(p) == 0:
