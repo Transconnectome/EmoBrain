@@ -4,7 +4,7 @@ set -uo pipefail
 PY=/pscratch/sd/s/sjmoon/tribev2/.venv/bin/python
 CODE=/pscratch/sd/s/sjmoon/EmoBrain/project/analysis/final_2026-11/s1_original_roi_align.py
 TMP=/pscratch/sd/s/sjmoon/EmoBrain/project/output/final_2026-11/s1_original_rois/td_warped
-ATLAS=/pscratch/sd/s/sjmoon/atlas_sources/wfu_pickatlas/WFU_PickAtlas_3.0.5b_MethodsCore/wfu_pickatlas
+ATLAS=/pscratch/sd/s/sjmoon/atlas_sources/wfu_pickatlas/official/WFU_PickAtlas_3.0.5b/wfu_pickatlas
 export PYTHONDONTWRITEBYTECODE=1
 "$PY" "$CODE" alignment
 mkdir -p "$TMP"

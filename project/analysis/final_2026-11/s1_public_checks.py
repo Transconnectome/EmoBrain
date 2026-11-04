@@ -21,7 +21,7 @@ PM = Path("/pscratch/sd/s/sjmoon")
 REPO = PM / "EmoBrain"
 MAN = REPO / "project/analysis/final_2026-11/manifests"
 PUB = PM / "atlas_sources/horikawa2020_figshare"
-ATLAS = PM / "atlas_sources/wfu_pickatlas/WFU_PickAtlas_3.0.5b_MethodsCore/wfu_pickatlas"
+ATLAS = PM / "atlas_sources/wfu_pickatlas/official/WFU_PickAtlas_3.0.5b/wfu_pickatlas"
 
 
 def voxel_counts():
