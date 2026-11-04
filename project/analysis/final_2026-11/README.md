@@ -13,5 +13,6 @@
 | `s1_original_rois.py`, `.sh` | S1 | 공개 자료의 참가자별 ROI 370개를 읽어 우리 T1w 격자로 옮기고 QC mask 안의 voxel 수를 센다. 내려받은 큰 파일은 지운다 (통신 위주, 약 20분, 결과 npz는 `project/output/final_2026-11/s1_original_rois/`) | `manifests/original_roi_voxels.tsv`, `original_roi_grid.tsv`, `original_roi_sources.tsv` |
 | `s1_original_roi_align.py`, `.sh` | S1 | 공개 ROI가 FreeSurfer aseg와 해부학적으로 맞는지(11명), Talairach Daemon 두 판 중 어느 쪽과 맞는지(HK 5명) (CPU, 약 10분) | `manifests/original_roi_alignment.tsv`, `td_version_check.tsv` |
 | `s1_subcortex_rebuild.py`, `.sh` | S1 | 피질하 10개를 PickAtlas에서 11명 모두 새로 만들어 저자 공개 mask, aseg와 위치로 비교한다(04 정할 것 5, 7). 뇌 반응은 읽지 않는다 (CPU, 3명씩 병렬, 약 12분, 결과 `project/output/final_2026-11/s1_subcortex_rebuild/`) | `manifests/subcortex_rebuild_check.tsv` |
+| `s1_subcortex_size_check.py`, `.sh` | S1 | 저자 피질하 mask가 새 mask보다 큰 이유가 경계 처리인지 선형 보간 문턱별로 잰다. 뇌 반응은 읽지 않는다 (CPU, 약 2분) | `manifests/subcortex_size_check.tsv` |
 
 `manifests/`의 작은 표는 다음 단계(S2 manifest)의 입력이라 git에 넣는다. 큰 산출물은 `project/output/` 아래에 둔다(M3).
