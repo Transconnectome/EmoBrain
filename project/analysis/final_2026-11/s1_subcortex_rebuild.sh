@@ -1,6 +1,6 @@
 #!/bin/bash
 # S1: 피질하 10개를 PickAtlas에서 11명 모두 새로 만들어 저자 공개 mask, aseg와 비교한다 (04 정할 것 5, 7). 뇌 반응은 읽지 않는다.
-# PickAtlas의 MNI_T1.nii를 T1w에 ANTs로 직접 등록한다. 3명씩 병렬, 참가자당 8 thread, 약 12분. 다시 돌리면 석진 님 허락 뒤 계산 노드 job으로 돌린다.
+# PickAtlas의 MNI_T1.nii를 T1w에 ANTs로 직접 등록한다. 3명씩 병렬, 참가자당 8 thread, 약 12분. CPU, login node.
 # 어느 단계든 실패하면 멈추고 DONE을 쓰지 않는다.
 # 세션과 분리해 실행: setsid nohup bash /pscratch/sd/s/sjmoon/EmoBrain/project/analysis/final_2026-11/s1_subcortex_rebuild.sh > /pscratch/sd/s/sjmoon/EmoBrain/project/output/final_2026-11/logs/s1_subcortex_rebuild.log 2>&1 &
 set -euo pipefail
