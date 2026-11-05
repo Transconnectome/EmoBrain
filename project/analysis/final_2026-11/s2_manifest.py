@@ -243,32 +243,49 @@ def stage_blocks():
     print(pd.DataFrame(rows).to_string(index=False))
     content = D.content_id.to_numpy()
     fold = D.fold.to_numpy()
+    P = pd.read_csv(OUT / "participant_blocks_hk.tsv", sep="\t")
+    counts = []
     for z in range(1, N_BLOCKS + 1):
         for k in range(1, K + 1):
+            val = k % K + 1  # H2: 시험 fold의 다음 fold가 검증이다
             te = (fold == k) & (block == z)
-            pool = fold != k
-            tr_ex = pool & (block != z)
-            n = int(tr_ex.sum())
-            idx_pool = np.flatnonzero(pool)
-            d_ex = label_distance(X[te], X[tr_ex]).min(1)
-            reps = []
+            tr_pool, va_pool = (fold != k) & (fold != val), fold == val
+            tr_ex, va_ex = tr_pool & (block != z), va_pool & (block != z)
+            n_tr, n_va = int(tr_ex.sum()), int(va_ex.sum())
+            idx_tr, idx_va = np.flatnonzero(tr_pool), np.flatnonzero(va_pool)  # 대조는 그 구역을 후보에서 빼지 않는다
+            d_ex_tr = label_distance(X[te], X[tr_ex]).min(1)
+            d_ex_all = np.minimum(d_ex_tr, label_distance(X[te], X[va_ex]).min(1))
+            rep_tr, rep_all = [], []
             rng = np.random.default_rng([SEED_DISTANCE_CHECK, z, k])
             for _ in range(20):
-                pick = rng.choice(idx_pool, n, replace=False)
-                reps.append(label_distance(X[te], X[pick]).min(1))
-            d_ct = np.mean(reps, 0)
-            dist.append(dict(block=z, fold=k, n_test=int(te.sum()), n_train_excluded=n, median_excluded=float(np.median(d_ex)), median_control=float(np.median(d_ct)), ratio=float(np.median(d_ex) / np.median(d_ct)), frac_test_farther=float((d_ex > d_ct).mean())))
-            # 6-2에 쓸 학습량 대조 표본(구역과 fold마다 하나)
-            pick = np.sort(np.random.default_rng([SEED_CONTROL_SAMPLE, z, k]).choice(idx_pool, n, replace=False))
-            ctrl += [dict(block=z, fold=k, video_id=int(v)) for v in vids[pick]]
-            y_ex, y_ct = Y[content[tr_ex] - 1], Y[content[pick] - 1]
-            nz += [dict(block=z, fold=k, emotion=e, n_nonzero_excluded=int((y_ex[:, i] > 0).sum()), n_nonzero_control=int((y_ct[:, i] > 0).sum())) for i, e in enumerate(emo)]
+                d_tr = label_distance(X[te], X[rng.choice(idx_tr, n_tr, replace=False)]).min(1)
+                d_va = label_distance(X[te], X[rng.choice(idx_va, n_va, replace=False)]).min(1)
+                rep_tr.append(d_tr)
+                rep_all.append(np.minimum(d_tr, d_va))
+            d_ct_tr, d_ct_all = np.mean(rep_tr, 0), np.mean(rep_all, 0)
+            # 주 지표는 실제 가중치 학습 영상(학습 fold 4개) 기준이고, 검증을 포함한 값도 함께 적는다
+            dist.append(dict(block=z, fold=k, val_fold=val, n_test=int(te.sum()), n_train_excluded=n_tr, n_val_excluded=n_va, median_excluded=float(np.median(d_ex_tr)), median_control=float(np.median(d_ct_tr)), ratio=float(np.median(d_ex_tr) / np.median(d_ct_tr)), frac_test_farther=float((d_ex_tr > d_ct_tr).mean()), median_excluded_with_val=float(np.median(d_ex_all)), median_control_with_val=float(np.median(d_ct_all)), ratio_with_val=float(np.median(d_ex_all) / np.median(d_ct_all))))
+            # 6-2에 쓸 학습량 대조 표본: 학습 fold와 검증 fold에서 구역 제외 조건과 같은 수를 각각 뽑는다(04 정할 것 8)
+            rng = np.random.default_rng([SEED_CONTROL_SAMPLE, z, k])
+            p_tr = np.sort(rng.choice(idx_tr, n_tr, replace=False))
+            p_va = np.sort(rng.choice(idx_va, n_va, replace=False))
+            ctrl += [dict(block=z, fold=k, role="train", video_id=int(v)) for v in vids[p_tr]] + [dict(block=z, fold=k, role="val", video_id=int(v)) for v in vids[p_va]]
+            yy = dict(ex_tr=Y[content[tr_ex] - 1], ct_tr=Y[content[p_tr] - 1], ex_va=Y[content[va_ex] - 1], ct_va=Y[content[p_va] - 1])
+            nz += [dict(block=z, fold=k, emotion=e, n_nonzero_excluded=int((yy["ex_tr"][:, i] > 0).sum()), n_nonzero_control=int((yy["ct_tr"][:, i] > 0).sum()), n_nonzero_excluded_val=int((yy["ex_va"][:, i] > 0).sum()), n_nonzero_control_val=int((yy["ct_va"][:, i] > 0).sum())) for i, e in enumerate(emo)]
+            # 영상 수를 맞춰도 QC로 빠진 block 때문에 참가자별 block 수는 다를 수 있다. 다시 뽑지 않고 적어 둔다
+            sets = dict(excluded_train=vids[tr_ex], excluded_val=vids[va_ex], control_train=vids[p_tr], control_val=vids[p_va], test=vids[te])
+            for pp, g in P.groupby("participant"):
+                have = set(g.video_id)
+                counts.append(dict(block=z, fold=k, participant=pp, **{f"n_{name}": int(sum(int(v) in have for v in vv)) for name, vv in sets.items()}))
+    tsv(pd.DataFrame(counts), "content_block_participant_counts.tsv")
+    C_ = pd.DataFrame(counts)
+    print("참가자별 block 수 차이(구역 제외 - 대조), 학습:", (C_.n_excluded_train - C_.n_control_train).abs().describe()[["mean", "max"]].round(1).to_dict(), "검증:", (C_.n_excluded_val - C_.n_control_val).abs().describe()[["mean", "max"]].round(1).to_dict())
     Dt = pd.DataFrame(dist)
     tsv(Dt, "content_block_distance.tsv")
     tsv(pd.DataFrame(ctrl), "content_block_control_samples.tsv")
     tsv(pd.DataFrame(nz), "content_block_nonzero.tsv")
-    print(Dt.groupby("block").agg(n_test_min=("n_test", "min"), n_test_max=("n_test", "max"), train_min=("n_train_excluded", "min"), train_max=("n_train_excluded", "max"), median_excluded=("median_excluded", "median"), median_control=("median_control", "median"), ratio_min=("ratio", "min"), ratio_med=("ratio", "median"), farther=("frac_test_farther", "mean")).round(3).to_string())
-    print("거리가 대조보다 늘지 않은 (구역, fold):", Dt[Dt.ratio <= 1][["block", "fold", "ratio"]].to_dict("records"))
+    print(Dt.groupby("block").agg(n_test_min=("n_test", "min"), n_test_max=("n_test", "max"), train_min=("n_train_excluded", "min"), train_max=("n_train_excluded", "max"), val_min=("n_val_excluded", "min"), val_max=("n_val_excluded", "max"), median_excluded=("median_excluded", "median"), median_control=("median_control", "median"), ratio_min=("ratio", "min"), ratio_med=("ratio", "median"), farther=("frac_test_farther", "mean"), ratio_with_val=("ratio_with_val", "median")).round(3).to_string())
+    print("거리가 대조보다 늘지 않은 (구역, fold):", Dt[Dt.ratio <= 1][["block", "fold", "ratio"]].to_dict("records"), "비율 최소", round(Dt.ratio.min(), 3), "검증 포함 최소", round(Dt.ratio_with_val.min(), 3))
     N = pd.DataFrame(nz)
     print("정서별 0이 아닌 학습 영상 수 최솟값(구역 제외):", N.groupby("block").n_nonzero_excluded.min().to_dict(), "(대조):", N.groupby("block").n_nonzero_control.min().to_dict())
 
@@ -412,6 +429,12 @@ def stage_mc():
     assert M[M.role.isin(["input_train", "input_val"])].canonical_id.isin(mc72).sum() == 0, "입력층 학습에 시험 영상이 있다"
     assert M[M.role == "test_72"].canonical_id.isin(mc72).all()
     tsv(M, "mc_blocks.tsv")
+    # 시험 평균은 QC 뒤 남은 반복으로 낸다. 없는 반복을 0으로 넣거나 보간하지 않는다(04 정할 것 9)
+    R = M[M.role == "test_72"].groupby(["participant", "video_id", "canonical_id"]).size().reset_index(name="n_repeats")
+    if not R.n_repeats.isin([4, 5]).all():
+        raise ValueError(f"예상 밖의 반복 수: {sorted(R.n_repeats.unique())}")
+    tsv(R, "mc_test_repeats.tsv")
+    print("반복 4회:", R[R.n_repeats == 4][["participant", "video_id"]].to_dict("records"))
     print(M.groupby(["participant", "role"]).size().unstack().to_string())
     print("input 고유 영상", M[M.role.isin(["input_train", "input_val"])].groupby("participant").video_id.nunique().to_dict())
     T = M[M.role == "test_72"]
@@ -572,6 +595,16 @@ def stage_check():
     assert A.video_id.tolist() == D.video_id.tolist() and A.block.nunique() == N_BLOCKS
     C = pd.read_csv(OUT / "content_block_control_samples.tsv", sep="\t").merge(D[["video_id", "fold"]], on="video_id", suffixes=("", "_video"))
     assert (C.fold != C.fold_video).all(), "학습량 대조 표본에 시험 fold 영상이 있다"
+    val_of = C.fold % K + 1
+    assert ((C.role == "val") == (C.fold_video == val_of)).all(), "학습량 대조의 학습, 검증 역할이 H2와 다르다"
+    Ab = A.merge(D[["video_id"]], on="video_id")
+    for (z, k), g in C.groupby(["block", "fold"]):
+        v = k % K + 1
+        ex_tr = ((Ab.fold != k) & (Ab.fold != v) & (Ab.block != z)).sum()
+        ex_va = ((Ab.fold == v) & (Ab.block != z)).sum()
+        assert (g.role == "train").sum() == ex_tr and (g.role == "val").sum() == ex_va, (z, k)
+        assert g.video_id.is_unique
+    assert C.groupby(["block", "fold"]).ngroups == N_BLOCKS * K
     S = pd.read_csv(OUT / "session_check.tsv", sep="\t")
     assert (S.n_sessions > 1).all()
     Mt = pd.read_csv(OUT / "mc_blocks.tsv", sep="\t")
@@ -606,6 +639,9 @@ def stage_check():
     for s in HK:
         a = allowed_response_rows("hk", s)
         assert set(a) == set(P[P.participant == f"sub-{s}"].qc_row)
+    Rp = pd.read_csv(OUT / "mc_test_repeats.tsv", sep="\t")
+    assert Rp.groupby("participant").video_id.nunique().eq(72).all() and Rp.n_repeats.isin([4, 5]).all()
+    assert Rp.set_index(["participant", "video_id"]).n_repeats.equals(Mt[Mt.role == "test_72"].groupby(["participant", "video_id"]).size().rename("n_repeats").reindex(Rp.set_index(["participant", "video_id"]).index))
     V = pd.read_csv(OUT / "roi_voxel_counts.tsv", sep="\t")
     assert V.groupby(["cohort", "participant"]).roi.nunique().eq(370).all() and (V.n_voxels > 0).all()
     roi_files = sorted((BIG / "roi_voxels").glob("*.npz"))

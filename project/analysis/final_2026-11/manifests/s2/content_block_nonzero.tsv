@@ -1,1021 +1,1021 @@
-block	fold	emotion	n_nonzero_excluded	n_nonzero_control
-1	1	admiration	339	334
-1	1	adoration	349	333
-1	1	aesthetic appreciation	442	397
-1	1	amusement	776	776
-1	1	anger	140	131
-1	1	anxiety	494	430
-1	1	awe	725	638
-1	1	awkwardness	174	260
-1	1	boredom	356	403
-1	1	calmness	337	314
-1	1	confusion	484	497
-1	1	contempt	111	137
-1	1	craving	77	94
-1	1	disappointment	150	164
-1	1	disgust	314	368
-1	1	empathic pain	215	193
-1	1	entrancement	390	338
-1	1	envy	80	93
-1	1	excitement	440	422
-1	1	fear	437	377
-1	1	guilt	72	65
-1	1	horror	396	350
-1	1	interest	804	771
-1	1	joy	522	507
-1	1	nostalgia	141	162
-1	1	pride	67	67
-1	1	relief	178	149
-1	1	romance	48	93
-1	1	sadness	277	272
-1	1	satisfaction	432	415
-1	1	sexual desire	46	159
-1	1	surprise	680	634
-1	1	sympathy	307	286
-1	1	triumph	174	162
-1	2	admiration	335	337
-1	2	adoration	361	359
-1	2	aesthetic appreciation	462	406
-1	2	amusement	799	819
-1	2	anger	141	125
-1	2	anxiety	491	418
-1	2	awe	747	645
-1	2	awkwardness	186	263
-1	2	boredom	361	423
-1	2	calmness	336	305
-1	2	confusion	507	513
-1	2	contempt	117	139
-1	2	craving	76	81
-1	2	disappointment	156	164
-1	2	disgust	313	340
-1	2	empathic pain	214	207
-1	2	entrancement	403	361
-1	2	envy	72	87
-1	2	excitement	445	477
-1	2	fear	441	361
-1	2	guilt	77	70
-1	2	horror	375	318
-1	2	interest	823	805
-1	2	joy	518	548
-1	2	nostalgia	143	173
-1	2	pride	68	81
-1	2	relief	168	131
-1	2	romance	48	105
-1	2	sadness	280	258
-1	2	satisfaction	437	443
-1	2	sexual desire	46	150
-1	2	surprise	688	645
-1	2	sympathy	300	291
-1	2	triumph	177	187
-1	3	admiration	341	358
-1	3	adoration	364	365
-1	3	aesthetic appreciation	460	405
-1	3	amusement	785	789
-1	3	anger	149	139
-1	3	anxiety	491	440
-1	3	awe	738	657
-1	3	awkwardness	190	260
-1	3	boredom	365	411
-1	3	calmness	350	327
-1	3	confusion	501	492
-1	3	contempt	118	154
-1	3	craving	78	89
-1	3	disappointment	148	145
-1	3	disgust	324	360
-1	3	empathic pain	212	208
-1	3	entrancement	393	350
-1	3	envy	78	103
-1	3	excitement	430	424
-1	3	fear	450	387
-1	3	guilt	73	63
-1	3	horror	390	354
-1	3	interest	833	775
-1	3	joy	515	536
-1	3	nostalgia	146	179
-1	3	pride	67	77
-1	3	relief	176	147
-1	3	romance	53	108
-1	3	sadness	292	292
-1	3	satisfaction	427	424
-1	3	sexual desire	51	141
-1	3	surprise	697	658
-1	3	sympathy	304	288
-1	3	triumph	169	155
-1	4	admiration	336	342
-1	4	adoration	362	357
-1	4	aesthetic appreciation	475	433
-1	4	amusement	789	802
-1	4	anger	147	129
-1	4	anxiety	496	419
-1	4	awe	746	664
-1	4	awkwardness	186	275
-1	4	boredom	372	412
-1	4	calmness	349	326
-1	4	confusion	499	501
-1	4	contempt	118	138
-1	4	craving	79	86
-1	4	disappointment	157	154
-1	4	disgust	312	342
-1	4	empathic pain	215	192
-1	4	entrancement	407	354
-1	4	envy	80	103
-1	4	excitement	420	427
-1	4	fear	451	385
-1	4	guilt	72	60
-1	4	horror	388	330
-1	4	interest	832	787
-1	4	joy	525	536
-1	4	nostalgia	148	165
-1	4	pride	70	68
-1	4	relief	179	145
-1	4	romance	48	96
-1	4	sadness	289	274
-1	4	satisfaction	432	433
-1	4	sexual desire	53	155
-1	4	surprise	681	635
-1	4	sympathy	299	275
-1	4	triumph	175	167
-1	5	admiration	330	335
-1	5	adoration	349	339
-1	5	aesthetic appreciation	452	403
-1	5	amusement	768	762
-1	5	anger	140	119
-1	5	anxiety	480	422
-1	5	awe	727	630
-1	5	awkwardness	177	260
-1	5	boredom	352	392
-1	5	calmness	337	303
-1	5	confusion	490	478
-1	5	contempt	115	130
-1	5	craving	76	89
-1	5	disappointment	146	144
-1	5	disgust	304	334
-1	5	empathic pain	206	186
-1	5	entrancement	389	342
-1	5	envy	81	109
-1	5	excitement	426	436
-1	5	fear	441	378
-1	5	guilt	77	62
-1	5	horror	381	337
-1	5	interest	793	765
-1	5	joy	510	522
-1	5	nostalgia	137	169
-1	5	pride	67	67
-1	5	relief	163	156
-1	5	romance	50	114
-1	5	sadness	285	259
-1	5	satisfaction	429	423
-1	5	sexual desire	45	156
-1	5	surprise	678	628
-1	5	sympathy	300	277
-1	5	triumph	169	162
-1	6	admiration	349	350
-1	6	adoration	380	354
-1	6	aesthetic appreciation	464	412
-1	6	amusement	818	797
-1	6	anger	148	145
-1	6	anxiety	523	461
-1	6	awe	772	675
-1	6	awkwardness	197	282
-1	6	boredom	359	417
-1	6	calmness	361	322
-1	6	confusion	519	531
-1	6	contempt	126	136
-1	6	craving	74	86
-1	6	disappointment	158	155
-1	6	disgust	318	370
-1	6	empathic pain	218	218
-1	6	entrancement	413	354
-1	6	envy	79	100
-1	6	excitement	459	480
-1	6	fear	465	416
-1	6	guilt	74	68
-1	6	horror	400	376
-1	6	interest	850	812
-1	6	joy	540	536
-1	6	nostalgia	150	175
-1	6	pride	71	83
-1	6	relief	191	157
-1	6	romance	53	103
-1	6	sadness	297	296
-1	6	satisfaction	448	450
-1	6	sexual desire	49	153
-1	6	surprise	716	679
-1	6	sympathy	320	295
-1	6	triumph	176	174
-2	1	admiration	357	362
-2	1	adoration	418	368
-2	1	aesthetic appreciation	482	429
-2	1	amusement	827	820
-2	1	anger	103	142
-2	1	anxiety	377	467
-2	1	awe	713	691
-2	1	awkwardness	275	268
-2	1	boredom	448	427
-2	1	calmness	375	323
-2	1	confusion	491	519
-2	1	contempt	140	139
-2	1	craving	116	96
-2	1	disappointment	129	162
-2	1	disgust	391	406
-2	1	empathic pain	167	232
-2	1	entrancement	405	369
-2	1	envy	111	109
-2	1	excitement	420	464
-2	1	fear	315	402
-2	1	guilt	61	71
-2	1	horror	318	392
-2	1	interest	852	825
-2	1	joy	588	548
-2	1	nostalgia	188	178
-2	1	pride	73	85
-2	1	relief	113	153
-2	1	romance	113	111
-2	1	sadness	246	296
-2	1	satisfaction	464	451
-2	1	sexual desire	182	174
-2	1	surprise	639	694
-2	1	sympathy	251	312
-2	1	triumph	143	184
-2	2	admiration	355	362
-2	2	adoration	428	370
-2	2	aesthetic appreciation	502	445
-2	2	amusement	863	854
-2	2	anger	100	137
-2	2	anxiety	381	472
-2	2	awe	727	702
-2	2	awkwardness	292	285
-2	2	boredom	470	451
-2	2	calmness	380	347
-2	2	confusion	537	552
-2	2	contempt	143	148
-2	2	craving	116	93
-2	2	disappointment	135	168
-2	2	disgust	386	382
-2	2	empathic pain	173	225
-2	2	entrancement	422	374
-2	2	envy	99	102
-2	2	excitement	451	503
-2	2	fear	324	419
-2	2	guilt	67	75
-2	2	horror	304	373
-2	2	interest	886	863
-2	2	joy	595	551
-2	2	nostalgia	196	180
-2	2	pride	67	79
-2	2	relief	105	149
-2	2	romance	116	111
-2	2	sadness	248	298
-2	2	satisfaction	474	472
-2	2	sexual desire	189	161
-2	2	surprise	659	716
-2	2	sympathy	250	310
-2	2	triumph	143	181
-2	3	admiration	364	365
-2	3	adoration	428	394
-2	3	aesthetic appreciation	496	444
-2	3	amusement	853	858
-2	3	anger	113	147
-2	3	anxiety	394	462
-2	3	awe	737	709
-2	3	awkwardness	290	279
-2	3	boredom	461	451
-2	3	calmness	389	356
-2	3	confusion	508	538
-2	3	contempt	150	149
-2	3	craving	117	98
-2	3	disappointment	132	164
-2	3	disgust	392	391
-2	3	empathic pain	175	226
-2	3	entrancement	425	387
-2	3	envy	113	109
-2	3	excitement	438	479
-2	3	fear	338	410
-2	3	guilt	67	68
-2	3	horror	330	377
-2	3	interest	883	863
-2	3	joy	586	569
-2	3	nostalgia	191	183
-2	3	pride	72	82
-2	3	relief	118	166
-2	3	romance	118	115
-2	3	sadness	259	310
-2	3	satisfaction	475	474
-2	3	sexual desire	186	167
-2	3	surprise	668	716
-2	3	sympathy	257	308
-2	3	triumph	139	181
-2	4	admiration	358	381
-2	4	adoration	432	374
-2	4	aesthetic appreciation	506	438
-2	4	amusement	863	866
-2	4	anger	102	147
-2	4	anxiety	389	476
-2	4	awe	730	705
-2	4	awkwardness	295	288
-2	4	boredom	459	421
-2	4	calmness	383	332
-2	4	confusion	519	539
-2	4	contempt	141	148
-2	4	craving	115	96
-2	4	disappointment	134	175
-2	4	disgust	384	388
-2	4	empathic pain	166	218
-2	4	entrancement	422	379
-2	4	envy	106	107
-2	4	excitement	429	487
-2	4	fear	329	421
-2	4	guilt	64	77
-2	4	horror	314	380
-2	4	interest	879	863
-2	4	joy	598	585
-2	4	nostalgia	193	189
-2	4	pride	75	96
-2	4	relief	115	159
-2	4	romance	110	109
-2	4	sadness	250	306
-2	4	satisfaction	471	464
-2	4	sexual desire	185	167
-2	4	surprise	651	714
-2	4	sympathy	261	325
-2	4	triumph	148	195
-2	5	admiration	352	372
-2	5	adoration	416	374
-2	5	aesthetic appreciation	484	428
-2	5	amusement	834	832
-2	5	anger	104	139
-2	5	anxiety	366	461
-2	5	awe	719	685
-2	5	awkwardness	280	275
-2	5	boredom	444	422
-2	5	calmness	376	313
-2	5	confusion	495	521
-2	5	contempt	137	143
-2	5	craving	114	96
-2	5	disappointment	128	172
-2	5	disgust	373	373
-2	5	empathic pain	166	207
-2	5	entrancement	403	359
-2	5	envy	116	113
-2	5	excitement	429	492
-2	5	fear	316	423
-2	5	guilt	69	81
-2	5	horror	308	375
-2	5	interest	853	827
-2	5	joy	593	564
-2	5	nostalgia	195	192
-2	5	pride	70	88
-2	5	relief	118	154
-2	5	romance	117	119
-2	5	sadness	249	300
-2	5	satisfaction	474	474
-2	5	sexual desire	184	167
-2	5	surprise	640	693
-2	5	sympathy	254	311
-2	5	triumph	138	193
-2	6	admiration	349	352
-2	6	adoration	428	392
-2	6	aesthetic appreciation	505	437
-2	6	amusement	855	849
-2	6	anger	113	147
-2	6	anxiety	388	498
-2	6	awe	739	704
-2	6	awkwardness	293	306
-2	6	boredom	458	455
-2	6	calmness	397	351
-2	6	confusion	520	563
-2	6	contempt	149	143
-2	6	craving	112	90
-2	6	disappointment	137	170
-2	6	disgust	384	393
-2	6	empathic pain	163	203
-2	6	entrancement	418	371
-2	6	envy	105	107
-2	6	excitement	433	484
-2	6	fear	333	424
-2	6	guilt	67	63
-2	6	horror	316	384
-2	6	interest	887	852
-2	6	joy	595	578
-2	6	nostalgia	192	185
-2	6	pride	73	83
-2	6	relief	116	157
-2	6	romance	111	110
-2	6	sadness	243	288
-2	6	satisfaction	482	453
-2	6	sexual desire	189	169
-2	6	surprise	658	696
-2	6	sympathy	252	312
-2	6	triumph	144	183
-3	1	admiration	438	411
-3	1	adoration	449	415
-3	1	aesthetic appreciation	375	466
-3	1	amusement	950	942
-3	1	anger	168	143
-3	1	anxiety	547	514
-3	1	awe	768	759
-3	1	awkwardness	327	298
-3	1	boredom	437	462
-3	1	calmness	320	357
-3	1	confusion	537	561
-3	1	contempt	173	153
-3	1	craving	71	104
-3	1	disappointment	195	173
-3	1	disgust	426	421
-3	1	empathic pain	254	236
-3	1	entrancement	325	391
-3	1	envy	122	114
-3	1	excitement	570	530
-3	1	fear	485	445
-3	1	guilt	79	80
-3	1	horror	444	416
-3	1	interest	863	903
-3	1	joy	674	634
-3	1	nostalgia	203	200
-3	1	pride	113	96
-3	1	relief	204	177
-3	1	romance	139	115
-3	1	sadness	351	310
-3	1	satisfaction	496	512
-3	1	sexual desire	205	179
-3	1	surprise	787	768
-3	1	sympathy	389	334
-3	1	triumph	240	201
-3	2	admiration	431	411
-3	2	adoration	466	427
-3	2	aesthetic appreciation	386	473
-3	2	amusement	978	947
-3	2	anger	171	152
-3	2	anxiety	539	508
-3	2	awe	773	770
-3	2	awkwardness	341	311
-3	2	boredom	445	487
-3	2	calmness	321	363
-3	2	confusion	563	597
-3	2	contempt	169	162
-3	2	craving	74	110
-3	2	disappointment	200	191
-3	2	disgust	415	414
-3	2	empathic pain	249	236
-3	2	entrancement	327	398
-3	2	envy	113	115
-3	2	excitement	599	547
-3	2	fear	482	434
-3	2	guilt	84	80
-3	2	horror	413	379
-3	2	interest	886	934
-3	2	joy	687	626
-3	2	nostalgia	207	213
-3	2	pride	110	93
-3	2	relief	189	167
-3	2	romance	149	125
-3	2	sadness	351	315
-3	2	satisfaction	503	521
-3	2	sexual desire	209	188
-3	2	surprise	791	767
-3	2	sympathy	384	343
-3	2	triumph	242	218
-3	3	admiration	439	402
-3	3	adoration	466	416
-3	3	aesthetic appreciation	375	490
-3	3	amusement	962	933
-3	3	anger	179	158
-3	3	anxiety	544	515
-3	3	awe	771	770
-3	3	awkwardness	341	300
-3	3	boredom	442	475
-3	3	calmness	331	364
-3	3	confusion	549	578
-3	3	contempt	180	169
-3	3	craving	76	103
-3	3	disappointment	189	174
-3	3	disgust	423	420
-3	3	empathic pain	250	238
-3	3	entrancement	328	414
-3	3	envy	123	114
-3	3	excitement	570	517
-3	3	fear	488	458
-3	3	guilt	83	80
-3	3	horror	431	408
-3	3	interest	871	940
-3	3	joy	670	596
-3	3	nostalgia	209	207
-3	3	pride	112	89
-3	3	relief	205	168
-3	3	romance	149	131
-3	3	sadness	364	322
-3	3	satisfaction	502	511
-3	3	sexual desire	207	177
-3	3	surprise	794	765
-3	3	sympathy	385	330
-3	3	triumph	231	191
-3	4	admiration	427	394
-3	4	adoration	465	410
-3	4	aesthetic appreciation	387	499
-3	4	amusement	962	926
-3	4	anger	175	152
-3	4	anxiety	542	509
-3	4	awe	771	754
-3	4	awkwardness	337	308
-3	4	boredom	441	489
-3	4	calmness	324	366
-3	4	confusion	540	581
-3	4	contempt	171	167
-3	4	craving	69	103
-3	4	disappointment	201	172
-3	4	disgust	408	410
-3	4	empathic pain	244	229
-3	4	entrancement	327	411
-3	4	envy	122	114
-3	4	excitement	570	502
-3	4	fear	488	447
-3	4	guilt	82	75
-3	4	horror	424	405
-3	4	interest	870	911
-3	4	joy	684	631
-3	4	nostalgia	212	210
-3	4	pride	117	89
-3	4	relief	204	174
-3	4	romance	137	113
-3	4	sadness	360	318
-3	4	satisfaction	501	521
-3	4	sexual desire	203	178
-3	4	surprise	785	752
-3	4	sympathy	394	332
-3	4	triumph	241	206
-3	5	admiration	421	396
-3	5	adoration	442	401
-3	5	aesthetic appreciation	374	464
-3	5	amusement	941	929
-3	5	anger	171	151
-3	5	anxiety	541	494
-3	5	awe	761	743
-3	5	awkwardness	323	298
-3	5	boredom	432	481
-3	5	calmness	323	357
-3	5	confusion	538	571
-3	5	contempt	169	162
-3	5	craving	71	105
-3	5	disappointment	192	180
-3	5	disgust	412	402
-3	5	empathic pain	247	222
-3	5	entrancement	330	411
-3	5	envy	127	127
-3	5	excitement	571	511
-3	5	fear	485	436
-3	5	guilt	86	74
-3	5	horror	427	392
-3	5	interest	856	898
-3	5	joy	666	617
-3	5	nostalgia	211	215
-3	5	pride	112	92
-3	5	relief	196	165
-3	5	romance	144	124
-3	5	sadness	363	320
-3	5	satisfaction	498	511
-3	5	sexual desire	200	174
-3	5	surprise	785	760
-3	5	sympathy	386	337
-3	5	triumph	234	197
-3	6	admiration	429	401
-3	6	adoration	467	417
-3	6	aesthetic appreciation	383	490
-3	6	amusement	972	933
-3	6	anger	186	156
-3	6	anxiety	577	545
-3	6	awe	786	785
-3	6	awkwardness	341	315
-3	6	boredom	438	481
-3	6	calmness	336	382
-3	6	confusion	558	595
-3	6	contempt	183	174
-3	6	craving	69	97
-3	6	disappointment	203	180
-3	6	disgust	431	429
-3	6	empathic pain	261	243
-3	6	entrancement	318	415
-3	6	envy	123	117
-3	6	excitement	600	546
-3	6	fear	512	480
-3	6	guilt	86	79
-3	6	horror	446	430
-3	6	interest	889	945
-3	6	joy	689	612
-3	6	nostalgia	208	199
-3	6	pride	116	92
-3	6	relief	217	185
-3	6	romance	142	124
-3	6	sadness	371	329
-3	6	satisfaction	505	528
-3	6	sexual desire	206	184
-3	6	surprise	813	788
-3	6	sympathy	402	353
-3	6	triumph	242	203
-4	1	admiration	399	419
-4	1	adoration	267	397
-4	1	aesthetic appreciation	520	484
-4	1	amusement	848	909
-4	1	anger	155	156
-4	1	anxiety	542	520
-4	1	awe	669	767
-4	1	awkwardness	323	302
-4	1	boredom	531	476
-4	1	calmness	349	368
-4	1	confusion	612	574
-4	1	contempt	164	162
-4	1	craving	124	103
-4	1	disappointment	194	179
-4	1	disgust	440	419
-4	1	empathic pain	238	235
-4	1	entrancement	436	417
-4	1	envy	134	120
-4	1	excitement	544	524
-4	1	fear	469	438
-4	1	guilt	63	70
-4	1	horror	436	411
-4	1	interest	917	923
-4	1	joy	541	621
-4	1	nostalgia	222	203
-4	1	pride	98	87
-4	1	relief	170	179
-4	1	romance	140	121
-4	1	sadness	302	312
-4	1	satisfaction	505	514
-4	1	sexual desire	213	174
-4	1	surprise	750	762
-4	1	sympathy	298	332
-4	1	triumph	208	200
-4	2	admiration	403	413
-4	2	adoration	286	428
-4	2	aesthetic appreciation	541	474
-4	2	amusement	886	939
-4	2	anger	151	159
-4	2	anxiety	535	502
-4	2	awe	695	774
-4	2	awkwardness	339	317
-4	2	boredom	549	484
-4	2	calmness	354	360
-4	2	confusion	642	609
-4	2	contempt	168	165
-4	2	craving	125	116
-4	2	disappointment	201	189
-4	2	disgust	425	425
-4	2	empathic pain	240	235
-4	2	entrancement	445	401
-4	2	envy	126	115
-4	2	excitement	578	559
-4	2	fear	472	441
-4	2	guilt	61	80
-4	2	horror	409	390
-4	2	interest	946	937
-4	2	joy	553	649
-4	2	nostalgia	232	214
-4	2	pride	96	95
-4	2	relief	158	172
-4	2	romance	147	128
-4	2	sadness	308	327
-4	2	satisfaction	527	525
-4	2	sexual desire	217	178
-4	2	surprise	758	773
-4	2	sympathy	297	338
-4	2	triumph	215	209
-4	3	admiration	403	418
-4	3	adoration	285	422
-4	3	aesthetic appreciation	530	481
-4	3	amusement	869	945
-4	3	anger	161	166
-4	3	anxiety	539	509
-4	3	awe	687	772
-4	3	awkwardness	336	316
-4	3	boredom	536	480
-4	3	calmness	358	379
-4	3	confusion	617	604
-4	3	contempt	178	173
-4	3	craving	125	104
-4	3	disappointment	183	175
-4	3	disgust	435	423
-4	3	empathic pain	236	237
-4	3	entrancement	443	411
-4	3	envy	133	119
-4	3	excitement	546	516
-4	3	fear	489	458
-4	3	guilt	59	80
-4	3	horror	421	406
-4	3	interest	935	937
-4	3	joy	538	627
-4	3	nostalgia	230	209
-4	3	pride	97	94
-4	3	relief	165	178
-4	3	romance	153	131
-4	3	sadness	317	333
-4	3	satisfaction	510	508
-4	3	sexual desire	217	177
-4	3	surprise	766	783
-4	3	sympathy	298	334
-4	3	triumph	201	198
-4	4	admiration	390	405
-4	4	adoration	280	418
-4	4	aesthetic appreciation	544	503
-4	4	amusement	879	945
-4	4	anger	155	164
-4	4	anxiety	549	511
-4	4	awe	690	775
-4	4	awkwardness	346	320
-4	4	boredom	538	480
-4	4	calmness	357	366
-4	4	confusion	627	598
-4	4	contempt	172	165
-4	4	craving	121	109
-4	4	disappointment	195	189
-4	4	disgust	424	422
-4	4	empathic pain	236	228
-4	4	entrancement	450	417
-4	4	envy	132	122
-4	4	excitement	545	507
-4	4	fear	486	457
-4	4	guilt	59	74
-4	4	horror	428	404
-4	4	interest	939	935
-4	4	joy	555	639
-4	4	nostalgia	229	205
-4	4	pride	102	97
-4	4	relief	165	173
-4	4	romance	138	117
-4	4	sadness	314	336
-4	4	satisfaction	521	517
-4	4	sexual desire	214	174
-4	4	surprise	756	770
-4	4	sympathy	303	336
-4	4	triumph	210	208
-4	5	admiration	394	402
-4	5	adoration	267	404
-4	5	aesthetic appreciation	520	473
-4	5	amusement	851	913
-4	5	anger	155	147
-4	5	anxiety	532	507
-4	5	awe	676	766
-4	5	awkwardness	322	304
-4	5	boredom	525	459
-4	5	calmness	341	360
-4	5	confusion	609	575
-4	5	contempt	171	148
-4	5	craving	120	103
-4	5	disappointment	187	175
-4	5	disgust	420	416
-4	5	empathic pain	233	240
-4	5	entrancement	438	405
-4	5	envy	136	117
-4	5	excitement	548	528
-4	5	fear	474	449
-4	5	guilt	65	81
-4	5	horror	419	407
-4	5	interest	916	905
-4	5	joy	534	622
-4	5	nostalgia	232	210
-4	5	pride	95	93
-4	5	relief	158	170
-4	5	romance	145	120
-4	5	sadness	316	332
-4	5	satisfaction	510	508
-4	5	sexual desire	208	176
-4	5	surprise	746	764
-4	5	sympathy	300	324
-4	5	triumph	205	209
-4	6	admiration	391	406
-4	6	adoration	275	422
-4	6	aesthetic appreciation	545	485
-4	6	amusement	877	942
-4	6	anger	168	160
-4	6	anxiety	578	535
-4	6	awe	703	786
-4	6	awkwardness	344	313
-4	6	boredom	541	468
-4	6	calmness	361	385
-4	6	confusion	638	590
-4	6	contempt	177	167
-4	6	craving	120	100
-4	6	disappointment	200	189
-4	6	disgust	441	420
-4	6	empathic pain	247	239
-4	6	entrancement	448	416
-4	6	envy	129	125
-4	6	excitement	569	558
-4	6	fear	505	472
-4	6	guilt	63	74
-4	6	horror	442	413
-4	6	interest	952	946
-4	6	joy	544	638
-4	6	nostalgia	225	209
-4	6	pride	102	103
-4	6	relief	179	194
-4	6	romance	142	118
-4	6	sadness	323	332
-4	6	satisfaction	522	539
-4	6	sexual desire	216	185
-4	6	surprise	779	796
-4	6	sympathy	304	347
-4	6	triumph	211	215
-5	1	admiration	435	442
-5	1	adoration	457	426
-5	1	aesthetic appreciation	429	497
-5	1	amusement	1015	995
-5	1	anger	170	161
-5	1	anxiety	516	543
-5	1	awe	749	794
-5	1	awkwardness	357	331
-5	1	boredom	536	501
-5	1	calmness	355	382
-5	1	confusion	644	626
-5	1	contempt	168	166
-5	1	craving	124	115
-5	1	disappointment	204	190
-5	1	disgust	489	459
-5	1	empathic pain	270	260
-5	1	entrancement	380	433
-5	1	envy	133	129
-5	1	excitement	538	559
-5	1	fear	438	467
-5	1	guilt	85	81
-5	1	horror	434	448
-5	1	interest	944	973
-5	1	joy	683	668
-5	1	nostalgia	222	213
-5	1	pride	105	101
-5	1	relief	183	177
-5	1	romance	140	131
-5	1	sadness	348	333
-5	1	satisfaction	543	532
-5	1	sexual desire	214	194
-5	1	surprise	828	820
-5	1	sympathy	375	362
-5	1	triumph	227	215
-5	2	admiration	432	435
-5	2	adoration	467	434
-5	2	aesthetic appreciation	449	517
-5	2	amusement	1038	1009
-5	2	anger	173	160
-5	2	anxiety	518	545
-5	2	awe	762	819
-5	2	awkwardness	366	333
-5	2	boredom	539	523
-5	2	calmness	353	396
-5	2	confusion	675	648
-5	2	contempt	171	176
-5	2	craving	121	115
-5	2	disappointment	212	202
-5	2	disgust	477	444
-5	2	empathic pain	272	251
-5	2	entrancement	387	439
-5	2	envy	122	114
-5	2	excitement	563	588
-5	2	fear	445	478
-5	2	guilt	91	83
-5	2	horror	415	420
-5	2	interest	967	1003
-5	2	joy	683	673
-5	2	nostalgia	226	228
-5	2	pride	103	96
-5	2	relief	168	182
-5	2	romance	144	133
-5	2	sadness	357	341
-5	2	satisfaction	555	564
-5	2	sexual desire	219	194
-5	2	surprise	832	834
-5	2	sympathy	377	353
-5	2	triumph	227	222
-5	3	admiration	437	431
-5	3	adoration	473	438
-5	3	aesthetic appreciation	435	509
-5	3	amusement	1023	985
-5	3	anger	178	169
-5	3	anxiety	516	546
-5	3	awe	751	807
-5	3	awkwardness	367	340
-5	3	boredom	532	525
-5	3	calmness	356	395
-5	3	confusion	653	618
-5	3	contempt	178	174
-5	3	craving	124	117
-5	3	disappointment	196	186
-5	3	disgust	486	449
-5	3	empathic pain	267	253
-5	3	entrancement	383	438
-5	3	envy	133	117
-5	3	excitement	536	554
-5	3	fear	447	483
-5	3	guilt	86	82
-5	3	horror	424	434
-5	3	interest	958	979
-5	3	joy	671	659
-5	3	nostalgia	220	216
-5	3	pride	104	100
-5	3	relief	184	188
-5	3	romance	147	132
-5	3	sadness	360	352
-5	3	satisfaction	546	540
-5	3	sexual desire	219	191
-5	3	surprise	839	829
-5	3	sympathy	368	361
-5	3	triumph	220	212
-5	4	admiration	433	440
-5	4	adoration	469	429
-5	4	aesthetic appreciation	456	524
-5	4	amusement	1039	1010
-5	4	anger	173	165
-5	4	anxiety	520	551
-5	4	awe	763	817
-5	4	awkwardness	368	341
-5	4	boredom	538	524
-5	4	calmness	359	395
-5	4	confusion	659	638
-5	4	contempt	174	173
-5	4	craving	120	114
-5	4	disappointment	209	195
-5	4	disgust	476	440
-5	4	empathic pain	271	246
-5	4	entrancement	398	449
-5	4	envy	128	133
-5	4	excitement	532	559
-5	4	fear	446	488
-5	4	guilt	87	84
-5	4	horror	422	428
-5	4	interest	968	992
-5	4	joy	694	668
-5	4	nostalgia	222	223
-5	4	pride	108	107
-5	4	relief	185	188
-5	4	romance	135	126
-5	4	sadness	359	338
-5	4	satisfaction	555	550
-5	4	sexual desire	217	194
-5	4	surprise	827	823
-5	4	sympathy	383	359
-5	4	triumph	226	225
-5	5	admiration	427	438
-5	5	adoration	450	432
-5	5	aesthetic appreciation	434	496
-5	5	amusement	1014	977
-5	5	anger	170	158
-5	5	anxiety	505	537
-5	5	awe	749	812
-5	5	awkwardness	354	315
-5	5	boredom	523	506
-5	5	calmness	347	388
-5	5	confusion	636	607
-5	5	contempt	172	173
-5	5	craving	119	111
-5	5	disappointment	199	186
-5	5	disgust	467	439
-5	5	empathic pain	260	249
-5	5	entrancement	380	427
-5	5	envy	136	133
-5	5	excitement	542	569
-5	5	fear	440	478
-5	5	guilt	91	82
-5	5	horror	421	433
-5	5	interest	946	967
-5	5	joy	677	659
-5	5	nostalgia	225	228
-5	5	pride	104	101
-5	5	relief	173	173
-5	5	romance	144	135
-5	5	sadness	351	344
-5	5	satisfaction	557	551
-5	5	sexual desire	211	186
-5	5	surprise	815	812
-5	5	sympathy	372	358
-5	5	triumph	222	213
-5	6	admiration	426	427
-5	6	adoration	474	450
-5	6	aesthetic appreciation	447	513
-5	6	amusement	1046	1010
-5	6	anger	181	175
-5	6	anxiety	550	578
-5	6	awe	776	825
-5	6	awkwardness	373	339
-5	6	boredom	532	513
-5	6	calmness	365	397
-5	6	confusion	673	642
-5	6	contempt	177	182
-5	6	craving	117	110
-5	6	disappointment	210	198
-5	6	disgust	490	465
-5	6	empathic pain	275	260
-5	6	entrancement	387	431
-5	6	envy	128	127
-5	6	excitement	559	584
-5	6	fear	469	510
-5	6	guilt	90	87
-5	6	horror	444	459
-5	6	interest	982	1018
-5	6	joy	692	681
-5	6	nostalgia	225	223
-5	6	pride	106	108
-5	6	relief	197	201
-5	6	romance	140	137
-5	6	sadness	370	356
-5	6	satisfaction	559	558
-5	6	sexual desire	220	199
-5	6	surprise	854	848
-5	6	sympathy	390	364
-5	6	triumph	223	214
+block	fold	emotion	n_nonzero_excluded	n_nonzero_control	n_nonzero_excluded_val	n_nonzero_control_val
+1	1	admiration	268	267	71	68
+1	1	adoration	277	259	72	64
+1	1	aesthetic appreciation	353	320	89	89
+1	1	amusement	628	619	148	143
+1	1	anger	108	99	32	34
+1	1	anxiety	390	337	104	97
+1	1	awe	581	493	144	131
+1	1	awkwardness	138	221	36	56
+1	1	boredom	284	323	72	82
+1	1	calmness	259	226	78	65
+1	1	confusion	391	396	93	91
+1	1	contempt	87	111	24	31
+1	1	craving	61	70	16	17
+1	1	disappointment	123	133	27	29
+1	1	disgust	250	287	64	77
+1	1	empathic pain	173	159	42	38
+1	1	entrancement	314	278	76	75
+1	1	envy	58	81	22	24
+1	1	excitement	361	358	79	68
+1	1	fear	341	296	96	85
+1	1	guilt	60	50	12	14
+1	1	horror	305	271	91	87
+1	1	interest	640	605	164	160
+1	1	joy	414	415	108	98
+1	1	nostalgia	111	133	30	35
+1	1	pride	53	62	14	20
+1	1	relief	135	97	43	41
+1	1	romance	36	72	12	19
+1	1	sadness	213	210	64	63
+1	1	satisfaction	348	341	84	80
+1	1	sexual desire	34	119	12	29
+1	1	surprise	540	514	140	132
+1	1	sympathy	241	215	66	61
+1	1	triumph	143	137	31	28
+1	2	admiration	270	278	65	65
+1	2	adoration	292	293	69	66
+1	2	aesthetic appreciation	371	316	91	86
+1	2	amusement	637	641	162	157
+1	2	anger	117	116	24	20
+1	2	anxiety	387	341	104	83
+1	2	awe	594	520	153	132
+1	2	awkwardness	154	215	32	49
+1	2	boredom	293	322	68	81
+1	2	calmness	272	240	64	64
+1	2	confusion	408	407	99	100
+1	2	contempt	94	113	23	25
+1	2	craving	62	70	14	17
+1	2	disappointment	121	119	35	33
+1	2	disgust	260	282	53	64
+1	2	empathic pain	170	158	44	36
+1	2	entrancement	317	272	86	70
+1	2	envy	56	73	16	16
+1	2	excitement	351	366	94	91
+1	2	fear	354	318	87	66
+1	2	guilt	61	49	16	13
+1	2	horror	299	259	76	66
+1	2	interest	669	639	154	152
+1	2	joy	407	444	111	112
+1	2	nostalgia	116	136	27	34
+1	2	pride	53	63	15	20
+1	2	relief	133	117	35	29
+1	2	romance	41	90	7	19
+1	2	sadness	228	220	52	52
+1	2	satisfaction	343	349	94	90
+1	2	sexual desire	39	126	7	31
+1	2	surprise	557	532	131	120
+1	2	sympathy	238	218	62	57
+1	2	triumph	138	139	39	39
+1	3	admiration	271	268	70	66
+1	3	adoration	293	280	71	66
+1	3	aesthetic appreciation	384	326	76	71
+1	3	amusement	627	633	158	154
+1	3	anger	123	122	26	30
+1	3	anxiety	392	364	99	85
+1	3	awe	593	513	145	129
+1	3	awkwardness	154	219	36	52
+1	3	boredom	304	328	61	78
+1	3	calmness	285	252	65	57
+1	3	confusion	400	393	101	103
+1	3	contempt	95	120	23	31
+1	3	craving	65	69	13	19
+1	3	disappointment	122	125	26	29
+1	3	disgust	259	280	65	75
+1	3	empathic pain	171	157	41	40
+1	3	entrancement	321	282	72	61
+1	3	envy	64	77	14	20
+1	3	excitement	326	342	104	104
+1	3	fear	364	320	86	79
+1	3	guilt	56	55	17	16
+1	3	horror	312	277	78	78
+1	3	interest	678	631	155	154
+1	3	joy	414	410	101	97
+1	3	nostalgia	121	147	25	27
+1	3	pride	55	64	12	14
+1	3	relief	144	113	32	32
+1	3	romance	41	81	12	22
+1	3	sadness	237	226	55	49
+1	3	satisfaction	338	338	89	89
+1	3	sexual desire	46	123	5	34
+1	3	surprise	550	519	147	140
+1	3	sympathy	237	235	67	52
+1	3	triumph	136	126	33	33
+1	4	admiration	260	265	76	74
+1	4	adoration	278	270	84	82
+1	4	aesthetic appreciation	376	327	99	87
+1	4	amusement	610	610	179	178
+1	4	anger	114	103	33	32
+1	4	anxiety	381	342	115	103
+1	4	awe	582	518	164	143
+1	4	awkwardness	141	190	45	62
+1	4	boredom	291	314	81	90
+1	4	calmness	272	254	77	64
+1	4	confusion	389	384	110	116
+1	4	contempt	92	108	26	29
+1	4	craving	63	71	16	18
+1	4	disappointment	120	115	37	37
+1	4	disgust	239	272	73	81
+1	4	empathic pain	165	155	50	46
+1	4	entrancement	317	273	90	75
+1	4	envy	67	83	13	15
+1	4	excitement	322	331	98	98
+1	4	fear	355	290	96	88
+1	4	guilt	60	53	12	10
+1	4	horror	303	271	85	78
+1	4	interest	638	599	194	179
+1	4	joy	409	411	116	119
+1	4	nostalgia	112	135	36	32
+1	4	pride	55	56	15	18
+1	4	relief	131	107	48	36
+1	4	romance	38	69	10	21
+1	4	sadness	230	205	59	54
+1	4	satisfaction	340	329	92	88
+1	4	sexual desire	40	112	13	38
+1	4	surprise	531	504	150	149
+1	4	sympathy	233	211	66	63
+1	4	triumph	136	135	39	33
+1	5	admiration	273	249	57	58
+1	5	adoration	296	278	53	57
+1	5	aesthetic appreciation	365	315	87	71
+1	5	amusement	639	631	129	126
+1	5	anger	115	108	25	19
+1	5	anxiety	408	358	72	62
+1	5	awe	608	531	119	106
+1	5	awkwardness	152	214	25	37
+1	5	boredom	278	327	74	78
+1	5	calmness	284	258	53	48
+1	5	confusion	409	399	81	83
+1	5	contempt	100	102	15	21
+1	5	craving	58	70	18	19
+1	5	disappointment	121	118	25	25
+1	5	disgust	245	276	59	63
+1	5	empathic pain	168	165	38	34
+1	5	entrancement	323	280	66	59
+1	5	envy	66	83	15	22
+1	5	excitement	361	347	65	64
+1	5	fear	369	313	72	57
+1	5	guilt	62	50	15	12
+1	5	horror	315	280	66	57
+1	5	interest	656	622	137	125
+1	5	joy	424	431	86	93
+1	5	nostalgia	114	144	23	30
+1	5	pride	56	63	11	14
+1	5	relief	143	125	20	17
+1	5	romance	43	74	7	22
+1	5	sadness	238	224	47	45
+1	5	satisfaction	356	366	73	64
+1	5	sexual desire	36	116	9	27
+1	5	surprise	566	520	112	100
+1	5	sympathy	254	235	46	45
+1	5	triumph	137	135	32	27
+1	6	admiration	282	274	67	72
+1	6	adoration	296	259	84	82
+1	6	aesthetic appreciation	355	316	109	104
+1	6	amusement	647	624	171	170
+1	6	anger	115	109	33	30
+1	6	anxiety	422	374	101	89
+1	6	awe	606	524	166	142
+1	6	awkwardness	149	216	48	63
+1	6	boredom	282	327	77	85
+1	6	calmness	284	266	77	73
+1	6	confusion	403	416	116	113
+1	6	contempt	96	115	30	34
+1	6	craving	59	74	15	17
+1	6	disappointment	125	133	33	33
+1	6	disgust	255	306	63	70
+1	6	empathic pain	177	166	41	35
+1	6	entrancement	324	279	89	83
+1	6	envy	65	82	14	12
+1	6	excitement	375	368	84	103
+1	6	fear	365	331	100	79
+1	6	guilt	57	48	17	12
+1	6	horror	330	311	70	60
+1	6	interest	667	640	183	177
+1	6	joy	436	422	104	102
+1	6	nostalgia	118	125	32	42
+1	6	pride	56	66	15	16
+1	6	relief	158	137	33	26
+1	6	romance	41	89	12	20
+1	6	sadness	230	228	67	59
+1	6	satisfaction	359	340	89	91
+1	6	sexual desire	37	127	12	34
+1	6	surprise	568	534	148	133
+1	6	sympathy	261	227	59	52
+1	6	triumph	142	133	34	32
+2	1	admiration	285	308	72	71
+2	1	adoration	336	303	82	67
+2	1	aesthetic appreciation	389	343	93	83
+2	1	amusement	671	678	156	163
+2	1	anger	76	102	27	31
+2	1	anxiety	299	355	78	105
+2	1	awe	567	557	146	138
+2	1	awkwardness	222	226	53	53
+2	1	boredom	370	361	78	79
+2	1	calmness	295	257	80	69
+2	1	confusion	414	414	77	93
+2	1	contempt	111	120	29	31
+2	1	craving	94	80	22	19
+2	1	disappointment	105	143	24	26
+2	1	disgust	315	309	76	77
+2	1	empathic pain	138	174	29	38
+2	1	entrancement	328	291	77	72
+2	1	envy	80	82	31	26
+2	1	excitement	351	390	69	78
+2	1	fear	248	315	67	91
+2	1	guilt	49	54	12	12
+2	1	horror	244	290	74	89
+2	1	interest	690	676	162	158
+2	1	joy	472	457	116	115
+2	1	nostalgia	153	155	35	35
+2	1	pride	54	65	19	20
+2	1	relief	81	112	32	44
+2	1	romance	92	94	21	18
+2	1	sadness	195	216	51	61
+2	1	satisfaction	370	371	94	94
+2	1	sexual desire	148	137	34	30
+2	1	surprise	515	547	124	149
+2	1	sympathy	196	239	55	68
+2	1	triumph	115	149	28	34
+2	2	admiration	292	309	63	61
+2	2	adoration	346	304	82	65
+2	2	aesthetic appreciation	403	354	99	92
+2	2	amusement	697	694	166	161
+2	2	anger	86	119	14	24
+2	2	anxiety	316	385	65	92
+2	2	awe	591	559	136	137
+2	2	awkwardness	237	245	55	53
+2	2	boredom	383	364	87	84
+2	2	calmness	309	264	71	62
+2	2	confusion	431	453	106	110
+2	2	contempt	121	126	22	22
+2	2	craving	95	79	21	16
+2	2	disappointment	108	136	27	42
+2	2	disgust	316	323	70	71
+2	2	empathic pain	146	181	27	42
+2	2	entrancement	348	295	74	72
+2	2	envy	82	78	17	18
+2	2	excitement	369	397	82	100
+2	2	fear	271	341	53	78
+2	2	guilt	55	56	12	14
+2	2	horror	256	302	48	72
+2	2	interest	721	698	165	156
+2	2	joy	470	442	125	114
+2	2	nostalgia	156	154	40	35
+2	2	pride	53	66	14	18
+2	2	relief	86	121	19	27
+2	2	romance	97	99	19	19
+2	2	sadness	208	248	40	59
+2	2	satisfaction	381	370	93	94
+2	2	sexual desire	152	140	37	33
+2	2	surprise	544	583	115	127
+2	2	sympathy	202	255	48	62
+2	2	triumph	111	144	32	34
+2	3	admiration	295	302	69	73
+2	3	adoration	350	335	78	69
+2	3	aesthetic appreciation	407	354	89	82
+2	3	amusement	697	694	156	157
+2	3	anger	88	123	25	25
+2	3	anxiety	324	370	70	90
+2	3	awe	594	571	143	132
+2	3	awkwardness	240	241	50	55
+2	3	boredom	372	376	89	79
+2	3	calmness	312	276	77	65
+2	3	confusion	413	432	95	106
+2	3	contempt	119	129	31	29
+2	3	craving	94	84	23	21
+2	3	disappointment	107	127	25	28
+2	3	disgust	314	318	78	78
+2	3	empathic pain	139	172	36	42
+2	3	entrancement	348	308	77	71
+2	3	envy	89	93	24	23
+2	3	excitement	347	370	91	99
+2	3	fear	276	332	62	74
+2	3	guilt	52	54	15	18
+2	3	horror	266	300	64	75
+2	3	interest	714	688	169	165
+2	3	joy	473	472	113	105
+2	3	nostalgia	153	162	38	32
+2	3	pride	61	74	11	15
+2	3	relief	96	129	22	33
+2	3	romance	91	91	27	28
+2	3	sadness	210	250	49	57
+2	3	satisfaction	378	370	97	88
+2	3	sexual desire	148	130	38	34
+2	3	surprise	536	560	132	139
+2	3	sympathy	213	258	44	58
+2	3	triumph	116	154	23	30
+2	4	admiration	283	288	75	74
+2	4	adoration	338	281	94	92
+2	4	aesthetic appreciation	395	363	111	101
+2	4	amusement	678	656	185	185
+2	4	anger	79	115	23	28
+2	4	anxiety	296	371	93	94
+2	4	awe	576	552	154	149
+2	4	awkwardness	230	216	65	70
+2	4	boredom	355	332	104	93
+2	4	calmness	299	260	84	79
+2	4	confusion	400	420	119	116
+2	4	contempt	106	110	35	31
+2	4	craving	91	79	24	26
+2	4	disappointment	103	130	31	38
+2	4	disgust	295	301	89	81
+2	4	empathic pain	130	177	36	47
+2	4	entrancement	326	306	96	84
+2	4	envy	92	98	14	14
+2	4	excitement	338	376	91	103
+2	4	fear	254	344	75	85
+2	4	guilt	54	60	10	12
+2	4	horror	244	301	70	70
+2	4	interest	684	679	195	187
+2	4	joy	480	452	118	125
+2	4	nostalgia	157	139	36	33
+2	4	pride	59	71	16	17
+2	4	relief	96	128	19	33
+2	4	romance	90	92	20	24
+2	4	sadness	200	243	50	59
+2	4	satisfaction	377	368	94	103
+2	4	sexual desire	146	137	39	40
+2	4	surprise	508	555	143	148
+2	4	sympathy	210	251	51	65
+2	4	triumph	115	146	33	40
+2	5	admiration	274	286	78	83
+2	5	adoration	334	292	82	74
+2	5	aesthetic appreciation	394	348	90	88
+2	5	amusement	670	674	164	167
+2	5	anger	90	115	14	21
+2	5	anxiety	295	372	71	74
+2	5	awe	585	573	134	134
+2	5	awkwardness	228	204	52	51
+2	5	boredom	354	341	90	82
+2	5	calmness	313	281	63	55
+2	5	confusion	401	421	94	94
+2	5	contempt	114	126	23	24
+2	5	craving	88	75	26	26
+2	5	disappointment	106	125	22	28
+2	5	disgust	295	301	78	73
+2	5	empathic pain	127	171	39	38
+2	5	entrancement	322	305	81	73
+2	5	envy	91	92	25	28
+2	5	excitement	342	400	87	87
+2	5	fear	258	341	58	70
+2	5	guilt	57	60	12	13
+2	5	horror	246	294	62	67
+2	5	interest	692	679	161	158
+2	5	joy	477	447	116	116
+2	5	nostalgia	156	158	39	34
+2	5	pride	57	67	13	17
+2	5	relief	97	128	21	23
+2	5	romance	91	92	26	26
+2	5	sadness	193	244	56	56
+2	5	satisfaction	388	390	86	95
+2	5	sexual desire	150	124	34	36
+2	5	surprise	515	566	125	135
+2	5	sympathy	201	245	53	57
+2	5	triumph	111	148	27	39
+2	6	admiration	279	302	70	79
+2	6	adoration	336	299	92	80
+2	6	aesthetic appreciation	392	331	113	107
+2	6	amusement	663	667	192	188
+2	6	anger	89	111	24	37
+2	6	anxiety	306	391	82	101
+2	6	awe	579	557	160	153
+2	6	awkwardness	223	225	70	67
+2	6	boredom	358	360	100	94
+2	6	calmness	312	272	85	74
+2	6	confusion	397	407	123	124
+2	6	contempt	117	117	32	36
+2	6	craving	90	76	22	18
+2	6	disappointment	107	133	30	33
+2	6	disgust	313	312	71	73
+2	6	empathic pain	128	167	35	45
+2	6	entrancement	324	293	94	87
+2	6	envy	86	91	19	19
+2	6	excitement	333	393	100	106
+2	6	fear	257	329	76	97
+2	6	guilt	49	54	18	15
+2	6	horror	256	309	60	70
+2	6	interest	691	654	196	185
+2	6	joy	472	464	123	115
+2	6	nostalgia	149	150	43	42
+2	6	pride	60	70	13	20
+2	6	relief	92	130	24	37
+2	6	romance	87	89	24	28
+2	6	sadness	190	231	53	71
+2	6	satisfaction	378	375	104	98
+2	6	sexual desire	148	131	41	37
+2	6	surprise	514	564	144	155
+2	6	sympathy	198	259	54	59
+2	6	triumph	116	158	28	38
+3	1	admiration	352	329	86	79
+3	1	adoration	364	330	85	79
+3	1	aesthetic appreciation	305	378	70	91
+3	1	amusement	775	744	175	165
+3	1	anger	129	112	39	39
+3	1	anxiety	428	394	119	112
+3	1	awe	615	593	153	154
+3	1	awkwardness	266	253	61	52
+3	1	boredom	355	385	82	85
+3	1	calmness	250	287	70	79
+3	1	confusion	443	469	94	103
+3	1	contempt	133	115	40	33
+3	1	craving	59	88	12	22
+3	1	disappointment	159	156	36	34
+3	1	disgust	338	334	88	88
+3	1	empathic pain	202	194	52	46
+3	1	entrancement	261	311	64	82
+3	1	envy	89	90	33	33
+3	1	excitement	473	442	97	87
+3	1	fear	379	342	106	96
+3	1	guilt	63	56	16	15
+3	1	horror	340	320	104	101
+3	1	interest	702	735	161	175
+3	1	joy	547	517	127	123
+3	1	nostalgia	160	161	43	40
+3	1	pride	87	72	26	21
+3	1	relief	150	124	54	46
+3	1	romance	116	105	23	19
+3	1	sadness	270	248	81	72
+3	1	satisfaction	398	416	98	102
+3	1	sexual desire	168	147	37	35
+3	1	surprise	627	604	160	157
+3	1	sympathy	305	265	84	78
+3	1	triumph	196	162	44	36
+3	2	admiration	353	326	78	76
+3	2	adoration	381	327	85	78
+3	2	aesthetic appreciation	305	381	81	105
+3	2	amusement	787	746	191	191
+3	2	anger	140	127	31	25
+3	2	anxiety	425	402	114	100
+3	2	awe	618	616	155	160
+3	2	awkwardness	280	251	61	60
+3	2	boredom	360	384	85	96
+3	2	calmness	261	283	60	73
+3	2	confusion	455	477	108	120
+3	2	contempt	140	134	29	25
+3	2	craving	64	91	10	19
+3	2	disappointment	153	144	47	41
+3	2	disgust	335	338	80	80
+3	2	empathic pain	198	190	51	45
+3	2	entrancement	264	327	63	89
+3	2	envy	90	91	23	24
+3	2	excitement	473	439	126	109
+3	2	fear	382	362	100	87
+3	2	guilt	67	62	17	12
+3	2	horror	327	319	86	78
+3	2	interest	710	742	176	184
+3	2	joy	543	486	144	131
+3	2	nostalgia	166	157	41	44
+3	2	pride	86	71	24	19
+3	2	relief	151	131	38	36
+3	2	romance	126	98	23	19
+3	2	sadness	283	255	68	55
+3	2	satisfaction	404	413	99	109
+3	2	sexual desire	170	144	39	34
+3	2	surprise	634	630	157	148
+3	2	sympathy	301	271	83	66
+3	2	triumph	187	158	55	50
+3	3	admiration	349	331	90	85
+3	3	adoration	380	334	86	74
+3	3	aesthetic appreciation	306	387	69	88
+3	3	amusement	771	742	191	180
+3	3	anger	144	124	35	31
+3	3	anxiety	428	402	116	110
+3	3	awe	616	612	155	152
+3	3	awkwardness	276	262	65	57
+3	3	boredom	356	404	86	98
+3	3	calmness	264	298	67	72
+3	3	confusion	432	470	117	128
+3	3	contempt	142	128	38	29
+3	3	craving	59	87	17	21
+3	3	disappointment	154	142	35	33
+3	3	disgust	328	322	95	88
+3	3	empathic pain	193	181	57	53
+3	3	entrancement	264	328	64	77
+3	3	envy	99	93	24	22
+3	3	excitement	444	406	126	121
+3	3	fear	388	360	100	99
+3	3	guilt	65	59	18	20
+3	3	horror	338	319	93	90
+3	3	interest	694	738	177	187
+3	3	joy	540	493	130	118
+3	3	nostalgia	171	163	38	42
+3	3	pride	93	74	19	18
+3	3	relief	166	138	39	36
+3	3	romance	114	90	35	29
+3	3	sadness	292	260	72	69
+3	3	satisfaction	402	410	100	104
+3	3	sexual desire	164	146	43	36
+3	3	surprise	628	613	166	163
+3	3	sympathy	311	263	74	69
+3	3	triumph	186	155	45	38
+3	4	admiration	331	324	96	81
+3	4	adoration	356	319	109	88
+3	4	aesthetic appreciation	305	392	82	104
+3	4	amusement	750	740	212	202
+3	4	anger	136	122	39	34
+3	4	anxiety	425	387	117	112
+3	4	awe	606	610	165	157
+3	4	awkwardness	258	243	79	69
+3	4	boredom	346	379	95	111
+3	4	calmness	256	284	68	80
+3	4	confusion	421	459	119	131
+3	4	contempt	131	128	40	41
+3	4	craving	54	81	15	22
+3	4	disappointment	157	148	44	44
+3	4	disgust	317	313	91	96
+3	4	empathic pain	190	184	54	50
+3	4	entrancement	266	326	61	86
+3	4	envy	103	100	19	16
+3	4	excitement	445	407	125	104
+3	4	fear	385	345	103	92
+3	4	guilt	68	69	14	11
+3	4	horror	334	317	90	84
+3	4	interest	679	718	191	199
+3	4	joy	536	501	148	126
+3	4	nostalgia	173	155	39	38
+3	4	pride	93	78	24	21
+3	4	relief	157	137	47	39
+3	4	romance	109	100	28	23
+3	4	sadness	291	261	69	66
+3	4	satisfaction	398	417	103	101
+3	4	sexual desire	157	145	46	41
+3	4	surprise	619	604	166	166
+3	4	sympathy	312	274	82	64
+3	4	triumph	189	164	52	44
+3	5	admiration	333	311	88	79
+3	5	adoration	358	317	84	72
+3	5	aesthetic appreciation	301	382	73	88
+3	5	amusement	760	745	181	176
+3	5	anger	147	123	24	25
+3	5	anxiety	460	423	81	82
+3	5	awe	621	626	140	135
+3	5	awkwardness	262	248	61	50
+3	5	boredom	343	380	89	97
+3	5	calmness	268	293	55	63
+3	5	confusion	439	463	99	108
+3	5	contempt	143	140	26	24
+3	5	craving	54	83	17	23
+3	5	disappointment	159	145	33	33
+3	5	disgust	340	330	72	79
+3	5	empathic pain	207	185	40	41
+3	5	entrancement	257	333	73	80
+3	5	envy	104	102	23	25
+3	5	excitement	475	437	96	94
+3	5	fear	409	376	76	69
+3	5	guilt	72	59	14	13
+3	5	horror	356	337	71	72
+3	5	interest	698	733	158	166
+3	5	joy	541	499	125	115
+3	5	nostalgia	169	167	42	37
+3	5	pride	92	83	20	17
+3	5	relief	170	142	26	23
+3	5	romance	114	101	30	25
+3	5	sadness	302	265	61	57
+3	5	satisfaction	402	419	96	98
+3	5	sexual desire	160	140	40	36
+3	5	surprise	647	622	138	134
+3	5	sympathy	320	270	66	58
+3	5	triumph	190	169	44	45
+3	6	admiration	350	327	79	77
+3	6	adoration	365	329	102	88
+3	6	aesthetic appreciation	302	382	81	114
+3	6	amusement	769	742	203	193
+3	6	anger	144	128	42	32
+3	6	anxiety	466	435	111	105
+3	6	awe	628	622	158	166
+3	6	awkwardness	266	249	75	66
+3	6	boredom	348	373	90	102
+3	6	calmness	265	302	71	77
+3	6	confusion	438	468	120	125
+3	6	contempt	147	128	36	30
+3	6	craving	54	85	15	22
+3	6	disappointment	162	147	41	31
+3	6	disgust	354	351	77	74
+3	6	empathic pain	214	191	47	42
+3	6	entrancement	252	327	66	91
+3	6	envy	99	97	24	24
+3	6	excitement	474	438	126	115
+3	6	fear	409	381	103	97
+3	6	guilt	65	64	21	15
+3	6	horror	373	343	73	64
+3	6	interest	705	744	184	202
+3	6	joy	549	508	140	124
+3	6	nostalgia	161	161	47	45
+3	6	pride	93	81	23	18
+3	6	relief	178	147	39	31
+3	6	romance	109	93	33	24
+3	6	sadness	290	254	81	69
+3	6	satisfaction	400	411	105	106
+3	6	sexual desire	165	140	41	37
+3	6	surprise	649	629	164	159
+3	6	sympathy	323	282	79	62
+3	6	triumph	196	176	46	39
+4	1	admiration	326	323	73	80
+4	1	adoration	221	325	46	71
+4	1	aesthetic appreciation	421	376	99	92
+4	1	amusement	692	742	156	168
+4	1	anger	117	124	38	35
+4	1	anxiety	422	409	120	112
+4	1	awe	540	600	129	152
+4	1	awkwardness	260	244	63	54
+4	1	boredom	436	390	95	89
+4	1	calmness	279	279	70	80
+4	1	confusion	505	481	107	102
+4	1	contempt	126	120	38	37
+4	1	craving	102	79	22	19
+4	1	disappointment	163	147	31	30
+4	1	disgust	348	355	92	86
+4	1	empathic pain	192	192	46	45
+4	1	entrancement	349	320	87	77
+4	1	envy	102	89	32	34
+4	1	excitement	456	427	88	87
+4	1	fear	362	355	107	97
+4	1	guilt	50	61	13	13
+4	1	horror	334	331	102	96
+4	1	interest	742	729	175	176
+4	1	joy	441	498	100	117
+4	1	nostalgia	180	172	42	42
+4	1	pride	76	74	22	23
+4	1	relief	129	130	41	48
+4	1	romance	114	94	26	21
+4	1	sadness	234	251	68	68
+4	1	satisfaction	413	401	92	98
+4	1	sexual desire	173	144	40	32
+4	1	surprise	597	615	153	153
+4	1	sympathy	235	268	63	68
+4	1	triumph	173	166	35	38
+4	2	admiration	330	340	73	77
+4	2	adoration	239	351	47	76
+4	2	aesthetic appreciation	431	382	110	102
+4	2	amusement	713	770	173	190
+4	2	anger	123	134	28	21
+4	2	anxiety	419	421	116	103
+4	2	awe	558	626	137	158
+4	2	awkwardness	273	254	66	60
+4	2	boredom	441	385	108	90
+4	2	calmness	288	294	66	74
+4	2	confusion	510	486	132	119
+4	2	contempt	140	136	28	27
+4	2	craving	103	88	22	18
+4	2	disappointment	152	145	49	43
+4	2	disgust	343	346	82	77
+4	2	empathic pain	190	196	50	47
+4	2	entrancement	356	326	89	82
+4	2	envy	101	88	25	21
+4	2	excitement	458	437	120	112
+4	2	fear	382	368	90	84
+4	2	guilt	46	67	15	13
+4	2	horror	319	324	90	79
+4	2	interest	760	762	186	183
+4	2	joy	438	500	115	135
+4	2	nostalgia	188	162	44	44
+4	2	pride	75	71	21	22
+4	2	relief	124	128	34	29
+4	2	romance	127	96	20	19
+4	2	sadness	249	264	59	57
+4	2	satisfaction	418	417	109	108
+4	2	sexual desire	177	140	40	32
+4	2	surprise	613	648	145	142
+4	2	sympathy	235	270	62	67
+4	2	triumph	166	172	49	47
+4	3	admiration	317	338	86	83
+4	3	adoration	233	343	52	71
+4	3	aesthetic appreciation	434	396	96	89
+4	3	amusement	706	759	163	179
+4	3	anger	127	127	34	30
+4	3	anxiety	433	406	106	100
+4	3	awe	553	607	134	146
+4	3	awkwardness	280	263	56	56
+4	3	boredom	430	388	106	93
+4	3	calmness	291	292	67	69
+4	3	confusion	495	462	122	119
+4	3	contempt	144	140	34	33
+4	3	craving	99	82	26	20
+4	3	disappointment	146	145	37	30
+4	3	disgust	342	343	93	86
+4	3	empathic pain	186	180	50	42
+4	3	entrancement	361	331	82	78
+4	3	envy	107	102	26	22
+4	3	excitement	425	393	121	120
+4	3	fear	396	372	93	90
+4	3	guilt	44	61	15	12
+4	3	horror	338	331	83	83
+4	3	interest	753	739	182	183
+4	3	joy	440	510	98	115
+4	3	nostalgia	185	170	45	36
+4	3	pride	81	80	16	16
+4	3	relief	131	140	34	34
+4	3	romance	118	99	35	30
+4	3	sadness	255	263	62	57
+4	3	satisfaction	412	411	98	102
+4	3	sexual desire	174	145	43	36
+4	3	surprise	611	632	155	153
+4	3	sympathy	241	267	57	56
+4	3	triumph	161	164	40	40
+4	4	admiration	308	313	82	84
+4	4	adoration	215	325	65	92
+4	4	aesthetic appreciation	424	403	120	103
+4	4	amusement	688	736	191	211
+4	4	anger	121	113	34	35
+4	4	anxiety	426	395	123	126
+4	4	awe	542	606	148	160
+4	4	awkwardness	266	247	80	76
+4	4	boredom	419	382	119	108
+4	4	calmness	274	296	83	76
+4	4	confusion	487	461	140	136
+4	4	contempt	137	123	35	37
+4	4	craving	94	81	27	18
+4	4	disappointment	150	138	45	43
+4	4	disgust	327	320	97	101
+4	4	empathic pain	183	178	53	55
+4	4	entrancement	356	327	94	90
+4	4	envy	110	108	22	19
+4	4	excitement	427	402	118	115
+4	4	fear	381	358	105	103
+4	4	guilt	50	61	9	11
+4	4	horror	336	321	92	96
+4	4	interest	734	715	205	206
+4	4	joy	436	507	119	133
+4	4	nostalgia	187	165	42	39
+4	4	pride	79	72	23	23
+4	4	relief	124	136	41	40
+4	4	romance	110	96	28	22
+4	4	sadness	254	260	60	68
+4	4	satisfaction	412	396	109	97
+4	4	sexual desire	165	148	49	37
+4	4	surprise	591	606	165	173
+4	4	sympathy	243	264	60	71
+4	4	triumph	165	155	45	42
+4	5	admiration	309	313	85	83
+4	5	adoration	210	328	57	77
+4	5	aesthetic appreciation	425	371	95	86
+4	5	amusement	686	741	165	176
+4	5	anger	134	126	21	27
+4	5	anxiety	455	418	77	82
+4	5	awe	555	631	121	133
+4	5	awkwardness	264	245	58	52
+4	5	boredom	422	362	103	94
+4	5	calmness	278	304	63	68
+4	5	confusion	498	458	111	106
+4	5	contempt	142	117	29	25
+4	5	craving	93	78	27	28
+4	5	disappointment	155	147	32	32
+4	5	disgust	344	327	76	82
+4	5	empathic pain	194	184	39	45
+4	5	entrancement	354	311	84	80
+4	5	envy	107	97	29	25
+4	5	excitement	451	431	97	91
+4	5	fear	400	365	74	76
+4	5	guilt	54	66	11	16
+4	5	horror	350	330	69	72
+4	5	interest	747	749	169	163
+4	5	joy	425	513	109	120
+4	5	nostalgia	183	169	49	41
+4	5	pride	79	76	16	15
+4	5	relief	138	147	20	22
+4	5	romance	114	102	31	28
+4	5	sadness	263	260	53	58
+4	5	satisfaction	413	411	97	101
+4	5	sexual desire	167	140	41	33
+4	5	surprise	614	612	132	143
+4	5	sympathy	244	274	56	58
+4	5	triumph	166	159	39	44
+4	6	admiration	314	323	77	79
+4	6	adoration	210	331	65	92
+4	6	aesthetic appreciation	425	368	120	113
+4	6	amusement	683	743	194	204
+4	6	anger	134	124	34	33
+4	6	anxiety	465	424	113	106
+4	6	awe	548	596	155	168
+4	6	awkwardness	265	240	79	73
+4	6	boredom	428	389	113	106
+4	6	calmness	286	295	75	83
+4	6	confusion	501	465	137	136
+4	6	contempt	135	129	42	36
+4	6	craving	97	86	23	19
+4	6	disappointment	162	151	38	34
+4	6	disgust	364	341	77	72
+4	6	empathic pain	199	191	48	46
+4	6	entrancement	352	320	96	94
+4	6	envy	105	95	24	22
+4	6	excitement	447	436	122	109
+4	6	fear	395	364	110	100
+4	6	guilt	52	62	11	18
+4	6	horror	367	341	75	72
+4	6	interest	748	740	204	206
+4	6	joy	432	514	112	130
+4	6	nostalgia	173	167	52	45
+4	6	pride	82	83	20	21
+4	6	relief	150	149	29	35
+4	6	romance	109	97	33	29
+4	6	sadness	249	249	74	73
+4	6	satisfaction	408	421	114	117
+4	6	sexual desire	172	149	44	37
+4	6	surprise	618	625	161	165
+4	6	sympathy	242	278	62	70
+4	6	triumph	169	166	42	40
+5	1	admiration	349	350	86	86
+5	1	adoration	366	349	91	78
+5	1	aesthetic appreciation	348	401	81	99
+5	1	amusement	818	791	197	177
+5	1	anger	134	128	36	37
+5	1	anxiety	409	441	107	112
+5	1	awe	601	642	148	157
+5	1	awkwardness	286	259	71	60
+5	1	boredom	435	413	101	96
+5	1	calmness	281	303	74	87
+5	1	confusion	531	500	113	106
+5	1	contempt	131	137	37	36
+5	1	craving	100	92	24	21
+5	1	disappointment	170	154	34	34
+5	1	disgust	389	370	100	93
+5	1	empathic pain	219	207	51	48
+5	1	entrancement	304	344	76	85
+5	1	envy	99	88	34	33
+5	1	excitement	447	453	91	95
+5	1	fear	346	378	92	101
+5	1	guilt	70	62	15	14
+5	1	horror	337	353	97	98
+5	1	interest	758	779	186	187
+5	1	joy	546	537	137	126
+5	1	nostalgia	180	175	42	43
+5	1	pride	82	75	23	24
+5	1	relief	133	133	50	45
+5	1	romance	114	102	26	26
+5	1	sadness	276	265	72	71
+5	1	satisfaction	435	424	108	105
+5	1	sexual desire	173	147	41	37
+5	1	surprise	661	650	167	156
+5	1	sympathy	299	285	76	73
+5	1	triumph	185	179	42	39
+5	2	admiration	351	354	81	85
+5	2	adoration	382	356	85	82
+5	2	aesthetic appreciation	354	414	95	111
+5	2	amusement	826	810	212	201
+5	2	anger	142	126	31	29
+5	2	anxiety	409	435	109	118
+5	2	awe	603	661	159	171
+5	2	awkwardness	296	281	70	59
+5	2	boredom	431	417	108	105
+5	2	calmness	282	305	71	74
+5	2	confusion	540	507	135	133
+5	2	contempt	141	143	30	32
+5	2	craving	100	92	21	21
+5	2	disappointment	162	149	50	47
+5	2	disgust	386	361	91	82
+5	2	empathic pain	216	202	56	53
+5	2	entrancement	307	353	80	91
+5	2	envy	99	95	23	22
+5	2	excitement	445	464	118	123
+5	2	fear	355	383	90	98
+5	2	guilt	71	68	20	18
+5	2	horror	327	342	88	88
+5	2	interest	772	801	195	201
+5	2	joy	534	530	149	143
+5	2	nostalgia	178	178	48	44
+5	2	pride	81	77	22	22
+5	2	relief	134	142	34	35
+5	2	romance	121	111	23	22
+5	2	sadness	288	271	69	65
+5	2	satisfaction	438	437	117	118
+5	2	sexual desire	178	158	41	37
+5	2	surprise	672	663	160	162
+5	2	sympathy	292	276	85	76
+5	2	triumph	178	171	49	52
+5	3	admiration	352	351	85	90
+5	3	adoration	384	368	89	85
+5	3	aesthetic appreciation	361	420	74	88
+5	3	amusement	827	805	196	197
+5	3	anger	142	134	36	33
+5	3	anxiety	411	433	105	107
+5	3	awe	604	656	147	164
+5	3	awkwardness	298	270	69	65
+5	3	boredom	430	414	102	98
+5	3	calmness	288	320	68	71
+5	3	confusion	524	497	129	121
+5	3	contempt	144	136	34	34
+5	3	craving	99	90	25	24
+5	3	disappointment	159	152	37	32
+5	3	disgust	385	356	101	93
+5	3	empathic pain	215	200	52	48
+5	3	entrancement	318	348	65	79
+5	3	envy	105	100	28	24
+5	3	excitement	414	433	122	120
+5	3	fear	356	382	91	94
+5	3	guilt	67	63	19	17
+5	3	horror	334	345	90	87
+5	3	interest	773	795	185	191
+5	3	joy	545	528	126	125
+5	3	nostalgia	174	175	46	45
+5	3	pride	86	81	18	18
+5	3	relief	151	146	33	31
+5	3	romance	112	102	35	31
+5	3	sadness	290	275	70	65
+5	3	satisfaction	438	435	108	110
+5	3	sexual desire	176	151	43	36
+5	3	surprise	667	662	172	168
+5	3	sympathy	298	285	70	69
+5	3	triumph	177	172	43	40
+5	4	admiration	342	337	91	89
+5	4	adoration	361	351	108	100
+5	4	aesthetic appreciation	360	409	96	113
+5	4	amusement	818	788	221	214
+5	4	anger	134	131	39	38
+5	4	anxiety	400	432	120	127
+5	4	awe	602	639	161	170
+5	4	awkwardness	285	266	83	80
+5	4	boredom	421	400	117	116
+5	4	calmness	279	308	80	87
+5	4	confusion	507	499	152	139
+5	4	contempt	138	131	36	38
+5	4	craving	94	87	26	22
+5	4	disappointment	162	161	47	47
+5	4	disgust	366	348	110	105
+5	4	empathic pain	208	199	63	57
+5	4	entrancement	315	343	83	91
+5	4	envy	108	110	20	20
+5	4	excitement	420	431	112	120
+5	4	fear	349	388	97	109
+5	4	guilt	72	69	15	14
+5	4	horror	331	349	91	97
+5	4	interest	761	780	207	215
+5	4	joy	551	530	143	142
+5	4	nostalgia	179	183	43	43
+5	4	pride	86	83	22	22
+5	4	relief	140	144	45	45
+5	4	romance	109	99	26	25
+5	4	sadness	281	286	78	73
+5	4	satisfaction	449	423	106	112
+5	4	sexual desire	168	151	49	42
+5	4	surprise	643	646	184	181
+5	4	sympathy	302	295	81	75
+5	4	triumph	179	174	47	48
+5	5	admiration	335	332	92	86
+5	5	adoration	366	336	84	77
+5	5	aesthetic appreciation	351	394	83	92
+5	5	amusement	825	799	189	187
+5	5	anger	142	144	28	26
+5	5	anxiety	430	452	75	85
+5	5	awe	615	643	134	142
+5	5	awkwardness	290	271	64	61
+5	5	boredom	415	394	108	102
+5	5	calmness	285	318	62	62
+5	5	confusion	521	505	115	116
+5	5	contempt	141	150	31	29
+5	5	craving	91	84	28	28
+5	5	disappointment	163	162	36	35
+5	5	disgust	380	358	87	82
+5	5	empathic pain	212	202	48	47
+5	5	entrancement	304	341	76	81
+5	5	envy	108	109	28	26
+5	5	excitement	447	466	95	96
+5	5	fear	372	400	68	75
+5	5	guilt	75	72	16	15
+5	5	horror	353	362	68	76
+5	5	interest	775	788	171	175
+5	5	joy	549	538	128	125
+5	5	nostalgia	182	183	43	42
+5	5	pride	84	79	20	18
+5	5	relief	152	146	21	25
+5	5	romance	114	111	30	26
+5	5	sadness	292	281	59	60
+5	5	satisfaction	453	443	104	102
+5	5	sexual desire	171	163	40	35
+5	5	surprise	670	668	145	147
+5	5	sympathy	309	296	63	63
+5	5	triumph	176	168	46	41
+5	6	admiration	343	343	83	88
+5	6	adoration	373	355	101	99
+5	6	aesthetic appreciation	346	404	101	115
+5	6	amusement	826	803	220	214
+5	6	anger	142	135	39	40
+5	6	anxiety	441	467	109	111
+5	6	awe	615	654	161	175
+5	6	awkwardness	293	262	80	75
+5	6	boredom	428	404	104	104
+5	6	calmness	293	332	72	87
+5	6	confusion	529	485	144	145
+5	6	contempt	137	142	40	42
+5	6	craving	96	90	21	22
+5	6	disappointment	168	161	42	42
+5	6	disgust	402	360	88	88
+5	6	empathic pain	222	207	53	52
+5	6	entrancement	304	347	83	96
+5	6	envy	105	101	23	23
+5	6	excitement	443	463	116	119
+5	6	fear	370	397	99	103
+5	6	guilt	69	66	21	20
+5	6	horror	366	375	78	77
+5	6	interest	773	789	209	212
+5	6	joy	555	541	137	134
+5	6	nostalgia	179	184	46	50
+5	6	pride	85	83	21	19
+5	6	relief	162	163	35	32
+5	6	romance	110	103	30	31
+5	6	sadness	289	278	81	80
+5	6	satisfaction	439	437	120	125
+5	6	sexual desire	174	151	46	39
+5	6	surprise	683	668	171	177
+5	6	sympathy	312	300	78	75
+5	6	triumph	181	173	42	42
