@@ -1,0 +1,643 @@
+fold	kind	name	mean	diff_in_sd	n_nonzero
+1	emotion	admiration	0.0367259	0.00630372	95
+1	emotion	adoration	0.0586466	0.0011767	100
+1	emotion	aesthetic appreciation	0.0832597	0.0413769	113
+1	emotion	amusement	0.200507	-0.0201931	227
+1	emotion	anger	0.0163655	-0.0078119	36
+1	emotion	anxiety	0.0701082	0.0310298	122
+1	emotion	awe	0.109369	0.012969	183
+1	emotion	awkwardness	0.0287119	0.00981074	75
+1	emotion	boredom	0.0457578	0.0215489	112
+1	emotion	calmness	0.0391749	0.0327281	84
+1	emotion	confusion	0.0615779	-0.0144212	138
+1	emotion	contempt	0.0100839	-0.0105143	36
+1	emotion	craving	0.0224564	0.00769343	23
+1	emotion	disappointment	0.013468	-0.00485971	42
+1	emotion	disgust	0.0951754	0.0283657	102
+1	emotion	empathic pain	0.0229541	-0.0410826	51
+1	emotion	entrancement	0.0447195	0.0216324	95
+1	emotion	envy	0.00813286	0.0218713	28
+1	emotion	excitement	0.0505968	0.0368185	127
+1	emotion	fear	0.0758971	-0.0148881	110
+1	emotion	guilt	0.00464737	0.000412228	20
+1	emotion	horror	0.0573192	-0.0508512	90
+1	emotion	interest	0.11483	0.0151352	215
+1	emotion	joy	0.0814027	0.00426341	138
+1	emotion	nostalgia	0.0389738	0.0600749	58
+1	emotion	pride	0.00909274	0.0656866	22
+1	emotion	relief	0.017074	-0.018875	38
+1	emotion	romance	0.0266563	-0.0231212	25
+1	emotion	sadness	0.0451892	-0.018512	76
+1	emotion	satisfaction	0.0402643	-0.00582872	117
+1	emotion	sexual desire	0.0505877	-0.0163369	38
+1	emotion	surprise	0.0977682	0.049644	178
+1	emotion	sympathy	0.0335689	0.00485956	76
+1	emotion	triumph	0.0204833	0.01467	50
+1	semantic_label	Above water scenes	0.0913922	0.023759	176
+1	semantic_label	Aquatic animals	0.0135705	-0.0634656	29
+1	semantic_label	Art	0.0800176	-0.00604465	98
+1	semantic_label	Automobiles	0.0445674	0.01054	46
+1	semantic_label	Babies	0.0393764	-0.00333948	34
+1	semantic_label	Birds	0.00836627	-0.0660132	8
+1	semantic_label	Black people	0.0459859	0.019712	37
+1	semantic_label	Blood	0.0112209	-0.0222847	14
+1	semantic_label	Boats	0.00704875	-0.021791	9
+1	semantic_label	Bottles/cans	0.00689943	0.00944456	16
+1	semantic_label	Boys	0.0693017	0.0871813	73
+1	semantic_label	Buildings	0.0295213	-0.0477903	46
+1	semantic_label	Cartoons	0.0209267	-0.0342406	30
+1	semantic_label	Cats	0.0224989	-0.0252721	16
+1	semantic_label	Celebrities	0.0383751	0.0437325	46
+1	semantic_label	Cities	0.0254853	0.0399189	40
+1	semantic_label	Clouds	0.0248573	0.00563088	35
+1	semantic_label	Couples	0.0507905	-0.0172426	42
+1	semantic_label	Crowds of people	0.0921344	0.0764041	83
+1	semantic_label	Daytime scenes	0.254124	-0.0101232	228
+1	semantic_label	Dead bodies	0.010874	-0.0239558	18
+1	semantic_label	Dogs	0.0494335	-0.0240196	26
+1	semantic_label	Elderly people	0.0148309	-0.0333877	16
+1	semantic_label	Explosions	0.0146565	-0.0202817	27
+1	semantic_label	Fast-moving objects	0.0579959	0.0181148	105
+1	semantic_label	Feces/urine/vomit	0.0113263	0.0485156	14
+1	semantic_label	Fire	0.029492	0.095406	24
+1	semantic_label	Flags	0.00717757	0.00707827	13
+1	semantic_label	Food	0.045295	0.0159347	41
+1	semantic_label	Furniture	0.0309676	0.0861291	57
+1	semantic_label	Genitalia	0.0247914	-0.0184298	23
+1	semantic_label	Girls	0.0487264	0.00936712	60
+1	semantic_label	Guns	0.00314449	-0.0827918	10
+1	semantic_label	Gymnasiums	0.0084585	-0.0532733	23
+1	semantic_label	Hands/feet	0.0938911	-0.0334751	177
+1	semantic_label	Historical footage	0.0222017	0.0245536	51
+1	semantic_label	Hospitals	0.00505051	-0.0459228	12
+1	semantic_label	Indoor scenes	0.264286	0.0384871	180
+1	semantic_label	Injuries	0.0811148	-0.0164008	109
+1	semantic_label	Insects	0.0151076	-0.00493129	11
+1	semantic_label	Land animals	0.159354	-0.0294245	79
+1	semantic_label	Large animals	0.09049	-0.00710535	168
+1	semantic_label	Machines	0.0313439	0.00755382	49
+1	semantic_label	Men	0.279552	-0.00487628	184
+1	semantic_label	Mountains	0.0239789	-0.0163576	26
+1	semantic_label	Naked people	0.0481555	0.00428254	36
+1	semantic_label	Nature	0.117896	0.0272931	127
+1	semantic_label	Nighttime scenes	0.0416118	0.0253483	55
+1	semantic_label	Outdoor scenes	0.353513	-0.0042405	195
+1	semantic_label	Paper	0.00720832	-0.0079486	15
+1	semantic_label	Paranormal creatures	0.0222588	0.0279021	34
+1	semantic_label	People	0.578033	0.0147085	320
+1	semantic_label	Planes	0.00566974	-0.00783772	10
+1	semantic_label	Plants	0.0240272	-0.0196446	57
+1	semantic_label	Politicians	0.0127097	-0.0503194	8
+1	semantic_label	Reporters	0.00581906	-0.0109101	12
+1	semantic_label	Roads	0.0449202	-0.00385237	51
+1	semantic_label	Sexual activity	0.0584321	0.0032919	37
+1	semantic_label	Sharp objects	0.0106983	-0.0733177	26
+1	semantic_label	Small animals	0.131967	-0.0700442	188
+1	semantic_label	Smoke	0.0194671	0.0408458	31
+1	semantic_label	Snow	0.00868833	-0.0358681	12
+1	semantic_label	Soldiers	0.0151515	0.0352046	17
+1	semantic_label	Sports	0.0721549	0.0554888	59
+1	semantic_label	Stores	0.00159567	-0.0863564	6
+1	semantic_label	Stunts	0.104651	0.0230022	155
+1	semantic_label	Television	0.0570952	0.0668543	103
+1	semantic_label	Underwater scenes	0.014888	-0.0573992	18
+1	semantic_label	Vast landscapes	0.0449934	-0.0198532	57
+1	semantic_label	Video games	0.00755965	-0.001134	15
+1	semantic_label	Weapons	0.0115254	-0.0192276	19
+1	semantic_label	White people	0.245393	0.0457452	214
+1	semantic_label	Women	0.15809	-0.0187724	115
+2	emotion	admiration	0.037152	0.0122969	90
+2	emotion	adoration	0.0544486	-0.0334487	93
+2	emotion	aesthetic appreciation	0.0759735	-0.00651242	116
+2	emotion	amusement	0.211062	0.0249052	218
+2	emotion	anger	0.017998	0.0195354	41
+2	emotion	anxiety	0.0667816	0.00440061	117
+2	emotion	awe	0.100597	-0.0493632	174
+2	emotion	awkwardness	0.0261239	-0.0270164	71
+2	emotion	boredom	0.0481083	0.0503374	123
+2	emotion	calmness	0.0375057	0.0133001	86
+2	emotion	confusion	0.0635024	0.00379785	134
+2	emotion	contempt	0.0113725	0.0292869	40
+2	emotion	craving	0.0283525	0.0600808	29
+2	emotion	disappointment	0.0156814	0.0486115	48
+2	emotion	disgust	0.086326	-0.0156642	96
+2	emotion	empathic pain	0.0290081	0.0377236	56
+2	emotion	entrancement	0.0469528	0.0470304	102
+2	emotion	envy	0.00844128	0.0331022	33
+2	emotion	excitement	0.0426678	-0.0620409	120
+2	emotion	fear	0.0760862	-0.0136597	101
+2	emotion	guilt	0.00533879	0.034036	20
+2	emotion	horror	0.0607074	-0.0266355	99
+2	emotion	interest	0.112697	-0.00126923	220
+2	emotion	joy	0.0721711	-0.0678087	149
+2	emotion	nostalgia	0.0311237	-0.0107745	46
+2	emotion	pride	0.00580836	-0.0381409	21
+2	emotion	relief	0.0212415	0.0462806	47
+2	emotion	romance	0.0274903	-0.0163722	27
+2	emotion	sadness	0.0546194	0.0571705	82
+2	emotion	satisfaction	0.0412557	0.00909657	122
+2	emotion	sexual desire	0.0557497	0.0121218	45
+2	emotion	surprise	0.0862895	-0.0467331	188
+2	emotion	sympathy	0.0338125	0.00804064	78
+2	emotion	triumph	0.0216007	0.0329806	45
+2	semantic_label	Above water scenes	0.0837188	-0.0284736	178
+2	semantic_label	Aquatic animals	0.0152733	-0.0412771	29
+2	semantic_label	Art	0.0859649	0.0269555	97
+2	semantic_label	Automobiles	0.0464277	0.0243492	44
+2	semantic_label	Babies	0.0348751	-0.0312954	33
+2	semantic_label	Birds	0.00849725	-0.0646422	9
+2	semantic_label	Black people	0.0495747	0.0423188	37
+2	semantic_label	Blood	0.010451	-0.0335756	17
+2	semantic_label	Boats	0.00688907	-0.0242452	6
+2	semantic_label	Bottles/cans	0.00609605	-0.0109698	13
+2	semantic_label	Boys	0.0569112	0.00696713	75
+2	semantic_label	Buildings	0.0345738	-0.00311482	55
+2	semantic_label	Cartoons	0.0287643	0.0413234	36
+2	semantic_label	Cats	0.0245791	-0.00994664	15
+2	semantic_label	Celebrities	0.0270556	-0.0599027	43
+2	semantic_label	Cities	0.0179382	-0.0507758	38
+2	semantic_label	Clouds	0.0191919	-0.0580012	29
+2	semantic_label	Couples	0.0448166	-0.051093	37
+2	semantic_label	Crowds of people	0.093904	0.0855639	83
+2	semantic_label	Daytime scenes	0.241091	-0.0604124	231
+2	semantic_label	Dead bodies	0.0136644	0.017981	22
+2	semantic_label	Dogs	0.0573148	0.0164774	36
+2	semantic_label	Elderly people	0.0208223	0.0323401	25
+2	semantic_label	Explosions	0.0152954	-0.0118059	29
+2	semantic_label	Fast-moving objects	0.0579122	0.0173619	107
+2	semantic_label	Feces/urine/vomit	0.00769221	-0.0139765	10
+2	semantic_label	Fire	0.0201786	0.00603529	19
+2	semantic_label	Flags	0.0064741	-0.00626554	8
+2	semantic_label	Food	0.042235	-0.00338338	30
+2	semantic_label	Furniture	0.0275767	0.0379425	61
+2	semantic_label	Genitalia	0.0262715	-0.00675372	26
+2	semantic_label	Girls	0.0475235	0.000678883	71
+2	semantic_label	Guns	0.00824599	0.00671898	13
+2	semantic_label	Gymnasiums	0.0183546	0.126471	28
+2	semantic_label	Hands/feet	0.0957248	-0.020375	169
+2	semantic_label	Historical footage	0.0210035	0.00717263	41
+2	semantic_label	Hospitals	0.0121035	0.116659	18
+2	semantic_label	Indoor scenes	0.293071	0.131929	198
+2	semantic_label	Injuries	0.0807583	-0.0183556	89
+2	semantic_label	Insects	0.023569	0.0779061	20
+2	semantic_label	Land animals	0.172187	0.00894656	92
+2	semantic_label	Large animals	0.0909629	-0.00447883	171
+2	semantic_label	Machines	0.0257027	-0.0471381	44
+2	semantic_label	Men	0.282505	0.00436266	182
+2	semantic_label	Mountains	0.0190767	-0.0612957	24
+2	semantic_label	Naked people	0.0515462	0.0249594	37
+2	semantic_label	Nature	0.0936514	-0.0963135	121
+2	semantic_label	Nighttime scenes	0.0368554	-0.0104719	46
+2	semantic_label	Outdoor scenes	0.315896	-0.105279	178
+2	semantic_label	Paper	0.00879408	0.0277268	15
+2	semantic_label	Paranormal creatures	0.0214144	0.0183439	35
+2	semantic_label	People	0.572671	-0.000793651	318
+2	semantic_label	Planes	0.00340392	-0.0526798	8
+2	semantic_label	Plants	0.0219475	-0.0470433	49
+2	semantic_label	Politicians	0.0248538	0.053312	16
+2	semantic_label	Reporters	0.00697767	0.0191556	18
+2	semantic_label	Roads	0.0525873	0.0491873	53
+2	semantic_label	Sexual activity	0.0607611	0.0147171	39
+2	semantic_label	Sharp objects	0.0125965	-0.0460887	22
+2	semantic_label	Small animals	0.156748	0.0339999	198
+2	semantic_label	Smoke	0.0151699	-0.0197891	32
+2	semantic_label	Snow	0.0168202	0.0714995	17
+2	semantic_label	Soldiers	0.01112	-0.0152568	11
+2	semantic_label	Sports	0.0614738	-0.0035973	50
+2	semantic_label	Stores	0.00719918	0.0793845	16
+2	semantic_label	Stunts	0.0909232	-0.0587877	144
+2	semantic_label	Television	0.0570481	0.0664024	109
+2	semantic_label	Underwater scenes	0.00974659	-0.0976964	9
+2	semantic_label	Vast landscapes	0.0418483	-0.0439698	52
+2	semantic_label	Video games	0.00839536	0.0140142	14
+2	semantic_label	Weapons	0.0174196	0.0780548	31
+2	semantic_label	White people	0.227295	-0.0294449	210
+2	semantic_label	Women	0.169985	0.0236567	119
+3	emotion	admiration	0.0357079	-0.00801411	100
+3	emotion	adoration	0.0561912	-0.0190751	94
+3	emotion	aesthetic appreciation	0.0705597	-0.0420953	104
+3	emotion	amusement	0.208533	0.0141019	222
+3	emotion	anger	0.0179572	0.0188531	35
+3	emotion	anxiety	0.0621766	-0.0324616	125
+3	emotion	awe	0.111219	0.0261174	184
+3	emotion	awkwardness	0.0281694	0.00209127	68
+3	emotion	boredom	0.0422347	-0.021599	114
+3	emotion	calmness	0.0382505	0.0219689	95
+3	emotion	confusion	0.0669872	0.0367872	146
+3	emotion	contempt	0.0116944	0.0392317	42
+3	emotion	craving	0.0211447	-0.00396124	24
+3	emotion	disappointment	0.0120152	-0.0399556	38
+3	emotion	disgust	0.0906012	0.00560709	102
+3	emotion	empathic pain	0.0261824	0.000940399	55
+3	emotion	entrancement	0.041903	-0.0103974	98
+3	emotion	envy	0.00698452	-0.0199431	27
+3	emotion	excitement	0.0465562	-0.0135599	129
+3	emotion	fear	0.0732103	-0.0323434	106
+3	emotion	guilt	0.00489145	0.0122817	19
+3	emotion	horror	0.0686566	0.0301768	105
+3	emotion	interest	0.11773	0.0374325	226
+3	emotion	joy	0.0804407	-0.00324716	143
+3	emotion	nostalgia	0.028961	-0.0302927	49
+3	emotion	pride	0.00811017	0.0346253	27
+3	emotion	relief	0.0152465	-0.0474465	40
+3	emotion	romance	0.0283325	-0.00955593	34
+3	emotion	sadness	0.0493556	0.0149257	81
+3	emotion	satisfaction	0.0396234	-0.0154768	118
+3	emotion	sexual desire	0.0592956	0.0316703	45
+3	emotion	surprise	0.0932995	0.012124	187
+3	emotion	sympathy	0.0324826	-0.00932247	75
+3	emotion	triumph	0.0180643	-0.0249681	47
+3	semantic_label	Above water scenes	0.0819918	-0.0402287	172
+3	semantic_label	Aquatic animals	0.0197968	0.0176643	34
+3	semantic_label	Art	0.0721759	-0.0495558	97
+3	semantic_label	Automobiles	0.0360699	-0.052538	41
+3	semantic_label	Babies	0.0339498	-0.0370418	29
+3	semantic_label	Birds	0.0200573	0.0563572	12
+3	semantic_label	Black people	0.0411392	-0.0108194	33
+3	semantic_label	Blood	0.0124381	-0.00443366	16
+3	semantic_label	Boats	0.00994617	0.0227395	8
+3	semantic_label	Bottles/cans	0.00717469	0.0164392	19
+3	semantic_label	Boys	0.0472432	-0.0556221	74
+3	semantic_label	Buildings	0.0452201	0.0910222	52
+3	semantic_label	Cartoons	0.0171269	-0.0708753	24
+3	semantic_label	Cats	0.0301366	0.0309966	21
+3	semantic_label	Celebrities	0.0350352	0.0131541	46
+3	semantic_label	Cities	0.0306747	0.102281	44
+3	semantic_label	Clouds	0.0314535	0.0797185	46
+3	semantic_label	Couples	0.0565251	0.0152518	45
+3	semantic_label	Crowds of people	0.0716115	-0.0298284	76
+3	semantic_label	Daytime scenes	0.270804	0.0542384	244
+3	semantic_label	Dead bodies	0.0124077	-0.000905101	19
+3	semantic_label	Dogs	0.0452433	-0.0455503	28
+3	semantic_label	Elderly people	0.0196232	0.0191855	27
+3	semantic_label	Explosions	0.0178432	0.0219946	30
+3	semantic_label	Fast-moving objects	0.0511763	-0.0432607	92
+3	semantic_label	Feces/urine/vomit	0.0083783	-0.00217851	17
+3	semantic_label	Fire	0.0100417	-0.0912377	14
+3	semantic_label	Flags	0.00615612	-0.0122971	10
+3	semantic_label	Food	0.0410856	-0.0106395	35
+3	semantic_label	Furniture	0.0213424	-0.0506508	52
+3	semantic_label	Genitalia	0.0416949	0.114918	31
+3	semantic_label	Girls	0.0434314	-0.0288765	72
+3	semantic_label	Guns	0.0106768	0.0493691	10
+3	semantic_label	Gymnasiums	0.0102067	-0.0215213	25
+3	semantic_label	Hands/feet	0.103	0.031599	167
+3	semantic_label	Historical footage	0.0181514	-0.034197	48
+3	semantic_label	Hospitals	0.00486238	-0.0502594	14
+3	semantic_label	Indoor scenes	0.233385	-0.0618245	179
+3	semantic_label	Injuries	0.0815531	-0.0139972	98
+3	semantic_label	Insects	0.0043197	-0.110545	10
+3	semantic_label	Land animals	0.182535	0.0398881	95
+3	semantic_label	Large animals	0.107178	0.0855834	180
+3	semantic_label	Machines	0.0346083	0.0392026	52
+3	semantic_label	Men	0.286246	0.0160694	200
+3	semantic_label	Mountains	0.0225536	-0.0294233	32
+3	semantic_label	Naked people	0.0597812	0.0751775	46
+3	semantic_label	Nature	0.125276	0.0649147	150
+3	semantic_label	Nighttime scenes	0.0400712	0.0137463	45
+3	semantic_label	Outdoor scenes	0.379943	0.0667469	207
+3	semantic_label	Paper	0.00527915	-0.0513495	13
+3	semantic_label	Paranormal creatures	0.0161573	-0.0411661	25
+3	semantic_label	People	0.586377	0.0388299	325
+3	semantic_label	Planes	0.0117869	0.113225	12
+3	semantic_label	Plants	0.0331032	0.0999269	66
+3	semantic_label	Politicians	0.0191022	0.00423083	13
+3	semantic_label	Reporters	0.00575237	-0.0126408	15
+3	semantic_label	Roads	0.0367134	-0.0606258	40
+3	semantic_label	Sexual activity	0.0656595	0.0387468	36
+3	semantic_label	Sharp objects	0.020872	0.072619	33
+3	semantic_label	Small animals	0.155493	0.028734	205
+3	semantic_label	Smoke	0.0169923	0.00592518	25
+3	semantic_label	Snow	0.00929061	-0.027916	12
+3	semantic_label	Soldiers	0.0112877	-0.0131579	14
+3	semantic_label	Sports	0.0662939	0.023067	56
+3	semantic_label	Stores	0.00408092	-0.0128474	8
+3	semantic_label	Stunts	0.102193	0.00836083	167
+3	semantic_label	Television	0.0462505	-0.0373334	96
+3	semantic_label	Underwater scenes	0.01793	-0.0335568	16
+3	semantic_label	Vast landscapes	0.0519232	0.0332847	73
+3	semantic_label	Video games	0.00748604	-0.00246845	12
+3	semantic_label	Weapons	0.0142109	0.0250956	22
+3	semantic_label	White people	0.243866	0.0393993	221
+3	semantic_label	Women	0.174946	0.0413512	131
+4	emotion	admiration	0.0355546	-0.01017	102
+4	emotion	adoration	0.0606218	0.0174685	110
+4	emotion	aesthetic appreciation	0.0812587	0.0282252	135
+4	emotion	amusement	0.205633	0.00170738	243
+4	emotion	anger	0.0175615	0.0122243	37
+4	emotion	anxiety	0.0648865	-0.0107699	132
+4	emotion	awe	0.109546	0.0142283	204
+4	emotion	awkwardness	0.0290636	0.0148147	82
+4	emotion	boredom	0.0419193	-0.0254616	118
+4	emotion	calmness	0.0338683	-0.0290351	97
+4	emotion	confusion	0.0633788	0.00262748	155
+4	emotion	contempt	0.0102141	-0.00649161	42
+4	emotion	craving	0.0154085	-0.0549281	26
+4	emotion	disappointment	0.0137535	0.00203638	47
+4	emotion	disgust	0.0897474	0.00135898	106
+4	emotion	empathic pain	0.0242176	-0.0246359	64
+4	emotion	entrancement	0.041033	-0.0202914	106
+4	emotion	envy	0.00724632	-0.0104102	26
+4	emotion	excitement	0.0528807	0.0652954	140
+4	emotion	fear	0.076299	-0.0122769	123
+4	emotion	guilt	0.00490927	0.0131484	21
+4	emotion	horror	0.0617322	-0.0193114	101
+4	emotion	interest	0.111801	-0.00815927	240
+4	emotion	joy	0.0851113	0.0332166	171
+4	emotion	nostalgia	0.0350086	0.0242886	51
+4	emotion	pride	0.00535846	-0.0523634	23
+4	emotion	relief	0.0171068	-0.018363	44
+4	emotion	romance	0.0315727	0.0166672	33
+4	emotion	sadness	0.0448528	-0.0212119	79
+4	emotion	satisfaction	0.0411852	0.00803501	134
+4	emotion	sexual desire	0.0523085	-0.00684988	47
+4	emotion	surprise	0.0895612	-0.0192634	199
+4	emotion	sympathy	0.0324432	-0.00983742	93
+4	emotion	triumph	0.0191064	-0.00789195	53
+4	semantic_label	Above water scenes	0.0790191	-0.0604638	177
+4	semantic_label	Aquatic animals	0.0233114	0.0634598	40
+4	semantic_label	Art	0.0800758	-0.00572176	101
+4	semantic_label	Automobiles	0.0411189	-0.0150587	46
+4	semantic_label	Babies	0.0436005	0.0228949	42
+4	semantic_label	Birds	0.0190231	0.0455324	15
+4	semantic_label	Black people	0.0350279	-0.0493165	32
+4	semantic_label	Blood	0.0112839	-0.021361	19
+4	semantic_label	Boats	0.00374801	-0.0725203	5
+4	semantic_label	Bottles/cans	0.00595827	-0.0144709	12
+4	semantic_label	Boys	0.0516786	-0.0269079	85
+4	semantic_label	Buildings	0.0296691	-0.0464837	56
+4	semantic_label	Cartoons	0.0270352	0.0246533	35
+4	semantic_label	Cats	0.0226808	-0.0239324	16
+4	semantic_label	Celebrities	0.0329745	-0.00571259	49
+4	semantic_label	Cities	0.013659	-0.102199	34
+4	semantic_label	Clouds	0.0260566	0.0191018	41
+4	semantic_label	Couples	0.0627193	0.0503501	50
+4	semantic_label	Crowds of people	0.0695574	-0.0404611	74
+4	semantic_label	Daytime scenes	0.261112	0.0168427	251
+4	semantic_label	Dead bodies	0.00839979	-0.0611391	19
+4	semantic_label	Dogs	0.0607496	0.0341267	37
+4	semantic_label	Elderly people	0.0121013	-0.0633331	18
+4	semantic_label	Explosions	0.0168617	0.00897313	29
+4	semantic_label	Fast-moving objects	0.0581824	0.0197932	125
+4	semantic_label	Feces/urine/vomit	0.0062518	-0.0387458	17
+4	semantic_label	Fire	0.0139191	-0.0540305	14
+4	semantic_label	Flags	0.00719697	0.0074462	10
+4	semantic_label	Food	0.0419602	-0.00511826	44
+4	semantic_label	Furniture	0.022613	-0.0325948	54
+4	semantic_label	Genitalia	0.0210965	-0.047578	20
+4	semantic_label	Girls	0.0486962	0.00914883	76
+4	semantic_label	Guns	0.0119511	0.0717284	16
+4	semantic_label	Gymnasiums	0.0126874	0.023537	30
+4	semantic_label	Hands/feet	0.0938557	-0.0337282	180
+4	semantic_label	Historical footage	0.0209362	0.00619738	52
+4	semantic_label	Hospitals	0.00590112	-0.0263149	12
+4	semantic_label	Indoor scenes	0.240582	-0.0384623	193
+4	semantic_label	Injuries	0.0824737	-0.00894955	133
+4	semantic_label	Insects	0.0177632	0.0210666	13
+4	semantic_label	Land animals	0.161112	-0.0241676	104
+4	semantic_label	Large animals	0.0867789	-0.0277174	178
+4	semantic_label	Machines	0.031492	0.00898981	48
+4	semantic_label	Men	0.287883	0.0211893	215
+4	semantic_label	Mountains	0.0370016	0.103021	39
+4	semantic_label	Naked people	0.0448126	-0.0161026	39
+4	semantic_label	Nature	0.119821	0.0371032	152
+4	semantic_label	Nighttime scenes	0.0420973	0.0290047	53
+4	semantic_label	Outdoor scenes	0.362289	0.0193293	218
+4	semantic_label	Paper	0.00724482	-0.00712741	16
+4	semantic_label	Paranormal creatures	0.021099	0.0147728	43
+4	semantic_label	People	0.570294	-0.00766459	364
+4	semantic_label	Planes	0.00771246	0.0325891	16
+4	semantic_label	Plants	0.0260167	0.00656622	67
+4	semantic_label	Politicians	0.0146132	-0.0340756	10
+4	semantic_label	Reporters	0.00620016	-0.0010207	11
+4	semantic_label	Roads	0.0431349	-0.0162028	48
+4	semantic_label	Sexual activity	0.0510486	-0.0329293	35
+4	semantic_label	Sharp objects	0.0167916	0.0140874	33
+4	semantic_label	Small animals	0.150931	0.00957815	214
+4	semantic_label	Smoke	0.015776	-0.0112367	25
+4	semantic_label	Snow	0.0166786	0.0696296	15
+4	semantic_label	Soldiers	0.0151316	0.0349551	14
+4	semantic_label	Sports	0.0549506	-0.0396821	65
+4	semantic_label	Stores	0.00341972	-0.0324044	10
+4	semantic_label	Stunts	0.1095	0.0518918	156
+4	semantic_label	Television	0.045382	-0.0456768	96
+4	semantic_label	Underwater scenes	0.0351754	0.101609	24
+4	semantic_label	Vast landscapes	0.0505702	0.0229094	70
+4	semantic_label	Video games	0.00516348	-0.0445679	16
+4	semantic_label	Weapons	0.01078	-0.0315306	19
+4	semantic_label	White people	0.230478	-0.0162184	237
+4	semantic_label	Women	0.162317	-0.00369527	129
+5	emotion	admiration	0.0373448	0.0150083	99
+5	emotion	adoration	0.0661929	0.0634184	102
+5	emotion	aesthetic appreciation	0.0733807	-0.0235537	112
+5	emotion	amusement	0.198173	-0.0301666	220
+5	emotion	anger	0.0163332	-0.00835289	41
+5	emotion	anxiety	0.0676854	0.0116352	130
+5	emotion	awe	0.110524	0.0211789	187
+5	emotion	awkwardness	0.0301104	0.0297101	79
+5	emotion	boredom	0.0419076	-0.0256057	109
+5	emotion	calmness	0.0344978	-0.0217078	80
+5	emotion	confusion	0.0628701	-0.00218763	136
+5	emotion	contempt	0.010191	-0.00720435	38
+5	emotion	craving	0.0223084	0.0063779	26
+5	emotion	disappointment	0.013376	-0.00708232	46
+5	emotion	disgust	0.0846741	-0.0238834	96
+5	emotion	empathic pain	0.0273666	0.0163553	61
+5	emotion	entrancement	0.0419537	-0.00982088	100
+5	emotion	envy	0.00637475	-0.0421469	27
+5	emotion	excitement	0.046239	-0.0175142	129
+5	emotion	fear	0.0856607	0.0485438	113
+5	emotion	guilt	0.00393329	-0.0343138	16
+5	emotion	horror	0.0618738	-0.0182992	102
+5	emotion	interest	0.113609	0.00574367	224
+5	emotion	joy	0.0862771	0.0423182	154
+5	emotion	nostalgia	0.0285385	-0.0341064	49
+5	emotion	pride	0.00785842	0.0266666	25
+5	emotion	relief	0.0210919	0.0439421	46
+5	emotion	romance	0.0338469	0.0350725	30
+5	emotion	sadness	0.0432359	-0.0341887	73
+5	emotion	satisfaction	0.0402422	-0.00616034	126
+5	emotion	sexual desire	0.0532042	-0.00191204	46
+5	emotion	surprise	0.0898731	-0.0166445	190
+5	emotion	sympathy	0.034719	0.0198754	85
+5	emotion	triumph	0.0186282	-0.0157283	52
+5	semantic_label	Above water scenes	0.0956456	0.0527117	165
+5	semantic_label	Aquatic animals	0.017116	-0.0172671	33
+5	semantic_label	Art	0.0862811	0.0287102	108
+5	semantic_label	Automobiles	0.045045	0.0140852	41
+5	semantic_label	Babies	0.0412217	0.00812099	40
+5	semantic_label	Birds	0.0181471	0.0363629	16
+5	semantic_label	Black people	0.0424807	-0.00236888	41
+5	semantic_label	Blood	0.0125872	-0.00224772	17
+5	semantic_label	Boats	0.0142702	0.0891959	9
+5	semantic_label	Bottles/cans	0.00514891	-0.0350372	11
+5	semantic_label	Boys	0.0476035	-0.0532894	64
+5	semantic_label	Buildings	0.0326734	-0.0199183	47
+5	semantic_label	Cartoons	0.0299022	0.0522944	36
+5	semantic_label	Cats	0.0365081	0.0779372	24
+5	semantic_label	Celebrities	0.0274464	-0.0563253	43
+5	semantic_label	Cities	0.0230326	0.0104449	37
+5	semantic_label	Clouds	0.0249197	0.00633192	42
+5	semantic_label	Couples	0.0499566	-0.021968	39
+5	semantic_label	Crowds of people	0.0680212	-0.0484131	62
+5	semantic_label	Daytime scenes	0.247534	-0.0355503	223
+5	semantic_label	Dead bodies	0.0123426	-0.00188378	20
+5	semantic_label	Dogs	0.0533826	-0.00372767	32
+5	semantic_label	Elderly people	0.0190718	0.0131368	20
+5	semantic_label	Explosions	0.0165017	0.00419758	27
+5	semantic_label	Fast-moving objects	0.0530144	-0.0267183	97
+5	semantic_label	Feces/urine/vomit	0.00866979	0.00283404	12
+5	semantic_label	Fire	0.0228054	0.031242	20
+5	semantic_label	Flags	0.00868716	0.0357127	12
+5	semantic_label	Food	0.0445718	0.0113691	38
+5	semantic_label	Furniture	0.0244653	-0.00627261	55
+5	semantic_label	Genitalia	0.0237692	-0.0264936	19
+5	semantic_label	Girls	0.044456	-0.0214763	61
+5	semantic_label	Guns	0.0075063	-0.00625974	9
+5	semantic_label	Gymnasiums	0.00816185	-0.0586614	20
+5	semantic_label	Hands/feet	0.102917	0.0310097	175
+5	semantic_label	Historical footage	0.0145582	-0.0863179	35
+5	semantic_label	Hospitals	0.00638621	-0.0151328	11
+5	semantic_label	Indoor scenes	0.252049	-0.00123771	179
+5	semantic_label	Injuries	0.0792538	-0.026605	99
+5	semantic_label	Insects	0.0197534	0.0405512	13
+5	semantic_label	Land animals	0.178176	0.0268546	89
+5	semantic_label	Large animals	0.0862214	-0.0308137	166
+5	semantic_label	Machines	0.0272626	-0.0320148	43
+5	semantic_label	Men	0.270982	-0.0316905	187
+5	semantic_label	Mountains	0.018972	-0.0622562	28
+5	semantic_label	Naked people	0.037653	-0.0597625	35
+5	semantic_label	Nature	0.10722	-0.0271388	131
+5	semantic_label	Nighttime scenes	0.0365503	-0.0127694	50
+5	semantic_label	Outdoor scenes	0.349188	-0.0158578	189
+5	semantic_label	Paper	0.00880872	0.0280561	19
+5	semantic_label	Paranormal creatures	0.0195392	-0.00288305	31
+5	semantic_label	People	0.540256	-0.0945059	326
+5	semantic_label	Planes	0.00437614	-0.033439	9
+5	semantic_label	Plants	0.0222063	-0.0436343	50
+5	semantic_label	Politicians	0.0149996	-0.0307789	9
+5	semantic_label	Reporters	0.0070982	0.0222833	18
+5	semantic_label	Roads	0.0495181	0.0279552	44
+5	semantic_label	Sexual activity	0.0559087	-0.00908756	41
+5	semantic_label	Sharp objects	0.0212859	0.0785558	31
+5	semantic_label	Small animals	0.154721	0.0254929	202
+5	semantic_label	Smoke	0.0142919	-0.0321772	23
+5	semantic_label	Snow	0.00744552	-0.0522773	8
+5	semantic_label	Soldiers	0.0135235	0.0148272	16
+5	semantic_label	Sports	0.0604179	-0.00943796	51
+5	semantic_label	Stores	0.00541374	0.0265745	11
+5	semantic_label	Stunts	0.0895542	-0.0669447	133
+5	semantic_label	Television	0.0488828	-0.0120438	84
+5	semantic_label	Underwater scenes	0.0236173	0.0110184	23
+5	semantic_label	Vast landscapes	0.0462924	-0.00989227	67
+5	semantic_label	Video games	0.0111097	0.0632146	14
+5	semantic_label	Weapons	0.0139316	0.0204858	24
+5	semantic_label	White people	0.218846	-0.0645461	212
+5	semantic_label	Women	0.156612	-0.0240429	111
+6	emotion	admiration	0.0352532	-0.0144089	100
+6	emotion	adoration	0.0545987	-0.0322104	97
+6	emotion	aesthetic appreciation	0.0770254	0.000401464	113
+6	emotion	amusement	0.207551	0.00990354	219
+6	emotion	anger	0.0146981	-0.0357437	37
+6	emotion	anxiety	0.0659234	-0.00246899	122
+6	emotion	awe	0.103655	-0.0276315	174
+6	emotion	awkwardness	0.0258011	-0.0316086	77
+6	emotion	boredom	0.0443543	0.00436068	122
+6	emotion	calmness	0.0351397	-0.0142373	87
+6	emotion	confusion	0.0602156	-0.0273175	143
+6	emotion	contempt	0.00900319	-0.0438936	36
+6	emotion	craving	0.0205526	-0.00922269	24
+6	emotion	disappointment	0.0137527	0.00201698	43
+6	emotion	disgust	0.0903115	0.0041657	107
+6	emotion	empathic pain	0.0271368	0.0133647	55
+6	emotion	entrancement	0.0405728	-0.0255251	90
+6	emotion	envy	0.00807178	0.0196475	30
+6	emotion	excitement	0.0463727	-0.0158482	120
+6	emotion	fear	0.0821349	0.0256374	105
+6	emotion	guilt	0.00409554	-0.0264236	16
+6	emotion	horror	0.0765739	0.0867617	99
+6	emotion	interest	0.106528	-0.048708	214
+6	emotion	joy	0.0791667	-0.013193	151
+6	emotion	nostalgia	0.031095	-0.0110331	46
+6	emotion	pride	0.0059932	-0.0322978	19
+6	emotion	relief	0.0180739	-0.00324161	37
+6	emotion	romance	0.028916	-0.00483343	29
+6	emotion	sadness	0.0480818	0.00470234	79
+6	emotion	satisfaction	0.0413076	0.00987771	126
+6	emotion	sexual desire	0.0502333	-0.0182909	40
+6	emotion	surprise	0.0945399	0.0225386	176
+6	emotion	sympathy	0.0322234	-0.0127069	81
+6	emotion	triumph	0.0197408	0.00250428	49
+6	semantic_label	Above water scenes	0.0965116	0.0586069	188
+6	semantic_label	Aquatic animals	0.0210646	0.0341832	35
+6	semantic_label	Art	0.0823203	0.00673255	97
+6	semantic_label	Automobiles	0.0459588	0.020868	49
+6	semantic_label	Babies	0.0461152	0.038513	32
+6	semantic_label	Birds	0.0133457	-0.0138937	11
+6	semantic_label	Black people	0.0438117	0.00601545	42
+6	semantic_label	Blood	0.0186118	0.0861048	24
+6	semantic_label	Boats	0.0092803	0.0125058	10
+6	semantic_label	Bottles/cans	0.0079558	0.0362877	17
+6	semantic_label	Boys	0.0629184	0.0458569	76
+6	semantic_label	Buildings	0.0383457	0.0302368	51
+6	semantic_label	Cartoons	0.0229093	-0.0151252	32
+6	semantic_label	Cats	0.0192991	-0.0488458	11
+6	semantic_label	Celebrities	0.0407858	0.0658038	48
+6	semantic_label	Cities	0.0229104	0.00897588	33
+6	semantic_label	Clouds	0.0193358	-0.0563852	34
+6	semantic_label	Couples	0.0572366	0.0192832	43
+6	semantic_label	Crowds of people	0.0701066	-0.0376185	60
+6	semantic_label	Daytime scenes	0.265209	0.0326487	227
+6	semantic_label	Dead bodies	0.0175593	0.0765157	29
+6	semantic_label	Dogs	0.0580011	0.020004	36
+6	semantic_label	Elderly people	0.0213839	0.0385015	27
+6	semantic_label	Explosions	0.0158531	-0.00440714	33
+6	semantic_label	Fast-moving objects	0.0575057	0.0137031	104
+6	semantic_label	Feces/urine/vomit	0.00893381	0.00737418	12
+6	semantic_label	Fire	0.021516	0.0188691	15
+6	semantic_label	Flags	0.00507253	-0.0328511	5
+6	semantic_label	Food	0.0415507	-0.00770363	40
+6	semantic_label	Furniture	0.0227713	-0.0303447	50
+6	semantic_label	Genitalia	0.0256122	-0.0119545	22
+6	semantic_label	Girls	0.0517089	0.0309091	62
+6	semantic_label	Guns	0.00520613	-0.0466183	8
+6	semantic_label	Gymnasiums	0.0104578	-0.01696	20
+6	semantic_label	Hands/feet	0.102436	0.0275682	184
+6	semantic_label	Historical footage	0.0262769	0.0836648	46
+6	semantic_label	Hospitals	0.00814834	0.025487	17
+6	semantic_label	Indoor scenes	0.232933	-0.0632947	170
+6	semantic_label	Injuries	0.0997493	0.0857759	107
+6	semantic_label	Insects	0.0130814	-0.0247678	10
+6	semantic_label	Land animals	0.162372	-0.0204005	82
+6	semantic_label	Large animals	0.0893623	-0.0133689	160
+6	semantic_label	Machines	0.0328407	0.0220654	56
+6	semantic_label	Men	0.278872	-0.00700539	188
+6	semantic_label	Mountains	0.0319327	0.0565544	34
+6	semantic_label	Naked people	0.0430321	-0.0269606	39
+6	semantic_label	Nature	0.110399	-0.01093	127
+6	semantic_label	Nighttime scenes	0.0318666	-0.0480422	45
+6	semantic_label	Outdoor scenes	0.368473	0.0359387	199
+6	semantic_label	Paper	0.00809109	0.0119113	15
+6	semantic_label	Paranormal creatures	0.0182171	-0.0178498	30
+6	semantic_label	People	0.590583	0.0509897	324
+6	semantic_label	Planes	0.00320019	-0.0567118	10
+6	semantic_label	Plants	0.0256783	0.0021073	57
+6	semantic_label	Politicians	0.0258765	0.0620392	20
+6	semantic_label	Reporters	0.00559373	-0.0167575	18
+6	semantic_label	Roads	0.0463453	0.00600619	47
+6	semantic_label	Sexual activity	0.0553867	-0.011648	34
+6	semantic_label	Sharp objects	0.012353	-0.0495822	22
+6	semantic_label	Small animals	0.141707	-0.0291501	186
+6	semantic_label	Smoke	0.0178307	0.0177557	27
+6	semantic_label	Snow	0.0090821	-0.0306691	8
+6	semantic_label	Soldiers	0.00750969	-0.0604455	10
+6	semantic_label	Sports	0.0581351	-0.022066	63
+6	semantic_label	Stores	0.00551445	0.0295533	9
+6	semantic_label	Stunts	0.107082	0.0374898	161
+6	semantic_label	Television	0.0467522	-0.0325131	92
+6	semantic_label	Underwater scenes	0.0305453	0.0653185	19
+6	semantic_label	Vast landscapes	0.0494847	0.0145858	62
+6	semantic_label	Video games	0.00623238	-0.0251926	12
+6	semantic_label	Weapons	0.00846547	-0.0697311	17
+6	semantic_label	White people	0.240839	0.0268235	224
+6	semantic_label	Women	0.158258	-0.0181701	109

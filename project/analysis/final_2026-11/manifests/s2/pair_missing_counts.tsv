@@ -1,6 +1,6 @@
 participant	n_directed_all	n_directed_missing	n_unordered_all	n_unordered_missing
-sub-01	2109	6	1685	5
-sub-02	2109	2	1685	1
-sub-03	2109	14	1685	10
-sub-04	2109	47	1685	36
-sub-05	2109	200	1685	161
+sub-01	2109	5	1680	5
+sub-02	2109	1	1680	1
+sub-03	2109	15	1680	12
+sub-04	2109	48	1680	40
+sub-05	2109	183	1680	151

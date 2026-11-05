@@ -49,7 +49,10 @@ HK = ["01", "02", "03", "04", "05"]
 MC = ["01", "02", "03", "04", "05", "06"]
 K = 6
 N_BLOCKS = 5
-SPLIT_ID = "hk_dev_rungroup6_v2"
+SPLIT_ID = "hk_dev_rungroup6_v3"
+SEED_SPLIT = 20261106  # 정서 층화 탐색(04 정할 것 12)
+SIZE_TOL = 0.10  # fold의 개발 영상 수는 평균의 ±10% 안
+MAX_RUNS_ONE_SESSION, MIN_SESSIONS = 3, 6  # 층화 전 분할의 세션 수준을 나빠지지 않게 지킨다(2-0, O8)
 SEED_CONTROL_SAMPLE = 20261104  # 6-2에 쓸 학습량 대조 표본
 SEED_DISTANCE_CHECK = 20261105  # 거리 점검의 20번 반복
 NETWORK_KO = {"Visual1": "1차 시각", "Visual2": "2차 시각", "Auditory": "청각", "Somatomotor": "체성감각운동", "Cingulo-Opercular": "cingulo-opercular", "Dorsal-Attention": "dorsal attention", "Frontoparietal": "frontoparietal", "Default": "Default", "Language": "언어", "Posterior-Multimodal": "posterior multimodal", "Ventral-Multimodal": "ventral multimodal", "Orbito-Affective": "orbito-affective"}
@@ -120,6 +123,88 @@ def load_split():
 
 
 # ---------- split
+def stratify_folds(T, Y_all, session_all):
+    """run 묶음을 fold에 배정해 34개 정서의 fold 평균과 0이 아닌 비율을 전체에 맞춘다. 같은 seed면 같은 배정이 나온다."""
+    D = T[T.dev]
+    groups = np.sort(T.run_group.unique())
+    gi = pd.Series(range(len(groups)), index=groups)
+    y = Y_all[D.content_id.to_numpy() - 1]
+    F = np.hstack([y, (y > 0).astype(float)])  # 정서 34개의 평정 평균과 0이 아닌 비율. 같은 무게로 본다
+    mu, sd = F.mean(0), F.std(0)
+    assert (sd > 0).all()
+    Z = (F - mu) / sd
+    idx = gi[D.run_group].to_numpy()
+    GS = np.zeros((len(groups), Z.shape[1]))
+    np.add.at(GS, idx, Z)
+    n = np.bincount(idx, minlength=len(groups)).astype(float)
+    lo, hi = len(D) / K * (1 - SIZE_TOL), len(D) / K * (1 + SIZE_TOL)
+    sess = sorted({x for s in HK for x in session_all[s].unique()})
+    SC = np.zeros((len(groups), len(HK), len(sess)), int)  # 묶음, 참가자, 세션별 run 수
+    for g, runs in T.groupby("run_group").run_index.unique().items():
+        for j, s in enumerate(HK):
+            for x in session_all[s].reindex(runs):
+                SC[gi[g], j, sess.index(x)] += 1
+
+    def ok_fold(sc, c):
+        return lo <= c <= hi and sc.max() <= MAX_RUNS_ONE_SESSION and ((sc > 0).sum(1) >= MIN_SESSIONS).all()
+
+    def cost(fs, c):
+        return float(((fs / c) ** 2).sum())
+    start = T.groupby("run_group").fold.first().reindex(groups).to_numpy() - 1
+
+    def state(a):
+        return np.vstack([GS[a == k].sum(0) for k in range(K)]), np.array([n[a == k].sum() for k in range(K)]), np.stack([SC[a == k].sum(0) for k in range(K)])
+
+    def trial(a, fs, c, sc, g, h):
+        """g를 h의 fold로 옮긴다. h가 None이 아니면 서로 바꾼다. 바뀌는 두 fold의 값을 돌려준다."""
+        p, q = a[g], a[h]
+        if p == q:
+            return None
+        dF, dn, dS = GS[g] - GS[h], n[g] - n[h], SC[g] - SC[h]
+        return p, q, fs[p] - dF, fs[q] + dF, c[p] - dn, c[q] + dn, sc[p] - dS, sc[q] + dS
+
+    rng = np.random.default_rng(SEED_SPLIT)
+    best, best_cost = None, np.inf
+    for restart in range(200):
+        a = start.copy()
+        fs, c, sc = state(a)
+        for _ in range(0 if restart == 0 else 300):  # 조건을 지키며 무작위로 섞어 시작점을 바꾼다
+            g, h = rng.integers(len(groups), size=2)
+            r = trial(a, fs, c, sc, g, h)
+            if r and ok_fold(r[6], r[4]) and ok_fold(r[7], r[5]):
+                p, q = r[0], r[1]
+                a[g], a[h] = q, p
+                fs[p], fs[q], c[p], c[q], sc[p], sc[q] = r[2], r[3], r[4], r[5], r[6], r[7]
+        improved = True
+        while improved:  # 서로 바꾸기와 옮기기로 더 나아지지 않을 때까지
+            improved = False
+            for g in rng.permutation(len(groups)):
+                for h in rng.permutation(len(groups)):
+                    r = trial(a, fs, c, sc, g, h)
+                    if r and ok_fold(r[6], r[4]) and ok_fold(r[7], r[5]) and cost(r[2], r[4]) + cost(r[3], r[5]) < cost(fs[r[0]], c[r[0]]) + cost(fs[r[1]], c[r[1]]) - 1e-12:
+                        p, q = r[0], r[1]
+                        a[g], a[h] = q, p
+                        fs[p], fs[q], c[p], c[q], sc[p], sc[q] = r[2], r[3], r[4], r[5], r[6], r[7]
+                        improved = True
+                for q in rng.permutation(K):
+                    p = a[g]
+                    if q == p or (a == p).sum() == 1:
+                        continue
+                    f1, f2, c1, c2, s1, s2 = fs[p] - GS[g], fs[q] + GS[g], c[p] - n[g], c[q] + n[g], sc[p] - SC[g], sc[q] + SC[g]
+                    if ok_fold(s1, c1) and ok_fold(s2, c2) and cost(f1, c1) + cost(f2, c2) < cost(fs[p], c[p]) + cost(fs[q], c[q]) - 1e-12:
+                        a[g] = q
+                        fs[p], fs[q], c[p], c[q], sc[p], sc[q] = f1, f2, c1, c2, s1, s2
+                        improved = True
+        total = sum(cost(fs[k], c[k]) for k in range(K))
+        if total < best_cost - 1e-12:
+            best, best_cost = a.copy(), total
+    # 번호는 fold 안의 가장 작은 run 번호 순서로 붙인다
+    run_min = T.groupby("run_group").run_index.min().reindex(groups).to_numpy()
+    order = np.argsort([run_min[best == k].min() for k in range(K)])
+    number = {int(k): i + 1 for i, k in enumerate(order)}
+    return T.run_group.map(lambda g: number[int(best[gi[g]])]).to_numpy()
+
+
 def stage_split():
     v1 = pd.read_csv(V1, sep="\t")
     cw = pd.read_csv(CROSSWALK, sep="\t", comment="#").set_index("video_number").canonical_stimulus_id
@@ -143,14 +228,15 @@ def stage_split():
         for r in rs[1:]:
             parent[find(r)] = find(rs[0])
     T["run_group"] = T.run_index.map(find)
-    # v1의 fold를 그대로 쓴다(04 S2). 파일 fold 0~5 = 통합문서 fold 1~6(불일치 4).
-    # 바꾸는 것은 하나뿐이다. B2에 따라 1363이 든 v1 run 묶음을 1349가 든 fold로 옮긴다. 라벨과 뇌 자료는 쓰지 않는다.
+    # 층화 전 분할(v1에서 1363이 든 run 묶음을 1349의 fold로 옮긴 것)을 탐색의 시작점으로만 쓴다. 파일 fold 0~5 = 통합문서 fold 1~6(불일치 4).
     T["fold"] = v1.fold.to_numpy() + 1
     rows_1349, rows_1363 = v1[v1.video_id == 1349].iloc[0], v1[v1.video_id == 1363].iloc[0]
-    moved_group = rows_1363.run_group
-    T.loc[v1.run_group == moved_group, "fold"] = int(rows_1349.fold) + 1
-    moved_runs = sorted(v1[v1.run_group == moved_group].run_index.unique().tolist())
-    print(f"v1에서 옮긴 run 묶음 {moved_group}(run_index {moved_runs}): fold {int(rows_1363.fold) + 1} → {int(rows_1349.fold) + 1}")
+    T.loc[v1.run_group == rows_1363.run_group, "fold"] = int(rows_1349.fold) + 1
+    # 정서 평정으로 층화한다(04 정할 것 12). 뇌 반응과 성능은 쓰지 않는다. 영상이 아니라 run 묶음을 fold에 배정한다.
+    names_y, Y_all = labels34()
+    session_all = {s: hk_samples(s, usable=False).drop_duplicates("run_index").set_index("run_index").session for s in HK}
+    T["fold"] = stratify_folds(T, Y_all, session_all)
+    print("층화 뒤 fold", T[T.dev].groupby("fold").size().to_dict())
     assert T.groupby("run_group").fold.nunique().max() == 1
     assert T.groupby("run_index").fold.nunique().max() == 1
     assert T.groupby("canonical_id").fold.nunique().max() == 1
@@ -213,6 +299,18 @@ def stage_split():
         z = ((m - y[names].mean()) / sd).abs()
         summ.append(dict(participant=f"sub-{s}", n_sessions=len(m), median_abs_diff_in_sd=float(np.median(z.values)), max_abs_diff_in_sd=float(z.values.max()), emotion_at_max=z.max().idxmax()))
     tsv(pd.DataFrame(rows), "session_emotion_means.tsv")
+    # fold별 정서 분포(04 정할 것 12). 이름표 73개는 맞추지 않았고 결과만 적는다
+    y_dev = Y[D.content_id.to_numpy() - 1]
+    label_names, X_all = semantic()
+    x_dev = X_all[D.video_id.to_numpy() - 1]
+    bal = []
+    for k in range(1, K + 1):
+        m = D.fold.to_numpy() == k
+        bal += [dict(fold=k, kind="emotion", name=e, mean=float(y_dev[m, i].mean()), diff_in_sd=float((y_dev[m, i].mean() - y_dev[:, i].mean()) / y_dev[:, i].std()), n_nonzero=int((y_dev[m, i] > 0).sum())) for i, e in enumerate(names)]
+        bal += [dict(fold=k, kind="semantic_label", name=e, mean=float(x_dev[m, i].mean()), diff_in_sd=float((x_dev[m, i].mean() - x_dev[:, i].mean()) / x_dev[:, i].std()), n_nonzero=int((x_dev[m, i] > 0).sum())) for i, e in enumerate(label_names)]
+    B = pd.DataFrame(bal)
+    tsv(B, "fold_balance.tsv")
+    print(B.groupby("kind").diff_in_sd.agg(median_abs=lambda v: v.abs().median(), max_abs=lambda v: v.abs().max()).round(3).to_string(), "\n정서별 fold당 0이 아닌 영상 최소", int(B[B.kind == "emotion"].n_nonzero.min()))
     tsv(pd.DataFrame(summ), "session_emotion_summary.tsv")
     print(pd.DataFrame(summ).round(3).to_string(index=False))
 
@@ -597,6 +695,11 @@ def stage_check():
     cw = pd.read_csv(CROSSWALK, sep="\t", comment="#").set_index("video_number").canonical_stimulus_id
     mc = set(pd.read_csv(MC72, sep="\t").canonical_stimulus_id)
     assert D.video_id.is_unique and len(D) == 2109
+    sizes = D.groupby("fold").size()
+    assert sizes.size == K and sizes.min() >= len(D) / K * (1 - SIZE_TOL) and sizes.max() <= len(D) / K * (1 + SIZE_TOL), "fold 크기가 ±10%를 벗어났다"
+    Sb = pd.read_csv(OUT / "session_check.tsv", sep="\t")
+    assert (Sb.max_runs_from_one_session <= MAX_RUNS_ONE_SESSION).all() and (Sb.n_sessions >= MIN_SESSIONS).all(), "세션 수준이 층화 전보다 나빠졌다"
+    assert D.groupby("run_group").fold.nunique().max() == 1
     assert D.groupby("run_index").fold.nunique().max() == 1
     assert D.groupby("canonical_id").fold.nunique().max() == 1, "같은 내용 영상 쌍이 다른 fold"
     assert D[D.video_id == 1349].fold.iloc[0] == D[D.video_id == 1363].fold.iloc[0]
@@ -683,7 +786,7 @@ def stage_check():
     for cohort, root, ver, subs in [("hk", "Horikawa", "v3", HK), ("mc", "MindCaptioning", "v2", MC)]:
         for x in subs:
             inputs += [PM / root / f"sub-{x}/{ver}_qc/sub-{x}_mask_qc.nii.gz", PM / root / f"sub-{x}/{ver}_qc/sub-{x}_samples_qc_usable.tsv"]
-    info = dict(split_id=SPLIT_ID, code=str(Path(__file__).relative_to(REPO)), code_sha256=sha(__file__), git_head_when_checked=commit, sklearn=sklearn.__version__, kmeans=dict(n_clusters=N_BLOCKS, n_init=10, random_state=0), seed_control_sample=SEED_CONTROL_SAMPLE, seed_distance_check=SEED_DISTANCE_CHECK, input_sha256={str(p): sha(p) for p in inputs}, output_sha256={f.name: sha(f) for f in sorted(OUT.glob("*.tsv"))})
+    info = dict(split_id=SPLIT_ID, code=str(Path(__file__).relative_to(REPO)), code_sha256=sha(__file__), git_head_when_checked=commit, sklearn=sklearn.__version__, kmeans=dict(n_clusters=N_BLOCKS, n_init=10, random_state=0), seed_split=SEED_SPLIT, seed_control_sample=SEED_CONTROL_SAMPLE, seed_distance_check=SEED_DISTANCE_CHECK, input_sha256={str(p): sha(p) for p in inputs}, output_sha256={f.name: sha(f) for f in sorted(OUT.glob("*.tsv"))})
     (OUT / "provenance.json").write_text(json.dumps(info, indent=1, ensure_ascii=False))
     print("확인 기준 통과. sklearn", sklearn.__version__)
 
