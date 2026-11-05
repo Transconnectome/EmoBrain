@@ -27,6 +27,7 @@
 | 02_proposal.md | 한국어 proposal. 결정과 이유만 담는다 |
 | 03_thesis.md | 영어 thesis. 서론, 방법, 분석 계획과 예상 결과, 논의 |
 | 04_claude_code_workorder.md | 작업 지시서. S0~S11 단계와 기록 칸 |
+| 05_writing_guide.md | 글쓰기와 검토 지침. thesis, 초록을 쓰거나 고치거나 검토할 때, 글쓰기 본보기 논문을 고를 때 먼저 읽는다 |
 | references.bib | 참고문헌 113개. 통합문서 부록 4와 같다 |
 
 - 02, 03, 04는 01에서 만든 문서다. 01과 다르면 01을 따른다.
@@ -70,12 +71,12 @@
 | 누가 | 고치는 파일 | 하는 일 |
 | --- | --- | --- |
 | 석진 님 | 없음 | 설계 결정, 의견이 갈릴 때 판정, GPU 실행 |
-| Claude Code(메인, Perlmutter 세션) | docs/final의 01~04와 CLAUDE_EmoBrain.md, 레포 코드, job script, 레포 push | 결정을 01에 옮기고, 나머지 문서는 아래의 갱신 시점에 맞춘다. S0~S11 구현 전체. 자료와 실행이 Perlmutter에 있어 Perlmutter에서 도는 Claude Code 세션 하나가 맡는다. Mac 세션은 11/3 인계 커밋 뒤 파일을 고치지 않는다 |
-| Codex(검토) | 자기 검토 보고서와 재현 테스트 | 확인 지점에서 코드 검토: 데이터 누출, 조용한 타협, 경계 조건. 석진 님이 요청하면 문서 변경도 검토한다. 01~04와 레포 코드를 직접 고치거나 push하지 않는다 |
-| Antigravity | Wiki | Wiki 관리와 문헌 원문 확인. 석진 님이 요청할 때 글을 다듬는 의견을 낸다. 01~04는 고치지 않는다 |
+| Claude Code(메인, Perlmutter 세션) | docs/final의 01~05와 CLAUDE_EmoBrain.md, 레포 코드, job script, 레포 push | 결정을 01에 옮기고, 나머지 문서는 아래의 갱신 시점에 맞춘다. S0~S11 구현 전체. 자료와 실행이 Perlmutter에 있어 Perlmutter에서 도는 Claude Code 세션 하나가 맡는다. Mac 세션은 11/3 인계 커밋 뒤 파일을 고치지 않는다 |
+| Codex(검토) | 자기 검토 보고서와 재현 테스트 | 확인 지점에서 코드 검토: 데이터 누출, 조용한 타협, 경계 조건. 석진 님이 요청하면 문서 변경도 검토한다. 01~05와 레포 코드를 직접 고치거나 push하지 않는다 |
+| Antigravity | Wiki | Wiki 관리와 문헌 원문 확인. 석진 님이 요청할 때 글을 다듬는 의견을 낸다. 01~05는 고치지 않는다 |
 
 - 한 파일은 한 도구만 고친다. 통합문서의 원본은 레포 `design/emobrain-final-2026-11-03` 브랜치의 `docs/final/01_integrated_document.md` 하나다(2절).
-- 01~04, CLAUDE_EmoBrain.md, 레포는 Claude Code만 고친다. 다른 Claude 대화, GPT, Codex의 수정안은 석진 님이 전달하고, Claude Code가 근거로 판정한 뒤 반영한다(11/5 석진 님).
+- 01~05, CLAUDE_EmoBrain.md, 레포는 Claude Code만 고친다. 다른 Claude 대화, GPT, Codex의 수정안은 석진 님이 전달하고, Claude Code가 근거로 판정한 뒤 반영한다(11/5 석진 님).
     - 이유: 둘 이상이 같은 문서를 따로 고치면 서로 다른 판이 생긴다. PR로 관리하지 않는 이유는 레포 AGENTS.md가 승인 없는 PR을 막고 작업 브랜치를 고정하고 있고, 레포가 public이라 PR 내용도 공개되기 때문이다.
 - Codex의 확인 지점과 넘길 것
     - S2 manifest와 S3 추출 코드 뒤, 특징 추출 GPU 작업 전: commit, manifest, 분할과 추출 코드
