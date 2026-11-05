@@ -49,7 +49,8 @@ HK = ["01", "02", "03", "04", "05"]
 MC = ["01", "02", "03", "04", "05", "06"]
 K = 6
 N_BLOCKS = 5
-SPLIT_ID = "hk_dev_rungroup6_v3"
+SPLIT_ID = "hk_dev_rungroup6_v4"
+STIMULI = REPO / "prereg_v2/manifests/stimuli.tsv"
 SEED_SPLIT = 20261106  # 정서 층화 탐색(04 정할 것 12)
 SIZE_TOL = 0.10  # fold의 개발 영상 수는 평균의 ±10% 안
 MAX_RUNS_ONE_SESSION, MIN_SESSIONS = 3, 6  # 층화 전 분할의 세션 수준을 나빠지지 않게 지킨다(2-0, O8)
@@ -123,13 +124,20 @@ def load_split():
 
 
 # ---------- split
+def length_features(video_id):
+    """영상 길이로 층화에 쓰는 값. 로그 길이, 16초 이상(창으로 나뉘는 영상), 30초 이상."""
+    L = pd.read_csv(STIMULI, sep="\t", comment="#").set_index("video_number").container_duration_s.reindex(video_id).to_numpy(float)
+    assert np.isfinite(L).all()
+    return np.log(L), (L >= 16).astype(float), (L >= 30).astype(float)
+
+
 def stratify_folds(T, Y_all, session_all):
-    """run 묶음을 fold에 배정해 34개 정서의 fold 평균과 0이 아닌 비율을 전체에 맞춘다. 같은 seed면 같은 배정이 나온다."""
+    """run 묶음을 fold에 배정해 34개 정서의 fold 평균, 0이 아닌 비율, 영상 길이를 전체에 맞춘다. 같은 seed면 같은 배정이 나온다."""
     D = T[T.dev]
     groups = np.sort(T.run_group.unique())
     gi = pd.Series(range(len(groups)), index=groups)
     y = Y_all[D.content_id.to_numpy() - 1]
-    F = np.hstack([y, (y > 0).astype(float)])  # 정서 34개의 평정 평균과 0이 아닌 비율. 같은 무게로 본다
+    F = np.hstack([y, (y > 0).astype(float), np.column_stack(length_features(D.video_id))])  # 표준화해 같은 무게로 본다
     mu, sd = F.mean(0), F.std(0)
     assert (sd > 0).all()
     Z = (F - mu) / sd
@@ -308,6 +316,10 @@ def stage_split():
         m = D.fold.to_numpy() == k
         bal += [dict(fold=k, kind="emotion", name=e, mean=float(y_dev[m, i].mean()), diff_in_sd=float((y_dev[m, i].mean() - y_dev[:, i].mean()) / y_dev[:, i].std()), n_nonzero=int((y_dev[m, i] > 0).sum())) for i, e in enumerate(names)]
         bal += [dict(fold=k, kind="semantic_label", name=e, mean=float(x_dev[m, i].mean()), diff_in_sd=float((x_dev[m, i].mean() - x_dev[:, i].mean()) / x_dev[:, i].std()), n_nonzero=int((x_dev[m, i] > 0).sum())) for i, e in enumerate(label_names)]
+    log_l, ge16, ge30 = length_features(D.video_id)
+    for k in range(1, K + 1):
+        m = D.fold.to_numpy() == k
+        bal += [dict(fold=k, kind="length", name=e, mean=float(v[m].mean()), diff_in_sd=float((v[m].mean() - v.mean()) / v.std()), n_nonzero=int((v[m] > 0).sum()) if e != "log_seconds" else m.sum()) for e, v in [("log_seconds", log_l), ("at_least_16s", ge16), ("at_least_30s", ge30)]]
     B = pd.DataFrame(bal)
     tsv(B, "fold_balance.tsv")
     print(B.groupby("kind").diff_in_sd.agg(median_abs=lambda v: v.abs().median(), max_abs=lambda v: v.abs().max()).round(3).to_string(), "\n정서별 fold당 0이 아닌 영상 최소", int(B[B.kind == "emotion"].n_nonzero.min()))
@@ -782,7 +794,7 @@ def stage_check():
         z = np.load(f)
         assert len(z["roi"]) == 370 and z["offsets"][-1] == len(z["columns"]) and z["columns"].max() < int(z["n_columns"]) and z["columns"].min() >= 0
     commit = subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
-    inputs = [V1, CROSSWALK, MC72, LABEL_MAP, LABELS, SEMANTIC, ABNORMAL, MC_RUNS, CABNP] + roi_files
+    inputs = [V1, CROSSWALK, MC72, LABEL_MAP, LABELS, SEMANTIC, ABNORMAL, MC_RUNS, CABNP, STIMULI] + roi_files
     for cohort, root, ver, subs in [("hk", "Horikawa", "v3", HK), ("mc", "MindCaptioning", "v2", MC)]:
         for x in subs:
             inputs += [PM / root / f"sub-{x}/{ver}_qc/sub-{x}_mask_qc.nii.gz", PM / root / f"sub-{x}/{ver}_qc/sub-{x}_samples_qc_usable.tsv"]
