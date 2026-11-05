@@ -218,6 +218,10 @@ def stage_split():
 
 
 # ---------- blocks
+# 거리 동률 판정의 허용 오차. 평균 연산의 반올림 차이로 '먼 영상' 수가 계산 경로마다 달라지지 않게 한다(효과 크기 기준이 아니다)
+TIE_TOL = 1e-12
+
+
 def stage_blocks():
     D = load_split()
     label_names, X_all = semantic()
@@ -264,11 +268,15 @@ def stage_blocks():
                 rep_all.append(np.minimum(d_tr, d_va))
             d_ct_tr, d_ct_all = np.mean(rep_tr, 0), np.mean(rep_all, 0)
             # 주 지표는 실제 가중치 학습 영상(학습 fold 4개) 기준이고, 검증을 포함한 값도 함께 적는다
-            dist.append(dict(block=z, fold=k, val_fold=val, n_test=int(te.sum()), n_train_excluded=n_tr, n_val_excluded=n_va, median_excluded=float(np.median(d_ex_tr)), median_control=float(np.median(d_ct_tr)), ratio=float(np.median(d_ex_tr) / np.median(d_ct_tr)), frac_test_farther=float((d_ex_tr > d_ct_tr).mean()), median_excluded_with_val=float(np.median(d_ex_all)), median_control_with_val=float(np.median(d_ct_all)), ratio_with_val=float(np.median(d_ex_all) / np.median(d_ct_all))))
+            dist.append(dict(block=z, fold=k, val_fold=val, n_test=int(te.sum()), n_train_excluded=n_tr, n_val_excluded=n_va, median_excluded=float(np.median(d_ex_tr)), median_control=float(np.median(d_ct_tr)), ratio=float(np.median(d_ex_tr) / np.median(d_ct_tr)), frac_test_farther=float((d_ex_tr > d_ct_tr + TIE_TOL).mean()), median_excluded_with_val=float(np.median(d_ex_all)), median_control_with_val=float(np.median(d_ct_all)), ratio_with_val=float(np.median(d_ex_all) / np.median(d_ct_all))))
             # 6-2에 쓸 학습량 대조 표본: 학습 fold와 검증 fold에서 구역 제외 조건과 같은 수를 각각 뽑는다(04 정할 것 8)
             rng = np.random.default_rng([SEED_CONTROL_SAMPLE, z, k])
             p_tr = np.sort(rng.choice(idx_tr, n_tr, replace=False))
             p_va = np.sort(rng.choice(idx_va, n_va, replace=False))
+            # 위의 20번 평균은 진단 통계이고 실제 학습에 쓰는 표본이 아니다. 고정 표본의 거리도 적는다. 이 값으로 표본을 다시 뽑지 않는다
+            d_fx_tr = label_distance(X[te], X[p_tr]).min(1)
+            d_fx_all = np.minimum(d_fx_tr, label_distance(X[te], X[p_va]).min(1))
+            dist[-1].update(median_control_fixed=float(np.median(d_fx_tr)), ratio_fixed=float(np.median(d_ex_tr) / np.median(d_fx_tr)), frac_test_farther_fixed=float((d_ex_tr > d_fx_tr + TIE_TOL).mean()), ratio_fixed_with_val=float(np.median(d_ex_all) / np.median(d_fx_all)))
             ctrl += [dict(block=z, fold=k, role="train", video_id=int(v)) for v in vids[p_tr]] + [dict(block=z, fold=k, role="val", video_id=int(v)) for v in vids[p_va]]
             yy = dict(ex_tr=Y[content[tr_ex] - 1], ct_tr=Y[content[p_tr] - 1], ex_va=Y[content[va_ex] - 1], ct_va=Y[content[p_va] - 1])
             nz += [dict(block=z, fold=k, emotion=e, n_nonzero_excluded=int((yy["ex_tr"][:, i] > 0).sum()), n_nonzero_control=int((yy["ct_tr"][:, i] > 0).sum()), n_nonzero_excluded_val=int((yy["ex_va"][:, i] > 0).sum()), n_nonzero_control_val=int((yy["ct_va"][:, i] > 0).sum())) for i, e in enumerate(emo)]
@@ -285,7 +293,7 @@ def stage_blocks():
     tsv(pd.DataFrame(ctrl), "content_block_control_samples.tsv")
     tsv(pd.DataFrame(nz), "content_block_nonzero.tsv")
     print(Dt.groupby("block").agg(n_test_min=("n_test", "min"), n_test_max=("n_test", "max"), train_min=("n_train_excluded", "min"), train_max=("n_train_excluded", "max"), val_min=("n_val_excluded", "min"), val_max=("n_val_excluded", "max"), median_excluded=("median_excluded", "median"), median_control=("median_control", "median"), ratio_min=("ratio", "min"), ratio_med=("ratio", "median"), farther=("frac_test_farther", "mean"), ratio_with_val=("ratio_with_val", "median")).round(3).to_string())
-    print("거리가 대조보다 늘지 않은 (구역, fold):", Dt[Dt.ratio <= 1][["block", "fold", "ratio"]].to_dict("records"), "비율 최소", round(Dt.ratio.min(), 3), "검증 포함 최소", round(Dt.ratio_with_val.min(), 3))
+    print("거리가 대조보다 늘지 않은 (구역, fold):", Dt[Dt.ratio <= 1][["block", "fold", "ratio"]].to_dict("records"), "비율 최소(20번 평균)", round(Dt.ratio.min(), 3), "검증 포함 최소", round(Dt.ratio_with_val.min(), 3), "고정 표본 비율 최소", round(Dt.ratio_fixed.min(), 3), "검증 포함 최소", round(Dt.ratio_fixed_with_val.min(), 3))
     N = pd.DataFrame(nz)
     print("정서별 0이 아닌 학습 영상 수 최솟값(구역 제외):", N.groupby("block").n_nonzero_excluded.min().to_dict(), "(대조):", N.groupby("block").n_nonzero_control.min().to_dict())
 
@@ -569,6 +577,21 @@ def stage_order():
 
 
 # ---------- check
+def check_mc_repeats(Rp, Mt):
+    """반복표가 MC 시험 행에서 센 값과 키까지 모두 같은지 본다. 누락과 중복을 거절한다."""
+    key = ["participant", "video_id", "canonical_id"]
+    exp = Mt[Mt.role == "test_72"].groupby(key).size().rename("n_repeats").sort_index()
+    if set(exp.index.get_level_values("participant")) != {f"sub-{s}" for s in MC} or not exp.groupby("participant").size().eq(72).all():
+        raise ValueError("MC 시험 행이 6명, 72개가 아니다")
+    if Rp.duplicated(["participant", "video_id"]).any() or Rp.duplicated(["participant", "canonical_id"]).any():
+        raise ValueError("반복표에 중복 키가 있다")
+    if not Rp.n_repeats.isin([4, 5]).all():
+        raise ValueError("예상 밖의 반복 수")
+    got = Rp.set_index(key).n_repeats.sort_index()
+    if not got.index.equals(exp.index) or not got.equals(exp):
+        raise ValueError("반복표가 MC 시험 행과 다르다")
+
+
 def stage_check():
     D = load_split()
     cw = pd.read_csv(CROSSWALK, sep="\t", comment="#").set_index("video_number").canonical_stimulus_id
@@ -640,8 +663,14 @@ def stage_check():
         a = allowed_response_rows("hk", s)
         assert set(a) == set(P[P.participant == f"sub-{s}"].qc_row)
     Rp = pd.read_csv(OUT / "mc_test_repeats.tsv", sep="\t")
-    assert Rp.groupby("participant").video_id.nunique().eq(72).all() and Rp.n_repeats.isin([4, 5]).all()
-    assert Rp.set_index(["participant", "video_id"]).n_repeats.equals(Mt[Mt.role == "test_72"].groupby(["participant", "video_id"]).size().rename("n_repeats").reindex(Rp.set_index(["participant", "video_id"]).index))
+    check_mc_repeats(Rp, Mt)
+    # 누락과 중복을 실제로 거절하는지 본다
+    for bad in (Rp[Rp.participant != "sub-06"], pd.concat([Rp, Rp.iloc[[0]]]), Rp.assign(n_repeats=Rp.n_repeats.where(Rp.index != 0, 4 if Rp.n_repeats.iloc[0] == 5 else 5))):
+        try:
+            check_mc_repeats(bad, Mt)
+        except ValueError:
+            continue
+        raise AssertionError("반복표의 오류를 잡지 못했다")
     V = pd.read_csv(OUT / "roi_voxel_counts.tsv", sep="\t")
     assert V.groupby(["cohort", "participant"]).roi.nunique().eq(370).all() and (V.n_voxels > 0).all()
     roi_files = sorted((BIG / "roi_voxels").glob("*.npz"))

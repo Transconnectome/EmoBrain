@@ -414,7 +414,7 @@
     - 자료: 분석 영상 2,181개의 길이는 0.15~90초이고 중앙값은 4.5초다. 4초 미만이 969개(44%), 4~16초가 1,126개(52%), 16초 초과가 86개(4%)다. 8초 기준으로는 8초 미만 1,564개(72%), 8~16초 531개(24%)다. 원래 초당 프레임 수도 10~33으로 영상마다 다르다(레포 stimuli.tsv, 11/2 다시 셈).
     - V-JEPA 2는 16프레임으로 사전학습하고 64프레임(16초, 초당 4장)으로 마무리 학습했다. 위치 표현이 3D-RoPE라서 프레임 수가 다른 입력을 받을 수 있다.
     - 영상은 참가자가 본 그대로 만든다 [정함, 11/1]
-        - 8초 미만 영상은 8초를 넘을 때까지 반복한다(종료 시점은 실제 상영 기록으로 확인). 실험에서 8초보다 짧은 영상은 8초를 넘을 때까지 같은 영상을 반복해 보여 줬다(Du 외 2023의 실험 설명). 레포 events_audited.tsv(sub-01, 파일 2,196개의 제시 기록)에서도 8초 미만 영상 1,573개의 block은 모두 10초(휴지 2초 포함)였다. 분석 영상 2,181개 기준으로는 1,564개(72%)다.
+        - 8초 미만 영상은 8초를 넘을 때까지 반복한다. 마지막 반복을 어디서 끝냈는지는 원문에 없어 04 정할 것 11에서 정한다. 실험에서 8초보다 짧은 영상은 8초를 넘을 때까지 같은 영상을 반복해 보여 줬다(Horikawa 외 2020 Transparent Methods "repeatedly presented until the total presentation duration went beyond 8 s", Du 외 2023의 실험 설명). 레포 events_audited.tsv(sub-01, 파일 2,196개의 제시 기록)에서도 8초 미만 영상 1,573개의 block은 모두 10초(휴지 2초 포함)였다. 분석 영상 2,181개 기준으로는 1,564개(72%)다.
         - 반복할 때 생기는 끊김도 참가자가 본 장면이다. 마지막 프레임으로 채우는 안(GPT 문서안)은 참가자가 본 것과 달라서 쓰지 않는다.
         - 반복이 끝나는 시점은 실제 상영 기록으로 확인한다. 성능을 보고 주 설정을 바꾸지 않는다.
         - 모든 시각 특징(V-JEPA 2, VideoMAE, TimeSformer, CLIP)과 저수준 특징(3-6)에 같은 입력을 쓴다.
@@ -1496,7 +1496,7 @@ teacher는 5-0에서 시각 특징과 캡션 특징만 받는 특징 모델(T_VS
 
 | 문헌 | 이 문서에서 쓰는 곳 | 한 줄 내용 |
 | --- | --- | --- |
-| Horikawa 외 2020, iScience | 0절, 1-1, 1-2, 2-0 | "The Neural Representation of Visually Evoked Emotion Is High-Dimensional, Categorical, and Distributed across Transmodal Brain Regions". 같은 영상 2,181개에서 34개 범주와 14개 차원을 뇌로 디코딩. fMRI 참가자는 소리 없이 봄(Fig. 1 설명). 정확도는 2,181개 영상에 걸친 Pearson r, 6-fold. "visual affordances for specific emotional experiences" |
+| Horikawa 외 2020, iScience | 0절, 1-1, 1-2, 2-0, 3-2 | "The Neural Representation of Visually Evoked Emotion Is High-Dimensional, Categorical, and Distributed across Transmodal Brain Regions". 같은 영상 2,181개에서 34개 범주와 14개 차원을 뇌로 디코딩. fMRI 참가자는 소리 없이 봄(Fig. 1 설명). 정확도는 2,181개 영상에 걸친 Pearson r, 6-fold. "visual affordances for specific emotional experiences". 8초 미만 영상의 반복과 block 규칙은 보충자료 Transparent Methods(PDF 15쪽) |
 | Cowen & Keltner 2017, PNAS | 1-2, 2단계, B4 | 영상 2,185개, 영상마다 9~17명이 34개 범주에서 해당하는 것을 모두 고름. 27개 범주가 연속적인 경사로 이어짐. 27개 범주 차원이 14개 정서 차원의 설명 가능한 분산의 78%를 설명했고, 14개 차원은 범주 차원을 최대 61% 설명함(leave-one-out 교차검증, 선형과 k-최근접 회귀, 영상당 평정 9개, Fig. 3) |
 | Moors 2017 | 1-2 | 평가 이론. 자극 특징과 정서 사이에 일대일 관계는 거의 없고, 정서는 자극과 다른 정보의 상호작용으로 설명됨 |
 | Kragel 외 2019, Science Advances | 1-1, 1-2, 1-3, 6-1 | 정서를 배운 시각 신경망(EmoNet, 같은 Cowen 영상의 정지 프레임으로 20개 범주 분류)과 정서 도식. AUC가 높았던 정서 craving 0.987, sexual desire 0.965, entrancement 0.902, horror 0.876, 낮았던 정서 confusion 0.636, awe 0.615, surprise 0.541. 저자 해석: 추상적이거나 시간 변화에 기대는 정서에는 시각 밖의 정보가 필요. 시각과 글의 상대적 기여는 비교하지 않음 |
@@ -1618,7 +1618,7 @@ teacher는 5-0에서 시각 특징과 캡션 특징만 받는 특징 모델(T_VS
 - 34개 범주로 14개 차원을 예측한 R²: valence 0.79, safety 0.72, approach 0.70, control 0.68, arousal 0.27
 - 정서와 무관한 요인
     - block 신호 크기와 영상 길이의 상관: Horikawa −0.49~−0.59
-    - 8초 미만 영상은 8초 동안 반복 제시되어 block이 모두 10초다(sub-01 제시 기록 2,196개 가운데 1,573개, 분석 영상 2,181개 기준 1,564개). 8초 이상 영상은 영상 길이에 2~4초를 더한 block이다(레포 events_audited.tsv)
+    - 8초 미만 영상은 8초를 넘을 때까지 반복 제시되었고 block이 모두 10초다(sub-01 제시 기록 2,196개 가운데 1,573개, 분석 영상 2,181개 기준 1,564개). 8초 이상 영상은 영상 길이에 2~4초를 더한 block이다(레포 events_audited.tsv)
     - 간단한 화면 통계 33개(3-6)로 정서를 설명한 R²의 중앙값: 0.011
 - 뇌 반응의 참가자 간 일치도(네트워크 중앙값, Horikawa): Vis 0.49, DorsAttn 0.46, Default 0.24, Limbic 0.07
 - 캡션과 정서어
