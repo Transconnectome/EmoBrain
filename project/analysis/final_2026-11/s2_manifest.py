@@ -7,12 +7,13 @@
   pairs   : 이름표 짝(4-2, O9), 짝 연결 묶음과 순서 없는 쌍(O4), 참가자별 빠진 쌍 수
   roi     : 370개 ROI의 참가자별 voxel 열 번호(저자 피질 + 새 피질하, 정할 것 5~7), ROI 표, CAB-NP 13묶음(6-4)
   mc      : MC 시청 자료의 입력층 학습과 검증 run(O29), 시험 72개, HK와 MC의 영상 ID 대응(6-3). 표만 읽고 반응은 읽지 않는다
-  brain   : 새 지도의 영역 평균, HK 참가자 간 일치도(K7, 13묶음), HK 반복 신뢰도(14쌍). 정서 정답은 읽지 않는다. 이 결과로 지도나 묶음을 바꾸지 않는다
-  order   : 배열의 열이 QC mask의 NumPy 순서인지 11명에서 점검한다
+  brain   : 새 지도의 영역 평균(개발 block과 반복 쌍만), HK 참가자 간 일치도(K7, 13묶음), HK 반복 신뢰도(14쌍). 정서 정답은 읽지 않는다. 이 결과로 지도나 묶음을 바꾸지 않는다
+  order   : 배열의 열 순서 후보(NumPy, Fortran)의 공간 연속성을 11명에서 본다(HK 개발 block, MC 입력층 학습 block만)
   check   : 04 S2의 확인 기준 검사와 provenance 기록
 
 정서 정답은 세션별 평균(2-0)과 구역별 0이 아닌 학습 영상 수(4-3)를 적을 때만 읽고, 분할, 구역, 짝을 정하는 데 쓰지 않는다.
-MC 시험 반응은 읽지 않는다. 최종 때까지 쓰지 않기로 했으므로(11/3 석진 님) MC 반복 신뢰도는 지금 내지 않는다.
+MC 시험 반응은 읽지 않는다. 최종 때까지 쓰지 않기로 했으므로(11/3 석진 님) MC 반복 신뢰도는 지금 내지 않는다. 반응 배열은 allowed_response_rows와 read_rows를 거쳐서만 읽는다.
+11/4에 order 단계가 MC 6명의 시험 block 40개씩을 읽은 일이 있다. 고쳤고 사실은 04 기록 칸에 있다.
 출력: 작은 표 manifests/s2/, 큰 파일 project/output/final_2026-11/s2_manifest/
 """
 import argparse
@@ -57,6 +58,32 @@ SUBCORTEX_DISPLAY = {"nuc_accum": "BA34 ROI", "hyppocampus": "hippocampus"}
 
 def sha(p):
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+
+
+def allowed_response_rows(cohort, s):
+    """반응 배열에서 읽어도 되는 행을 metadata로 먼저 정한다. 행 번호를 고정 슬라이스로 잡지 않는다.
+    HK는 개발 block, MC는 입력층 학습 block(input_train)뿐이다. MC 배열은 시험 세션이 맨 앞에 있으므로 앞쪽 행을 읽으면 시험 반응이 된다."""
+    mc = set(pd.read_csv(MC72, sep="\t").canonical_stimulus_id)
+    if cohort == "hk":
+        cw = pd.read_csv(CROSSWALK, sep="\t", comment="#").set_index("video_number").canonical_stimulus_id
+        t = pd.read_csv(OUT / "participant_blocks_hk.tsv", sep="\t")
+        t = t[t.participant == f"sub-{s}"]
+        canon = t.video_id.map(cw)
+    else:
+        t = pd.read_csv(OUT / "mc_blocks.tsv", sep="\t")
+        t = t[(t.participant == f"sub-{s}") & (t.role == "input_train")]
+        canon = t.canonical_id
+    if len(t) == 0 or canon.isna().any() or canon.isin(mc).any():
+        raise ValueError(f"{cohort} sub-{s}: 허용 행에 MC 시험 72개와 같은 내용이 있거나 표가 비었다")
+    return np.sort(t.qc_row.to_numpy())
+
+
+def read_rows(raw, rows, allowed):
+    """반응 배열을 읽는 유일한 입구. 허용되지 않은 행을 요청하면 읽기 전에 멈춘다."""
+    rows = np.asarray(rows)
+    if not np.isin(rows, allowed).all():
+        raise ValueError(f"허용되지 않은 반응 행 요청: {rows[~np.isin(rows, allowed)][:5]}")
+    return np.asarray(raw[rows], np.float64)
 
 
 def tsv(df, name):
@@ -437,10 +464,6 @@ def stage_brain():
         tag = f"hk_sub-{s}"
         A = roi_matrix(tag)
         Y = np.load(PM / f"Horikawa/sub-{s}/v3_qc/sub-{s}_blocks_common36_qc_runz.npy", mmap_mode="r")
-        R = np.zeros((Y.shape[0], A.shape[0]), np.float32)
-        for i0 in range(0, Y.shape[0], 64):
-            R[i0:i0 + 64] = (A @ np.asarray(Y[i0:i0 + 64], np.float32).T).T
-        np.save(BIG / "roi_means" / f"{tag}_roi370_runz.npy", R)
         # 반복 신뢰도: 같은 내용이 두 번 제시된 쌍(MC 72개와 같은 내용 제외)
         u = hk_samples(s)
         u["canonical_id"] = u.video_id.map(cw)
@@ -450,10 +473,17 @@ def stage_brain():
         second = g[g.exclude_duplicate.astype(bool)].set_index("content_id")
         ids = first.index.intersection(second.index)
         a, b = first.loc[ids].qc_row.to_numpy(), second.loc[ids].qc_row.to_numpy()
+        # 읽는 행은 개발 block과 반복 쌍뿐이다. MC 시험 72개와 같은 내용의 block은 읽지 않는다. 읽지 않은 행은 NaN으로 둔다
+        allowed = np.union1d(allowed_response_rows("hk", s), np.r_[a, b])
+        assert not u[u.qc_row.isin(allowed)].canonical_id.isin(mc72).any()
+        R = np.full((Y.shape[0], A.shape[0]), np.nan, np.float32)
+        for chunk in np.array_split(allowed, max(1, len(allowed) // 64)):
+            R[chunk] = (A @ read_rows(Y, chunk, allowed).astype(np.float32).T).T
+        np.save(BIG / "roi_means" / f"{tag}_roi370_runz.npy", R)
         S = corr_rows(R[a], R[b])
         rep_rows.append(dict(participant=f"sub-{s}", group="all_370_roi_means", n_pairs=len(ids), same_pair_r=float(np.diag(S).mean()), diff_pair_r=float(S[~np.eye(len(S), dtype=bool)].mean()), identification=ident(S)))
         z = np.load(BIG / "roi_voxels" / f"{tag}.npz")
-        Xa, Xb = np.asarray(Y[a], np.float64), np.asarray(Y[b], np.float64)
+        Xa, Xb = read_rows(Y, a, allowed), read_rows(Y, b, allowed)
         for grp, sub in T.groupby("group"):
             cols = np.unique(np.concatenate([z["columns"][z["offsets"][i]:z["offsets"][i + 1]] for i in sub.roi_index]))
             Sg = corr_rows(Xa[:, cols], Xb[:, cols])
@@ -484,14 +514,16 @@ def stage_brain():
 
 # ---------- order
 def stage_order():
-    """배열의 열이 QC mask의 NumPy 순서인지 본다. 맞게 놓으면 세 축 모두에서 이웃 voxel의 신호가 비슷하고, 다른 순서로 놓으면 한 축 외에는 깨진다.
-    사람마다 정규화 전 block 평균 패턴을 쓴다. 정서 정답은 읽지 않는다."""
+    """배열의 열 순서 후보(NumPy, Fortran) 가운데 어느 쪽이 공간적으로 연속인지 보는 진단이다. 모든 열 순서를 배제하는 증명이 아니다.
+    직접 근거는 생성 코드의 volume[mask].T(HK response_v3.py 414행, MC response_v2.py 383행)와 QC 열 보존 기록이다.
+    HK는 개발 block, MC는 입력층 학습 block 앞 40개의 정규화 전 평균 패턴을 쓴다. 정서 정답은 읽지 않는다."""
     rows = []
     for cohort, root, ver, subs in [("hk", "Horikawa", "v3", HK), ("mc", "MindCaptioning", "v2", MC)]:
         for s in subs:
             mask = np.asarray(nib.load(PM / root / f"sub-{s}/{ver}_qc/sub-{s}_mask_qc.nii.gz").dataobj) > 0
             raw = np.load(PM / root / f"sub-{s}/{ver}_qc/sub-{s}_blocks_common36_qc.npy", mmap_mode="r")
-            pat = np.asarray(raw[:40], np.float64).mean(0)
+            allowed = allowed_response_rows(cohort, s)
+            pat = read_rows(raw, allowed[:40], allowed).mean(0)
             idx = np.argwhere(mask)
             orders = {"numpy": idx, "fortran": idx[np.lexsort((idx[:, 0], idx[:, 1], idx[:, 2]))]}
             for name, ijk in orders.items():
@@ -510,7 +542,7 @@ def stage_order():
     n = t[t.order == "numpy"].filter(like="neighbor").min(axis=1).min()
     f = t[t.order == "fortran"].filter(like="neighbor").min(axis=1).max()
     assert n > f, (n, f)
-    print("맞는 순서의 세 축 최솟값", round(n, 3), "다른 순서의 세 축 최솟값 중 최댓값", round(f, 3))
+    print("NumPy 순서의 세 축 최솟값", round(n, 3), "Fortran 순서의 세 축 최솟값 중 최댓값", round(f, 3))
 
 
 # ---------- check
@@ -544,11 +576,49 @@ def stage_check():
     assert (S.n_sessions > 1).all()
     Mt = pd.read_csv(OUT / "mc_blocks.tsv", sep="\t")
     assert not Mt[Mt.role.isin(["input_train", "input_val"])].canonical_id.isin(mc).any()
+    assert set(Mt[Mt.role == "test_72"].canonical_id) == mc and Mt[Mt.role == "test_72"].groupby("participant").video_id.nunique().eq(72).all()
+    # 회귀 검사: MC 배열은 시험 세션이 맨 앞에 있다. 반응을 읽는 입구가 시험 행과 입력 검증 행을 막는지 가짜 배열로 본다(실제 반응은 읽지 않는다)
+
+    class FakeRaw:
+        def __init__(self):
+            self.keys = []
+
+        def __getitem__(self, k):
+            self.keys.append(np.asarray(k))
+            return np.zeros((len(k), 3), np.float32)
+    for s in MC:
+        t = Mt[Mt.participant == f"sub-{s}"]
+        allowed = allowed_response_rows("mc", s)
+        assert set(allowed) == set(t[t.role == "input_train"].qc_row)
+        front = t.sort_values("qc_row").qc_row.to_numpy()[:40]
+        assert t.set_index("qc_row").loc[front].role.eq("test_72").all(), "MC 배열 앞쪽이 시험 행이 아니다. 검사 전제를 다시 볼 것"
+        fake = FakeRaw()
+        read_rows(fake, allowed[:40], allowed)
+        assert np.isin(fake.keys[0], t[t.role == "input_train"].qc_row).all()
+        for bad in (front, t[t.role == "input_val"].qc_row.to_numpy()[:5], t[t.role == "excluded_test_runs"].qc_row.to_numpy()[:5]):
+            fake = FakeRaw()
+            try:
+                read_rows(fake, bad, allowed)
+            except ValueError:
+                assert not fake.keys
+            else:
+                raise AssertionError(f"sub-{s}: 허용되지 않은 MC 행을 읽었다")
+    for s in HK:
+        a = allowed_response_rows("hk", s)
+        assert set(a) == set(P[P.participant == f"sub-{s}"].qc_row)
     V = pd.read_csv(OUT / "roi_voxel_counts.tsv", sep="\t")
     assert V.groupby(["cohort", "participant"]).roi.nunique().eq(370).all() and (V.n_voxels > 0).all()
+    roi_files = sorted((BIG / "roi_voxels").glob("*.npz"))
+    assert len(roi_files) == 11
+    for f in roi_files:
+        z = np.load(f)
+        assert len(z["roi"]) == 370 and z["offsets"][-1] == len(z["columns"]) and z["columns"].max() < int(z["n_columns"]) and z["columns"].min() >= 0
     commit = subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
-    inputs = [V1, CROSSWALK, MC72, LABEL_MAP, LABELS, SEMANTIC, ABNORMAL, MC_RUNS, CABNP]
-    info = dict(split_id=SPLIT_ID, code=str(Path(__file__).relative_to(REPO)), code_sha256=sha(__file__), git_head_when_checked=commit, sklearn=sklearn.__version__, kmeans=dict(n_clusters=N_BLOCKS, n_init=10, random_state=0), seed_control_sample=SEED_CONTROL_SAMPLE, seed_distance_check=SEED_DISTANCE_CHECK, input_sha256={str(p): sha(p) for p in inputs})
+    inputs = [V1, CROSSWALK, MC72, LABEL_MAP, LABELS, SEMANTIC, ABNORMAL, MC_RUNS, CABNP] + roi_files
+    for cohort, root, ver, subs in [("hk", "Horikawa", "v3", HK), ("mc", "MindCaptioning", "v2", MC)]:
+        for x in subs:
+            inputs += [PM / root / f"sub-{x}/{ver}_qc/sub-{x}_mask_qc.nii.gz", PM / root / f"sub-{x}/{ver}_qc/sub-{x}_samples_qc_usable.tsv"]
+    info = dict(split_id=SPLIT_ID, code=str(Path(__file__).relative_to(REPO)), code_sha256=sha(__file__), git_head_when_checked=commit, sklearn=sklearn.__version__, kmeans=dict(n_clusters=N_BLOCKS, n_init=10, random_state=0), seed_control_sample=SEED_CONTROL_SAMPLE, seed_distance_check=SEED_DISTANCE_CHECK, input_sha256={str(p): sha(p) for p in inputs}, output_sha256={f.name: sha(f) for f in sorted(OUT.glob("*.tsv"))})
     (OUT / "provenance.json").write_text(json.dumps(info, indent=1, ensure_ascii=False))
     print("확인 기준 통과. sklearn", sklearn.__version__)
 

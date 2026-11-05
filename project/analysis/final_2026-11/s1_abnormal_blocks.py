@@ -44,10 +44,11 @@ def one(sub, drop):
     rz = np.load(d / f"sub-{sub}_blocks_common36_qc_runz.npy", mmap_mode="r")
     assert raw.shape == rz.shape and raw.shape[0] == len(T)
     keep = ~T.video_id.isin(drop).values & ~T.exclude_duplicate.astype(bool).values
-    sd, mx = np.zeros(len(T)), np.zeros(len(T))
-    for i in range(0, len(T), 64):
-        sl = slice(i, min(i + 64, len(T)))
-        sd[sl] = np.asarray(raw[sl], np.float64).std(1); mx[sl] = np.abs(np.asarray(rz[sl], np.float64)).max(1)
+    # 개발 block의 반응만 읽는다. MC 72개와 같은 내용, 나중 중복의 block은 읽지 않는다(11/4 고침)
+    sd, mx = np.full(len(T), np.nan), np.full(len(T), np.nan)
+    use = np.flatnonzero(keep)
+    for chunk in np.array_split(use, max(1, len(use) // 64)):
+        sd[chunk] = np.asarray(raw[chunk], np.float64).std(1); mx[chunk] = np.abs(np.asarray(rz[chunk], np.float64)).max(1)
     B = T[["qc_row", "row", "video_id", "content_id", "session", "run", "run_index"]].copy()
     B["block_sd"] = sd; B["runz_absmax"] = mx
     n_mc = int((~keep).sum()); B = B[keep].reset_index(drop=True); sd = B.block_sd.values
