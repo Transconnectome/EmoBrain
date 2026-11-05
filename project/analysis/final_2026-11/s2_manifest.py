@@ -2,7 +2,7 @@
 """S2: 모든 실행이 같은 자료 경계를 쓰도록 분할, 내용 구역, 이름표 짝, ROI, 묶음, MC 표를 파일로 고정한다 (04 S2, 2026-11-04).
 
 단계(--stage)
-  split   : HK 개발 영상 분할(v1 fold를 그대로 쓰고 1363의 run 묶음만 1349의 fold로 옮김, fold는 통합문서처럼 1~6), 세션 검사(O8), 세션별 정서 평균, 참가자별 block 표, fold 역할(H2, O7)
+  split   : HK 개발 영상 분할(run 묶음을 정서 평정과 영상 길이로 층화해 fold에 배정, v4, fold는 통합문서처럼 1~6), 세션 검사(O8), 세션별 정서 평균, 참가자별 block 표, fold 역할(H2, O7)
   blocks  : 내용 구역 k-means 5개(4-3, J2), 구역 기록, 거리 점검, 학습량 대조 표본, 정서별 0이 아닌 학습 영상 수
   pairs   : 이름표 짝(4-2, O9), 짝 연결 묶음과 순서 없는 쌍(O4), 참가자별 빠진 쌍 수
   roi     : 370개 ROI의 참가자별 voxel 열 번호(저자 피질 + 새 피질하, 정할 것 5~7), ROI 표, CAB-NP 13묶음(6-4)
@@ -11,7 +11,7 @@
   order   : 배열의 열 순서 후보(NumPy, Fortran)의 공간 연속성을 11명에서 본다(HK 개발 block, MC 입력층 학습 block만)
   check   : 04 S2의 확인 기준 검사와 provenance 기록
 
-정서 정답은 세션별 평균(2-0)과 구역별 0이 아닌 학습 영상 수(4-3)를 적을 때만 읽고, 분할, 구역, 짝을 정하는 데 쓰지 않는다.
+정서 정답은 분할의 층화(2-0, 개발 영상만), 세션별 평균(2-0), 구역별 0이 아닌 학습 영상 수(4-3)에 쓴다. 내용 구역과 짝의 거리 계산에는 쓰지 않는다.
 MC 시험 반응은 읽지 않는다. 최종 때까지 쓰지 않기로 했으므로(11/3 석진 님) MC 반복 신뢰도는 지금 내지 않는다. 반응 배열은 allowed_response_rows와 read_rows를 거쳐서만 읽는다.
 11/4에 order 단계가 MC 6명의 시험 block 40개씩을 읽은 일이 있다. 고쳤고 사실은 04 기록 칸에 있다.
 출력: 작은 표 manifests/s2/, 큰 파일 project/output/final_2026-11/s2_manifest/
@@ -125,7 +125,7 @@ def load_split():
 
 # ---------- split
 def length_features(video_id):
-    """영상 길이로 층화에 쓰는 값. 로그 길이, 16초 이상(창으로 나뉘는 영상), 30초 이상."""
+    """영상 길이로 층화에 쓰는 값. 로그 길이, 16초 이상, 30초 이상. 창으로 나뉘는 기준(O11)은 초가 아니라 프레임 수다."""
     L = pd.read_csv(STIMULI, sep="\t", comment="#").set_index("video_number").container_duration_s.reindex(video_id).to_numpy(float)
     assert np.isfinite(L).all()
     return np.log(L), (L >= 16).astype(float), (L >= 30).astype(float)
