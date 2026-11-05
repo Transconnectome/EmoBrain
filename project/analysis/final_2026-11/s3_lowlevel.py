@@ -18,6 +18,7 @@ from moten.colorspace import rgb2lab  # noqa: E402
 
 import s3_common as c  # noqa: E402
 
+PYMOTEN_VERSION = "0.1.3"
 SPATIAL, TEMPORAL, DIRECTIONS = [0, 2, 4, 8, 16, 32], [0, 2, 4], [0, 45, 90, 135, 180, 225, 270, 315]
 FPS_MOTION, FPS_RGB, SIZE, TRIM = 15, 4, 96, 5
 
@@ -32,27 +33,32 @@ def pyramid():
 
 
 def luminance(frames):
-    """(T, S, S, 3) uint8 → (T, 96, 96) L*(0~100)."""
-    small = np.stack([np.asarray(Image.fromarray(f).resize((SIZE, SIZE), Image.BICUBIC)) for f in frames]).astype(np.float64) / 255.0
+    """(T, H, W, 3) uint8 → (T, 96, 96) L*(0~100). 짧은 변을 96으로 줄이고 가운데를 자른다(3-2, 3-6)."""
+    h, w = frames.shape[1:3]
+    nh, nw = c.scaled_shape(h, w, SIZE)
+    top, left = (nh - SIZE) // 2, (nw - SIZE) // 2
+    small = np.stack([np.asarray(Image.fromarray(f).resize((nw, nh), Image.BICUBIC))[top:top + SIZE, left:left + SIZE] for f in frames]).astype(np.float64) / 255.0
     return np.stack([rgb2lab(f)[..., 0] for f in small])
 
 
 def main(a):
     table = c.stimulus_table()
     p = pyramid()
-    ids = c.todo_ids("lowlevel", c.parse_ids(a.ids))
-    print("할 영상", len(ids), flush=True)
+    spec_id = c.make_spec("lowlevel", ["s3_common.py", "s3_lowlevel.py"], allow_dirty=a.allow_dirty, package="pymoten " + PYMOTEN_VERSION, fps_motion=FPS_MOTION, fps_rgb=FPS_RGB, size=SIZE, spatial_frequencies=SPATIAL, temporal_frequencies=TEMPORAL, directions=DIRECTIONS, trim_each_end=TRIM, filter_width=10, nonlinearity="pymoten 기본 log(x + 1e-5)", screen_motion="짧은 변을 96으로 줄인 뒤 가운데를 자름, PIL bicubic", screen_rgb="줄이지 않은 원래 화소의 가운데 정사각형")
+    ids = c.todo_ids("lowlevel", c.parse_ids(a.ids), spec_id)
+    print("사양", spec_id, "할 영상", len(ids), flush=True)
     for n, v in enumerate(ids):
+        c.check_video(table, v)
         path, duration = table.path[v], float(table.container_duration_s[v])
         pts = c.frame_pts(path)
-        frames = c.center_square(c.read_frames(path, c.pick_by_time(pts, duration, FPS_MOTION)))
+        frames = c.read_frames(path, c.pick_by_time(pts, duration, FPS_MOTION))
         out = p.project_stimulus(luminance(frames), dtype="float32")  # 기본 출력 비선형 log(x + 1e-5)
         if len(out) <= 2 * TRIM:
             raise ValueError(f"영상 {v}: 프레임이 너무 적다 {len(out)}")
         me = out[TRIM:-TRIM].mean(0).astype(np.float32)
         rgb = c.center_square(c.read_frames(path, c.pick_by_time(pts, duration, FPS_RGB)))
         med = np.median(rgb.reshape(len(rgb), -1, 3), axis=1).mean(0).astype(np.float32)
-        c.save_part("lowlevel", v, motion_energy=me, rgb_median=med, n_frames_motion=len(frames), n_frames_rgb=len(rgb))
+        c.save_part("lowlevel", v, spec_id, motion_energy=me, rgb_median=med, n_frames_motion=len(frames), n_frames_rgb=len(rgb), n_native_frames=len(pts), duration_s=duration)
         if n % 20 == 0:
             print(n, "/", len(ids), "영상", v, flush=True)
 
@@ -60,4 +66,5 @@ def main(a):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--ids", default="")
+    ap.add_argument("--allow-dirty", action="store_true", help="시험용. 커밋 전 코드로 돌린다")
     main(ap.parse_args())

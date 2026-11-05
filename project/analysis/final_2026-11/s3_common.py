@@ -7,10 +7,12 @@
 - 제시 길이: 8초 미만 영상은 반복해 8.0초에서 자르고(04 정할 것 11), 8초 이상은 한 번 그대로다. HK 기록에서 정한 값이고 MC에도 같은 특징을 쓴다(정할 것 13).
 - O10: 시간축에서 t_k = k / f마다, 그 시각에 화면에 떠 있던 원래 프레임을 고른다. 보간하지 않는다. 장 수는 floor(제시 길이 × f)다.
 - O11: 프레임 수 N이 창 W 이하이면 한 입력이고 N이 홀수면 마지막 한 장을 뺀다. N이 W를 넘으면 W장씩 겹치지 않게 자르고 마지막 창은 끝에 맞춘다. 이때 프레임을 빼지 않는다.
-- 화면: 가운데 정사각형(원본의 짧은 변)을 잘라 모델 입력 크기로 줄인다. TimeSformer를 뺀 모든 모델과 저수준 특징이 같은 화면 범위를 쓴다.
+- 화면(3-2): 종횡비를 유지해 짧은 변을 모델 입력 크기로 줄인 뒤 가운데 정사각형을 자른다. TimeSformer를 뺀 모든 모델과 움직임 에너지가 같은 화면 범위를 쓴다. RGB 중앙값(O13)은 줄이지 않은 원래 화소의 가운데 정사각형이다.
+- 출처(M2): 추출 사양(코드, 가중치, 입력, 설정)을 시작할 때 고정하고 조각마다 사양 번호를 넣는다. 사양이 다른 조각은 재사용하지 않고 멈춘다.
 """
 import hashlib
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -20,7 +22,8 @@ import pandas as pd
 REPO = Path(__file__).resolve().parents[3]
 STIMULI = REPO / "prereg_v2/manifests/stimuli.tsv"
 CAPTIONS = REPO / "project/shared/data/caption_ck20.csv"
-OUT = REPO / "project/output/final_2026-11/s3_features"
+OUT = Path(os.environ.get("S3_OUT", REPO / "project/output/final_2026-11/s3_features"))  # 시험 때만 바꾼다
+CODE_DIR = REPO / "project/analysis/final_2026-11"
 SHORT_PRESENTATION_S = 8.0  # 04 정할 것 11
 N_VIDEOS = 2196
 FFMPEG, FFPROBE = "/pscratch/sd/s/sjmoon/swift_PTL2/bin/ffmpeg", "/pscratch/sd/s/sjmoon/swift_PTL2/bin/ffprobe"  # 시스템 ffmpeg에는 h264 복호기가 없다(prereg_v2 crosswalk_audit.json과 같은 복호기)
@@ -47,13 +50,19 @@ def frame_pts(path):
     return pts - pts[0]
 
 
+def repeat_phase(t, duration):
+    """반복 안에서의 시각. np.mod는 정확한 반복 경계(ex) 0.8초 영상의 4.0초)를 부동소수 오차로 주기 끝에 놓아 마지막 프레임을 고르게 하므로 쓰지 않는다."""
+    r = t - np.floor((t + EPS) / duration) * duration
+    return np.maximum(r, 0.0)
+
+
 def pick_by_time(pts, duration, fps):
     """O10. 원래 프레임 번호를 돌려준다."""
     p = presented_seconds(duration)
     n = int(np.floor(p * fps + EPS))
     t = np.arange(n) / fps
     if duration < SHORT_PRESENTATION_S:
-        t = np.mod(t, duration)
+        t = repeat_phase(t, duration)
     return np.maximum(np.searchsorted(pts, t + EPS, side="right") - 1, 0)
 
 
@@ -108,11 +117,16 @@ def read_frames(path, indices, shape_hint=None):
 
 
 def center_square(frames):
-    """가운데 정사각형(짧은 변). 입력 (T, H, W, 3), 출력 (T, S, S, 3)."""
+    """줄이지 않은 원래 화소의 가운데 정사각형(O13의 RGB 중앙값). 입력 (T, H, W, 3), 출력 (T, S, S, 3)."""
     h, w = frames.shape[1:3]
     s = min(h, w)
     top, left = (h - s) // 2, (w - s) // 2
     return frames[:, top:top + s, left:left + s]
+
+
+def scaled_shape(h, w, size):
+    """짧은 변을 size로 줄인 크기(종횡비 유지, 반올림)."""
+    return (size, int(round(w * size / h))) if h <= w else (int(round(h * size / w)), size)
 
 
 def sha256(path):
@@ -131,23 +145,62 @@ def hf_snapshot(name):
     """내려받은 가중치의 판(revision)을 돌려준다. 기록(M2)에 쓴다."""
     from huggingface_hub import snapshot_download
     p = Path(snapshot_download(name, local_files_only=True))
-    return dict(checkpoint=name, revision=p.name, weights_sha256={f.name: sha256(f) for f in sorted(p.iterdir()) if f.suffix in (".safetensors", ".bin")})
+    return dict(checkpoint=name, path=str(p), revision=p.name, weights_sha256={f.name: sha256(f) for f in sorted(p.iterdir()) if f.suffix in (".safetensors", ".bin")})
+
+
+def decoder_version():
+    return subprocess.run([FFMPEG, "-version"], capture_output=True, text=True).stdout.split("\n")[0]
+
+
+def code_dirty():
+    return subprocess.run(["git", "-C", str(REPO), "status", "--porcelain", "--", str(CODE_DIR)], capture_output=True, text=True).stdout.strip() != ""
+
+
+def make_spec(model, code_files, allow_dirty=False, **settings):
+    """추출 사양을 고정하고 번호를 돌려준다. 번호는 커밋이 아니라 코드와 설정의 내용으로 정한다. 문서만 바뀐 커밋은 사양을 바꾸지 않는다."""
+    if code_dirty() and not allow_dirty:
+        raise SystemExit("커밋하지 않은 코드 변경이 있어 추출 출처를 남길 수 없다")
+    body = dict(model=model, code_sha256={f: sha256(CODE_DIR / f) for f in code_files}, stimuli_sha256=sha256(STIMULI), short_presentation_s=SHORT_PRESENTATION_S, decoder=FFMPEG, decoder_version=decoder_version(), **settings)
+    spec_id = hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
+    d = OUT / model
+    d.mkdir(parents=True, exist_ok=True)
+    f = d / f"spec_{spec_id}.json"
+    if not f.exists():
+        f.write_text(json.dumps(dict(spec_id=spec_id, extraction_commit=git_head(), code_dirty_at_extraction=code_dirty(), **body), ensure_ascii=False, indent=1))
+    return spec_id
 
 
 def part_path(model, video_id):
     return OUT / model / "parts" / f"v{int(video_id):04d}.npz"
 
 
-def todo_ids(model, ids):
-    return [v for v in ids if not part_path(model, v).exists()]
+def todo_ids(model, ids, spec_id):
+    """이미 있는 조각은 사양이 같을 때만 건너뛴다. 다르면 섞지 않고 멈춘다."""
+    todo = []
+    for v in ids:
+        p = part_path(model, v)
+        if not p.exists():
+            todo.append(v)
+            continue
+        with np.load(p) as z:
+            got = str(z["spec_id"]) if "spec_id" in z.files else "없음"
+        if got != spec_id:
+            raise SystemExit(f"{model} 영상 {v}: 사양이 다른 조각이 있다({got}, 지금 {spec_id}). 그 모델의 parts 폴더를 지우고 다시 뽑아라")
+    return todo
 
 
-def save_part(model, video_id, **arrays):
+def check_video(table, v):
+    """입력 영상이 기록과 같은지 본다."""
+    if sha256(table.path[v]) != table.sha256[v]:
+        raise ValueError(f"영상 {v}: 파일 해시가 기록과 다르다")
+
+
+def save_part(model, video_id, spec_id, **arrays):
     """쓰다 끊겨도 깨진 파일이 남지 않게 임시 이름으로 쓰고 옮긴다."""
     p = part_path(model, video_id)
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_suffix(".tmp.npz")
-    np.savez(tmp, **arrays)
+    np.savez(tmp, spec_id=spec_id, **arrays)
     tmp.replace(p)
 
 

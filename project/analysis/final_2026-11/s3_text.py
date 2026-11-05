@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """S3 캡션 특징: DeBERTa-large(주), MPNet(비교용) (04 S3, 01 3-3, 3-4, 3-4b, D7, D8, O15, 2026-11-05).
 
-사용: s3_text.py --model deberta [--no-emotion-words] [--device cuda]
+사용: s3_text.py --model deberta [--no-emotion-words] [--device cuda]. 이어 뽑지 않는다. 끊기면 처음부터 다시 돌린다. 파일은 끝까지 계산한 뒤 임시 이름에서 옮기고 manifest.json을 마지막에 쓴다.
 DeBERTa: microsoft/deberta-large, 층 i = hidden_states[i](1~24), 특수 token을 뺀 평균(Horikawa, 2025 공개 코드, 04 S1). 캡션 20개를 평균해 영상당 하나로 만들고 캡션별 벡터도 저장한다.
 MPNet: 모델 카드 처리. 마지막 층 token을 attention mask로 평균하고 L2 정규화한다. 384 word piece에서 자른다. 20개를 평균하고 다시 정규화하지 않는다.
 --no-emotion-words: 정서어를 단어 단위로 지운 캡션(3-4, D8, SI). 목록은 10월 코드와 같다.
 """
 import argparse
 import ast
+import hashlib
 import json
 import re
 
@@ -31,7 +32,7 @@ def affect_words():
 
 def load_captions(no_emotion):
     cap = pd.read_csv(c.CAPTIONS, encoding="utf-8-sig")
-    if not (cap.groupby("video_id").size().eq(20).all() and cap.video_id.nunique() == c.N_VIDEOS):
+    if not (cap.groupby("video_id").size().eq(20).all() and set(cap.video_id) == set(range(1, c.N_VIDEOS + 1))):
         raise ValueError("캡션이 영상 2,196개 × 20개가 아니다")
     cap = cap.sort_values("video_id", kind="stable").reset_index(drop=True)
     text = cap.description.fillna("").astype(str)
@@ -44,8 +45,11 @@ def load_captions(no_emotion):
 def main(a):
     from transformers import AutoModel, AutoTokenizer
     name = CHECKPOINT[a.model]
-    tok = AutoTokenizer.from_pretrained(name, local_files_only=True)
-    model = AutoModel.from_pretrained(name, local_files_only=True).to(a.device).eval()
+    snap = c.hf_snapshot(name)
+    if c.code_dirty() and not a.allow_dirty:
+        raise SystemExit("커밋하지 않은 코드 변경이 있어 추출 출처를 남길 수 없다")
+    tok = AutoTokenizer.from_pretrained(snap["path"], local_files_only=True)
+    model = AutoModel.from_pretrained(snap["path"], local_files_only=True).to(a.device).eval()
     vid, text = load_captions(a.no_emotion_words)
     if a.limit:
         keep = np.isin(vid, np.unique(vid)[:a.limit])
@@ -81,11 +85,18 @@ def main(a):
     d = c.OUT / (a.model + ("_no_emotion_words" if a.no_emotion_words else ""))
     d.mkdir(parents=True, exist_ok=True)
     tag = f"_smoke{a.limit}" if a.limit else ""
-    np.save(d / f"video_mean{tag}.npy", mean)
+    (d / f"manifest{tag}.json").unlink(missing_ok=True)  # 끝나지 않은 실행을 완료로 읽지 않게 먼저 지운다
+    files = {f"video_mean{tag}.npy": mean}
     if a.model == "deberta":
-        np.save(d / f"per_caption{tag}.npy", out)
-    pd.DataFrame(dict(video_id=vid)).to_csv(d / f"per_caption_video_id{tag}.tsv", sep="\t", index=False)
-    info = dict(model=a.model, **c.hf_snapshot(name), code_commit=c.git_head(), transformers=__import__("transformers").__version__, no_emotion_words=a.no_emotion_words, n_words_removed_list=len(affect_words()) if a.no_emotion_words else 0, captions_sha256=c.sha256(c.CAPTIONS), layers="hidden_states[1..24], embedding 제외" if a.model == "deberta" else "last_hidden_state", shape=list(mean.shape), max_length=384 if a.model == "mpnet" else "기본값")
+        files[f"per_caption{tag}.npy"] = out
+    for f, x in files.items():
+        tmp = d / (f + ".tmp.npy")
+        np.save(tmp, x)
+        tmp.replace(d / f)
+    ids_name = f"per_caption_video_id{tag}.tsv"
+    pd.DataFrame(dict(video_id=vid)).to_csv(d / ids_name, sep="\t", index=False)
+    words = affect_words() if a.no_emotion_words else []
+    info = dict(model=a.model, checkpoint=name, revision=snap["revision"], weights_sha256=snap["weights_sha256"], extraction_commit=c.git_head(), code_dirty_at_extraction=c.code_dirty(), code_sha256={f: c.sha256(c.CODE_DIR / f) for f in ("s3_common.py", "s3_text.py")}, transformers=__import__("transformers").__version__, torch=torch.__version__, no_emotion_words=a.no_emotion_words, n_affect_words=len(words), affect_words_sha256=hashlib.sha256(" ".join(sorted(words)).encode()).hexdigest() if words else "", captions_sha256=c.sha256(c.CAPTIONS), layers=list(range(1, 25)) if a.model == "deberta" else "last_hidden_state", pooling="특수 token을 뺀 평균, 캡션 20개 평균" if a.model == "deberta" else "attention mask 평균, L2 정규화, 캡션 20개 평균, 다시 정규화하지 않음", shape=list(mean.shape), max_length=384 if a.model == "mpnet" else "자르지 않음", file_sha256={f: c.sha256(d / f) for f in [*files, ids_name]})
     (d / f"manifest{tag}.json").write_text(json.dumps(info, ensure_ascii=False, indent=1))
     print("저장", d, mean.shape)
 
@@ -97,4 +108,5 @@ if __name__ == "__main__":
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--batch", type=int, default=128)
     ap.add_argument("--limit", type=int, default=0, help="시험용. 앞 영상 몇 개만")
+    ap.add_argument("--allow-dirty", action="store_true", help="시험용. 커밋 전 코드로 돌린다")
     main(ap.parse_args())

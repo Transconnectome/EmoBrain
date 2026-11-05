@@ -22,3 +22,5 @@
 | `s3_text.py`, `.sh` | S3 | DeBERTa, 정서어 제거 DeBERTa, MPNet 캡션 특징 (GPU) | 같은 폴더 |
 | `s3_lowlevel.py`, `.sh` | S3 | 움직임 에너지 6,555개와 RGB 중앙값 3개 (CPU 노드) | 같은 폴더 |
 | `s3_collect.py`, `.sh` | S3 | 영상별 조각을 파일로 모으고 차원, 영상 수, NaN을 확인하고 추출 기록을 쓴다 (가벼움) | 같은 폴더 |
+| `s3_tests.py`, `.sh` | S3 | 반복 경계, 화면 순서, 출처, 수집 검사의 회귀 시험 (CPU, 약 2분) | 없음 |
+| `s3_author_check.py`, `.sh` | S3 | DeBERTa와 TimeSformer를 저자 공개 특징과 비교 (본 추출 뒤) | `manifests/s3/author_feature_check.tsv` |
