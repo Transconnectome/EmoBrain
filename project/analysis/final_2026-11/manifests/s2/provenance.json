@@ -2,7 +2,7 @@
  "split_id": "hk_dev_rungroup6_v2",
  "code": "project/analysis/final_2026-11/s2_manifest.py",
  "code_sha256": "db2846b1bea3ba6e3cb81c3c596383a762f99d760baa0f99a2a8c4a314c3c7f1",
- "git_head_when_checked": "43d4b1603ae9e664dbad28f97df935bff0295ca7",
+ "git_head_when_checked": "e119f2f1985e62fc042537a8e7f4cbec84b79acb",
  "sklearn": "1.8.0",
  "kmeans": {
   "n_clusters": 5,
