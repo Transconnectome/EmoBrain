@@ -68,7 +68,7 @@ def test_screen():
     rng = np.random.default_rng(0)
     f = rng.integers(0, 256, (2, 101, 203, 3), dtype=np.uint8)  # 비대칭 잡음. 순서가 다르면 화소가 달라진다
     mean, std = np.zeros(3, np.float32), np.ones(3, np.float32)
-    got = V.to_input(f, 50, mean, std, 2, "cpu")
+    got = V.to_input(f, 50, 50, mean, std, 2, "cpu")
     t = torch.from_numpy(f).permute(0, 3, 1, 2)
     nh, nw = c.scaled_shape(101, 203, 50)
     first_resize = TF.resize(t, [nh, nw], interpolation=InterpolationMode.BILINEAR, antialias=True)[:, :, :, (nw - 50) // 2:(nw - 50) // 2 + 50].float().div(255.0)
@@ -77,6 +77,14 @@ def test_screen():
     first_crop = TF.resize(t[:, :, :, left:left + side], [50, 50], interpolation=InterpolationMode.BILINEAR, antialias=True).float().div(255.0)
     ok("크기 조정 뒤 가운데 자르기와 화소까지 같다", got.shape == (2, 3, 50, 50) and bool(torch.allclose(got, first_resize)))
     ok("자른 뒤 줄이는 옛 순서와는 다르다", not bool(torch.allclose(got, first_crop)))
+    got = V.to_input(f, 57, 50, mean, std, 2, "cpu")
+    nh, nw = c.scaled_shape(101, 203, 57)
+    full = TF.resize(t, [nh, nw], interpolation=InterpolationMode.BILINEAR, antialias=True)
+    top, left = (nh - 50) // 2, (nw - 50) // 2
+    ok("짧은 변과 자르는 크기가 달라도(V-JEPA 2 방식) 가운데를 자른다", got.shape == (2, 3, 50, 50) and bool(torch.allclose(got, full[:, :, top:top + 50, left:left + 50].float().div(255.0))))
+    for name, cfg in V.CONFIG.items():
+        _, _, _, short, crop = V.official_values(c.hf_snapshot(cfg["checkpoint"])["path"])
+        ok(f"{name}의 크기가 설정 파일과 같다({short}, {crop})", (short, crop) == (cfg["short"], cfg["crop"]))
     ramp = np.tile(np.linspace(0, 255, 200).astype(np.uint8)[None, None, :, None], (1, 100, 1, 3))
     crops = V.three_crops(ramp, 50, 2)
     means = [float(z.float().mean()) for z in crops]
