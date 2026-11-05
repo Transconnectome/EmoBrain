@@ -19,20 +19,31 @@ def author(model, layer):
         return np.array(h["feat"], np.float64).T
 
 
+def rowwise_r(x, y):
+    """행마다 Pearson r. 유효한 행만 넘긴다."""
+    x, y = x - x.mean(1, keepdims=True), y - y.mean(1, keepdims=True)
+    return (x * y).sum(1) / np.sqrt((x**2).sum(1) * (y**2).sum(1))
+
+
+def is_constant(m):
+    """행 안의 값이 모두 같으면 상수다. 평균을 뺀 잔차의 부동소수 오차에 기대지 않는다."""
+    return m.max(1) == m.min(1)
+
+
 def compare(name, ours, a, layer):
     if ours.shape != a.shape:
         raise SystemExit(f"{name} 층 {layer}: 차원이 다르다 {ours.shape} {a.shape}")
     # NaN은 어떤 비교도 거짓으로 만들어 성공처럼 보인다. 입력부터 거절한다
     if not np.isfinite(ours).all() or not np.isfinite(a).all():
         raise SystemExit(f"{name} 층 {layer}: 우리 특징이나 저자 특징에 NaN이나 무한대가 있다")
-    x, y = ours - ours.mean(1, keepdims=True), a - a.mean(1, keepdims=True)
-    constant = ((x**2).sum(1) == 0) | ((y**2).sum(1) == 0)  # 상수 벡터는 상관을 정의할 수 없다. 따로 세고 r 요약에서 뺀다
-    keep = ~constant
-    x, y = x[keep], y[keep]
-    r = (x * y).sum(1) / np.sqrt((x**2).sum(1) * (y**2).sum(1))
-    nxt = np.roll(y, -1, axis=0)
-    rn = (x * nxt).sum(1) / np.sqrt((x**2).sum(1) * (nxt**2).sum(1))
-    return dict(model=name, layer=layer, n_videos=int(len(constant)), n_constant=int(constant.sum()), r_same_min=float(r.min()), r_same_median=float(np.median(r)), r_next_video_median=float(np.median(rn)), max_abs_diff=float(np.abs(ours - a).max()))
+    co, ca = is_constant(ours), is_constant(a)
+    same = ~co & ~ca
+    # 다음 영상 짝은 원래 순서에서 먼저 정한다. 그 뒤에 상수 행이 든 짝과 자기 자신과의 짝을 뺀다
+    nxt = np.roll(np.arange(len(a)), -1)
+    pair = ~co & ~ca[nxt] & (nxt != np.arange(len(a)))
+    r = rowwise_r(ours[same], a[same]) if same.any() else np.empty(0)
+    rn = rowwise_r(ours[pair], a[nxt[pair]]) if pair.any() else np.empty(0)
+    return dict(model=name, layer=layer, n_videos=int(len(a)), n_constant_ours=int(co.sum()), n_constant_author=int(ca.sum()), n_r_same=int(len(r)), n_r_next=int(len(rn)), r_same_min=float(r.min()) if len(r) else float("nan"), r_same_median=float(np.median(r)) if len(r) else float("nan"), r_next_video_median=float(np.median(rn)) if len(rn) else float("nan"), max_abs_diff=float(np.abs(ours - a).max()))
 
 
 def main():

@@ -245,6 +245,15 @@ def test_text_provenance():
     X.assert_unchanged(frozen, True)
     bad = dict(frozen, code_sha256=dict(frozen["code_sha256"], **{"s3_text.py": "옛코드"}))
     rejects("계산 중 코드가 바뀌면 멈춘다", lambda: X.assert_unchanged(bad, True))
+    # 모델을 불러오는 동안 파일과 커밋이 바뀌어도 실행 중인 코드의 값을 기록하고, 계산 전에 멈춘다
+    real_sha, real_head = c.sha256, c.git_head
+    c.sha256 = lambda p: "나중해시" if str(p).endswith(".py") else real_sha(p)
+    c.git_head = lambda: "나중커밋"
+    later = X.freeze_inputs(True)
+    ok("불러오는 동안 바뀌어도 시작 때의 커밋과 해시를 기록한다", later["extraction_commit"] == c.START_HEAD and later["code_sha256"]["s3_text.py"] == c.START_CODE["s3_text.py"])
+    rejects("불러오는 동안 코드가 바뀌면 계산 전에 멈춘다", lambda: X.assert_unchanged(later, True))
+    rejects("시각 추출도 시작 뒤 코드가 바뀌면 멈춘다", lambda: c.make_spec("later", ["s3_common.py"], allow_dirty=True))
+    c.sha256, c.git_head = real_sha, real_head
 
 
 def test_author_check():
@@ -254,15 +263,25 @@ def test_author_check():
     import s3_author_check as A
     x = np.random.default_rng(0).normal(size=(5, 20))
     r = A.compare("m", x.copy(), x.copy(), 6)
-    ok("같은 값은 r 1, 차이 0", abs(r["r_same_min"] - 1) < 1e-9 and r["max_abs_diff"] == 0 and r["n_constant"] == 0)
+    ok("같은 값은 r 1, 차이 0", abs(r["r_same_min"] - 1) < 1e-9 and r["max_abs_diff"] == 0 and r["n_constant_ours"] == 0)
     bad = x.copy()
     bad[0, 0] = np.nan
     rejects("우리 특징의 NaN을 거절한다", lambda: A.compare("m", bad, x.copy(), 6))
     rejects("저자 특징의 NaN을 거절한다", lambda: A.compare("m", x.copy(), bad, 6))
-    flat = x.copy()
+    flat = x[:4].copy()
     flat[1] = 3.0
     r = A.compare("m", flat, flat.copy(), 6)
-    ok("상수 벡터는 따로 센다", r["n_constant"] == 1 and np.isfinite(r["r_same_min"]))
+    ok("상수 벡터는 따로 센다", r["n_constant_ours"] == 1 and r["n_r_same"] == 3 and np.isfinite(r["r_same_min"]))
+    expect = [np.corrcoef(flat[i], flat[(i + 1) % 4])[0, 1] for i in (2, 3)]  # 원래 순서의 짝 가운데 상수 행이 없는 것
+    ok("다음 영상 짝은 원래 순서를 지킨다", r["n_r_next"] == 2 and abs(r["r_next_video_median"] - float(np.median(expect))) < 1e-9)
+    one = np.full((4, 20), 3.0)
+    one[0] = x[0]
+    r = A.compare("m", one, one.copy(), 6)
+    ok("비상수 행이 하나면 다음 영상 비교는 계산 불가다", r["n_r_same"] == 1 and r["n_r_next"] == 0 and np.isnan(r["r_next_video_median"]))
+    r = A.compare("m", np.zeros((4, 20)), np.zeros((4, 20)), 6)
+    ok("모두 상수여도 멈추지 않고 계산 불가로 적는다", r["n_r_same"] == 0 and np.isnan(r["r_same_min"]) and r["max_abs_diff"] == 0)
+    r = A.compare("m", np.full((4, 1024), 0.1), np.full((4, 1024), 0.1), 6)
+    ok("0.1 같은 값의 상수도 상수로 본다", r["n_constant_ours"] == 4 and r["n_r_same"] == 0)
 
 
 if __name__ == "__main__":

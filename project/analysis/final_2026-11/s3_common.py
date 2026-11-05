@@ -141,6 +141,11 @@ def git_head():
     return subprocess.run(["git", "-C", str(REPO), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
 
 
+# 실행 출처는 코드를 불러온 바로 그때 고정한다. 모델을 불러오는 동안 파일이 바뀌어도 실제로 실행 중인 코드의 값을 기록한다
+START_CODE = {f.name: sha256(f) for f in sorted(CODE_DIR.glob("s3_*.py"))}
+START_HEAD = git_head()
+
+
 def hf_snapshot(name):
     """내려받은 가중치의 판(revision)을 돌려준다. 기록(M2)에 쓴다."""
     from huggingface_hub import snapshot_download
@@ -156,17 +161,23 @@ def code_dirty():
     return subprocess.run(["git", "-C", str(REPO), "status", "--porcelain", "--", str(CODE_DIR)], capture_output=True, text=True).stdout.strip() != ""
 
 
+START_DIRTY = code_dirty()
+
+
 def make_spec(model, code_files, allow_dirty=False, **settings):
     """추출 사양을 고정하고 번호를 돌려준다. 번호는 커밋이 아니라 코드와 설정의 내용으로 정한다. 문서만 바뀐 커밋은 사양을 바꾸지 않는다."""
-    if code_dirty() and not allow_dirty:
+    if START_DIRTY and not allow_dirty:
         raise SystemExit("커밋하지 않은 코드 변경이 있어 추출 출처를 남길 수 없다")
-    body = dict(model=model, code_sha256={f: sha256(CODE_DIR / f) for f in code_files}, stimuli_sha256=sha256(STIMULI), short_presentation_s=SHORT_PRESENTATION_S, decoder=FFMPEG, decoder_version=decoder_version(), **settings)
+    for f in code_files:
+        if sha256(CODE_DIR / f) != START_CODE[f]:
+            raise SystemExit(f"실행을 시작한 뒤에 {f}가 바뀌었다. 다시 시작하라")
+    body = dict(model=model, code_sha256={f: START_CODE[f] for f in code_files}, stimuli_sha256=sha256(STIMULI), short_presentation_s=SHORT_PRESENTATION_S, decoder=FFMPEG, decoder_version=decoder_version(), **settings)
     spec_id = hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
     d = OUT / model
     d.mkdir(parents=True, exist_ok=True)
     f = d / f"spec_{spec_id}.json"
     if not f.exists():
-        f.write_text(json.dumps(dict(spec_id=spec_id, extraction_commit=git_head(), code_dirty_at_extraction=code_dirty(), **body), ensure_ascii=False, indent=1))
+        f.write_text(json.dumps(dict(spec_id=spec_id, extraction_commit=START_HEAD, code_dirty_at_extraction=START_DIRTY, **body), ensure_ascii=False, indent=1))
     return spec_id
 
 

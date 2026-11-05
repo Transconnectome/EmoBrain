@@ -49,7 +49,7 @@ def freeze_inputs(no_emotion):
     """계산 전에 실행 커밋, 코드, 캡션, 정서어 목록을 고정한다. 끝에서 다시 읽어 기록하지 않는다."""
     raw = c.CAPTIONS.read_bytes()
     words = affect_words() if no_emotion else []
-    return dict(raw=raw, words=words, extraction_commit=c.git_head(), code_dirty_at_extraction=c.code_dirty(), code_sha256={f: c.sha256(c.CODE_DIR / f) for f in CODE_FILES}, captions_sha256=hashlib.sha256(raw).hexdigest(), affect_words_sha256=hashlib.sha256(" ".join(sorted(words)).encode()).hexdigest() if words else "")
+    return dict(raw=raw, words=words, extraction_commit=c.START_HEAD, code_dirty_at_extraction=c.START_DIRTY, code_sha256={f: c.START_CODE[f] for f in CODE_FILES}, captions_sha256=hashlib.sha256(raw).hexdigest(), affect_words_sha256=hashlib.sha256(" ".join(sorted(words)).encode()).hexdigest() if words else "")
 
 
 def assert_unchanged(frozen, no_emotion):
@@ -66,12 +66,13 @@ def assert_unchanged(frozen, no_emotion):
 def main(a):
     from transformers import AutoModel, AutoTokenizer
     name = CHECKPOINT[a.model]
-    snap = c.hf_snapshot(name)
-    if c.code_dirty() and not a.allow_dirty:
+    frozen = freeze_inputs(a.no_emotion_words)  # 가중치 확인과 모델 불러오기보다 먼저 고정한다
+    if frozen["code_dirty_at_extraction"] and not a.allow_dirty:
         raise SystemExit("커밋하지 않은 코드 변경이 있어 추출 출처를 남길 수 없다")
+    snap = c.hf_snapshot(name)
     tok = AutoTokenizer.from_pretrained(snap["path"], local_files_only=True)
     model = AutoModel.from_pretrained(snap["path"], local_files_only=True).to(a.device).eval()
-    frozen = freeze_inputs(a.no_emotion_words)
+    assert_unchanged(frozen, a.no_emotion_words)  # 모델을 불러오는 동안 바뀌었으면 계산하지 않는다
     vid, text = load_captions(a.no_emotion_words, frozen["raw"], frozen["words"])
     if a.limit:
         keep = np.isin(vid, np.unique(vid)[:a.limit])
