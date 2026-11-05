@@ -1,8 +1,8 @@
 {
  "split_id": "hk_dev_rungroup6_v2",
  "code": "project/analysis/final_2026-11/s2_manifest.py",
- "code_sha256": "db2846b1bea3ba6e3cb81c3c596383a762f99d760baa0f99a2a8c4a314c3c7f1",
- "git_head_when_checked": "e119f2f1985e62fc042537a8e7f4cbec84b79acb",
+ "code_sha256": "c1d108a45003bbf81a557077afac5e76121b0bb925384aea82eb4b8795d65ca9",
+ "git_head_when_checked": "a3b6a554835c59dc690b4fcb4e5c11079edd5dcf",
  "sklearn": "1.8.0",
  "kmeans": {
   "n_clusters": 5,
@@ -61,7 +61,7 @@
   "cabnp_groups.tsv": "42c60b60e31ac0647682b1502bc86b9364ffd29dcf47919fd146b035586b5717",
   "column_order_check.tsv": "9fd4f8f26c787b90ec06b8fb68c8e9ac44da78063611d936f4075e551790f907",
   "content_block_control_samples.tsv": "80030322231ce50e3ccb95e603bc35b2766032b62af37c38d320ce070aec463c",
-  "content_block_distance.tsv": "265f38b36a5fce976e2fb871bb49f21ea6ca2b37a43899aa6d680b0de56be682",
+  "content_block_distance.tsv": "c3254315ff01964bd2d99c2c8420a47ccd4f93f5fddd99a16bf5f9f68f105521",
   "content_block_nonzero.tsv": "555062a29c2eda878243fbd666a77e362ffbf59a4f92ae38114319c951998e0e",
   "content_block_participant_counts.tsv": "ef56cbcaae1f4d2b59143b8fadf7d516a74ad2b4d36a75792df2deb1f68d00e1",
   "content_blocks.tsv": "eabab9539d09033b798dc8edc5c186480559020f19fb8ab9a56394b7c5da6009",
