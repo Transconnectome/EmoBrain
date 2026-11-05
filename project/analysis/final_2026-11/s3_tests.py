@@ -63,13 +63,27 @@ def test_windows():
 def test_screen():
     import torch  # noqa: F401
     import s3_vision as V
-    f = np.zeros((2, 100, 200, 3), np.uint8)
-    f[:, :, 50:150] = 255  # 가운데 정사각형만 흰색. 줄인 뒤 가운데를 자르면 흰색만 남아야 한다
+    from torchvision.transforms import InterpolationMode
+    from torchvision.transforms.v2 import functional as TF
+    rng = np.random.default_rng(0)
+    f = rng.integers(0, 256, (2, 101, 203, 3), dtype=np.uint8)  # 비대칭 잡음. 순서가 다르면 화소가 달라진다
     mean, std = np.zeros(3, np.float32), np.ones(3, np.float32)
-    x = V.to_input(f, 50, mean, std, 2, "cpu")
-    ok("크기 조정 뒤 가운데 자르기", x.shape == (2, 3, 50, 50) and float(x[:, :, :, 2:-2].min()) > 0.99)
-    tall = np.zeros((1, 200, 100, 3), np.uint8)
-    ok("세 위치 자르기의 모양", all(z.shape == (1, 3, 50, 50) for z in V.three_crops(tall, 50, 2)) and len(V.three_crops(tall, 50, 2)) == 3)
+    got = V.to_input(f, 50, mean, std, 2, "cpu")
+    t = torch.from_numpy(f).permute(0, 3, 1, 2)
+    nh, nw = c.scaled_shape(101, 203, 50)
+    first_resize = TF.resize(t, [nh, nw], interpolation=InterpolationMode.BILINEAR, antialias=True)[:, :, :, (nw - 50) // 2:(nw - 50) // 2 + 50].float().div(255.0)
+    side = 101
+    left = (203 - side) // 2
+    first_crop = TF.resize(t[:, :, :, left:left + side], [50, 50], interpolation=InterpolationMode.BILINEAR, antialias=True).float().div(255.0)
+    ok("크기 조정 뒤 가운데 자르기와 화소까지 같다", got.shape == (2, 3, 50, 50) and bool(torch.allclose(got, first_resize)))
+    ok("자른 뒤 줄이는 옛 순서와는 다르다", not bool(torch.allclose(got, first_crop)))
+    ramp = np.tile(np.linspace(0, 255, 200).astype(np.uint8)[None, None, :, None], (1, 100, 1, 3))
+    crops = V.three_crops(ramp, 50, 2)
+    means = [float(z.float().mean()) for z in crops]
+    ok("세 위치가 왼쪽, 가운데, 오른쪽이다", len(crops) == 3 and all(z.shape == (1, 3, 50, 50) for z in crops) and means[0] < means[1] < means[2])
+    tall = np.tile(np.linspace(0, 255, 200).astype(np.uint8)[None, :, None, None], (1, 1, 100, 3))
+    means = [float(z.float().mean()) for z in V.three_crops(tall, 50, 2)]
+    ok("세로 영상의 세 위치가 위, 가운데, 아래다", means[0] < means[1] < means[2])
 
 
 def test_spec_rejects_stale_parts():
@@ -177,15 +191,78 @@ def test_collector():
     (c.OUT / "deberta/per_caption.npy").unlink()
     rejects("캡션별 파일이 없으면 거절한다", col.deberta)
     text("deberta")
+    def reseal(name):
+        d = c.OUT / name
+        m = json.loads((d / "manifest.json").read_text())
+        m["file_sha256"] = {f: c.sha256(d / f) for f in m["file_sha256"]}
+        (d / "manifest.json").write_text(json.dumps(m))
     pd.DataFrame(dict(video_id=np.repeat([1, 2, 3, 4, 5, 7], 20))).to_csv(c.OUT / "deberta/per_caption_video_id.tsv", sep="\t", index=False)
-    rejects("캡션의 영상 번호 오류를 거절한다", col.deberta)
+    rejects("캡션 파일이 기록과 다르면 거절한다", col.deberta)
+    reseal("deberta")
+    rejects("해시가 맞아도 캡션의 영상 번호 오류를 거절한다", col.deberta)
     text("mpnet", shape=(768,), caption=False)
     col.mpnet()
     ok("MPNet 정상 통과", True)
     x = np.ones((6, 768), np.float32)
     x[0, 0] = np.nan
     np.save(c.OUT / "mpnet/video_mean.npy", x)
-    rejects("MPNet의 파일 변경과 NaN을 거절한다", col.mpnet)
+    rejects("MPNet의 파일 변경을 거절한다", col.mpnet)
+    reseal("mpnet")
+    rejects("해시가 맞아도 MPNet의 NaN을 거절한다", col.mpnet)
+    text("mpnet", shape=(768,), caption=False)
+    m = json.loads((c.OUT / "mpnet/manifest.json").read_text())
+    m["code_dirty_at_extraction"] = True
+    (c.OUT / "mpnet/manifest.json").write_text(json.dumps(m))
+    rejects("커밋 전 코드로 뽑은 캡션 결과를 거절한다", col.mpnet)
+    os.environ["S3_ALLOW_DIRTY_COLLECT"] = "1"
+    col.mpnet()
+    ok("시험에서만 커밋 전 결과를 모을 수 있다", True)
+    del os.environ["S3_ALLOW_DIRTY_COLLECT"]
+    vjepa_parts(table)
+    s = json.loads((c.OUT / "vjepa2/spec_s1.json").read_text())
+    s["code_dirty_at_extraction"] = True
+    (c.OUT / "vjepa2/spec_s1.json").write_text(json.dumps(s))
+    rejects("커밋 전 코드로 뽑은 조각을 거절한다", lambda: col.vision("vjepa2"))
+
+
+def test_text_provenance():
+    """계산 중에 입력이나 코드가 바뀌면 나중 값을 기록하지 않고 멈춘다."""
+    import s3_text as X
+    keep = c.CAPTIONS
+    tmp = TMP / "captions.csv"
+    lines = ["video_id,description"] + [f'{v},"scene {v}"' for v in range(1, c.N_VIDEOS + 1) for _ in range(20)]
+    tmp.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    c.CAPTIONS = tmp
+    frozen = X.freeze_inputs(False)
+    vid, text = X.load_captions(False, frozen["raw"], frozen["words"])
+    tmp.write_text("\n".join(lines).replace("scene", "changed") + "\n", encoding="utf-8")
+    ok("고정한 내용으로 처리한다", text[0] == "scene 1")
+    rejects("계산 중 캡션이 바뀌면 멈춘다", lambda: X.assert_unchanged(frozen, False))
+    ok("기록할 해시는 처리한 내용의 해시다", frozen["captions_sha256"] != c.sha256(tmp))
+    c.CAPTIONS = keep
+    frozen = X.freeze_inputs(True)
+    ok("정서어 목록을 함께 고정한다", len(frozen["words"]) == 181 and frozen["affect_words_sha256"] != "")
+    X.assert_unchanged(frozen, True)
+    bad = dict(frozen, code_sha256=dict(frozen["code_sha256"], **{"s3_text.py": "옛코드"}))
+    rejects("계산 중 코드가 바뀌면 멈춘다", lambda: X.assert_unchanged(bad, True))
+
+
+def test_author_check():
+    """h5py가 없는 환경에서도 비교 함수만 본다."""
+    import types
+    sys.modules.setdefault("h5py", types.ModuleType("h5py"))
+    import s3_author_check as A
+    x = np.random.default_rng(0).normal(size=(5, 20))
+    r = A.compare("m", x.copy(), x.copy(), 6)
+    ok("같은 값은 r 1, 차이 0", abs(r["r_same_min"] - 1) < 1e-9 and r["max_abs_diff"] == 0 and r["n_constant"] == 0)
+    bad = x.copy()
+    bad[0, 0] = np.nan
+    rejects("우리 특징의 NaN을 거절한다", lambda: A.compare("m", bad, x.copy(), 6))
+    rejects("저자 특징의 NaN을 거절한다", lambda: A.compare("m", x.copy(), bad, 6))
+    flat = x.copy()
+    flat[1] = 3.0
+    r = A.compare("m", flat, flat.copy(), 6)
+    ok("상수 벡터는 따로 센다", r["n_constant"] == 1 and np.isfinite(r["r_same_min"]))
 
 
 if __name__ == "__main__":
@@ -194,5 +271,7 @@ if __name__ == "__main__":
     test_repeat_boundary()
     test_spec_rejects_stale_parts()
     test_collector()
+    test_text_provenance()
+    test_author_check()
     print("통과", len(PASS), "실패", len(FAIL), FAIL)
     sys.exit(1 if FAIL else 0)

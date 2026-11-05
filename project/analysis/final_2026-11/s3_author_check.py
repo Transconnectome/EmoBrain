@@ -22,11 +22,17 @@ def author(model, layer):
 def compare(name, ours, a, layer):
     if ours.shape != a.shape:
         raise SystemExit(f"{name} 층 {layer}: 차원이 다르다 {ours.shape} {a.shape}")
+    # NaN은 어떤 비교도 거짓으로 만들어 성공처럼 보인다. 입력부터 거절한다
+    if not np.isfinite(ours).all() or not np.isfinite(a).all():
+        raise SystemExit(f"{name} 층 {layer}: 우리 특징이나 저자 특징에 NaN이나 무한대가 있다")
     x, y = ours - ours.mean(1, keepdims=True), a - a.mean(1, keepdims=True)
+    constant = ((x**2).sum(1) == 0) | ((y**2).sum(1) == 0)  # 상수 벡터는 상관을 정의할 수 없다. 따로 세고 r 요약에서 뺀다
+    keep = ~constant
+    x, y = x[keep], y[keep]
     r = (x * y).sum(1) / np.sqrt((x**2).sum(1) * (y**2).sum(1))
     nxt = np.roll(y, -1, axis=0)
     rn = (x * nxt).sum(1) / np.sqrt((x**2).sum(1) * (nxt**2).sum(1))
-    return dict(model=name, layer=layer, n_videos=len(r), r_same_min=float(r.min()), r_same_median=float(np.median(r)), r_next_video_median=float(np.median(rn)), max_abs_diff=float(np.abs(ours - a).max()))
+    return dict(model=name, layer=layer, n_videos=int(len(constant)), n_constant=int(constant.sum()), r_same_min=float(r.min()), r_same_median=float(np.median(r)), r_next_video_median=float(np.median(rn)), max_abs_diff=float(np.abs(ours - a).max()))
 
 
 def main():
@@ -41,7 +47,7 @@ def main():
     df = pd.DataFrame(rows)
     df.to_csv(OUTFILE, sep="\t", index=False, float_format="%.8g")
     print(df.round(6).to_string(index=False))
-    bad = df[(df.model == "deberta-large") & (df.max_abs_diff > 1e-3)]
+    bad = df[(df.model == "deberta-large") & ~(df.max_abs_diff <= 1e-3)]  # NaN도 실패로 잡히게 부정으로 쓴다
     if len(bad):
         raise SystemExit("DeBERTa가 저자 특징과 다르다")
 

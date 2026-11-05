@@ -2,6 +2,7 @@
 """S3: 영상별 조각을 모델별 파일로 모으고 04 S3의 확인 기준을 검사하며 추출 기록(M2)을 남긴다 (2026-11-05).
 
 사용: s3_collect.py vjepa2 videomae timesformer clip lowlevel deberta mpnet
+커밋 전 코드로 뽑은 시험 출력은 거절한다. 시험에서만 S3_ALLOW_DIRTY_COLLECT=1을 준다.
 출력(project/output/final_2026-11/s3_features/<모델>/)
   vjepa2: blocks.npy(2196, 40, 1408), target.npy(2196, 5632, block 10, 20, 30, 40), windows_per_video.npz(창으로 나뉜 영상의 창별 값), video_info.tsv
   videomae, timesformer: blocks.npy, target.npy(block 3, 6, 9, 12), video_info.tsv
@@ -12,6 +13,7 @@
 모든 조각의 사양이 하나이고 지금 코드와 같아야 한다. 추출 커밋과 모으는 커밋을 따로 적는다.
 """
 import json
+import os
 import sys
 
 import numpy as np
@@ -38,6 +40,11 @@ def finite(x, name, shape=None):
         fail(f"{name}: NaN이나 무한대가 있다")
 
 
+def reject_dirty(name, record):
+    if record.get("code_dirty_at_extraction") and os.environ.get("S3_ALLOW_DIRTY_COLLECT") != "1":
+        fail(f"{name}: 커밋 전 코드로 뽑은 결과다. 본 실행 결과로 모을 수 없다")
+
+
 def load_parts(model):
     ids = range(1, c.N_VIDEOS + 1)
     miss = [v for v in ids if not c.part_path(model, v).exists()]
@@ -58,6 +65,7 @@ def load_parts(model):
     for name in CODE[model]:
         if spec["code_sha256"].get(name) != c.sha256(c.CODE_DIR / name):
             fail(f"{model}: 추출 때의 {name}와 지금 코드가 다르다. 다시 뽑아야 한다")
+    reject_dirty(model, spec)
     if spec["stimuli_sha256"] != c.sha256(c.STIMULI):
         fail(f"{model}: 입력 기록이 추출 때와 다르다")
     return parts, spec
@@ -146,6 +154,7 @@ def text_check(name, shape, n_per_caption=None):
     for f, h in info["file_sha256"].items():
         if not (d / f).exists() or c.sha256(d / f) != h:
             fail(f"{name}: {f}가 없거나 기록과 다르다")
+    reject_dirty(name, info)
     model = name.split("_")[0]
     for f in CODE[model]:
         if info["code_sha256"].get(f) != c.sha256(c.CODE_DIR / f):

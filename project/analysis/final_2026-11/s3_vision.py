@@ -108,7 +108,7 @@ def extract(a):
     snap = c.hf_snapshot(cfg["checkpoint"])
     path = snap["path"]
     mean, std, resample = official_values(path)
-    settings = dict(cfg, **{k: snap[k] for k in ("revision", "weights_sha256")}, normalize_mean=mean.tolist(), normalize_std=std.tolist(), resample_pil=resample, screen="짧은 변을 size로 줄인 뒤 가운데를 자름, 크기는 round, 자르는 위치는 floor((긴 변 − size) / 2), antialias", odd_frames="N이 window 이하이면 홀수일 때 마지막 한 장을 뺌. N이 window를 넘으면 빼지 않고 마지막 창을 끝에 맞춤(O11)" if "window" in cfg else "해당 없음", pooling=dict(vjepa2="입력 안 token 평균, 창이 여럿이면 창 평균", videomae="입력 안 token 평균, 창 평균", timesformer="CLS를 뺀 token 평균, 클립과 세 위치에 걸쳐 평균", clip="프레임별 투영 벡터를 L2 정규화해 평균하고 다시 정규화")[a.model], transformers=transformers.__version__, torch=torch.__version__)
+    settings = dict(cfg, **{k: snap[k] for k in ("revision", "weights_sha256")}, normalize_mean=mean.tolist(), normalize_std=std.tolist(), resample_pil=resample, screen="짧은 변을 size로 줄인 뒤 긴 변의 0, floor(남는 길이 / 2), 남는 길이 세 위치에서 자름, 크기는 round, antialias" if a.model == "timesformer" else "짧은 변을 size로 줄인 뒤 가운데를 자름, 크기는 round, 자르는 위치는 floor((긴 변 − size) / 2), antialias", odd_frames="N이 window 이하이면 홀수일 때 마지막 한 장을 뺌. N이 window를 넘으면 빼지 않고 마지막 창을 끝에 맞춤(O11)" if "window" in cfg else "해당 없음", pooling=dict(vjepa2="입력 안 token 평균, 창이 여럿이면 창 평균", videomae="입력 안 token 평균, 창 평균", timesformer="CLS를 뺀 token 평균, 클립과 세 위치에 걸쳐 평균", clip="프레임별 투영 벡터를 L2 정규화해 평균하고 다시 정규화")[a.model], transformers=transformers.__version__, torch=torch.__version__)
     spec_id = c.make_spec(a.model, ["s3_common.py", "s3_vision.py"], allow_dirty=a.allow_dirty, **settings)
     table = c.stimulus_table()
     model = load_model(a.model, path, a.device)

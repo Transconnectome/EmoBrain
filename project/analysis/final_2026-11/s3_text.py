@@ -9,6 +9,7 @@ MPNet: 모델 카드 처리. 마지막 층 token을 attention mask로 평균하�
 import argparse
 import ast
 import hashlib
+import io
 import json
 import re
 
@@ -19,6 +20,7 @@ import torch
 import s3_common as c
 
 NOEMO_SOURCE = c.REPO / "project/analysis/prelim_2026-10/features/build_caption_noemo.py"
+CODE_FILES = ("s3_common.py", "s3_text.py")
 CHECKPOINT = dict(deberta="microsoft/deberta-large", mpnet="sentence-transformers/all-mpnet-base-v2")
 
 
@@ -30,16 +32,35 @@ def affect_words():
     raise ValueError("AFFECT_WORDS를 찾지 못했다")
 
 
-def load_captions(no_emotion):
-    cap = pd.read_csv(c.CAPTIONS, encoding="utf-8-sig")
+def load_captions(no_emotion, raw=None, words=None):
+    """raw는 읽어 둔 캡션 파일의 내용이다. 주면 파일을 다시 읽지 않는다. 기록한 해시와 실제로 처리한 내용을 묶기 위해서다."""
+    cap = pd.read_csv(io.BytesIO(raw) if raw is not None else c.CAPTIONS, encoding="utf-8-sig")
     if not (cap.groupby("video_id").size().eq(20).all() and set(cap.video_id) == set(range(1, c.N_VIDEOS + 1))):
         raise ValueError("캡션이 영상 2,196개 × 20개가 아니다")
     cap = cap.sort_values("video_id", kind="stable").reset_index(drop=True)
     text = cap.description.fillna("").astype(str)
     if no_emotion:
-        pat = re.compile(r"\b(?:" + "|".join(affect_words()) + r")\b", re.I)
+        pat = re.compile(r"\b(?:" + "|".join(words if words is not None else affect_words()) + r")\b", re.I)
         text = text.map(lambda t: re.sub(r"\s{2,}", " ", pat.sub("", t)).strip() or ".")
     return cap.video_id.to_numpy(), text.tolist()
+
+
+def freeze_inputs(no_emotion):
+    """계산 전에 실행 커밋, 코드, 캡션, 정서어 목록을 고정한다. 끝에서 다시 읽어 기록하지 않는다."""
+    raw = c.CAPTIONS.read_bytes()
+    words = affect_words() if no_emotion else []
+    return dict(raw=raw, words=words, extraction_commit=c.git_head(), code_dirty_at_extraction=c.code_dirty(), code_sha256={f: c.sha256(c.CODE_DIR / f) for f in CODE_FILES}, captions_sha256=hashlib.sha256(raw).hexdigest(), affect_words_sha256=hashlib.sha256(" ".join(sorted(words)).encode()).hexdigest() if words else "")
+
+
+def assert_unchanged(frozen, no_emotion):
+    """계산하는 동안 코드나 입력이 바뀌었으면 저장하지 않고 멈춘다. 커밋만 바뀐 경우(문서 커밋 등)는 실행 커밋을 그대로 둔다."""
+    for f, h in frozen["code_sha256"].items():
+        if c.sha256(c.CODE_DIR / f) != h:
+            raise SystemExit(f"계산 중에 {f}가 바뀌었다. 저장하지 않는다")
+    if c.sha256(c.CAPTIONS) != frozen["captions_sha256"]:
+        raise SystemExit("계산 중에 캡션 파일이 바뀌었다. 저장하지 않는다")
+    if no_emotion and sorted(affect_words()) != sorted(frozen["words"]):
+        raise SystemExit("계산 중에 정서어 목록이 바뀌었다. 저장하지 않는다")
 
 
 def main(a):
@@ -50,7 +71,8 @@ def main(a):
         raise SystemExit("커밋하지 않은 코드 변경이 있어 추출 출처를 남길 수 없다")
     tok = AutoTokenizer.from_pretrained(snap["path"], local_files_only=True)
     model = AutoModel.from_pretrained(snap["path"], local_files_only=True).to(a.device).eval()
-    vid, text = load_captions(a.no_emotion_words)
+    frozen = freeze_inputs(a.no_emotion_words)
+    vid, text = load_captions(a.no_emotion_words, frozen["raw"], frozen["words"])
     if a.limit:
         keep = np.isin(vid, np.unique(vid)[:a.limit])
         vid, text = vid[keep], [t for t, k in zip(text, keep) if k]
@@ -78,6 +100,7 @@ def main(a):
             out[pick] = v
             if s % (a.batch * 100) == 0:
                 print(s, "/", len(text), flush=True)
+    assert_unchanged(frozen, a.no_emotion_words)
     uv = np.unique(vid)
     mean = np.stack([out[vid == v].mean(0) for v in uv])
     if a.model == "mpnet":
@@ -95,8 +118,7 @@ def main(a):
         tmp.replace(d / f)
     ids_name = f"per_caption_video_id{tag}.tsv"
     pd.DataFrame(dict(video_id=vid)).to_csv(d / ids_name, sep="\t", index=False)
-    words = affect_words() if a.no_emotion_words else []
-    info = dict(model=a.model, checkpoint=name, revision=snap["revision"], weights_sha256=snap["weights_sha256"], extraction_commit=c.git_head(), code_dirty_at_extraction=c.code_dirty(), code_sha256={f: c.sha256(c.CODE_DIR / f) for f in ("s3_common.py", "s3_text.py")}, transformers=__import__("transformers").__version__, torch=torch.__version__, no_emotion_words=a.no_emotion_words, n_affect_words=len(words), affect_words_sha256=hashlib.sha256(" ".join(sorted(words)).encode()).hexdigest() if words else "", captions_sha256=c.sha256(c.CAPTIONS), layers=list(range(1, 25)) if a.model == "deberta" else "last_hidden_state", pooling="특수 token을 뺀 평균, 캡션 20개 평균" if a.model == "deberta" else "attention mask 평균, L2 정규화, 캡션 20개 평균, 다시 정규화하지 않음", shape=list(mean.shape), max_length=384 if a.model == "mpnet" else "자르지 않음", file_sha256={f: c.sha256(d / f) for f in [*files, ids_name]})
+    info = dict(model=a.model, checkpoint=name, revision=snap["revision"], weights_sha256=snap["weights_sha256"], extraction_commit=frozen["extraction_commit"], head_at_save=c.git_head(), code_dirty_at_extraction=frozen["code_dirty_at_extraction"], code_sha256=frozen["code_sha256"], transformers=__import__("transformers").__version__, torch=torch.__version__, no_emotion_words=a.no_emotion_words, n_affect_words=len(frozen["words"]), affect_words_sha256=frozen["affect_words_sha256"], captions_sha256=frozen["captions_sha256"], layers=list(range(1, 25)) if a.model == "deberta" else "last_hidden_state", pooling="특수 token을 뺀 평균, 캡션 20개 평균" if a.model == "deberta" else "attention mask 평균, L2 정규화, 캡션 20개 평균, 다시 정규화하지 않음", shape=list(mean.shape), max_length=384 if a.model == "mpnet" else "자르지 않음", file_sha256={f: c.sha256(d / f) for f in [*files, ids_name]})
     (d / f"manifest{tag}.json").write_text(json.dumps(info, ensure_ascii=False, indent=1))
     print("저장", d, mean.shape)
 
