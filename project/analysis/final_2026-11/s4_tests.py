@@ -65,7 +65,7 @@ def t_optimizer():
     check("intercept에는 weight decay를 적용하지 않는다(O16)", wd["a.bias"] == 0.0 and wd["b.bias"] == 0.0 and len(wd) == len(list(m.parameters())))
     v, cap = torch.zeros(40, 12), torch.zeros(40, 8)
     y = torch.full((40, 3), 0.1)
-    m1, *_ = fm.train(fm.Spec(max_epochs=200, batch=4), 0, 5.0, (v, cap, y))  # update 2,000회
+    m1, *_ = fm.train(fm.Spec(max_epochs=400, batch=4), 0, 5.0, (v, cap, y))  # update 4,000회
     p = torch.sigmoid(m1(v[:1], cap[:1]))
     check("큰 weight decay에서도 intercept가 0.5 쪽으로 눌리지 않고 정답 비율로 간다", (p - 0.1).abs().max() < 0.03)
 
