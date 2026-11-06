@@ -29,3 +29,7 @@
 | `s4_window_change.py`, `.sh` | S4 | 긴 영상의 창 사이 변화량 (CPU, 가벼움, 설계 동결 뒤) | 같은 폴더 |
 | `s4_collect.py`, `.sh` | S4 | 분할 경계 점검과 요약 표 (가벼움) | `manifests/s4/`, 같은 폴더의 `summary/` |
 | `s4_tests.py`, `.sh` | S4 | 합성 자료 시험. 실제 정답과 뇌 반응을 읽지 않음 (CPU, 수 분) | 없음 |
+| `s5_common.py`, `s5_decoding.py`, `.sh` | S5 | 층별 feature decoding 64층과 주 목표의 안쪽 fold 밖 예측 (GPU, 설계 동결 뒤, 끝난 fold는 건너뜀) | `project/output/final_2026-11/s5_ridge/` |
+| `s5_baselines.py`, `.sh` | S5 | 정서 ridge 두 판, 14개 차원, soft BCE 선형, 길이, 저수준, 뇌 전체 통계, 내용 구역 제외, Horikawa 2020 복셀 선택 ridge (GPU, 설계 동결 뒤) | 같은 폴더 |
+| `s5_collect.py`, `.sh` | S5 | 시험 영상과 출처 점검, 층별 지표와 λ 표 (가벼움) | `manifests/s5/` |
+| `s5_tests.py`, `.sh` | S5 | 합성 자료 시험. 실제 정답과 뇌 반응을 읽지 않음 (CPU, 수 분) | 없음 |
