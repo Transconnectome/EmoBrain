@@ -7,7 +7,9 @@
 선택(O16)
 - 후보마다 epoch별 안쪽 검증 손실의 겹 평균 곡선이 가장 낮은 epoch(최대 300)를 그 후보의 epoch 수로 정한다.
 - 그 epoch에서 안쪽 검증의 출력별 r을 평균하고 겹 평균이 가장 큰 후보를 고른다. y가 상수인 출력은 그 겹에서 모든 후보에서 빼고, 예측이 상수인 출력은 r = 0으로 센다(O6).
-- 점수가 같으면 더 작은 r, 더 작은 weight decay를 고른다(O6). 조기 종료로 겹마다 멈추지 않는다.
+- 점수가 같으면 더 작은 rank, 더 작은 weight decay, 더 작은 learning rate를 고른다(O6). 조기 종료로 겹마다 멈추지 않는다.
+
+표준화(N3): 안쪽 모델은 그 안쪽 학습 자료로, 최종 모델은 D_k로 따로 맞춘다. 저자 코드(Horikawa, 2025)도 regression마다 그 학습 자료로 맞춘다.
 
 과제
 - tvs: 바깥 fold k. D_k 안쪽 5겹으로 고른 모델로 시험 fold 예측, K1 head 두 개(더하기판, 상호작용판), H2 학습 fold 4개 안쪽 4겹의 nested OOF 출력(E4).
@@ -34,8 +36,10 @@ import s4_common as c
 
 RANKS = (0, 1, 2, 4, 8)  # E2
 WEIGHT_DECAYS = (1e-4, 1e-3, 1e-2)  # E3
-LR, BATCH, MAX_EPOCHS, SEED = 1e-3, 64, c.MAX_EPOCHS, 0  # O16, G13
-CANDIDATES = [(r, wd) for r in RANKS for wd in WEIGHT_DECAYS]  # 이 순서가 O6의 동점 규칙이다
+LEARNING_RATES = (1e-4, 1e-3, 1e-2)  # O16, 11/6 석진 님
+BATCH, MAX_EPOCHS, SEED = 64, c.MAX_EPOCHS, 0  # O16, G13
+CANDIDATES = [(r, wd, lr) for r in RANKS for wd in WEIGHT_DECAYS for lr in LEARNING_RATES]  # 이 순서가 O6의 동점 규칙이다(rank, weight decay, learning rate의 작은 값)
+SELECTED = ("r", "weight_decay", "lr", "epochs", "val_r")
 torch.use_deterministic_algorithms(True)
 
 
@@ -58,7 +62,6 @@ class Spec:
     kind: str = "emotions"  # emotions: soft BCE, sigmoid. dimensions: MSE, 출력 그대로
     max_epochs: int = MAX_EPOCHS
     batch: int = BATCH
-    lr: float = LR
     candidates: tuple = tuple(CANDIDATES)
     seed: int = SEED
 
@@ -90,13 +93,13 @@ def make_optimizer(model, lr, wd):
     return torch.optim.AdamW([dict(params=weights, weight_decay=wd), dict(params=biases, weight_decay=0.0)], lr=lr)
 
 
-def train(spec, r, wd, tr, va=None, keep_preds=False, epochs=None, device="cpu"):
+def train(spec, r, wd, lr, tr, va=None, keep_preds=False, epochs=None, device="cpu"):
     """tr, va: (v, c, y) 텐서. 돌려주는 값: 모델, epoch별 검증 손실, epoch별 r 평균, epoch별 검증 출력(원하면)."""
     torch.manual_seed(spec.seed)
     g = torch.Generator().manual_seed(spec.seed)
     v, cap, y = tr
     model = FeatureModel(v.shape[1], cap.shape[1], y.shape[1], r).to(device)
-    opt = make_optimizer(model, spec.lr, wd)
+    opt = make_optimizer(model, lr, wd)
     n_epochs = epochs if epochs is not None else spec.max_epochs
     curve, score, preds = [], [], []
     keep = None if va is None else (va[2].amax(0) > va[2].amin(0))
@@ -127,10 +130,10 @@ def search(spec, data, device, keep_preds=False):
     """data: 겹 번호 -> (tr, va). 후보마다 곡선과 점수를 겹 평균해 표로 돌려준다."""
     folds = sorted(data)
     curves, scores, preds = [], [], {}
-    for ci, (r, wd) in enumerate(spec.candidates):
+    for ci, (r, wd, lr) in enumerate(spec.candidates):
         cu, sc = [], []
         for j in folds:
-            _, cur, s, p = train(spec, r, wd, *data[j], keep_preds=keep_preds, device=device)
+            _, cur, s, p = train(spec, r, wd, lr, *data[j], keep_preds=keep_preds, device=device)
             cu.append(cur), sc.append(s)
             if keep_preds:
                 preds[(ci, j)] = p
@@ -138,7 +141,7 @@ def search(spec, data, device, keep_preds=False):
     curves, scores = c.finite(np.stack(curves), "검증 손실"), c.finite(np.stack(scores), "선택 점수")  # 후보 × 겹 × epoch
     mean_curve = curves.mean(1)
     best = mean_curve.argmin(1)  # 같으면 앞선 epoch
-    table = pd.DataFrame(spec.candidates, columns=["r", "weight_decay"])
+    table = pd.DataFrame(spec.candidates, columns=["r", "weight_decay", "lr"])
     table["epochs"] = best + 1
     table["val_loss"] = mean_curve[np.arange(len(best)), best]
     table["val_r"] = scores[np.arange(len(best)), :, best].mean(1)
@@ -186,18 +189,19 @@ class Data:
         return np.isin(self.folds, list(folds))
 
 
-def inner_data(d, coord, rows, device):
-    """rows(bool) 안에서 run fold마다 하나를 검증으로 두는 안쪽 겹."""
+def inner_data(spec, d, rows, device):
+    """rows(bool) 안에서 run fold마다 하나를 검증으로 두는 안쪽 겹. 표준화는 그 겹의 학습 자료로만 맞춘다(N3). 14개 차원은 정답도 같다."""
     out = {}
     for j in sorted(set(d.folds[rows].tolist())):
         tr, va = rows & (d.folds != j), rows & (d.folds == j)
+        coord = Coordinates(d.v[tr], d.cap[tr], d.y[tr] if spec.kind == "dimensions" else None)
         out[j] = (coord.tensors(d.v[tr], d.cap[tr], d.y[tr], device), coord.tensors(d.v[va], d.cap[va], d.y[va], device))
     return out
 
 
 def refit(spec, row, d, coord, rows, device):
     tr = coord.tensors(d.v[rows], d.cap[rows], d.y[rows], device)
-    model, *_ = train(spec, int(row.r), float(row.weight_decay), tr, epochs=int(row.epochs), device=device)
+    model, *_ = train(spec, int(row.r), float(row.weight_decay), float(row.lr), tr, epochs=int(row.epochs), device=device)
     return model
 
 
@@ -209,9 +213,9 @@ def predict(spec, model, d, coord, rows, device):
         return c.finite(out.cpu().numpy().astype(np.float32), "시험 출력"), c.finite(spec.predict(out).cpu().numpy().astype(np.float32), "시험 예측")
 
 
-def nested_oof(spec, d, coord, rows, device):
+def nested_oof(spec, d, rows, device):
     """E4, O16. 후보와 epoch 수를 안쪽 겹 평균으로 정하고, 고른 후보의 안쪽 모델이 각자 빠진 fold에 낸 예측을 모은다."""
-    data = inner_data(d, coord, rows, device)
+    data = inner_data(spec, d, rows, device)
     table, curve, preds = search(spec, data, device, keep_preds=True)
     row = choose(table)
     ci, e = int(row.name), int(row.epochs) - 1
@@ -226,19 +230,19 @@ def nested_oof(spec, d, coord, rows, device):
 
 
 def save_state(path, model, row, coord):
-    torch.save(dict(state_dict={k: t.cpu() for k, t in model.state_dict().items()}, r=int(row.r), weight_decay=float(row.weight_decay), epochs=int(row.epochs), **{k: torch.as_tensor(v) for k, v in coord.arrays().items()}), path)
+    torch.save(dict(state_dict={k: t.cpu() for k, t in model.state_dict().items()}, r=int(row.r), weight_decay=float(row.weight_decay), lr=float(row.lr), epochs=int(row.epochs), **{k: torch.as_tensor(v) for k, v in coord.arrays().items()}), path)
 
 
 def task_tvs(spec, d, k, device, out):
     r = c.roles(k)
     dk = d.mask(r["dk"])
     coord = Coordinates(d.v[dk], d.cap[dk])  # 정답은 표준화하지 않는다(B3)
-    table, curve, _ = search(spec, inner_data(d, coord, dk, device), device)
+    table, curve, _ = search(spec, inner_data(spec, d, dk, device), device)
     table.to_csv(out / "selection_dk.tsv", sep="\t", index=False)
     np.save(out / "curves_dk.npy", curve)
     np.savez(out / "coordinates.npz", **coord.arrays())
     rows = dict(teacher_family=choose(table), additive=choose(table, [0]), interaction=choose(table, [x for x in RANKS if x]))
-    json.dump({n: {x: float(v[x]) for x in ("r", "weight_decay", "epochs", "val_r")} for n, v in rows.items()}, open(out / "chosen.json", "w"), indent=1)
+    json.dump({n: {x: float(v[x]) for x in SELECTED} for n, v in rows.items()}, open(out / "chosen.json", "w"), indent=1)
     models = {}
     for n in ("additive", "interaction"):
         models[n] = refit(spec, rows[n], d, coord, dk, device)
@@ -247,18 +251,18 @@ def task_tvs(spec, d, k, device, out):
     te = d.mask([k])
     logit, p = predict(spec, best, d, coord, te, device)
     np.savez(out / "test_pred.npz", video_id=d.ids[te], logit=logit, p=p)
-    oof, t4, c4, row4 = nested_oof(spec, d, coord, d.mask(r["train"]), device)
+    oof, t4, c4, row4 = nested_oof(spec, d, d.mask(r["train"]), device)
     np.savez(out / "oof.npz", **oof)
     t4.to_csv(out / "selection_oof.tsv", sep="\t", index=False)
     np.save(out / "curves_oof.npy", c4)
-    return dict(oof_chosen={x: float(row4[x]) for x in ("r", "weight_decay", "epochs", "val_r")})
+    return dict(oof_chosen={x: float(row4[x]) for x in SELECTED})
 
 
 def task_k1a(spec, d, k, device, out):
     r = c.roles(k)
     dk = d.mask(r["dk"])
     coord = Coordinates(d.v[dk], d.cap[dk], d.y[dk])
-    table, curve, _ = search(spec, inner_data(d, coord, dk, device), device)
+    table, curve, _ = search(spec, inner_data(spec, d, dk, device), device)
     table.to_csv(out / "selection_dk.tsv", sep="\t", index=False)
     np.save(out / "curves_dk.npy", curve)
     np.savez(out / "coordinates.npz", **coord.arrays())
@@ -266,7 +270,7 @@ def task_k1a(spec, d, k, device, out):
     chosen, pred = {}, {"video_id": d.ids[te]}
     for n, ranks in (("additive", [0]), ("interaction", [x for x in RANKS if x])):
         row = choose(table, ranks)
-        chosen[n] = {x: float(row[x]) for x in ("r", "weight_decay", "epochs", "val_r")}
+        chosen[n] = {x: float(row[x]) for x in SELECTED}
         model = refit(spec, row, d, coord, dk, device)
         save_state(out / f"head_{n}.pt", model, row, coord)
         z, _ = predict(spec, model, d, coord, te, device)
@@ -279,11 +283,11 @@ def task_k1a(spec, d, k, device, out):
 def task_select_predict(spec, d, rows, test_rows, device, out):
     """구역 제외와 정서어 제거판. 그 학습 자료로 표준화와 선택을 다시 하고 시험 영상을 예측한다."""
     coord = Coordinates(d.v[rows], d.cap[rows])
-    table, curve, _ = search(spec, inner_data(d, coord, rows, device), device)
+    table, curve, _ = search(spec, inner_data(spec, d, rows, device), device)
     table.to_csv(out / "selection.tsv", sep="\t", index=False)
     np.save(out / "curves.npy", curve)
     row = choose(table)
-    json.dump({x: float(row[x]) for x in ("r", "weight_decay", "epochs", "val_r")}, open(out / "chosen.json", "w"), indent=1)
+    json.dump({x: float(row[x]) for x in SELECTED}, open(out / "chosen.json", "w"), indent=1)
     model = refit(spec, row, d, coord, rows, device)
     save_state(out / "model.pt", model, row, coord)
     logit, p = predict(spec, model, d, coord, test_rows, device)
@@ -342,7 +346,7 @@ def main():
     a = ap.parse_args()
     c.guard(a.design_freeze)
     spec = Spec(kind="dimensions" if a.task == "k1a" else "emotions")
-    run = c.Run(a.design_freeze, input_paths(a.task), task=a.task, lr=spec.lr, batch=spec.batch, max_epochs=spec.max_epochs, seed=spec.seed, candidates=spec.candidates, torch=torch.__version__)  # 읽기 전에 해시를 낸다
+    run = c.Run(a.design_freeze, input_paths(a.task), task=a.task, batch=spec.batch, max_epochs=spec.max_epochs, seed=spec.seed, candidates=spec.candidates, torch=torch.__version__)  # 읽기 전에 해시를 낸다
     split = c.load_split()
     d = load_data(a.task, split)
     run.check()  # 읽은 내용이 기록한 해시와 같음을 확인한다

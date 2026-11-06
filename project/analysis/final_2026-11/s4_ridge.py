@@ -5,7 +5,7 @@
     바깥 분할은 run fold 6개다. λ는 안쪽 5겹의 차원 평균 R²로 하나 고른다. 보고값은 원래 척도로 되돌린 시험 예측을 모아 낸 차원별 R²의 평균이다(O20).
 - noemo: DeBERTa 캡션 특징(원 캡션, 정서어 제거 캡션)으로 정서 34개를 예측한다(3-4, SI). 정서 ridge 문헌판의 규칙이다. 정서마다 안쪽 5겹 평균 r로 λ를 고르고 D_k 전체로 학습한다(O18). 정답은 비율 그대로다(B3).
 
-λ 후보는 10^0부터 10^6까지 10^0.5 간격 13개다(O18). 고른 λ가 후보의 끝인 횟수를 표에 적고 후보를 넓히지 않는다.
+λ 후보는 10^1부터 10^6까지 로그 간격 10개다(O18). 표준화는 regression마다 그 학습 자료로 맞춘다(N3). 고른 λ가 후보의 끝인 횟수를 표에 적고 후보를 넓히지 않는다.
 사용: s4_ridge.py --task d12 --design-freeze <커밋> [--device cuda]
 """
 import argparse
@@ -19,7 +19,7 @@ import torch
 
 import s4_common as c
 
-LAMBDAS = 10.0 ** np.arange(0, 6.25, 0.5)
+LAMBDAS = np.logspace(1, 6, 10)  # O18. Horikawa(2025) 공개 decoding 코드 mcap_setParams.m의 lowL 1, highL 6, 10개
 BLOCKS = list(range(40))
 
 
@@ -76,12 +76,8 @@ def d12(split, device, out, run):
             ks = sorted(set(folds.tolist()))
             picks = {}
             for k in ks:
-                dk = folds != k
-                ym, ys = y[dk].mean(0), y[dk].std(0, unbiased=False)
-                if (ys <= 0).any():
-                    raise ValueError("표준편차가 0인 목표 차원이 있다")
-                p, chosen = _one_fold_d12(x, (y - ym) / ys, folds, k, device)
-                pred[folds == k] = p * ys + ym  # 원래 척도로 되돌린다(O20)
+                p, chosen = _one_fold_d12(x, y, folds, k, device)
+                pred[folds == k] = p  # 원래 척도로 되돌린 값이다(O20)
                 picks[k] = chosen
             r2 = r2_columns(y, pred).cpu().numpy()
             rows.append(dict(block=b + 1, target=name, mean_r2=float(np.nanmean(r2)), median_r2=float(np.nanmedian(r2)), n_lambda_at_ends=sum(v in (0, len(LAMBDAS) - 1) for v in picks.values()), lambda_index=",".join(str(picks[k]) for k in ks)))
@@ -97,21 +93,30 @@ def d12(split, device, out, run):
         json.dump(run.prov, open(tmp / "done.json", "w"), indent=1)
 
 
-def _one_fold_d12(x, zy, folds, k, device):
-    """바깥 fold k 하나. 안쪽 5겹의 차원 평균 R²로 λ를 하나 고른다(O22)."""
+def _standardize(x, rows):
+    m, s = x[rows].mean(0), x[rows].std(0, unbiased=False)
+    if (s <= 0).any():
+        raise ValueError("학습 자료에서 표준편차가 0인 차원이 있다")
+    return (x - m) / s, m, s
+
+
+def _one_fold_d12(x, y, folds, k, device):
+    """바깥 fold k 하나. 안쪽 5겹의 차원 평균 R²로 λ를 하나 고른다(O22). 입력과 목표의 표준화는 regression마다 그 학습 자료로 한다(N3). 돌려주는 값: 원래 척도의 시험 예측, λ 번호."""
     dk = folds != k
-    xm, xs = x[dk].mean(0), x[dk].std(0, unbiased=False)
-    z = (x - xm) / xs
     scores = []
     for j in sorted(set(folds[dk].tolist())):
         tr, va = dk & (folds != j), folds == j
-        paths = ridge_paths(z[tr], zy[tr], z[va])
+        zx, _, _ = _standardize(x, tr)
+        zy, _, _ = _standardize(y, tr)
+        paths = ridge_paths(zx[tr], zy[tr], zx[va])
         scores.append(torch.stack([r2_columns(zy[va], p).nanmean() for p in paths]))
     s = torch.stack(scores).mean(0)
     if not torch.isfinite(s).all():
         raise ValueError("D12의 선택 점수를 낼 수 없다")
     pick = int(s.argmax())
-    return ridge_paths(z[dk], zy[dk], z[folds == k], [LAMBDAS[pick]])[0], pick
+    zx, _, _ = _standardize(x, dk)
+    zy, ym, ys = _standardize(y, dk)
+    return ridge_paths(zx[dk], zy[dk], zx[folds == k], [LAMBDAS[pick]])[0] * ys + ym, pick
 
 
 def emotion_ridge(x, y, folds, device):
@@ -123,17 +128,17 @@ def emotion_ridge(x, y, folds, device):
     chosen = {}
     for k in sorted(set(folds.tolist())):
         dk = folds != k
-        xm, xs = xt[dk].mean(0), xt[dk].std(0, unbiased=False)
-        z = (xt - xm) / xs
         scores = []
         for j in sorted(set(folds[dk].tolist())):
             tr, va = dk & (folds != j), folds == j
+            z, _, _ = _standardize(xt, tr)
             paths = ridge_paths(z[tr], yt[tr], z[va])
             scores.append(torch.stack([r_columns(yt[va], p) for p in paths]))
         s = torch.stack(scores).nanmean(0)  # y가 상수인 겹은 계산 불가라 빠진다
         if s.isnan().any():
             raise ValueError("어떤 정서의 정답이 모든 안쪽 겹에서 상수라 λ를 고를 수 없다")
         pick = s.argmax(0)  # λ 앞쪽이 먼저 잡힌다
+        z, _, _ = _standardize(xt, dk)
         paths = ridge_paths(z[dk], yt[dk], z[folds == k])
         pred[folds == k] = paths.gather(0, pick[None, None, :].expand(1, int((folds == k).sum()), q))[0]
         chosen[k] = pick.cpu().numpy()

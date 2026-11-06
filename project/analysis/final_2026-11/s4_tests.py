@@ -42,7 +42,7 @@ def synth(n=120, dv=12, dc=8, q=3, seed=1, dims=False):
     return fm.Data(np.arange(1, n + 1), np.arange(n) % 6 + 1, v, cap, y.astype(np.float32))
 
 
-FAST = fm.Spec(max_epochs=3, batch=16, candidates=((0, 1e-3), (2, 1e-3)))
+FAST = fm.Spec(max_epochs=3, batch=16, candidates=((0, 1e-3, 1e-3), (2, 1e-3, 1e-3)))
 
 
 def t_model():
@@ -65,7 +65,7 @@ def t_optimizer():
     check("intercept에는 weight decay를 적용하지 않는다(O16)", wd["a.bias"] == 0.0 and wd["b.bias"] == 0.0 and len(wd) == len(list(m.parameters())))
     v, cap = torch.zeros(40, 12), torch.zeros(40, 8)
     y = torch.full((40, 3), 0.1)
-    m1, *_ = fm.train(fm.Spec(max_epochs=400, batch=4), 0, 5.0, (v, cap, y))  # update 4,000회
+    m1, *_ = fm.train(fm.Spec(max_epochs=400, batch=4), 0, 5.0, 1e-3, (v, cap, y))  # update 4,000회
     p = torch.sigmoid(m1(v[:1], cap[:1]))
     check("큰 weight decay에서도 intercept가 0.5 쪽으로 눌리지 않고 정답 비율로 간다", (p - 0.1).abs().max() < 0.03)
 
@@ -80,10 +80,10 @@ def t_no_hkfinal():
 
 
 def t_candidates():
-    check("후보는 r 5개와 weight decay 3개이고 순서가 O6의 동점 규칙이다", fm.CANDIDATES[0] == (0, 1e-4) and fm.CANDIDATES[-1] == (8, 1e-2) and len(fm.CANDIDATES) == 15)
-    t = pd.DataFrame(fm.CANDIDATES, columns=["r", "weight_decay"])
+    check("후보는 rank 5, weight decay 3, learning rate 3이고 순서가 O6의 동점 규칙이다", fm.CANDIDATES[0] == (0, 1e-4, 1e-4) and fm.CANDIDATES[1] == (0, 1e-4, 1e-3) and fm.CANDIDATES[-1] == (8, 1e-2, 1e-2) and len(fm.CANDIDATES) == 45)
+    t = pd.DataFrame(fm.CANDIDATES, columns=["r", "weight_decay", "lr"])
     t["epochs"], t["val_r"] = 5, 0.5
-    check("점수가 같으면 가장 작은 r과 weight decay를 고른다", fm.choose(t).r == 0 and fm.choose(t).weight_decay == 1e-4)
+    check("점수가 같으면 가장 작은 rank, weight decay, learning rate를 고른다", fm.choose(t).r == 0 and fm.choose(t).weight_decay == 1e-4 and fm.choose(t).lr == 1e-4)
     t.loc[(t.r == 4) & (t.weight_decay == 1e-3), "val_r"] = 0.9
     check("가장 큰 점수를 고른다", fm.choose(t).r == 4)
     check("더하기판은 r = 0 안에서 고른다(O17)", fm.choose(t, [0]).r == 0)
@@ -105,9 +105,9 @@ def t_search_rule():
     curves = {1: np.array([3.0, 1.0, 3.0]), 2: np.array([1.0, 2.0, 0.0])}
     scores = {1: np.array([0.1, 0.2, 0.3]), 2: np.array([0.4, 0.6, 0.8])}
     orig = fm.train
-    fm.train = lambda spec, r, wd, fold, va, keep_preds=False, device="cpu": (None, curves[fold], scores[fold], None)
+    fm.train = lambda spec, r, wd, lr, fold, va, keep_preds=False, device="cpu": (None, curves[fold], scores[fold], None)
     try:
-        t, mc, _ = fm.search(fm.Spec(max_epochs=3, candidates=((0, 1e-3),)), {1: (1, None), 2: (2, None)}, "cpu")
+        t, mc, _ = fm.search(fm.Spec(max_epochs=3, candidates=((0, 1e-3, 1e-3),)), {1: (1, None), 2: (2, None)}, "cpu")
     finally:
         fm.train = orig
     check("epoch 수는 겹 평균 곡선의 최소다(O16)", int(t.epochs[0]) == 2 and abs(mc[0, 1] - 1.5) < 1e-9)
@@ -118,10 +118,12 @@ def t_reproducible():
     d = synth()
     coord = fm.Coordinates(d.v, d.cap)
     tr = coord.tensors(d.v, d.cap, d.y, "cpu")
-    a, *_ = fm.train(FAST, 2, 1e-3, tr)
-    b, *_ = fm.train(FAST, 2, 1e-3, tr)
+    a, *_ = fm.train(FAST, 2, 1e-3, 1e-3, tr)
+    b, *_ = fm.train(FAST, 2, 1e-3, 1e-3, tr)
+    c2, *_ = fm.train(FAST, 2, 1e-3, 1e-2, tr)
+    check("learning rate가 실제로 쓰인다", not all(torch.equal(x, y) for x, y in zip(a.state_dict().values(), c2.state_dict().values())))
     check("같은 seed면 같은 가중치다(O32)", all(torch.equal(x, y) for x, y in zip(a.state_dict().values(), b.state_dict().values())))
-    _, cu, _, _ = fm.train(FAST, 0, 1e-3, tr, va=tr)
+    _, cu, _, _ = fm.train(FAST, 0, 1e-3, 1e-3, tr, va=tr)
     check("최대 epoch까지 곡선을 다 그린다(겹마다 멈추지 않는다)", len(cu) == 3)
 
 
@@ -162,9 +164,9 @@ def t_leak():
     check("H2 검증 fold의 정답을 바꿔도 OOF가 같다(E4, 정할 것 2)", same(base["oof.npz"], a["oof.npz"]))
     check("H2 검증 fold의 정답은 K1 head 학습에는 들어간다(D_k, O17)", not all(torch.equal(x, y) for x, y in zip(base["head_additive.pt"]["state_dict"].values(), a["head_additive.pt"]["state_dict"].values())))
     # 안쪽 겹 j의 OOF는 그 겹의 정답으로 학습하지 않는다. 선택 경로가 끼지 않게 epoch 1, 후보 1개로 본다
-    one = fm.Spec(max_epochs=1, batch=16, candidates=((2, 1e-3),))
+    one = fm.Spec(max_epochs=1, batch=16, candidates=((2, 1e-3, 1e-3),))
     def oof_only(x):
-        return fm.nested_oof(one, x, fm.Coordinates(x.v, x.cap), x.mask(r["train"]), "cpu")[0]
+        return fm.nested_oof(one, x, x.mask(r["train"]), "cpu")[0]
     b0 = oof_only(synth())
     j = r["train"][0]
     t = synth()
@@ -178,22 +180,55 @@ def t_leak():
 def t_chosen_epoch_used():
     """OOF는 고른 후보와 고른 epoch의 출력이다."""
     d = synth()
-    coord = fm.Coordinates(d.v, d.cap)
     rows = d.mask([3, 4, 5, 6])
-    oof, table, _, row = fm.nested_oof(FAST, d, coord, rows, "cpu")
+    oof, table, _, row = fm.nested_oof(FAST, d, rows, "cpu")
     j = 3
     tr, va = rows & (d.folds != j), rows & (d.folds == j)
-    m, *_ = fm.train(FAST, int(row.r), float(row.weight_decay), coord.tensors(d.v[tr], d.cap[tr], d.y[tr], "cpu"), epochs=int(row.epochs))
+    coord = fm.Coordinates(d.v[tr], d.cap[tr])
+    m, *_ = fm.train(FAST, int(row.r), float(row.weight_decay), float(row.lr), coord.tensors(d.v[tr], d.cap[tr], d.y[tr], "cpu"), epochs=int(row.epochs))
     lo, _ = fm.predict(FAST, m, d, coord, va, "cpu")
     keep = np.isin(oof["video_id"], d.ids[va])
-    check("OOF는 고른 epoch까지 학습한 모델의 출력과 같다(O16)", np.allclose(oof["logit"][keep], lo, atol=1e-5))
+    check("OOF는 고른 epoch까지, 그 겹의 학습 자료로 표준화해 학습한 모델의 출력과 같다(O16, N3)", np.allclose(oof["logit"][keep], lo, atol=1e-5))
+
+
+def t_inner_standardization():
+    """안쪽 검증 영상의 feature가 표준화 통계에 들어가지 않는다(N3, 11/6)."""
+    d = synth()
+    rows = d.mask([2, 3, 4, 5, 6])
+    data = fm.inner_data(FAST, d, rows, "cpu")
+    ok = all(torch.allclose(data[j][0][0].mean(0), torch.zeros(1), atol=1e-4) and torch.allclose(data[j][0][1].std(0, unbiased=False), torch.ones(1), atol=1e-4) for j in data)
+    check("안쪽 학습 자료의 평균은 0, 표준편차는 1이다", ok)
+    d2 = synth()
+    d2.v[d2.folds == 3] += 100
+    d2.cap[d2.folds == 3] *= 5
+    other = fm.inner_data(FAST, d2, rows, "cpu")
+    check("안쪽 검증 fold의 feature를 바꿔도 그 겹의 학습 입력은 그대로다", torch.equal(data[3][0][0], other[3][0][0]) and torch.equal(data[3][0][1], other[3][0][1]))
+    check("그 fold를 학습에 쓰는 겹의 입력은 달라진다", not torch.equal(data[4][0][0], other[4][0][0]))
+    dd = synth(dims=True)
+    k = fm.Spec(kind="dimensions", max_epochs=1, batch=16, candidates=((0, 1e-3, 1e-3),))
+    e1 = fm.inner_data(k, dd, rows, "cpu")
+    dd2 = synth(dims=True)
+    dd2.y[dd2.folds == 3] += 100
+    e2 = fm.inner_data(k, dd2, rows, "cpu")
+    check("14개 차원의 안쪽 정답 표준화에도 검증 fold의 정답이 들어가지 않는다", torch.equal(e1[3][0][2], e2[3][0][2]) and torch.allclose(e1[3][0][2].mean(0), torch.zeros(1), atol=1e-4))
+    g = np.random.default_rng(3)
+    X, Y = g.normal(size=(60, 4)), g.normal(size=(60, 2))
+    folds = np.arange(60) % 6 + 1
+    x1, y1 = torch.as_tensor(X), torch.as_tensor(Y)
+    p1, pick1 = rg._one_fold_d12(x1, y1, folds, 1, "cpu")
+    X2 = X.copy()
+    X2[folds == 2] += 50
+    # fold 2는 안쪽 겹에서는 검증이거나 학습이고 D_k에도 들어가므로, 표준화 함수 자체로 확인한다
+    z, m, s = rg._standardize(torch.as_tensor(X2), torch.as_tensor(folds == 3))
+    check("ridge의 표준화는 그 학습 행만 쓴다", torch.allclose(m, torch.as_tensor(X2[folds == 3].mean(0))))
+    check("D12 예측은 원래 척도다", p1.shape == (10, 2) and abs(float(p1.mean()) - float(y1[folds != 1].mean())) < 2)
 
 
 def t_k1a():
     d = synth(dims=True)
     with tempfile.TemporaryDirectory() as t:
         out = Path(t)
-        fm.task_k1a(fm.Spec(kind="dimensions", max_epochs=3, batch=16, candidates=((0, 1e-3), (2, 1e-3))), d, 1, "cpu", out)
+        fm.task_k1a(fm.Spec(kind="dimensions", max_epochs=3, batch=16, candidates=((0, 1e-3, 1e-3), (2, 1e-3, 1e-3))), d, 1, "cpu", out)
         m = np.load(out / "coordinates.npz")
         p = np.load(out / "test_pred.npz")
         ok_stat = np.allclose(m["target_mean"], d.y[d.mask(c.roles(1)["dk"])].astype(np.float64).mean(0))
@@ -309,7 +344,7 @@ def t_ridge():
     xc, yc = x - x.mean(0), y - y.mean(0)
     beta = torch.linalg.solve(xc.T @ xc + lam * torch.eye(6, dtype=torch.float64), xc.T @ yc)
     check("ridge 경로가 닫힌 해와 같다", torch.allclose(p, y.mean(0) + (xt - x.mean(0)) @ beta))
-    check("λ 후보는 10^0부터 10^6까지 13개다(O18)", len(rg.LAMBDAS) == 13 and rg.LAMBDAS[0] == 1 and abs(rg.LAMBDAS[-1] - 1e6) < 1e-6 and abs(rg.LAMBDAS[1] - 10**0.5) < 1e-9)
+    check("λ 후보는 Horikawa(2025) 공개 코드와 같이 10^1부터 10^6까지 로그 간격 10개다(O18)", len(rg.LAMBDAS) == 10 and abs(rg.LAMBDAS[0] - 10) < 1e-9 and abs(rg.LAMBDAS[-1] - 1e6) < 1e-6 and abs(rg.LAMBDAS[1] / rg.LAMBDAS[0] - 10 ** (5 / 9)) < 1e-9)
     yy = torch.tensor([[1.0], [2.0], [3.0]], dtype=torch.float64)
     check("R²는 완벽한 예측에서 1, 평균 예측에서 0이다", abs(rg.r2_columns(yy, yy).item() - 1) < 1e-9 and abs(rg.r2_columns(yy, torch.full_like(yy, 2.0)).item()) < 1e-9)
     check("상수 목표의 R²는 계산 불가다", rg.r2_columns(torch.ones((3, 1), dtype=torch.float64), yy).isnan().all())
@@ -350,7 +385,7 @@ def _small_results(out):
     split = pd.DataFrame(dict(video_id=np.arange(1, 121), content_id=np.arange(1, 121), fold=np.arange(120) % 6 + 1))
     d, dd = synth(), synth(dims=True)
     run = c.Run(None, {})
-    k1 = fm.Spec(kind="dimensions", max_epochs=2, batch=16, candidates=((0, 1e-3), (2, 1e-3)))
+    k1 = fm.Spec(kind="dimensions", max_epochs=2, batch=16, candidates=((0, 1e-3, 1e-3), (2, 1e-3, 1e-3)))
     for t_ in fm.enumerate_tasks("tvs"):
         fm.run_one(t_, FAST, d, split, "cpu", out / "tvs" / t_["name"], run)
     for t_ in fm.enumerate_tasks("k1a"):
@@ -527,7 +562,7 @@ def t_window_zero():
 
 
 def main():
-    for f in (t_model, t_optimizer, t_no_hkfinal, t_candidates, t_r_selection, t_search_rule, t_reproducible, t_leak, t_chosen_epoch_used, t_k1a, t_zones, t_task_counts, t_boundaries, t_scores_mapping, t_ridge, t_window, t_inputs, t_nonfinite, t_window_zero, t_end_to_end):
+    for f in (t_model, t_optimizer, t_no_hkfinal, t_candidates, t_r_selection, t_search_rule, t_reproducible, t_leak, t_chosen_epoch_used, t_inner_standardization, t_k1a, t_zones, t_task_counts, t_boundaries, t_scores_mapping, t_ridge, t_window, t_inputs, t_nonfinite, t_window_zero, t_end_to_end):
         f()
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)
