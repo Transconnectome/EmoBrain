@@ -24,3 +24,8 @@
 | `s3_collect.py`, `.sh` | S3 | 영상별 조각을 파일로 모으고 차원, 영상 수, NaN을 확인하고 추출 기록을 쓴다 (가벼움) | 같은 폴더 |
 | `s3_tests.py`, `.sh` | S3 | 반복 경계, 화면 순서, 출처, 수집 검사의 회귀 시험 (CPU, 약 2분) | 없음 |
 | `s3_author_check.py`, `.sh` | S3 | DeBERTa와 TimeSformer를 저자 공개 특징과 비교 (본 추출 뒤) | `manifests/s3/author_feature_check.tsv` |
+| `s4_common.py`, `s4_feature_model.py`, `.sh` | S4 | 특징 모델 T_VS와 nested OOF, K1 head, K1a, 정서어 제거판, 구역 제외 (GPU, 설계 동결 뒤, 끊기면 이어서) | `project/output/final_2026-11/s4_no_brain/` |
+| `s4_ridge.py`, `.sh` | S4 | D12와 정서어 제거판의 뇌 없는 ridge (GPU, 설계 동결 뒤) | 같은 폴더 |
+| `s4_window_change.py`, `.sh` | S4 | 긴 영상의 창 사이 변화량 (CPU, 가벼움, 설계 동결 뒤) | 같은 폴더 |
+| `s4_collect.py`, `.sh` | S4 | 분할 경계 점검과 요약 표 (가벼움) | `manifests/s4/`, 같은 폴더의 `summary/` |
+| `s4_tests.py`, `.sh` | S4 | 합성 자료 시험. 실제 정답과 뇌 반응을 읽지 않음 (CPU, 수 분) | 없음 |
