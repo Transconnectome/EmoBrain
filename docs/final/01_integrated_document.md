@@ -642,7 +642,7 @@
 - 말할 수 없는 것: "새로운 종류"는 이름표 73개 기준이다. 모든 의미의 처음 보는 장면이나, 사전학습한 시각, 언어 모델이 본 적 없는 장면이라고 쓰지 않는다.
 - 이름표 73개: Horikawa 2020이 크라우드소싱으로 모은 의미 특징이다(ex. 고양이, 실내, 운동). 영상마다 73개 값이 있고, 값은 평정자 12명 가운데 그 개념이 있다고 본 비율이다(2026 MLLM 논문의 서술). 레포 archive의 semantic_features.csv(영상 2,196개 × 73개)가 이 자료로 보이며, Horikawa 공개 자료와 같은지 확인해야 한다.
 - 군집: 영상마다 73개 값을 한 묶음으로 보고, 묶음이 비슷한 영상끼리 모은다. Horikawa 2020은 이 이름표로 군집을 만들지 않았다(뇌 반응을 k-means로 27개 군집으로 나눴다). 군집 만들기는 우리 설계이고, 근거는 아래와 같다.
-    - 비슷한 것끼리 묶어 통째로 빼고 시험하기: Roberts 외 2017(Ecography)의 block cross-validation. 평가하려는 일반화의 종류에 맞춰 묶으라고 한다("similar structural conditions are grouped together"). Horikawa & Kamitani 2017(학습에 없던 범주의 디코딩), WILDS(Koh 외 2021)
+    - 비슷한 것끼리 묶어 통째로 빼고 시험하기: 뇌 decoding에서는 Shirakawa 외(2025)가 CLIP 텍스트 특징의 UMAP 공간을 k-means로 나눠 군집을 학습에서 빼고, 학습 표본 수가 같은 대조와 비교했다. 표현 공간과 군집 수가 우리와 달라, 접근의 선례이고 우리 구역 정의와 구역 수를 검증한 것은 아니다. Roberts 외 2017(Ecography)의 block cross-validation. 평가하려는 일반화의 종류에 맞춰 묶으라고 한다("similar structural conditions are grouped together"). Horikawa & Kamitani 2017(학습에 없던 범주의 디코딩), WILDS(Koh 외 2021)
     - 크기: Roberts 외 2017은 block을 똑같은 크기로 만드는 것을 목적으로 두지 않았다. 최소 크기를 강제하는 방법(constrained k-means, Bennett, Bradley & Demiriz 2000)은 아주 작은 군집을 없애는 방법이고, 의미 있는 장면 구분을 보장하지는 않는다(GPT 11/2).
 - 군집 수를 자료로 정하는 방법은 쓰지 않는다 [정함, 11/2]
     - 이유: Gap statistic(Tibshirani 외 2001)과 silhouette(Rousseeuw 1987)은 "이 거리에서 자료가 몇 개의 군집으로 묶이는가"를 묻는다. 우리 질문은 "어떤 내용을 학습에서 빼도 예측이 유지되는가"다. 평가용 구역은 뚜렷한 군집이 없는 연속된 특징 공간에서도 나눌 수 있다(Roberts 외 2017, Valavi 외 2019).
@@ -687,8 +687,11 @@
 | 처음 보는 장면 부분 학습 횟수(7-L의 식, K = 6) | 약 1,080회 | 약 1,296회 |
 
 - GPT 11/2: 위 비교를 근거로 5개를 추천했고, 마지막 답에서는 "blockCV 기본 설정을 채택하고, 자료 점검으로 내용 거리 증가를 확인하고, 절충을 함께 보고한다"는 문장에 동의했다(아래 문장).
-- Claude 판단: 5개 추천에 동의한다. 다만 표는 두 값을 모두 통과시키므로 표가 하나를 골라 주지는 않는다. 학습 자료를 최대로 하라는 Roberts 외 2017의 원칙은 오히려 6개 쪽이다. 그래서 이유를 세 가지로 나눠 쓴다. (1) 뇌 자료와 정서 예측 결과를 선택에 쓰지 않고 blockCV의 기본값을 채택했다. 4~8개의 이름표 점검을 한 사실과 그 결과는 함께 보고한다(GPT 11/2). (2) 표에서 그 값이 의도한 내용 차이를 만든다. (3) 6개와 비교한 절충(학습 횟수, 가장 작은 구역, 학습 자료)을 함께 적는다. 작은 구역의 시험 영상이 많다는 이점은 구역별 점수를 낼 때만 해당한다. 모든 구역의 예측을 모아 내는 점수는 어느 쪽이든 모든 영상을 쓴다.
-- 논문 문장(5개일 때): "정서 예측 결과를 선택에 쓰지 않고, 의미 이름표 공간을 blockCV의 기본 설정인 5개 구역으로 나누어 각 구역을 학습에서 제외했다. 동일 학습량 대조와 비교했을 때 모든 구역에서 시험 영상과 최근접 학습 영상의 거리가 증가함을 사전에 확인했다. 학습 자료 수, 구역별 평가 자료 수, 계산량의 절충을 함께 보고하며, 5개를 최적값이나 자연적인 장면 범주의 수로 해석하지 않는다."
+- 구역 수의 근거 [정함, 11/6 석진 님이 근거를 다시 확인하고 5개를 유지함]: 비슷한 내용 묶음을 빼서 일반화를 보는 접근에는 뇌 decoding의 선례가 있지만(Shirakawa 외, 2025. 아래), 구역 수 5에는 뇌 자료의 근거가 없다. blockCV의 기본값 5는 생태학 소프트웨어의 기본값이고 우리 자료에 5가 맞다는 근거가 아니다. 그래서 "문헌을 따랐다"고 쓰지 않고, 구역별 평가에 쓸 영상 수와 학습 비용을 고려한 설계 선택으로 쓴다. 표는 두 값을 모두 통과시키므로 표가 하나를 골라 주지는 않고, 학습 자료를 최대로 하라는 Roberts 외 2017의 원칙은 오히려 6개 쪽이다. 함께 적는 것은 셋이다. (1) 뇌 자료와 정서 예측 결과를 선택에 쓰지 않았다. 4~8개의 이름표 점검을 한 사실과 그 결과를 보고한다(GPT 11/2). (2) 표에서 그 값이 의도한 내용 차이를 만든다. (3) 6개와 비교한 절충(학습 횟수, 가장 작은 구역, 학습 자료)을 적는다. 작은 구역의 시험 영상이 많다는 이점은 구역별 점수를 낼 때만 해당한다. 모든 구역의 예측을 모아 내는 점수는 어느 쪽이든 모든 영상을 쓴다.
+- 다른 구역 수를 쓰지 않는 이유(11/6 확인): 40개(Shirakawa 외, 2025)는 UMAP에서 군집 약 40개가 눈으로 보인 NSD 자료의 값이다. 우리 이름표 공간은 군집이 뚜렷하지 않고(silhouette 약 0.14), 40개면 fold마다 구역 시험 영상이 평균 약 9개다. 그 논문의 군집 크기에 맞춘 9개는 자료 규모와 표현 공간이 달라 더 타당해지지 않는다.
+- 이름표를 하나씩 빼는 설계(이름표 73개 × fold 6 × 제외 방식 2)를 쓰지 않는 이유(11/6 확인): 범주를 빼는 선행연구(Horikawa & Kamitani, 2017)와 가장 비슷하지만, 그 연구의 범주는 서로 겹치지 않고 우리 이름표는 영상마다 여러 개이고 연속값이다. 값 0.5 이상을 빼도 0.4인 영상은 학습에 남으므로 "그 내용을 전부 뺐다"고 쓸 수 없고, 특정 속성이 강한 영상으로 일반화하는지를 묻는 다른 평가가 된다. 개발 영상 2,109개에서 "사람"은 1,360개라 빼면 749개가 남고, 시험 fold마다 10개 이상 나오는 이름표는 25개다. K = 6일 때 뇌 모델 학습은 15,768회다. 0.5라는 기준의 근거도 없다.
+- 구역의 겹침(11/6 확인): 영상은 한 구역에만 속하지만 이름표는 구역 사이에 겹친다. 값 0.5 이상인 영상 수로, "사람"은 다섯 구역에 627, 502, 88, 119, 24개이고 "육지 동물"은 383개 중 351개가 구역 4에 있다. 구역 3은 평균값이 가장 큰 이름표도 0.28이라 주제가 뚜렷하지 않다. Shirakawa 외(2025)도 군집 하나를 빼도 학습과 시험의 유사성이 남는다고 보고했다. 그래서 내용 거리와 구역별 결과를 함께 보고한다.
+- 논문 문장(5개일 때): "정서 예측 결과를 선택에 쓰지 않고, 내용 구역별 평가에 쓸 영상 수와 학습 비용을 고려해 이름표 73개의 공간을 5개 구역으로 고정하고 각 구역을 학습에서 제외했다. 이 구역을 자연적인 장면 범주나 최적의 분할로 해석하지 않는다. 동일 학습량 대조와 비교했을 때 모든 구역에서 시험 영상과 최근접 학습 영상의 거리가 증가함을 사전에 확인했고, 학습 자료 수, 구역별 평가 자료 수, 계산량의 절충과 구역별 결과를 함께 보고한다."
 - 구역 수를 정한 뒤 그 값의 구역 크기, 구성 이름표, 정서별 0이 아닌 학습 영상 수를 기록한다. 이것을 보고 구역 수를 바꾸지 않는다.
 - 크기 제약은 쓰지 않는다 [정함, 11/2]: 원래 비율로 만들면 제약 없이도 구역 크기가 157~523개다. 이전 미리 보기의 56개 군집은 표준화한 값으로 돌려서 생긴 것이었다(GPT 11/2가 예측한 대로 표준화가 드문 이름표를 부풀림).
 
@@ -1038,8 +1041,9 @@
 - 처음 보는 장면에서 쓰는 정보 [정함, 11/6 석진 님. 질문 2의 뒷부분에 답하기 위해 넣는다. 04 보류된 결정 1]
     - 내용 구역을 빼고 학습한 주 조건 모델로, 그 구역의 시험 영상에서 바꿔 끼우기(4-2)를 한다. 시각만, 캡션만, 둘 다 바꾸는 세 조건이다. 저장된 모델로 계산하므로 학습이 늘지 않는다.
     - 탐색 결과로 표시하고 BH-FDR을 쓴다. [사전] 15개에 넣지 않는다.
-    - 짝 규칙 [추천]: 같은 시험 fold, 같은 구역의 시험 영상 가운데 이름표 73개의 거리가 가장 가까운 영상이다. 거리, 동점, 빠진 block은 4-2와 O9를 따르고, 교란 대조(O3)의 영상 C도 같은 fold, 같은 구역에서 고른다. 짝 수를 구역과 fold마다 보고한다.
-    - 비교 [추천]: 같은 시험 영상과 같은 짝을 학습량 대조 모델에도 적용해, 구역을 뺀 학습과 빼지 않은 학습에서 경로 의존이 어떻게 다른지 나란히 본다.
+    - 짝 규칙 [정함, 11/6 석진 님]: 같은 시험 fold, 같은 구역의 시험 영상 가운데 이름표 73개의 거리가 가장 가까운 영상이다. 거리, 동점, 빠진 block은 4-2와 O9를 따르고, 교란 대조(O3)의 영상 C도 같은 fold, 같은 구역에서 고른다. 짝 수를 구역과 fold마다 보고한다.
+    - 짝 규칙의 근거와 범위: 비슷한 대상을 매칭하는 방법(Stuart, 2010)과 실제 입력의 내부 표현을 교환하는 방법(Zhang & Nanda, 2024)을 쓴다. 이 규칙으로 뇌의 정보 사용을 정확히 잰다는 보증은 아니고 fMRI 선례는 찾지 못했다. 결과는 이 교환 조건에 한정해 읽는다.
+    - 비교 [정함, 11/6 석진 님]: 같은 시험 영상과 같은 짝을 학습량 대조 모델에도 적용해, 구역을 뺀 학습과 무작위로 뺀 학습에서 경로 의존이 어떻게 다른지 나란히 본다. 교란 대조(O3)도 두 모델에 같게 적용한다.
     - 결과 문장: "학습에서 제외한 내용 구역에서, 이번 교환 조건과 척도에서 모델은 그 경로에 기댔다"까지다. 내용 구역이 이름표로 정의되어 캡션 경로에 불리할 수 있다는 한계(1-3의 1-4)를 함께 적는다.
 - Figure: 구역마다 두 모델의 "무작위 제외 성능"과 "구역 제외 성능"을 선으로 잇는다. 성능 수준과 하락폭을 따로 읽을 수 있게 한다.
 - 해석
@@ -1524,6 +1528,7 @@ teacher는 5-0에서 시각 특징과 캡션 특징만 받는 특징 모델(T_VS
 | NIST/SEMATECH e-Handbook | 4-2 | Tukey 이상값 기준. 이상값은 중요한 정보를 담을 수 있어 기계적으로 지우지 말 것 |
 | Rousseeuw 1987, Journal of Computational and Applied Mathematics | 4-3 | silhouette. 같은 군집 안의 거리와 다른 군집까지의 거리를 비교해 군집이 얼마나 잘 나뉘었는지 나타냄 |
 | Stuart 2010, Statistical Science | 4-2 | 매칭 방법 개관. 공변량이 비슷한 표본끼리 비교하는 최근접 매칭, 비교할 만한 짝이 있는지 점검 |
+| Shirakawa 외 2025, Neural Networks | 4-3 | 뇌 decoding에서 CLIP 텍스트 특징의 UMAP 공간을 k-means로 나눈 군집(40개, UMAP을 눈으로 보고 정함)을 학습에서 빼고 표본 수가 같은 대조와 비교. 군집 하나를 빼도 학습과 시험의 유사성이 남는다고 보고(11/6 원문 확인) |
 | Roberts 외 2017, Ecography | 4-3 | 구조가 있는 자료의 block cross-validation. 비슷한 조건끼리 묶어 통째로 빼고, block 크기와 외삽의 균형을 다룸 |
 | Bennett, Bradley & Demiriz 2000, Microsoft Research MSR-TR-2000-65 | 4-3 | constrained k-means. 군집마다 최소 개수를 강제해 아주 작은 군집을 막음 |
 | Koh 외 2021, WILDS, ICML | 4-3 | 학습과 시험의 분포가 달라지는 상황에서의 일반화를 묻는 평가 묶음 |
@@ -1747,6 +1752,7 @@ teacher는 5-0에서 시각 특징과 캡션 특징만 받는 특징 모델(T_VS
 - [Scotti 외, 2023] Scotti, P., Banerjee, A., Goode, J., Shabalin, S., Nguyen, A., Cohen, E., Dempster, A., Verlinde, N., Yundler, E., Weisberg, D., Norman, K. A., & Abraham, T. (2023). Reconstructing the mind's eye: fMRI-to-image with contrastive learning and diffusion priors. *Advances in Neural Information Processing Systems 36 (NeurIPS 2023)*, 24705–24728. https://proceedings.neurips.cc/paper_files/paper/2023/hash/4ddab70bf41ffe5d423840644d3357f4-Abstract.html
 - [Scotti 외, 2024] Scotti, P. S., Tripathy, M., Torrico, C., Kneeland, R., Chen, T., Narang, A., Santhirasegaran, C., Xu, J., Naselaris, T., Norman, K. A., & Abraham, T. M. (2024). MindEye2: Shared-subject models enable fMRI-to-image with 1 hour of data. *Proceedings of the 41st International Conference on Machine Learning (PMLR 235)*, 44038–44059. https://proceedings.mlr.press/v235/scotti24a.html
 - [Shen 외, 2019] Shen, G., Horikawa, T., Majima, K., & Kamitani, Y. (2019). Deep image reconstruction from human brain activity. *PLOS Computational Biology*, 15(1), e1006633. https://doi.org/10.1371/journal.pcbi.1006633
+- [Shirakawa 외, 2025] Shirakawa, K., Nagano, Y., Tanaka, M., Aoki, S. C., Muraki, Y., Majima, K., & Kamitani, Y. (2025). Spurious reconstruction from brain activity. *Neural Networks*, 190, 107515. https://doi.org/10.1016/j.neunet.2025.107515
 - [Skerry & Saxe, 2015] Skerry, A. E., & Saxe, R. (2015). Neural representations of emotion are organized around abstract event features. *Current Biology*, 25(15), 1945–1954. https://doi.org/10.1016/j.cub.2015.06.009
 - [Snoek 외, 2019] Snoek, L., Miletić, S., & Scholte, H. S. (2019). How to control for confounds in decoding analyses of neuroimaging data. *NeuroImage*, 184, 741–760. https://doi.org/10.1016/j.neuroimage.2018.09.074
 - [St-Yves 외, 2023] St-Yves, G., Allen, E. J., Wu, Y., Kay, K., & Naselaris, T. (2023). Brain-optimized deep neural network models of human visual areas learn non-hierarchical representations. *Nature Communications*, 14(1), 3329. https://doi.org/10.1038/s41467-023-38674-4
