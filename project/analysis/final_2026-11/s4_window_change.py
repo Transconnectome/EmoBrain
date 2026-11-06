@@ -22,8 +22,10 @@ SEED = 20261106
 
 
 def cosine_distance(a, b):
-    a, b = a / np.linalg.norm(a, axis=-1, keepdims=True), b / np.linalg.norm(b, axis=-1, keepdims=True)
-    return 1 - (a * b).sum(-1)
+    """영벡터가 있으면 NaN(계산 불가)이다. 작은 수로 바꾸지 않고 summarize에서 건수를 적는다."""
+    na, nb = np.linalg.norm(a, axis=-1, keepdims=True), np.linalg.norm(b, axis=-1, keepdims=True)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return 1 - ((a / na) * (b / nb)).sum(-1)
 
 
 def video_rows(per_window, mean_z, m, s, others):
@@ -45,9 +47,19 @@ def compute(windows, blocks, ids):
             pos = int(np.where(ids == v)[0][0])
             pool = np.delete(np.arange(len(ids)), pos)
             others = z[rng.choice(pool, size=min(500, len(pool)), replace=False)]
-            r = video_rows(np.asarray(per[:, b], np.float64), z[pos], m, s, others)
-            rows.append(dict(video_id=int(v), block=block, n_windows=len(per), ratio=r["within"] / r["other_video"], **r))
+            r = video_rows(c.finite(np.asarray(per[:, b], np.float64), f"영상 {v}의 창"), z[pos], m, s, others)
+            with np.errstate(invalid="ignore", divide="ignore"):
+                ratio = r["within"] / r["other_video"]
+            rows.append(dict(video_id=int(v), block=block, n_windows=len(per), ratio=ratio, **r))
     return pd.DataFrame(rows)
+
+
+def summarize(table):
+    """block마다 중앙값과 함께 유효한 영상 수와 계산 불가 영상 수를 적는다."""
+    s = table.groupby("block")[["within", "to_mean", "other_video", "ratio"]].median().reset_index()
+    valid = table.assign(valid=np.isfinite(table[["within", "to_mean", "other_video", "ratio"]]).all(axis=1)).groupby("block").valid
+    s["n_valid"], s["n_not_computable"] = valid.sum().to_numpy(), (~table.assign(valid=np.isfinite(table[["within", "to_mean", "other_video", "ratio"]]).all(axis=1)).valid).groupby(table.block).sum().to_numpy()
+    return s
 
 
 def main():
@@ -55,22 +67,23 @@ def main():
     ap.add_argument("--design-freeze", default="")
     a = ap.parse_args()
     c.guard(a.design_freeze)
+    out = c.OUT / "window_change"
+    run = c.Run(a.design_freeze, [c.FEATURES / "vjepa2/windows_per_video.npz", c.FEATURES / "vjepa2/blocks.npy"], seed=SEED)
+    if c.done_or_new(out, run.key):
+        return
     split = c.load_split()
     ids = split.video_id.to_numpy()
-    out = c.OUT / "window_change"
-    prov = c.provenance(a.design_freeze)
-    if c.done_or_new(out, prov["code_sha256"]):
-        return
     w = np.load(c.FEATURES / "vjepa2/windows_per_video.npz")
     dev = set(ids.tolist())
     windows = {int(k[1:]): w[k] for k in w.files if int(k[1:]) in dev}
     blocks = np.load(c.FEATURES / "vjepa2/blocks.npy", mmap_mode="r")
     table = compute(windows, np.asarray(blocks[ids - 1]), ids)
-    summary = table.groupby("block")[["within", "to_mean", "other_video", "ratio"]].median().reset_index()
+    summary = summarize(table)
     with c.Atomic(out) as tmp:
         table.to_csv(tmp / "window_change.tsv", sep="\t", index=False, float_format="%.6g")
         summary.to_csv(tmp / "window_change_summary.tsv", sep="\t", index=False, float_format="%.6g")
-        json.dump(dict(prov, n_videos=len(windows)), open(tmp / "done.json", "w"), indent=1)
+        run.check()
+        json.dump(dict(run.prov, n_videos=len(windows)), open(tmp / "done.json", "w"), indent=1)
     print(summary.round(4).to_string(index=False))
 
 

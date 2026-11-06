@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """S4 결과 점검과 요약 표 (04 S4의 확인 기준, 2026-11-06). 특징 모델 결과는 사전 분석이다(E6, N43).
 
-확인: OOF 영상이 그 fold의 H2 학습 fold에만 있고, 시험 예측이 시험 fold에만 있으며, 표준화 통계에 시험 fold가 들어가지 않았고, K1a의 입력 좌표가 K1 head와 같다.
+확인
+- 모든 결과가 같은 코드, 같은 S2 표, 같은 입력, 같은 설계 동결 커밋에서 나왔다.
+- 시험 예측은 정해진 시험 영상을 정확히 한 번씩 담는다(누락, 중복, 범위 밖 금지). 평가에도 그 목록만 쓴다.
+- OOF 영상이 그 fold의 H2 학습 fold와 정확히 같고, 저장한 값에 NaN과 Inf가 없으며, 행 수가 영상 수와 같다.
+- K1a의 입력 좌표가 K1 head와 같다.
 출력: manifests/s4/feature_model_selection.tsv(fold별 epoch, r, weight decay), OUT/summary/의 성능 표. 사용: s4_collect.py --design-freeze <커밋>
 """
 import argparse
@@ -13,10 +17,90 @@ import pandas as pd
 import s4_common as c
 
 MANIFEST = c.CODE_DIR / "manifests/s4"
+FOLD_TASKS = ("tvs", "k1a", "noemo")
+PRED_KEYS = dict(tvs=("logit", "p"), noemo=("logit", "p"), zone=("logit", "p"), k1a=("additive_z", "additive_score", "interaction_z", "interaction_score"))
 
 
 def _load(path):
     return json.loads((path / "chosen.json").read_text())
+
+
+def fold_ids(split, k):
+    return split.video_id[split.fold == k].tolist()
+
+
+def expected_tests(split, task, blocks=None):
+    """과제의 결과 폴더 이름 -> 시험 영상. 구역은 그 구역과 그 fold의 영상이다."""
+    if task in FOLD_TASKS:
+        return {f"fold{k}": fold_ids(split, k) for k in range(1, c.N_FOLDS + 1)}
+    blocks = pd.read_csv(c.S2 / "content_blocks_assignment.tsv", sep="\t") if blocks is None else blocks
+    out = {}
+    for b in sorted(blocks.block.unique().tolist()):
+        for k in range(1, c.N_FOLDS + 1):
+            ids = sorted(set(blocks.video_id[blocks.block == b]) & set(fold_ids(split, k)))
+            for kind in ("excluded", "control"):
+                out[f"block{b}_fold{k}_{kind}"] = ids
+    return out
+
+
+def check_pred(path, expected, keys):
+    """파일의 영상이 expected와 정확히 같고 값이 온전해야 한다. 어긋나면 멈춘다."""
+    t = np.load(path)
+    ids = t["video_id"].tolist()
+    if len(ids) != len(set(ids)):
+        raise SystemExit(f"{path}: 같은 영상이 두 번 있다")
+    if sorted(ids) != sorted(expected):
+        raise SystemExit(f"{path}: 시험 영상이 정해진 목록과 다르다({len(ids)}개, 기대 {len(expected)}개)")
+    for k in keys:
+        if len(t[k]) != len(ids):
+            raise SystemExit(f"{path}: {k}의 행 수가 영상 수와 다르다")
+        if not np.isfinite(t[k]).all():
+            raise SystemExit(f"{path}: {k}에 NaN 또는 Inf가 있다")
+    return t
+
+
+def check_oof(path, expected):
+    t = check_pred(path, expected, ("logit", "p_raw", "p_clipped"))
+    if not ((t["p_clipped"] >= 0) & (t["p_clipped"] <= 1)).all() or not np.array_equal(t["p_clipped"], np.clip(t["p_raw"], 0, 1)):
+        raise SystemExit(f"{path}: 자른 값이 자르기 전 값과 맞지 않는다")
+    return t
+
+
+def check_folds(split, out=None, tasks=("tvs", "k1a", "noemo", "zone"), blocks=None):
+    out = c.OUT if out is None else out
+    for task in tasks:
+        for name, ids in expected_tests(split, task, blocks).items():
+            check_pred(out / task / name / "test_pred.npz", ids, PRED_KEYS[task])
+    for k in range(1, c.N_FOLDS + 1):
+        r = c.roles(k)
+        check_oof(out / "tvs" / f"fold{k}" / "oof.npz", split.video_id[split.fold.isin(r["train"])].tolist())
+        coord = np.load(out / "tvs" / f"fold{k}" / "coordinates.npz")
+        k1a = np.load(out / "k1a" / f"fold{k}" / "coordinates.npz")
+        for n in ("visual_mean", "visual_std", "caption_mean", "caption_std"):
+            if not np.array_equal(coord[n], k1a[n]):
+                raise SystemExit(f"fold {k}: K1a의 입력 좌표가 K1 head와 다르다")
+
+
+def check_runs(out, names, design_freeze=None, current=None):
+    """모든 결과가 같은 코드, 같은 입력 파일 내용, 같은 동결 커밋에서 나왔는지 본다. current를 주면 지금 파일과도 맞춘다."""
+    seen, code, freeze = {}, None, set()
+    for n in names:
+        d = json.loads((out / n / "done.json").read_text())
+        if code is None:
+            code = d["code_sha256"]
+        if d["code_sha256"] != code:
+            raise SystemExit(f"{n}: 다른 코드로 만든 결과다")
+        freeze.add(d["design_freeze"])
+        for p, h in d["inputs"].items():
+            if seen.setdefault(p, h) != h:
+                raise SystemExit(f"{n}: 입력 {p}의 내용이 다른 결과와 다르다")
+    if len(freeze) != 1 or (design_freeze is not None and freeze != {design_freeze}):
+        raise SystemExit(f"결과의 설계 동결 커밋이 다르다: {freeze}")
+    if current is not None:
+        for p, h in seen.items():
+            if current(p) != h:
+                raise SystemExit(f"지금의 {p}가 결과를 만들 때와 다르다")
+    return seen
 
 
 def selection_table(out=None):
@@ -33,56 +117,37 @@ def selection_table(out=None):
     return pd.DataFrame(rows)
 
 
-def check_folds(split, out=None):
-    """04 S4의 확인 기준. 어긋나면 멈춘다."""
-    out = c.OUT if out is None else out
-    fold_of = dict(zip(split.video_id, split.fold))
-    for k in range(1, c.N_FOLDS + 1):
-        r = c.roles(k)
-        d = out / "tvs" / f"fold{k}"
-        o = np.load(d / "oof.npz")
-        if sorted(o["video_id"].tolist()) != sorted(split.video_id[split.fold.isin(r["train"])].tolist()):
-            raise SystemExit(f"fold {k}: OOF 영상이 H2 학습 fold와 다르다")
-        if not ((o["p_clipped"] >= 0) & (o["p_clipped"] <= 1)).all() or (o["p_raw"].shape != o["logit"].shape):
-            raise SystemExit(f"fold {k}: OOF 값이 범위를 벗어났다")
-        te = np.load(d / "test_pred.npz")["video_id"]
-        if {fold_of[v] for v in te.tolist()} != {k}:
-            raise SystemExit(f"fold {k}: 시험 예측이 시험 fold 밖에 있다")
-        coord = np.load(d / "coordinates.npz")
-        k1a = np.load(out / "k1a" / f"fold{k}" / "coordinates.npz")
-        for n in ("visual_mean", "visual_std", "caption_mean", "caption_std"):
-            if not np.array_equal(coord[n], k1a[n]):
-                raise SystemExit(f"fold {k}: K1a의 입력 좌표가 K1 head와 다르다")
-
-
-def pooled(out, task, names, y, ids, key):
-    """fold의 시험 예측을 모아 출력별 r을 낸다. 비율과 되돌린 점수는 원래 척도라 그대로 모은다(O20, K1a)."""
+def pooled(out, task, expected, y, ids, key):
+    """정해진 시험 영상의 예측을 한 번씩 모아 출력별 r을 낸다. 비율과 되돌린 점수는 원래 척도라 그대로 모은다(O20, K1a)."""
     pos = {v: i for i, v in enumerate(ids.tolist())}
     p = np.full(y.shape, np.nan)
-    seen = []
-    for n in names:
-        t = np.load(out / task / n / "test_pred.npz")
-        p[[pos[v] for v in t["video_id"].tolist()]] = t[key]
-        seen += t["video_id"].tolist()
-    rows = [pos[v] for v in seen]
+    rows = []
+    for name, want in expected.items():
+        t = check_pred(out / task / name / "test_pred.npz", want, (key,))
+        at = [pos[v] for v in t["video_id"].tolist()]
+        if set(at) & set(rows):
+            raise SystemExit(f"{name}: 다른 결과와 영상이 겹친다")
+        p[at] = t[key]
+        rows += at
     return c.pearson(y[rows], p[rows]), len(rows)
 
 
-def summaries(split, y_em, y_dim, em_cols, dim_cols, out=None):
+def summaries(split, y_em, y_dim, em_cols, dim_cols, out=None, blocks=None):
     out = c.OUT if out is None else out
     ids = split.video_id.to_numpy()
-    folds = [f"fold{k}" for k in range(1, c.N_FOLDS + 1)]
+    folds = expected_tests(split, "tvs")
     r, _ = pooled(out, "tvs", folds, y_em, ids, "p")
     tvs = pd.DataFrame(dict(emotion=em_cols, r=r))
-    r0, _ = pooled(out, "noemo", folds, y_em, ids, "p")
-    tvs["r_no_emotion_words"] = r0
+    tvs["r_no_emotion_words"], _ = pooled(out, "noemo", folds, y_em, ids, "p")
     k1a = pd.DataFrame(dict(dimension=dim_cols))
     for v in ("additive", "interaction"):
         k1a[f"r_{v}"], _ = pooled(out, "k1a", folds, y_dim, ids, f"{v}_score")
     z = []
-    for b in range(1, 6):
+    zone = expected_tests(split, "zone", blocks)
+    for b in sorted({int(n.split("_")[0][5:]) for n in zone}):
         for kind in ("excluded", "control"):
-            r, n = pooled(out, "zone", [f"block{b}_fold{k}_{kind}" for k in range(1, c.N_FOLDS + 1)], y_em, ids, "p")
+            want = {n: v for n, v in zone.items() if n.startswith(f"block{b}_") and n.endswith(kind)}
+            r, n = pooled(out, "zone", want, y_em, ids, "p")
             z.append(pd.DataFrame(dict(block=b, kind=kind, emotion=em_cols, r=r, n_test=n)))
     return tvs, k1a, pd.concat(z, ignore_index=True)
 
@@ -93,13 +158,16 @@ def main():
     a = ap.parse_args()
     c.guard(a.design_freeze)
     split = c.load_split()
-    check_folds(split)
+    blocks = pd.read_csv(c.S2 / "content_blocks_assignment.tsv", sep="\t")
+    names = [f"{t}/{n}" for t in ("tvs", "k1a", "noemo", "zone") for n in expected_tests(split, t, blocks)]
+    check_runs(c.OUT, names, a.design_freeze, current=lambda p: c.sha256(p))
+    check_folds(split, blocks=blocks)
     MANIFEST.mkdir(parents=True, exist_ok=True)
     sel = selection_table()
     sel.to_csv(MANIFEST / "feature_model_selection.tsv", sep="\t", index=False, float_format="%.6g")
     y_em, em_cols = c.load_scores(split, "emotions")
     y_dim, dim_cols = c.load_scores(split, "dimensions")
-    tvs, k1a, zone = summaries(split, y_em, y_dim, em_cols, dim_cols)
+    tvs, k1a, zone = summaries(split, y_em, y_dim, em_cols, dim_cols, blocks=blocks)
     (c.OUT / "summary").mkdir(exist_ok=True)
     tvs.to_csv(c.OUT / "summary/feature_model_test_r.tsv", sep="\t", index=False, float_format="%.6g")
     k1a.to_csv(c.OUT / "summary/k1a_test_r.tsv", sep="\t", index=False, float_format="%.6g")

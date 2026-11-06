@@ -30,6 +30,7 @@ DIMENSIONS = ["arousal", "dominance", "valence", "approach", "attention", "certa
 VISUAL_TARGET, CAPTION_TARGET, CAPTION_NO_EMOTION = "vjepa2/target", "deberta/target", "deberta_no_emotion_words/target"
 LOWLEVEL = "lowlevel/lowlevel"
 N_FOLDS = 6
+S2_TABLES = [S2 / "split_hk_dev.tsv", S2 / "fold_roles.tsv", S2 / "content_blocks_assignment.tsv", S2 / "content_block_control_samples.tsv", LABEL_MAP]
 
 
 def sha256(path):
@@ -62,11 +63,31 @@ def guard(design_freeze, allow_test=False):
         raise SystemExit(f"{design_freeze}가 현재 커밋의 조상이 아니다.")
 
 
-def provenance(design_freeze=None, inputs=(), **settings):
-    now = {f.name: sha256(f) for f in sorted(CODE_DIR.glob("s4_*.py"))}
-    if now != START_CODE:
-        raise SystemExit("시작 뒤 코드가 바뀌었다.")
-    return dict(code_commit=START_HEAD, code_dirty=START_DIRTY, code_sha256=START_CODE, design_freeze=design_freeze, inputs={str(p): sha256(p) for p in inputs}, **settings)
+class Run:
+    """한 실행의 출처. 코드, 실제 입력 파일, S2 표, 설정을 묶어 고정한다(M1, M2).
+    입력 해시는 읽기 전에 내고, 읽은 뒤와 저장 전에 check()로 같은지 다시 본다. 같은 run_key일 때만 끝난 결과를 재사용한다."""
+
+    def __init__(self, design_freeze, inputs, **settings):
+        self.paths = [Path(p) for p in inputs] + list(S2_TABLES)
+        self.hashes = {str(p): sha256(p) for p in self.paths}
+        self.prov = dict(code_commit=START_HEAD, code_dirty=START_DIRTY, code_sha256=START_CODE, design_freeze=design_freeze, inputs=self.hashes, settings=settings)
+        self._check_code()
+        key = json.dumps(dict(code=START_CODE, inputs=self.hashes, settings=settings, design_freeze=design_freeze), sort_keys=True, default=str)
+        self.prov["run_key"] = hashlib.sha256(key.encode()).hexdigest()
+
+    def _check_code(self):
+        if {f.name: sha256(f) for f in sorted(CODE_DIR.glob("s4_*.py"))} != START_CODE:
+            raise SystemExit("시작 뒤 코드가 바뀌었다.")
+
+    def check(self):
+        self._check_code()
+        for p in self.paths:
+            if sha256(p) != self.hashes[str(p)]:
+                raise SystemExit(f"시작 뒤 입력이 바뀌었다: {p}")
+
+    @property
+    def key(self):
+        return self.prov["run_key"]
 
 
 def load_split():
@@ -94,6 +115,13 @@ def final_roles():
     return dict(test=None, val=int(row.val_fold), train=[int(x) for x in str(row.train_folds).split(",")], dk=list(range(1, N_FOLDS + 1)))
 
 
+def finite(x, name):
+    """NaN과 Inf는 계산 실패다. 상수나 0으로 바꾸지 않고 멈춘다."""
+    if not np.isfinite(np.asarray(x, np.float64)).all():
+        raise ValueError(f"{name}: NaN 또는 Inf가 있다")
+    return x
+
+
 def check_dev(ids, split):
     extra = set(np.asarray(ids).tolist()) - set(split.video_id.tolist())
     if extra:
@@ -106,7 +134,7 @@ def load_rows(name, ids, split):
     a = np.load(FEATURES / f"{name}.npy", mmap_mode="r")
     if a.shape[0] != 2196:
         raise ValueError(f"{name}: 영상이 2,196개가 아니다")
-    return np.asarray(a[np.asarray(ids) - 1], np.float32)
+    return finite(np.asarray(a[np.asarray(ids) - 1], np.float32), name)
 
 
 def load_scores(split, kind):
@@ -114,13 +142,11 @@ def load_scores(split, kind):
     y = pd.read_csv(LABELS).set_index("stim_num_int")
     cols = pd.read_csv(LABEL_MAP, sep="\t").score_col.tolist() if kind == "emotions" else [f"{d}_score" for d in DIMENSIONS]
     out = y.loc[split.content_id.to_numpy(), cols].to_numpy(np.float32)
-    if not np.isfinite(out).all():
-        raise ValueError("정답에 결측이 있다")
-    return out, cols
+    return finite(out, "정답"), cols
 
 
 def fit_standardizer(x):
-    x = np.asarray(x, np.float64)  # 평균을 float32로 더하면 오차가 쌓인다
+    x = finite(np.asarray(x, np.float64), "표준화 입력")  # 평균을 float32로 더하면 오차가 쌓인다
     m, s = x.mean(0), x.std(0)
     if (s <= 0).any():
         raise ValueError("표준편차가 0인 차원이 있다")
@@ -150,13 +176,13 @@ def zone_sets(split, block, k, kind, blocks=None, control=None):
     return sorted(tr + va), test
 
 
-def done_or_new(path, code):
-    """끝난 결과는 같은 코드일 때만 건너뛴다. 다른 코드의 결과와 섞지 않고 멈춘다."""
+def done_or_new(path, run_key):
+    """끝난 결과는 코드, 입력, 분할, 설정이 모두 같을 때만 건너뛴다. 다르면 섞지 않고 멈춘다."""
     d = Path(path) / "done.json"
     if not d.exists():
         return False
-    if json.loads(d.read_text()).get("code_sha256") != code:
-        raise SystemExit(f"{path}: 다른 코드로 만든 결과가 있다. 지우고 다시 돌려야 한다.")
+    if json.loads(d.read_text()).get("run_key") != run_key:
+        raise SystemExit(f"{path}: 코드, 입력, 분할 또는 설정이 다른 결과가 있다. 지우고 다시 돌려야 한다.")
     return True
 
 

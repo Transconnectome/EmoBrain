@@ -10,6 +10,8 @@
 """
 import argparse
 import json
+import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -30,7 +32,10 @@ def ridge_paths(xtr, ytr, xte, lambdas=LAMBDAS):
     out = []
     for lam in lambdas:
         out.append(ym + xv @ ((s / (s**2 + lam))[:, None] * uty))
-    return torch.stack(out)
+    out = torch.stack(out)
+    if not torch.isfinite(out).all():
+        raise ValueError("ridge 예측에 NaN 또는 Inf가 있다")
+    return out
 
 
 def r2_columns(y, p):
@@ -47,14 +52,24 @@ def r_columns(y, p):
     return torch.where((yc**2).sum(0) > 0, r, torch.full_like(r, float("nan")))
 
 
-def d12(split, device, out, prov):
+def pred_dir(out):
+    """D12의 block별 시험 예측을 모으는 임시 폴더. 다시 시작하면 처음부터 쓴다."""
+    p = Path(str(out) + "_predictions_tmp")
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
+
+def d12(split, device, out, run):
     ids, folds = split.video_id.to_numpy(), split.fold.to_numpy()
     blocks = np.load(c.FEATURES / "vjepa2/blocks.npy", mmap_mode="r")
     c.check_dev(ids, split)
+    if blocks.shape[0] != 2196:
+        raise ValueError("blocks: 영상이 2,196개가 아니다")
     targets = dict(caption=c.load_rows(c.CAPTION_TARGET, ids, split), lowlevel=c.load_rows(c.LOWLEVEL, ids, split))
-    rows, per_dim = [], {}
+    run.check()
+    rows, per_dim, preds = [], {}, {}
     for b in BLOCKS:
-        x = torch.as_tensor(np.asarray(blocks[ids - 1, b], np.float64), device=device)
+        x = torch.as_tensor(c.finite(np.asarray(blocks[ids - 1, b], np.float64), f"block {b + 1}"), device=device)
         for name, yy in targets.items():
             y = torch.as_tensor(yy.astype(np.float64), device=device)
             pred = torch.zeros_like(y)
@@ -71,11 +86,15 @@ def d12(split, device, out, prov):
             r2 = r2_columns(y, pred).cpu().numpy()
             rows.append(dict(block=b + 1, target=name, mean_r2=float(np.nanmean(r2)), median_r2=float(np.nanmedian(r2)), n_lambda_at_ends=sum(v in (0, len(LAMBDAS) - 1) for v in picks.values()), lambda_index=",".join(str(picks[k]) for k in ks)))
             per_dim[f"block{b + 1}_{name}"] = r2.astype(np.float32)
+            preds[name] = pred.cpu().numpy().astype(np.float32)
+        np.savez(pred_dir(out) / f"block{b + 1:02d}.npz", video_id=ids, **preds)
         print("block", b + 1, flush=True)
     with c.Atomic(out) as tmp:
         pd.DataFrame(rows).to_csv(tmp / "d12.tsv", sep="\t", index=False, float_format="%.6g")
         np.savez(tmp / "d12_r2_per_dimension.npz", **per_dim)
-        json.dump(prov, open(tmp / "done.json", "w"), indent=1)
+        os.rename(pred_dir(out), tmp / "predictions")
+        run.check()
+        json.dump(run.prov, open(tmp / "done.json", "w"), indent=1)
 
 
 def _one_fold_d12(x, zy, folds, k, device):
@@ -88,14 +107,17 @@ def _one_fold_d12(x, zy, folds, k, device):
         tr, va = dk & (folds != j), folds == j
         paths = ridge_paths(z[tr], zy[tr], z[va])
         scores.append(torch.stack([r2_columns(zy[va], p).nanmean() for p in paths]))
-    pick = int(torch.stack(scores).mean(0).argmax())
+    s = torch.stack(scores).mean(0)
+    if not torch.isfinite(s).all():
+        raise ValueError("D12의 선택 점수를 낼 수 없다")
+    pick = int(s.argmax())
     return ridge_paths(z[dk], zy[dk], z[folds == k], [LAMBDAS[pick]])[0], pick
 
 
 def emotion_ridge(x, y, folds, device):
     """정서 ridge 문헌판의 규칙(O18). 정서마다 λ를 고른다. 돌려주는 값: 시험 예측, fold마다 고른 λ 번호."""
-    xt = torch.as_tensor(x.astype(np.float64), device=device)
-    yt = torch.as_tensor(y.astype(np.float64), device=device)
+    xt = torch.as_tensor(c.finite(x, "ridge 입력").astype(np.float64), device=device)
+    yt = torch.as_tensor(c.finite(y, "ridge 정답").astype(np.float64), device=device)
     n, q = yt.shape
     pred = torch.zeros((n, q), dtype=torch.float64, device=device)
     chosen = {}
@@ -108,27 +130,40 @@ def emotion_ridge(x, y, folds, device):
             tr, va = dk & (folds != j), folds == j
             paths = ridge_paths(z[tr], yt[tr], z[va])
             scores.append(torch.stack([r_columns(yt[va], p) for p in paths]))
-        pick = torch.stack(scores).nanmean(0).argmax(0)  # λ 앞쪽이 먼저 잡힌다
+        s = torch.stack(scores).nanmean(0)  # y가 상수인 겹은 계산 불가라 빠진다
+        if s.isnan().any():
+            raise ValueError("어떤 정서의 정답이 모든 안쪽 겹에서 상수라 λ를 고를 수 없다")
+        pick = s.argmax(0)  # λ 앞쪽이 먼저 잡힌다
         paths = ridge_paths(z[dk], yt[dk], z[folds == k])
         pred[folds == k] = paths.gather(0, pick[None, None, :].expand(1, int((folds == k).sum()), q))[0]
         chosen[k] = pick.cpu().numpy()
     return pred.cpu().numpy(), chosen
 
 
-def noemo(split, device, out, prov):
+def noemo(split, device, out, run):
     ids, folds = split.video_id.to_numpy(), split.fold.to_numpy()
     y, cols = c.load_scores(split, "emotions")
+    run.check()
     rows, preds = [], dict(video_id=ids)
     for name, feat in (("original", c.CAPTION_TARGET), ("no_emotion_words", c.CAPTION_NO_EMOTION)):
         pred, chosen = emotion_ridge(c.load_rows(feat, ids, split), y, folds, device)
         preds[name] = pred.astype(np.float32)
+        for k, v in chosen.items():
+            preds[f"{name}_lambda_index_fold{k}"] = v
         r = c.pearson(y, pred)
         ends = np.mean([np.isin(v, [0, len(LAMBDAS) - 1]) for v in chosen.values()], 0)
         rows += [dict(caption=name, emotion=e, r=float(ri), frac_lambda_at_ends=float(f)) for e, ri, f in zip(cols, r, ends)]
     with c.Atomic(out) as tmp:
         pd.DataFrame(rows).to_csv(tmp / "noemo_ridge.tsv", sep="\t", index=False, float_format="%.6g")
         np.savez(tmp / "noemo_ridge_pred.npz", **preds)
-        json.dump(prov, open(tmp / "done.json", "w"), indent=1)
+        run.check()
+        json.dump(run.prov, open(tmp / "done.json", "w"), indent=1)
+
+
+def input_paths(task):
+    if task == "d12":
+        return [c.FEATURES / "vjepa2/blocks.npy", c.FEATURES / f"{c.CAPTION_TARGET}.npy", c.FEATURES / f"{c.LOWLEVEL}.npy"]
+    return [c.FEATURES / f"{c.CAPTION_TARGET}.npy", c.FEATURES / f"{c.CAPTION_NO_EMOTION}.npy", c.LABELS]
 
 
 def main():
@@ -138,13 +173,13 @@ def main():
     ap.add_argument("--device", default="cuda")
     a = ap.parse_args()
     c.guard(a.design_freeze)
-    split = c.load_split()
     out = c.OUT / f"ridge_{a.task}"
-    prov = c.provenance(a.design_freeze, task=a.task, lambdas=LAMBDAS.tolist())
-    if c.done_or_new(out, prov["code_sha256"]):
+    run = c.Run(a.design_freeze, input_paths(a.task), task=a.task, lambdas=LAMBDAS.tolist())
+    if c.done_or_new(out, run.key):
         print("건너뜀", out)
         return
-    (d12 if a.task == "d12" else noemo)(split, a.device, out, prov)
+    split = c.load_split()
+    (d12 if a.task == "d12" else noemo)(split, a.device, out, run)
 
 
 if __name__ == "__main__":

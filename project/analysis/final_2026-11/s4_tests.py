@@ -26,6 +26,14 @@ def check(name, ok):
     print("통과" if ok else "실패", name, flush=True)
 
 
+def stops(f, errors=(SystemExit, ValueError)):
+    try:
+        f()
+    except errors:
+        return True
+    return False
+
+
 def synth(n=120, dv=12, dc=8, q=3, seed=1, dims=False):
     g = np.random.default_rng(seed)
     v, cap = g.normal(size=(n, dv)).astype(np.float32), g.normal(size=(n, dc)).astype(np.float32)
@@ -237,14 +245,9 @@ def t_boundaries():
             pass
         check("도중에 실패하면 결과 폴더가 남지 않는다", not p.exists() and not list(Path(t).iterdir()))
         with c.Atomic(p) as tmp:
-            (tmp / "done.json").write_text(json.dumps(dict(code_sha256=dict(a="1"))))
-        check("같은 코드의 결과는 건너뛴다", c.done_or_new(p, dict(a="1")))
-        stopped = False
-        try:
-            c.done_or_new(p, dict(a="2"))
-        except SystemExit:
-            stopped = True
-        check("다른 코드의 결과가 있으면 멈춘다", stopped)
+            (tmp / "done.json").write_text(json.dumps(dict(run_key="a")))
+        check("같은 실행의 결과는 건너뛴다", c.done_or_new(p, "a"))
+        check("다른 실행의 결과가 있으면 멈춘다", stops(lambda: c.done_or_new(p, "b")))
     raised = False
     try:
         c.fit_standardizer(np.ones((5, 2)))
@@ -320,42 +323,159 @@ def t_window():
     check("목표 block 네 개마다 값을 낸다", sorted(t.block) == [10, 20, 30, 40] and (t.other_video > 0).all())
 
 
+def _small_results(out):
+    split = pd.DataFrame(dict(video_id=np.arange(1, 121), content_id=np.arange(1, 121), fold=np.arange(120) % 6 + 1))
+    d, dd = synth(), synth(dims=True)
+    run = c.Run(None, [])
+    k1 = fm.Spec(kind="dimensions", max_epochs=2, batch=16, candidates=((0, 1e-3), (2, 1e-3)))
+    for t_ in fm.enumerate_tasks("tvs"):
+        fm.run_one(t_, FAST, d, split, "cpu", out / "tvs" / t_["name"], run)
+    for t_ in fm.enumerate_tasks("k1a"):
+        fm.run_one(t_, k1, dd, split, "cpu", out / "k1a" / t_["name"], run)
+    return split, d, run
+
+
 def t_end_to_end():
     with tempfile.TemporaryDirectory() as t:
         out = Path(t)
-        split = pd.DataFrame(dict(video_id=np.arange(1, 121), content_id=np.arange(1, 121), fold=np.arange(120) % 6 + 1))
-        d = synth()
-        dd = synth(dims=True)
-        prov = dict(code_sha256=dict(a="1"), code_commit="x")
-        k1 = fm.Spec(kind="dimensions", max_epochs=2, batch=16, candidates=((0, 1e-3), (2, 1e-3)))
-        for t_ in fm.enumerate_tasks("tvs"):
-            fm.run_one(t_, FAST, d, split, "cpu", out / "tvs" / t_["name"], prov)
-        for t_ in fm.enumerate_tasks("k1a"):
-            fm.run_one(t_, k1, dd, split, "cpu", out / "k1a" / t_["name"], prov)
-        col.check_folds(split, out)
+        split, d, run = _small_results(out)
+        tasks = ("tvs", "k1a")
+        col.check_folds(split, out, tasks)
         sel = col.selection_table(out)
         check("fold별 epoch, r, weight decay의 표가 있다", len(sel) == 6 * (4 + 2) and {"r", "weight_decay", "epochs"} <= set(sel.columns))
-        r, n = col.pooled(out, "tvs", [f"fold{k}" for k in range(1, 7)], d.y, d.ids, "p")
+        folds = col.expected_tests(split, "tvs")
+        r, n = col.pooled(out, "tvs", folds, d.y, d.ids, "p")
         check("fold를 모으면 모든 영상의 예측이 쓰인다", n == 120 and len(r) == 3)
-        np.savez(out / "tvs" / "fold1" / "test_pred.npz", video_id=np.array([2]), logit=np.zeros((1, 3)), p=np.zeros((1, 3)))
-        stopped = False
-        try:
-            col.check_folds(split, out)
-        except SystemExit:
-            stopped = True
-        check("시험 예측이 시험 fold 밖이면 점검이 멈춘다", stopped)
+        f1 = out / "tvs" / "fold1" / "test_pred.npz"
+        ok = dict(np.load(f1))
+        ok_ids = ok["video_id"]
+        def damaged(**kw):
+            np.savez(f1, **dict(ok, **kw))
+        damaged(video_id=np.array([2]), logit=np.zeros((1, 3)), p=np.zeros((1, 3)))
+        check("시험 예측이 시험 fold 밖이면 점검이 멈춘다", stops(lambda: col.check_folds(split, out, tasks)))
+        damaged(video_id=ok_ids[:-1], logit=ok["logit"][:-1], p=ok["p"][:-1])
+        check("시험 영상이 빠지면 점검이 멈춘다(Codex 3)", stops(lambda: col.check_folds(split, out, tasks)))
+        check("시험 영상이 빠지면 r도 내지 않는다(Codex 3)", stops(lambda: col.pooled(out, "tvs", folds, d.y, d.ids, "p")))
+        two = np.r_[ok_ids, ok_ids[:1]]
+        damaged(video_id=two, logit=np.r_[ok["logit"], ok["logit"][:1]], p=np.r_[ok["p"], ok["p"][:1]])
+        check("같은 영상이 두 번 있으면 점검이 멈춘다(Codex 3)", stops(lambda: col.check_folds(split, out, tasks)))
+        damaged(p=ok["p"][:-1])
+        check("값의 행 수가 영상 수와 다르면 멈춘다(Codex 3)", stops(lambda: col.check_folds(split, out, tasks)))
+        bad = ok["p"].copy()
+        bad[0, 0] = np.nan
+        damaged(p=bad)
+        check("시험 예측에 NaN이 있으면 멈춘다(Codex 2)", stops(lambda: col.check_folds(split, out, tasks)))
+        np.savez(f1, **ok)
+        f2 = out / "tvs" / "fold1" / "oof.npz"
+        oo = dict(np.load(f2))
+        for key, val in (("p_raw", np.nan), ("logit", np.inf)):
+            x = oo[key].copy()
+            x[0, 0] = val
+            np.savez(f2, **dict(oo, **{key: x}))
+            check(f"OOF의 {key}가 깨지면 멈춘다(Codex 2)", stops(lambda: col.check_folds(split, out, tasks)))
+        np.savez(f2, **oo)
+        col.check_folds(split, out, tasks)
         np.savez(out / "k1a" / "fold2" / "coordinates.npz", **{k: v + 1 for k, v in np.load(out / "tvs" / "fold2" / "coordinates.npz").items()})
-        np.savez(out / "tvs" / "fold1" / "test_pred.npz", video_id=split.video_id[split.fold == 1].to_numpy(), logit=np.zeros((20, 3)), p=np.zeros((20, 3)))
-        stopped = False
+        check("K1a 좌표가 K1 head와 다르면 점검이 멈춘다", stops(lambda: col.check_folds(split, out, tasks)))
+        names = [f"tvs/fold{k}" for k in range(1, 7)]
+        col.check_runs(out, names)
+        dn = out / "tvs" / "fold3" / "done.json"
+        j = json.loads(dn.read_text())
+        j2 = json.loads(json.dumps(j))
+        key = next(iter(j2["inputs"]))
+        j2["inputs"][key] = "다른 해시"
+        dn.write_text(json.dumps(j2))
+        check("입력 내용이 다른 결과가 섞이면 멈춘다(Codex 1)", stops(lambda: col.check_runs(out, names)))
+        j2 = dict(j, design_freeze="abc")
+        dn.write_text(json.dumps(j2))
+        check("동결 커밋이 다른 결과가 섞이면 멈춘다", stops(lambda: col.check_runs(out, names)))
+        dn.write_text(json.dumps(j))
+        check("지금 파일이 결과를 만들 때와 다르면 멈춘다", stops(lambda: col.check_runs(out, names, current=lambda p: "다른 해시")))
+    blocks = pd.DataFrame(dict(video_id=[1, 2, 7, 13], block=[1, 1, 2, 1]))
+    split = pd.DataFrame(dict(video_id=np.arange(1, 121), fold=np.arange(120) % 6 + 1))
+    z = col.expected_tests(split, "zone", blocks)
+    check("구역 시험의 기대 목록은 그 구역과 그 fold의 영상이다", z["block1_fold1_excluded"] == [1, 13] and z["block1_fold1_control"] == [1, 13] and z["block2_fold1_excluded"] == [7] and z["block1_fold2_excluded"] == [2])
+
+
+def t_inputs():
+    """Codex 1. 입력이 바뀌면 재사용하지 않고, 계산 중 바뀌면 저장하지 않는다."""
+    with tempfile.TemporaryDirectory() as t:
+        out = Path(t)
+        f = out / "feature.npy"
+        np.save(f, np.zeros(3))
+        split = pd.DataFrame(dict(video_id=np.arange(1, 121), content_id=np.arange(1, 121), fold=np.arange(120) % 6 + 1))
+        d = synth()
+        run = c.Run(None, [f], task="tvs")
+        task = fm.enumerate_tasks("tvs")[0]
+        fm.run_one(task, FAST, d, split, "cpu", out / "r", run)
+        before = dict(np.load(out / "r" / "test_pred.npz"))
+        fm.run_one(task, FAST, d, split, "cpu", out / "r", run)
+        check("같은 입력이면 끝난 결과를 건너뛴다", same(before, np.load(out / "r" / "test_pred.npz")))
+        np.save(f, np.ones(3))
+        run2 = c.Run(None, [f], task="tvs")
+        check("입력 내용이 다르면 실행 번호가 다르다", run.key != run2.key)
+        check("입력이 바뀐 뒤 같은 폴더로 돌리면 옛 결과를 쓰지 않고 멈춘다(Codex 1)", stops(lambda: fm.run_one(task, FAST, d, split, "cpu", out / "r", run2)))
+        check("설정이 다르면 실행 번호가 다르다", c.Run(None, [f], task="tvs").key != c.Run(None, [f], task="k1a").key)
+        check("동결 커밋이 다르면 실행 번호가 다르다", c.Run("a", [f]).key != c.Run("b", [f]).key)
+        run3 = c.Run(None, [f], task="tvs")
+        np.save(f, np.zeros(3))
+        check("읽은 뒤 입력이 바뀌면 멈춘다(Codex 1)", stops(run3.check))
+        orig = fm.task_tvs
+        run4 = c.Run(None, [f], task="tvs")
+        def change_during(*a):
+            np.save(f, np.full(3, 7.0))
+            return orig(*a)
+        fm.task_tvs = change_during
         try:
-            col.check_folds(split, out)
-        except SystemExit:
-            stopped = True
-        check("K1a 좌표가 K1 head와 다르면 점검이 멈춘다", stopped)
+            check("계산 중 입력이 바뀌면 저장하지 않는다(Codex 1)", stops(lambda: fm.run_one(task, FAST, d, split, "cpu", out / "s", run4)) and not (out / "s").exists())
+        finally:
+            fm.task_tvs = orig
+        check("실행 번호에 S2 표가 들어간다", all(str(p) in c.Run(None, []).hashes for p in c.S2_TABLES))
+    check("특징 모델의 입력 목록이 과제와 맞다", "deberta_no_emotion_words" in str(fm.input_paths("noemo")[1]) and "deberta/target" in str(fm.input_paths("tvs")[1]) and c.LABELS in fm.input_paths("k1a"))
+    check("ridge의 입력 목록이 과제와 맞다", c.LABELS not in rg.input_paths("d12") and c.LABELS in rg.input_paths("noemo"))
+
+
+def t_nonfinite():
+    """Codex 2. 계산 실패를 정상 값으로 바꾸지 않는다."""
+    y = torch.tensor([[0.0], [1.0], [2.0]])
+    keep = y.amax(0) > y.amin(0)
+    check("NaN 예측은 선택 점수 0이 아니라 오류다", stops(lambda: fm._r_selection(torch.full((3, 1), float("nan")), y, keep)))
+    check("정답이 모두 상수이면 점수를 내지 않는다", stops(lambda: fm._r_selection(torch.ones((3, 1)), torch.ones((3, 1)), torch.tensor([False]))))
+    t = pd.DataFrame([(0, 1e-3, 5, np.nan), (2, 1e-3, 5, 0.8)], columns=["r", "weight_decay", "epochs", "val_r"])
+    check("점수가 NaN인 후보가 있으면 첫 후보를 고르지 않고 멈춘다", stops(lambda: fm.choose(t)))
+    check("표준화 입력의 NaN은 통과시키지 않는다", stops(lambda: c.fit_standardizer(np.array([[1.0], [np.nan]]))))
+    d = synth()
+    d.cap[3, 1] = np.nan
+    with tempfile.TemporaryDirectory() as tmp:
+        out = Path(tmp)
+        check("특징에 NaN이 있으면 완료로 저장하지 않는다", stops(lambda: fm.run_one(fm.enumerate_tasks("noemo")[0], FAST, d, pd.DataFrame(dict(video_id=d.ids)), "cpu", out / "x", c.Run(None, []))) and not (out / "x").exists())
+    d = synth()
+    d.v[d.mask([1])] = np.inf
+    coord = fm.Coordinates(d.v[~d.mask([1])], d.cap[~d.mask([1])])
+    check("시험 fold 입력의 Inf도 통과시키지 않는다", stops(lambda: coord.tensors(d.v, d.cap, d.y, "cpu")))
+    x = torch.ones((4, 2), dtype=torch.float64)
+    x[0, 0] = float("nan")
+    check("ridge 입력의 NaN이 조용히 넘어가지 않는다", stops(lambda: rg.ridge_paths(x, torch.ones((4, 1), dtype=torch.float64), torch.ones((1, 2), dtype=torch.float64), [1.0]), errors=(ValueError, RuntimeError, torch.linalg.LinAlgError)))
+    n = 60
+    folds = np.arange(n) % 6 + 1
+    X, Y = np.random.default_rng(0).normal(size=(n, 4)).astype(np.float32), np.ones((n, 2), np.float32)
+    check("정답이 모든 겹에서 상수인 정서는 λ를 고르지 않고 멈춘다", stops(lambda: rg.emotion_ridge(X, Y, folds, "cpu")))
+    X2 = X.copy()
+    X2[0, 0] = np.nan
+    check("정서 ridge 입력의 NaN은 통과시키지 않는다", stops(lambda: rg.emotion_ridge(X2, np.random.default_rng(1).random((n, 2)).astype(np.float32), folds, "cpu")))
+
+
+def t_window_zero():
+    """Codex 보완 2. 영벡터는 계산 불가로 세고 값을 만들지 않는다."""
+    blocks = np.tile(np.array([-1.0, 0.0, 1.0])[:, None, None], (1, 40, 4))
+    per = np.stack([-np.ones((40, 4)), np.ones((40, 4))])
+    t = wc.compute({2: per}, blocks, np.arange(1, 4))
+    s = wc.summarize(t)
+    check("영벡터인 영상은 계산 불가로 센다", t.ratio.isna().all() and (s.n_not_computable == 1).all() and (s.n_valid == 0).all())
 
 
 def main():
-    for f in (t_model, t_candidates, t_r_selection, t_search_rule, t_reproducible, t_leak, t_chosen_epoch_used, t_k1a, t_zones, t_task_counts, t_boundaries, t_scores_mapping, t_ridge, t_window, t_end_to_end):
+    for f in (t_model, t_candidates, t_r_selection, t_search_rule, t_reproducible, t_leak, t_chosen_epoch_used, t_k1a, t_zones, t_task_counts, t_boundaries, t_scores_mapping, t_ridge, t_window, t_inputs, t_nonfinite, t_window_zero, t_end_to_end):
         f()
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)

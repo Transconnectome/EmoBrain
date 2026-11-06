@@ -74,6 +74,10 @@ class Spec:
 
 def _r_selection(pred, y, keep):
     """선택 계산용 출력별 r. keep은 y가 상수가 아닌 출력이다. 예측이 상수이면 0으로 센다(O6)."""
+    if not torch.isfinite(pred).all():
+        raise ValueError("예측에 NaN 또는 Inf가 있다. 상수 예측이 아니라 계산 실패다")
+    if not keep.any():
+        raise ValueError("검증 자료의 정답이 모두 상수라 선택 점수를 낼 수 없다")
     p, t = pred[:, keep] - pred[:, keep].mean(0), y[:, keep] - y[:, keep].mean(0)
     den = torch.sqrt((p**2).sum(0) * (t**2).sum(0))
     r = torch.where(den > 0, (p * t).sum(0) / den.clamp_min(1e-30), torch.zeros_like(den))
@@ -102,10 +106,14 @@ def train(spec, r, wd, tr, va=None, keep_preds=False, epochs=None, device="cpu")
             model.eval()
             with torch.no_grad():
                 out = model(va[0], va[1])
+                if not torch.isfinite(out).all():
+                    raise ValueError("검증 출력에 NaN 또는 Inf가 있다")
                 curve.append(spec.loss(out, va[2]).item())
                 score.append(_r_selection(spec.predict(out), va[2], keep).item())
                 if keep_preds:
                     preds.append(out.cpu().numpy().astype(np.float32))
+    if not all(torch.isfinite(x).all() for x in model.parameters()):
+        raise ValueError("가중치에 NaN 또는 Inf가 있다")
     return model, np.array(curve), np.array(score), (np.stack(preds) if keep_preds else None)
 
 
@@ -121,7 +129,7 @@ def search(spec, data, device, keep_preds=False):
             if keep_preds:
                 preds[(ci, j)] = p
         curves.append(np.stack(cu)), scores.append(np.stack(sc))
-    curves, scores = np.stack(curves), np.stack(scores)  # 후보 × 겹 × epoch
+    curves, scores = c.finite(np.stack(curves), "검증 손실"), c.finite(np.stack(scores), "선택 점수")  # 후보 × 겹 × epoch
     mean_curve = curves.mean(1)
     best = mean_curve.argmin(1)  # 같으면 앞선 epoch
     table = pd.DataFrame(spec.candidates, columns=["r", "weight_decay"])
@@ -134,6 +142,8 @@ def search(spec, data, device, keep_preds=False):
 def choose(table, ranks=None):
     """가장 큰 r 평균. 같으면 표의 앞쪽(작은 r, 작은 weight decay)이다(O6). ranks로 판을 나눈다(O17)."""
     t = table if ranks is None else table[table.r.isin(ranks)]
+    if t.empty or not np.isfinite(t.val_r.to_numpy()).all():
+        raise ValueError("유효한 선택 점수가 없다. 첫 후보로 넘어가지 않고 멈춘다")
     i = int(t.val_r.to_numpy().argmax())
     return t.iloc[i]
 
@@ -148,7 +158,7 @@ class Coordinates:
 
     def tensors(self, v, cap, y, device):
         yy = y if self.ym is None else (y - self.ym) / self.ys
-        return tuple(torch.as_tensor(x, dtype=torch.float32, device=device) for x in ((v - self.vm) / self.vs, (cap - self.cm) / self.cs, yy))
+        return tuple(torch.as_tensor(c.finite(x, "모델 입력"), dtype=torch.float32, device=device) for x in ((v - self.vm) / self.vs, (cap - self.cm) / self.cs, yy))
 
     def arrays(self):
         d = dict(visual_mean=self.vm, visual_std=self.vs, caption_mean=self.cm, caption_std=self.cs)
@@ -190,7 +200,7 @@ def predict(spec, model, d, coord, rows, device):
     model.eval()
     with torch.no_grad():
         out = model(vt, ct)
-        return out.cpu().numpy().astype(np.float32), spec.predict(out).cpu().numpy().astype(np.float32)
+        return c.finite(out.cpu().numpy().astype(np.float32), "시험 출력"), c.finite(spec.predict(out).cpu().numpy().astype(np.float32), "시험 예측")
 
 
 def nested_oof(spec, d, coord, rows, device):
@@ -296,15 +306,20 @@ def enumerate_tasks(task, split=None):
     raise SystemExit(task)
 
 
+def input_paths(task):
+    cap = c.CAPTION_NO_EMOTION if task == "noemo" else c.CAPTION_TARGET
+    return [c.FEATURES / f"{c.VISUAL_TARGET}.npy", c.FEATURES / f"{cap}.npy", c.LABELS]
+
+
 def load_data(task, split):
     ids = split.video_id.to_numpy()
     cap = c.CAPTION_NO_EMOTION if task == "noemo" else c.CAPTION_TARGET
     y, _ = c.load_scores(split, "dimensions" if task == "k1a" else "emotions")
-    return Data(ids, split.fold.to_numpy(), c.load_rows(c.VISUAL_TARGET, ids, split), c.load_rows(cap, ids, split), y), [c.FEATURES / f"{c.VISUAL_TARGET}.npy", c.FEATURES / f"{cap}.npy", c.LABELS]
+    return Data(ids, split.fold.to_numpy(), c.load_rows(c.VISUAL_TARGET, ids, split), c.load_rows(cap, ids, split), y)
 
 
-def run_one(t, spec, d, split, device, out, prov):
-    if c.done_or_new(out, prov["code_sha256"]):
+def run_one(t, spec, d, split, device, out, run):
+    if c.done_or_new(out, run.key):
         print("건너뜀", out, flush=True)
         return
     with c.Atomic(out) as tmp:
@@ -320,7 +335,8 @@ def run_one(t, spec, d, split, device, out, prov):
             extra = task_select_predict(spec, d, np.isin(d.ids, train_ids), np.isin(d.ids, test_ids), device, tmp)
         else:
             extra = task_hkfinal(spec, d, device, tmp)
-        json.dump(dict(prov, task=t, **extra), open(tmp / "done.json", "w"), indent=1)
+        run.check()  # 저장 전에 코드와 입력이 시작 때와 같은지 다시 본다
+        json.dump(dict(run.prov, task=t, **extra), open(tmp / "done.json", "w"), indent=1)
     print("저장", out, flush=True)
 
 
@@ -332,14 +348,15 @@ def main():
     ap.add_argument("--part", default="0/1", help="나눠 돌릴 때 i/n. 끝난 과제는 건너뛴다")
     a = ap.parse_args()
     c.guard(a.design_freeze)
-    split = c.load_split()
-    d, inputs = load_data(a.task, split)
     spec = Spec(kind="dimensions" if a.task == "k1a" else "emotions")
-    prov = c.provenance(a.design_freeze, inputs, task=a.task, lr=spec.lr, batch=spec.batch, max_epochs=spec.max_epochs, seed=spec.seed, torch=torch.__version__)
+    run = c.Run(a.design_freeze, input_paths(a.task), task=a.task, lr=spec.lr, batch=spec.batch, max_epochs=spec.max_epochs, seed=spec.seed, candidates=spec.candidates, torch=torch.__version__)  # 읽기 전에 해시를 낸다
+    split = c.load_split()
+    d = load_data(a.task, split)
+    run.check()  # 읽은 내용이 기록한 해시와 같음을 확인한다
     i, n = (int(x) for x in a.part.split("/"))
     tasks = enumerate_tasks(a.task, split)
     for t in tasks[i::n]:
-        run_one(t, spec, d, split, a.device, c.OUT / a.task / t["name"], prov)
+        run_one(t, spec, d, split, a.device, c.OUT / a.task / t["name"], run)
 
 
 if __name__ == "__main__":
