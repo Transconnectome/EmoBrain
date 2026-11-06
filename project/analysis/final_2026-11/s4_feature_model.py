@@ -14,7 +14,6 @@
 - k1a: 14개 차원. 손실 MSE, sigmoid 없음, 정답은 D_k로 표준화. 더하기판과 상호작용판(K1a).
 - noemo: 정서어 제거 캡션으로 같은 T_VS 선택과 시험 예측(D8, SI).
 - zone: 구역 제외와 학습량 대조마다 그 학습 자료로 표준화와 선택을 다시 하고 구역 시험 영상을 예측(J3, 4-3).
-- hkfinal: 6-3의 HK 최종 모델용 OOF 출력(E4, O7). fold 2~6 안쪽 5겹.
 
 사용: s4_feature_model.py --task tvs --design-freeze <커밋> [--part 0/4] [--device cuda]
 """
@@ -35,7 +34,7 @@ import s4_common as c
 
 RANKS = (0, 1, 2, 4, 8)  # E2
 WEIGHT_DECAYS = (1e-4, 1e-3, 1e-2)  # E3
-LR, BATCH, MAX_EPOCHS, SEED = 1e-3, 64, 300, 0  # O16, G13
+LR, BATCH, MAX_EPOCHS, SEED = 1e-3, 64, c.MAX_EPOCHS, 0  # O16, G13
 CANDIDATES = [(r, wd) for r in RANKS for wd in WEIGHT_DECAYS]  # 이 순서가 O6의 동점 규칙이다
 torch.use_deterministic_algorithms(True)
 
@@ -84,13 +83,20 @@ def _r_selection(pred, y, keep):
     return r.mean()
 
 
+def make_optimizer(model, lr, wd):
+    """weight decay는 weight에만 적용하고 intercept(bias)에는 적용하지 않는다(O16, Goodfellow 외, 2016, 7.1절)."""
+    weights = [p for n, p in model.named_parameters() if not n.endswith("bias")]
+    biases = [p for n, p in model.named_parameters() if n.endswith("bias")]
+    return torch.optim.AdamW([dict(params=weights, weight_decay=wd), dict(params=biases, weight_decay=0.0)], lr=lr)
+
+
 def train(spec, r, wd, tr, va=None, keep_preds=False, epochs=None, device="cpu"):
     """tr, va: (v, c, y) 텐서. 돌려주는 값: 모델, epoch별 검증 손실, epoch별 r 평균, epoch별 검증 출력(원하면)."""
     torch.manual_seed(spec.seed)
     g = torch.Generator().manual_seed(spec.seed)
     v, cap, y = tr
     model = FeatureModel(v.shape[1], cap.shape[1], y.shape[1], r).to(device)
-    opt = torch.optim.AdamW(model.parameters(), lr=spec.lr, weight_decay=wd)
+    opt = make_optimizer(model, spec.lr, wd)
     n_epochs = epochs if epochs is not None else spec.max_epochs
     curve, score, preds = [], [], []
     keep = None if va is None else (va[2].amax(0) > va[2].amin(0))
@@ -285,22 +291,9 @@ def task_select_predict(spec, d, rows, test_rows, device, out):
     return {}
 
 
-def task_hkfinal(spec, d, device, out):
-    r = c.final_roles()
-    coord = Coordinates(d.v, d.cap)  # 개발 영상 전체. 바깥 시험 fold가 없다
-    oof, table, curve, row = nested_oof(spec, d, coord, d.mask(r["train"]), device)
-    np.savez(out / "oof.npz", **oof)
-    np.savez(out / "coordinates.npz", **coord.arrays())
-    table.to_csv(out / "selection_oof.tsv", sep="\t", index=False)
-    np.save(out / "curves_oof.npy", curve)
-    return dict(oof_chosen={x: float(row[x]) for x in ("r", "weight_decay", "epochs", "val_r")})
-
-
 def enumerate_tasks(task, split=None):
     if task in ("tvs", "k1a", "noemo"):
         return [dict(task=task, k=k, name=f"fold{k}") for k in range(1, c.N_FOLDS + 1)]
-    if task == "hkfinal":
-        return [dict(task=task, name="all")]
     if task == "zone":
         return [dict(task=task, block=b, k=k, kind=kind, name=f"block{b}_fold{k}_{kind}") for b in range(1, 6) for k in range(1, c.N_FOLDS + 1) for kind in ("excluded", "control")]
     raise SystemExit(task)
@@ -334,7 +327,7 @@ def run_one(t, spec, d, split, device, out, run):
             train_ids, test_ids = c.zone_sets(split, t["block"], t["k"], t["kind"])
             extra = task_select_predict(spec, d, np.isin(d.ids, train_ids), np.isin(d.ids, test_ids), device, tmp)
         else:
-            extra = task_hkfinal(spec, d, device, tmp)
+            raise ValueError(t["task"])
         run.check()  # 저장 전에 코드와 입력이 시작 때와 같은지 다시 본다
         json.dump(dict(run.prov, task=t, **extra), open(tmp / "done.json", "w"), indent=1)
     print("저장", out, flush=True)
@@ -342,7 +335,7 @@ def run_one(t, spec, d, split, device, out, run):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--task", required=True, choices=["tvs", "k1a", "noemo", "zone", "hkfinal"])
+    ap.add_argument("--task", required=True, choices=["tvs", "k1a", "noemo", "zone"])
     ap.add_argument("--design-freeze", default="")
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--part", default="0/1", help="나눠 돌릴 때 i/n. 끝난 과제는 건너뛴다")

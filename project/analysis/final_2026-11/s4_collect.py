@@ -120,7 +120,9 @@ def selection_table(out=None):
         rows.append(dict(model="T_VS", fold=k, version="nested_oof", **oof))
         for n, v in _load(out / "k1a" / f"fold{k}").items():
             rows.append(dict(model="K1a", fold=k, version=n, **v))
-    return pd.DataFrame(rows)
+    t = pd.DataFrame(rows)
+    t["at_cap"] = t.epochs >= c.MAX_EPOCHS  # 탐색 범위의 끝이 선택됐다는 뜻이다. 그 뒤로 좋아지는지는 확인하지 않았다
+    return t
 
 
 def pooled(out, task, expected, y, ids, key):

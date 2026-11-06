@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""S4 긴 영상의 창 사이 변화량 (04 S4, 01 3-2, 2026-11-06). 뇌와 정서를 쓰지 않는다. 결과로 평균 규칙을 바꾸지 않는다.
+"""S4 긴 영상의 window 사이 변화 (04 S4, 01 3-2, 2026-11-06). 뇌와 정서를 쓰지 않는다. 결과로 평균 규칙을 바꾸지 않는다. 정보 손실량으로 읽지 않는다.
 
-지표. 목표에 쓰는 V-JEPA 2 block 10, 20, 30, 40마다, 개발 영상의 평균과 표준편차로 표준화한 좌표에서 코사인 거리(1 − 코사인)를 쓴다.
-- within: 한 영상 안 창 쌍 사이 거리의 평균
-- to_mean: 각 창과 그 영상 평균 특징(실제 목표) 사이 거리의 평균
+지표. 목표에 쓰는 V-JEPA 2 block 10, 20, 30, 40마다, 개발 영상의 평균과 표준편차로 표준화한 좌표에서 cosine distance(1 − cosine similarity)를 쓴다.
+- within: 한 영상 안 window 쌍 사이 거리의 평균
+- to_mean: 각 window와 그 영상 평균 특징(실제 목표) 사이 거리의 평균
 - other_video: 그 영상 평균 특징과 무작위로 고른 다른 개발 영상 500개의 평균 특징 사이 거리의 중앙값(seed 20261106)
-- ratio: within / other_video. 창 사이 차이가 영상 사이 차이에 비해 얼마나 큰지 읽는다.
+- ratio: within / other_video. window 사이 차이가 영상 사이 차이에 비해 얼마나 큰지 읽는다.
 
-대상은 창으로 나뉜 개발 영상이다. MC 72개는 읽지 않는다. 사용: s4_window_change.py --design-freeze <커밋>
+대상은 window로 나뉜 개발 영상이다. MC 72개는 읽지 않는다. 사용: s4_window_change.py --design-freeze <커밋>
 """
 import argparse
 import json
@@ -29,14 +29,14 @@ def cosine_distance(a, b):
 
 
 def video_rows(per_window, mean_z, m, s, others):
-    """per_window: 창 × 차원(원래 척도). 표준화 뒤 지표를 돌려준다."""
+    """per_window: window × 차원(원래 척도). 표준화 뒤 지표를 돌려준다."""
     z = (per_window - m) / s
     i, j = np.triu_indices(len(z), 1)
     return dict(within=float(cosine_distance(z[i], z[j]).mean()), to_mean=float(cosine_distance(z, mean_z[None]).mean()), other_video=float(np.median(cosine_distance(mean_z[None], others))))
 
 
 def compute(windows, blocks, ids):
-    """windows: video_id -> 창 × 40 × 1408. blocks: split 순서의 영상 × 40 × 1408."""
+    """windows: video_id -> window × 40 × 1408. blocks: split 순서의 영상 × 40 × 1408."""
     rng = np.random.default_rng(SEED)
     rows = []
     for block, b in TARGET_BLOCKS.items():
@@ -47,7 +47,7 @@ def compute(windows, blocks, ids):
             pos = int(np.where(ids == v)[0][0])
             pool = np.delete(np.arange(len(ids)), pos)
             others = z[rng.choice(pool, size=min(500, len(pool)), replace=False)]
-            r = video_rows(c.finite(np.asarray(per[:, b], np.float64), f"영상 {v}의 창"), z[pos], m, s, others)
+            r = video_rows(c.finite(np.asarray(per[:, b], np.float64), f"영상 {v}의 window"), z[pos], m, s, others)
             with np.errstate(invalid="ignore", divide="ignore"):
                 ratio = r["within"] / r["other_video"]
             rows.append(dict(video_id=int(v), block=block, n_windows=len(per), ratio=ratio, **r))

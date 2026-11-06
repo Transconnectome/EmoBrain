@@ -56,6 +56,29 @@ def t_model():
     check("더하기판의 결합 지표는 0이다", i.abs().max() < 1e-5)
 
 
+def t_optimizer():
+    m = fm.FeatureModel(12, 8, 3, 2)
+    o = fm.make_optimizer(m, 1e-3, 0.5)
+    names = {id(p): n for n, p in m.named_parameters()}
+    wd = {names[id(p)]: g["weight_decay"] for g in o.param_groups for p in g["params"]}
+    check("weight decay는 weight에만 적용한다(O16)", wd["a.weight"] == 0.5 and wd["b.weight"] == 0.5 and wd["A.weight"] == 0.5 and wd["U.weight"] == 0.5)
+    check("intercept에는 weight decay를 적용하지 않는다(O16)", wd["a.bias"] == 0.0 and wd["b.bias"] == 0.0 and len(wd) == len(list(m.parameters())))
+    v, cap = torch.zeros(40, 12), torch.zeros(40, 8)
+    y = torch.full((40, 3), 0.1)
+    m1, *_ = fm.train(fm.Spec(max_epochs=200, batch=4), 0, 5.0, (v, cap, y))  # update 2,000회
+    p = torch.sigmoid(m1(v[:1], cap[:1]))
+    check("큰 weight decay에서도 intercept가 0.5 쪽으로 눌리지 않고 정답 비율로 간다", (p - 0.1).abs().max() < 0.03)
+
+
+def t_no_hkfinal():
+    raised = False
+    try:
+        fm.enumerate_tasks("hkfinal")
+    except SystemExit:
+        raised = True
+    check("6-3 전용 teacher 점수 과제가 없다(E4)", raised)
+
+
 def t_candidates():
     check("후보는 r 5개와 weight decay 3개이고 순서가 O6의 동점 규칙이다", fm.CANDIDATES[0] == (0, 1e-4) and fm.CANDIDATES[-1] == (8, 1e-2) and len(fm.CANDIDATES) == 15)
     t = pd.DataFrame(fm.CANDIDATES, columns=["r", "weight_decay"])
@@ -313,13 +336,13 @@ def t_ridge():
 def t_window():
     a = np.array([[1.0, 0.0]])
     b = np.array([[0.0, 1.0]])
-    check("코사인 거리: 직교 1, 같으면 0", abs(wc.cosine_distance(a, b)[0] - 1) < 1e-9 and abs(wc.cosine_distance(a, a)[0]) < 1e-9)
+    check("cosine distance: 직교 1, 같으면 0", abs(wc.cosine_distance(a, b)[0] - 1) < 1e-9 and abs(wc.cosine_distance(a, a)[0]) < 1e-9)
     g = np.random.default_rng(0)
     blocks = g.normal(size=(30, 40, 16))
     ids = np.arange(1, 31)
     win = np.stack([blocks[4], blocks[4]])
     t = wc.compute({5: win}, blocks, ids)
-    check("창이 모두 같으면 창 사이 거리는 0이다", (t.within.abs() < 1e-9).all())
+    check("window가 모두 같으면 window 사이 거리는 0이다", (t.within.abs() < 1e-9).all())
     check("목표 block 네 개마다 값을 낸다", sorted(t.block) == [10, 20, 30, 40] and (t.other_video > 0).all())
 
 
@@ -344,6 +367,7 @@ def t_end_to_end():
         col.check_folds(split, out, tasks, n_out=NOUT)
         sel = col.selection_table(out)
         check("fold별 epoch, r, weight decay의 표가 있다", len(sel) == 6 * (4 + 2) and {"r", "weight_decay", "epochs"} <= set(sel.columns))
+        check("고른 epoch가 상한인지 표에 적는다", "at_cap" in sel.columns and not sel.at_cap.any())
         folds = col.expected_tests(split, "tvs")
         r, n = col.pooled(out, "tvs", folds, d.y, d.ids, "p")
         check("fold를 모으면 모든 영상의 예측이 쓰인다", n == 120 and len(r) == 3)
@@ -503,7 +527,7 @@ def t_window_zero():
 
 
 def main():
-    for f in (t_model, t_candidates, t_r_selection, t_search_rule, t_reproducible, t_leak, t_chosen_epoch_used, t_k1a, t_zones, t_task_counts, t_boundaries, t_scores_mapping, t_ridge, t_window, t_inputs, t_nonfinite, t_window_zero, t_end_to_end):
+    for f in (t_model, t_optimizer, t_no_hkfinal, t_candidates, t_r_selection, t_search_rule, t_reproducible, t_leak, t_chosen_epoch_used, t_k1a, t_zones, t_task_counts, t_boundaries, t_scores_mapping, t_ridge, t_window, t_inputs, t_nonfinite, t_window_zero, t_end_to_end):
         f()
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)

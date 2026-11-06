@@ -30,6 +30,7 @@ DIMENSIONS = ["arousal", "dominance", "valence", "approach", "attention", "certa
 VISUAL_TARGET, CAPTION_TARGET, CAPTION_NO_EMOTION = "vjepa2/target", "deberta/target", "deberta_no_emotion_words/target"
 LOWLEVEL = "lowlevel/lowlevel"
 N_FOLDS = 6
+MAX_EPOCHS = 300  # O16
 S2_TABLES = [S2 / "split_hk_dev.tsv", S2 / "fold_roles.tsv", S2 / "content_blocks_assignment.tsv", S2 / "content_block_control_samples.tsv", LABEL_MAP]
 
 
