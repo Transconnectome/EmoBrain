@@ -68,7 +68,7 @@ def main():
     a = ap.parse_args()
     c.guard(a.design_freeze)
     out = c.OUT / "window_change"
-    run = c.Run(a.design_freeze, [c.FEATURES / "vjepa2/windows_per_video.npz", c.FEATURES / "vjepa2/blocks.npy"], seed=SEED)
+    run = c.Run(a.design_freeze, {"vjepa2_windows": c.FEATURES / "vjepa2/windows_per_video.npz", "vjepa2_blocks": c.FEATURES / "vjepa2/blocks.npy"}, seed=SEED)
     if c.done_or_new(out, run.key):
         return
     split = c.load_split()

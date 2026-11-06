@@ -326,7 +326,7 @@ def t_window():
 def _small_results(out):
     split = pd.DataFrame(dict(video_id=np.arange(1, 121), content_id=np.arange(1, 121), fold=np.arange(120) % 6 + 1))
     d, dd = synth(), synth(dims=True)
-    run = c.Run(None, [])
+    run = c.Run(None, {})
     k1 = fm.Spec(kind="dimensions", max_epochs=2, batch=16, candidates=((0, 1e-3), (2, 1e-3)))
     for t_ in fm.enumerate_tasks("tvs"):
         fm.run_one(t_, FAST, d, split, "cpu", out / "tvs" / t_["name"], run)
@@ -340,7 +340,8 @@ def t_end_to_end():
         out = Path(t)
         split, d, run = _small_results(out)
         tasks = ("tvs", "k1a")
-        col.check_folds(split, out, tasks)
+        NOUT = dict(tvs=3, k1a=3)
+        col.check_folds(split, out, tasks, n_out=NOUT)
         sel = col.selection_table(out)
         check("fold별 epoch, r, weight decay의 표가 있다", len(sel) == 6 * (4 + 2) and {"r", "weight_decay", "epochs"} <= set(sel.columns))
         folds = col.expected_tests(split, "tvs")
@@ -352,19 +353,19 @@ def t_end_to_end():
         def damaged(**kw):
             np.savez(f1, **dict(ok, **kw))
         damaged(video_id=np.array([2]), logit=np.zeros((1, 3)), p=np.zeros((1, 3)))
-        check("시험 예측이 시험 fold 밖이면 점검이 멈춘다", stops(lambda: col.check_folds(split, out, tasks)))
+        check("시험 예측이 시험 fold 밖이면 점검이 멈춘다", stops(lambda: col.check_folds(split, out, tasks, n_out=NOUT)))
         damaged(video_id=ok_ids[:-1], logit=ok["logit"][:-1], p=ok["p"][:-1])
-        check("시험 영상이 빠지면 점검이 멈춘다(Codex 3)", stops(lambda: col.check_folds(split, out, tasks)))
+        check("시험 영상이 빠지면 점검이 멈춘다(Codex 3)", stops(lambda: col.check_folds(split, out, tasks, n_out=NOUT)))
         check("시험 영상이 빠지면 r도 내지 않는다(Codex 3)", stops(lambda: col.pooled(out, "tvs", folds, d.y, d.ids, "p")))
         two = np.r_[ok_ids, ok_ids[:1]]
         damaged(video_id=two, logit=np.r_[ok["logit"], ok["logit"][:1]], p=np.r_[ok["p"], ok["p"][:1]])
-        check("같은 영상이 두 번 있으면 점검이 멈춘다(Codex 3)", stops(lambda: col.check_folds(split, out, tasks)))
+        check("같은 영상이 두 번 있으면 점검이 멈춘다(Codex 3)", stops(lambda: col.check_folds(split, out, tasks, n_out=NOUT)))
         damaged(p=ok["p"][:-1])
-        check("값의 행 수가 영상 수와 다르면 멈춘다(Codex 3)", stops(lambda: col.check_folds(split, out, tasks)))
+        check("값의 행 수가 영상 수와 다르면 멈춘다(Codex 3)", stops(lambda: col.check_folds(split, out, tasks, n_out=NOUT)))
         bad = ok["p"].copy()
         bad[0, 0] = np.nan
         damaged(p=bad)
-        check("시험 예측에 NaN이 있으면 멈춘다(Codex 2)", stops(lambda: col.check_folds(split, out, tasks)))
+        check("시험 예측에 NaN이 있으면 멈춘다(Codex 2)", stops(lambda: col.check_folds(split, out, tasks, n_out=NOUT)))
         np.savez(f1, **ok)
         f2 = out / "tvs" / "fold1" / "oof.npz"
         oo = dict(np.load(f2))
@@ -372,11 +373,18 @@ def t_end_to_end():
             x = oo[key].copy()
             x[0, 0] = val
             np.savez(f2, **dict(oo, **{key: x}))
-            check(f"OOF의 {key}가 깨지면 멈춘다(Codex 2)", stops(lambda: col.check_folds(split, out, tasks)))
+            check(f"OOF의 {key}가 깨지면 멈춘다(Codex 2)", stops(lambda: col.check_folds(split, out, tasks, n_out=NOUT)))
         np.savez(f2, **oo)
-        col.check_folds(split, out, tasks)
+        col.check_folds(split, out, tasks, n_out=NOUT)
+        damaged(p=ok["p"][:, :1])
+        check("출력 열 수가 다르면 점검이 멈춘다(Codex 보완)", stops(lambda: col.check_folds(split, out, tasks, n_out=NOUT)))
+        check("한 열을 여러 정서로 복제해 r을 내지 않는다(Codex 보완)", stops(lambda: col.pooled(out, "tvs", folds, d.y, d.ids, "p")))
+        np.savez(f1, **ok)
+        np.savez(f2, **dict(oo, logit=oo["logit"][:, :1]))
+        check("OOF의 열 수가 다르면 점검이 멈춘다(Codex 보완)", stops(lambda: col.check_folds(split, out, tasks, n_out=NOUT)))
+        np.savez(f2, **oo)
         np.savez(out / "k1a" / "fold2" / "coordinates.npz", **{k: v + 1 for k, v in np.load(out / "tvs" / "fold2" / "coordinates.npz").items()})
-        check("K1a 좌표가 K1 head와 다르면 점검이 멈춘다", stops(lambda: col.check_folds(split, out, tasks)))
+        check("K1a 좌표가 K1 head와 다르면 점검이 멈춘다", stops(lambda: col.check_folds(split, out, tasks, n_out=NOUT)))
         names = [f"tvs/fold{k}" for k in range(1, 7)]
         col.check_runs(out, names)
         dn = out / "tvs" / "fold3" / "done.json"
@@ -386,6 +394,25 @@ def t_end_to_end():
         j2["inputs"][key] = "다른 해시"
         dn.write_text(json.dumps(j2))
         check("입력 내용이 다른 결과가 섞이면 멈춘다(Codex 1)", stops(lambda: col.check_runs(out, names)))
+        j2 = json.loads(json.dumps(j))
+        j2["input_paths"] = {k: "/다른/폴더/" + k for k in j2["inputs"]}
+        j2["inputs"]["caption_target"] = "다른 내용"
+        dn.write_text(json.dumps(j2))
+        for n in names[:1]:
+            d0 = out / n / "done.json"
+            j0 = json.loads(d0.read_text())
+            j0["inputs"]["caption_target"] = "원래 내용"
+            d0.write_text(json.dumps(j0))
+        check("다른 폴더의 사본이라도 같은 역할의 내용이 다르면 멈춘다(Codex 재검토)", stops(lambda: col.check_runs(out, names)))
+        j0.pop("input_paths")
+        j0["inputs"].pop("caption_target")
+        d0.write_text(json.dumps(j0))
+        dn.write_text(json.dumps(j))
+        col.check_runs(out, names)
+        j2 = json.loads(json.dumps(j))
+        j2["settings"] = dict(j2["settings"], lr=0.5)
+        dn.write_text(json.dumps(j2))
+        check("같은 과제인데 설정이 다르면 멈춘다", stops(lambda: col.check_runs(out, names)))
         j2 = dict(j, design_freeze="abc")
         dn.write_text(json.dumps(j2))
         check("동결 커밋이 다른 결과가 섞이면 멈춘다", stops(lambda: col.check_runs(out, names)))
@@ -405,23 +432,23 @@ def t_inputs():
         np.save(f, np.zeros(3))
         split = pd.DataFrame(dict(video_id=np.arange(1, 121), content_id=np.arange(1, 121), fold=np.arange(120) % 6 + 1))
         d = synth()
-        run = c.Run(None, [f], task="tvs")
+        run = c.Run(None, {"t": f}, task="tvs")
         task = fm.enumerate_tasks("tvs")[0]
         fm.run_one(task, FAST, d, split, "cpu", out / "r", run)
         before = dict(np.load(out / "r" / "test_pred.npz"))
         fm.run_one(task, FAST, d, split, "cpu", out / "r", run)
         check("같은 입력이면 끝난 결과를 건너뛴다", same(before, np.load(out / "r" / "test_pred.npz")))
         np.save(f, np.ones(3))
-        run2 = c.Run(None, [f], task="tvs")
+        run2 = c.Run(None, {"t": f}, task="tvs")
         check("입력 내용이 다르면 실행 번호가 다르다", run.key != run2.key)
         check("입력이 바뀐 뒤 같은 폴더로 돌리면 옛 결과를 쓰지 않고 멈춘다(Codex 1)", stops(lambda: fm.run_one(task, FAST, d, split, "cpu", out / "r", run2)))
-        check("설정이 다르면 실행 번호가 다르다", c.Run(None, [f], task="tvs").key != c.Run(None, [f], task="k1a").key)
-        check("동결 커밋이 다르면 실행 번호가 다르다", c.Run("a", [f]).key != c.Run("b", [f]).key)
-        run3 = c.Run(None, [f], task="tvs")
+        check("설정이 다르면 실행 번호가 다르다", c.Run(None, {"t": f}, task="tvs").key != c.Run(None, {"t": f}, task="k1a").key)
+        check("동결 커밋이 다르면 실행 번호가 다르다", c.Run("a", {"t": f}).key != c.Run("b", {"t": f}).key)
+        run3 = c.Run(None, {"t": f}, task="tvs")
         np.save(f, np.zeros(3))
         check("읽은 뒤 입력이 바뀌면 멈춘다(Codex 1)", stops(run3.check))
         orig = fm.task_tvs
-        run4 = c.Run(None, [f], task="tvs")
+        run4 = c.Run(None, {"t": f}, task="tvs")
         def change_during(*a):
             np.save(f, np.full(3, 7.0))
             return orig(*a)
@@ -430,9 +457,10 @@ def t_inputs():
             check("계산 중 입력이 바뀌면 저장하지 않는다(Codex 1)", stops(lambda: fm.run_one(task, FAST, d, split, "cpu", out / "s", run4)) and not (out / "s").exists())
         finally:
             fm.task_tvs = orig
-        check("실행 번호에 S2 표가 들어간다", all(str(p) in c.Run(None, []).hashes for p in c.S2_TABLES))
-    check("특징 모델의 입력 목록이 과제와 맞다", "deberta_no_emotion_words" in str(fm.input_paths("noemo")[1]) and "deberta/target" in str(fm.input_paths("tvs")[1]) and c.LABELS in fm.input_paths("k1a"))
-    check("ridge의 입력 목록이 과제와 맞다", c.LABELS not in rg.input_paths("d12") and c.LABELS in rg.input_paths("noemo"))
+        check("실행 번호에 S2 표가 들어간다", all(f"s2:{p.name}" in c.Run(None, {}).hashes for p in c.S2_TABLES))
+    check("특징 모델의 입력 목록이 과제와 맞다", "caption_no_emotion" in fm.input_paths("noemo") and "caption_target" not in fm.input_paths("noemo") and "caption_target" in fm.input_paths("tvs") and fm.input_paths("k1a")["labels"] == c.LABELS)
+    check("ridge의 입력 목록이 과제와 맞다", "labels" not in rg.input_paths("d12") and "labels" in rg.input_paths("noemo"))
+    check("역할 이름이 과제 사이에 같다", set(fm.input_paths("tvs")) <= set(c.role_paths()) and set(fm.input_paths("noemo")) <= set(c.role_paths()) and "caption_target" in rg.input_paths("d12"))
 
 
 def t_nonfinite():
@@ -448,7 +476,7 @@ def t_nonfinite():
     d.cap[3, 1] = np.nan
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp)
-        check("특징에 NaN이 있으면 완료로 저장하지 않는다", stops(lambda: fm.run_one(fm.enumerate_tasks("noemo")[0], FAST, d, pd.DataFrame(dict(video_id=d.ids)), "cpu", out / "x", c.Run(None, []))) and not (out / "x").exists())
+        check("특징에 NaN이 있으면 완료로 저장하지 않는다", stops(lambda: fm.run_one(fm.enumerate_tasks("noemo")[0], FAST, d, pd.DataFrame(dict(video_id=d.ids)), "cpu", out / "x", c.Run(None, {}))) and not (out / "x").exists())
     d = synth()
     d.v[d.mask([1])] = np.inf
     coord = fm.Coordinates(d.v[~d.mask([1])], d.cap[~d.mask([1])])

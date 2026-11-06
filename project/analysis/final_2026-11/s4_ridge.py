@@ -162,8 +162,8 @@ def noemo(split, device, out, run):
 
 def input_paths(task):
     if task == "d12":
-        return [c.FEATURES / "vjepa2/blocks.npy", c.FEATURES / f"{c.CAPTION_TARGET}.npy", c.FEATURES / f"{c.LOWLEVEL}.npy"]
-    return [c.FEATURES / f"{c.CAPTION_TARGET}.npy", c.FEATURES / f"{c.CAPTION_NO_EMOTION}.npy", c.LABELS]
+        return {"vjepa2_blocks": c.FEATURES / "vjepa2/blocks.npy", "caption_target": c.FEATURES / f"{c.CAPTION_TARGET}.npy", "lowlevel": c.FEATURES / f"{c.LOWLEVEL}.npy"}
+    return {"caption_target": c.FEATURES / f"{c.CAPTION_TARGET}.npy", "caption_no_emotion": c.FEATURES / f"{c.CAPTION_NO_EMOTION}.npy", "labels": c.LABELS}
 
 
 def main():

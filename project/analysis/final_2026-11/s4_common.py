@@ -65,12 +65,13 @@ def guard(design_freeze, allow_test=False):
 
 class Run:
     """한 실행의 출처. 코드, 실제 입력 파일, S2 표, 설정을 묶어 고정한다(M1, M2).
+    inputs는 역할 이름 -> 파일이다. 결과끼리는 경로가 아니라 역할별 내용으로 대조한다(s4_collect.check_runs). 사본의 경로가 달라도 내용이 다르면 섞이지 않는다.
     입력 해시는 읽기 전에 내고, 읽은 뒤와 저장 전에 check()로 같은지 다시 본다. 같은 run_key일 때만 끝난 결과를 재사용한다."""
 
     def __init__(self, design_freeze, inputs, **settings):
-        self.paths = [Path(p) for p in inputs] + list(S2_TABLES)
-        self.hashes = {str(p): sha256(p) for p in self.paths}
-        self.prov = dict(code_commit=START_HEAD, code_dirty=START_DIRTY, code_sha256=START_CODE, design_freeze=design_freeze, inputs=self.hashes, settings=settings)
+        self.paths = {**{f"s2:{p.name}": Path(p) for p in S2_TABLES}, **{k: Path(p) for k, p in inputs.items()}}
+        self.hashes = {k: sha256(p) for k, p in self.paths.items()}
+        self.prov = dict(code_commit=START_HEAD, code_dirty=START_DIRTY, code_sha256=START_CODE, design_freeze=design_freeze, inputs=self.hashes, input_paths={k: str(p) for k, p in self.paths.items()}, settings=settings)
         self._check_code()
         key = json.dumps(dict(code=START_CODE, inputs=self.hashes, settings=settings, design_freeze=design_freeze), sort_keys=True, default=str)
         self.prov["run_key"] = hashlib.sha256(key.encode()).hexdigest()
@@ -81,13 +82,18 @@ class Run:
 
     def check(self):
         self._check_code()
-        for p in self.paths:
-            if sha256(p) != self.hashes[str(p)]:
-                raise SystemExit(f"시작 뒤 입력이 바뀌었다: {p}")
+        for k, p in self.paths.items():
+            if sha256(p) != self.hashes[k]:
+                raise SystemExit(f"시작 뒤 입력이 바뀌었다: {k} ({p})")
 
     @property
     def key(self):
         return self.prov["run_key"]
+
+
+def role_paths():
+    """지금 설정의 역할별 입력 파일. 역할 이름은 모든 S4 과제에서 같다."""
+    return {"visual_target": FEATURES / f"{VISUAL_TARGET}.npy", "caption_target": FEATURES / f"{CAPTION_TARGET}.npy", "caption_no_emotion": FEATURES / f"{CAPTION_NO_EMOTION}.npy", "labels": LABELS, **{f"s2:{p.name}": p for p in S2_TABLES}}
 
 
 def load_split():

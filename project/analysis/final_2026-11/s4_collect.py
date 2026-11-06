@@ -2,7 +2,7 @@
 """S4 결과 점검과 요약 표 (04 S4의 확인 기준, 2026-11-06). 특징 모델 결과는 사전 분석이다(E6, N43).
 
 확인
-- 모든 결과가 같은 코드, 같은 S2 표, 같은 입력, 같은 설계 동결 커밋에서 나왔다.
+- 모든 결과가 같은 코드, 같은 S2 표, 같은 설계 동결 커밋에서 나왔고, 같은 역할의 입력은 경로와 상관없이 내용이 같다. 같은 과제의 결과는 설정도 같다.
 - 시험 예측은 정해진 시험 영상을 정확히 한 번씩 담는다(누락, 중복, 범위 밖 금지). 평가에도 그 목록만 쓴다.
 - OOF 영상이 그 fold의 H2 학습 fold와 정확히 같고, 저장한 값에 NaN과 Inf가 없으며, 행 수가 영상 수와 같다.
 - K1a의 입력 좌표가 K1 head와 같다.
@@ -18,6 +18,7 @@ import s4_common as c
 
 MANIFEST = c.CODE_DIR / "manifests/s4"
 FOLD_TASKS = ("tvs", "k1a", "noemo")
+N_OUT = dict(tvs=34, noemo=34, zone=34, k1a=14)
 PRED_KEYS = dict(tvs=("logit", "p"), noemo=("logit", "p"), zone=("logit", "p"), k1a=("additive_z", "additive_score", "interaction_z", "interaction_score"))
 
 
@@ -43,7 +44,7 @@ def expected_tests(split, task, blocks=None):
     return out
 
 
-def check_pred(path, expected, keys):
+def check_pred(path, expected, keys, n_out):
     """파일의 영상이 expected와 정확히 같고 값이 온전해야 한다. 어긋나면 멈춘다."""
     t = np.load(path)
     ids = t["video_id"].tolist()
@@ -52,28 +53,29 @@ def check_pred(path, expected, keys):
     if sorted(ids) != sorted(expected):
         raise SystemExit(f"{path}: 시험 영상이 정해진 목록과 다르다({len(ids)}개, 기대 {len(expected)}개)")
     for k in keys:
-        if len(t[k]) != len(ids):
-            raise SystemExit(f"{path}: {k}의 행 수가 영상 수와 다르다")
+        if t[k].shape != (len(ids), n_out):
+            raise SystemExit(f"{path}: {k}의 크기 {t[k].shape}가 (영상 {len(ids)}, 출력 {n_out})과 다르다")
         if not np.isfinite(t[k]).all():
             raise SystemExit(f"{path}: {k}에 NaN 또는 Inf가 있다")
     return t
 
 
-def check_oof(path, expected):
-    t = check_pred(path, expected, ("logit", "p_raw", "p_clipped"))
+def check_oof(path, expected, n_out):
+    t = check_pred(path, expected, ("logit", "p_raw", "p_clipped"), n_out)
     if not ((t["p_clipped"] >= 0) & (t["p_clipped"] <= 1)).all() or not np.array_equal(t["p_clipped"], np.clip(t["p_raw"], 0, 1)):
         raise SystemExit(f"{path}: 자른 값이 자르기 전 값과 맞지 않는다")
     return t
 
 
-def check_folds(split, out=None, tasks=("tvs", "k1a", "noemo", "zone"), blocks=None):
+def check_folds(split, out=None, tasks=("tvs", "k1a", "noemo", "zone"), blocks=None, n_out=None):
     out = c.OUT if out is None else out
+    n_out = N_OUT if n_out is None else n_out
     for task in tasks:
         for name, ids in expected_tests(split, task, blocks).items():
-            check_pred(out / task / name / "test_pred.npz", ids, PRED_KEYS[task])
+            check_pred(out / task / name / "test_pred.npz", ids, PRED_KEYS[task], n_out[task])
     for k in range(1, c.N_FOLDS + 1):
         r = c.roles(k)
-        check_oof(out / "tvs" / f"fold{k}" / "oof.npz", split.video_id[split.fold.isin(r["train"])].tolist())
+        check_oof(out / "tvs" / f"fold{k}" / "oof.npz", split.video_id[split.fold.isin(r["train"])].tolist(), n_out["tvs"])
         coord = np.load(out / "tvs" / f"fold{k}" / "coordinates.npz")
         k1a = np.load(out / "k1a" / f"fold{k}" / "coordinates.npz")
         for n in ("visual_mean", "visual_std", "caption_mean", "caption_std"):
@@ -82,8 +84,9 @@ def check_folds(split, out=None, tasks=("tvs", "k1a", "noemo", "zone"), blocks=N
 
 
 def check_runs(out, names, design_freeze=None, current=None):
-    """모든 결과가 같은 코드, 같은 입력 파일 내용, 같은 동결 커밋에서 나왔는지 본다. current를 주면 지금 파일과도 맞춘다."""
-    seen, code, freeze = {}, None, set()
+    """모든 결과가 같은 코드, 같은 동결 커밋에서 나왔고 같은 역할의 입력이 같은 내용인지 본다. 경로는 비교하지 않는다. 다른 폴더의 사본이어도 내용이 다르면 잡힌다.
+    같은 과제의 결과는 설정도 같아야 한다. current는 역할 -> 해시 함수이고, 주면 지금 파일과도 맞춘다."""
+    seen, code, freeze, settings = {}, None, set(), {}
     for n in names:
         d = json.loads((out / n / "done.json").read_text())
         if code is None:
@@ -91,15 +94,18 @@ def check_runs(out, names, design_freeze=None, current=None):
         if d["code_sha256"] != code:
             raise SystemExit(f"{n}: 다른 코드로 만든 결과다")
         freeze.add(d["design_freeze"])
-        for p, h in d["inputs"].items():
-            if seen.setdefault(p, h) != h:
-                raise SystemExit(f"{n}: 입력 {p}의 내용이 다른 결과와 다르다")
+        for role, h in d["inputs"].items():
+            if seen.setdefault(role, h) != h:
+                raise SystemExit(f"{n}: 입력 {role}의 내용이 다른 결과와 다르다")
+        task = n.split("/")[0]
+        if settings.setdefault(task, d["settings"]) != d["settings"]:
+            raise SystemExit(f"{n}: 같은 과제인데 설정이 다르다")
     if len(freeze) != 1 or (design_freeze is not None and freeze != {design_freeze}):
         raise SystemExit(f"결과의 설계 동결 커밋이 다르다: {freeze}")
     if current is not None:
-        for p, h in seen.items():
-            if current(p) != h:
-                raise SystemExit(f"지금의 {p}가 결과를 만들 때와 다르다")
+        for role, h in seen.items():
+            if current(role) != h:
+                raise SystemExit(f"지금의 {role}가 결과를 만들 때와 다르다")
     return seen
 
 
@@ -123,7 +129,7 @@ def pooled(out, task, expected, y, ids, key):
     p = np.full(y.shape, np.nan)
     rows = []
     for name, want in expected.items():
-        t = check_pred(out / task / name / "test_pred.npz", want, (key,))
+        t = check_pred(out / task / name / "test_pred.npz", want, (key,), y.shape[1])
         at = [pos[v] for v in t["video_id"].tolist()]
         if set(at) & set(rows):
             raise SystemExit(f"{name}: 다른 결과와 영상이 겹친다")
@@ -160,7 +166,8 @@ def main():
     split = c.load_split()
     blocks = pd.read_csv(c.S2 / "content_blocks_assignment.tsv", sep="\t")
     names = [f"{t}/{n}" for t in ("tvs", "k1a", "noemo", "zone") for n in expected_tests(split, t, blocks)]
-    check_runs(c.OUT, names, a.design_freeze, current=lambda p: c.sha256(p))
+    paths = c.role_paths()
+    check_runs(c.OUT, names, a.design_freeze, current=lambda role: c.sha256(paths[role]))
     check_folds(split, blocks=blocks)
     MANIFEST.mkdir(parents=True, exist_ok=True)
     sel = selection_table()

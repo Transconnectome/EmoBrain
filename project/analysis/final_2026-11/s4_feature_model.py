@@ -307,8 +307,8 @@ def enumerate_tasks(task, split=None):
 
 
 def input_paths(task):
-    cap = c.CAPTION_NO_EMOTION if task == "noemo" else c.CAPTION_TARGET
-    return [c.FEATURES / f"{c.VISUAL_TARGET}.npy", c.FEATURES / f"{cap}.npy", c.LABELS]
+    cap = {"caption_no_emotion": c.FEATURES / f"{c.CAPTION_NO_EMOTION}.npy"} if task == "noemo" else {"caption_target": c.FEATURES / f"{c.CAPTION_TARGET}.npy"}
+    return {"visual_target": c.FEATURES / f"{c.VISUAL_TARGET}.npy", **cap, "labels": c.LABELS}
 
 
 def load_data(task, split):
