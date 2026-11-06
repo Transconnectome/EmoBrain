@@ -13,7 +13,7 @@
 
 과제
 - tvs: 바깥 fold k. D_k 안쪽 5겹으로 고른 모델로 시험 fold 예측, K1 head 두 개(더하기판, 상호작용판), H2 학습 fold 4개 안쪽 4겹의 nested OOF 출력(E4).
-- k1a: 14개 차원. 손실 MSE, sigmoid 없음, 정답은 D_k로 표준화. 더하기판과 상호작용판(K1a).
+- k1a: 14개 차원. 손실 MSE, sigmoid 없음, 정답도 입력처럼 각 모델의 학습 자료로 표준화. 더하기판과 상호작용판(K1a).
 - noemo: 정서어 제거 캡션으로 같은 T_VS 선택과 시험 예측(D8, SI).
 - zone: 구역 제외와 학습량 대조마다 그 학습 자료로 표준화와 선택을 다시 하고 구역 시험 영상을 예측(J3, 4-3).
 
@@ -158,7 +158,7 @@ def choose(table, ranks=None):
 
 
 class Coordinates:
-    """바깥 학습 자료로 맞춘 표준화(N3, H4)."""
+    """한 모델의 학습 자료로 맞춘 표준화(N3, H4). 안쪽 모델은 안쪽 학습 자료, 최종 모델은 D_k다."""
 
     def __init__(self, v, cap, y=None):
         self.vm, self.vs = c.fit_standardizer(v)
