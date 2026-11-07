@@ -36,13 +36,15 @@ def check_pred(path, expected, keys):
     return t
 
 
-def check_array(t, key, shape, path, low=None, high=None):
-    """필수 배열의 크기와 값의 범위. low 이상 high 미만."""
+def check_array(t, key, shape, path, low=None, high=None, integer=False):
+    """필수 배열의 크기와 값의 범위. low 이상 high 미만. integer면 정수 배열이어야 한다(λ 번호, ROI 수)."""
     if key not in t:
         raise SystemExit(f"{path}: {key}가 없다")
     v = t[key]
     if v.shape != tuple(shape):
         raise SystemExit(f"{path}: {key}의 크기 {v.shape}가 {tuple(shape)}와 다르다")
+    if integer and not np.issubdtype(v.dtype, np.integer):
+        raise SystemExit(f"{path}: {key}가 정수가 아니다")
     if not np.isfinite(v).all():
         raise SystemExit(f"{path}: {key}에 NaN 또는 Inf가 있다")
     if low is not None and ((v < low).any() or (v >= high).any()):
@@ -62,7 +64,7 @@ def check_chosen(path, layers, n_lambda):
     t = pd.read_csv(path, sep="\t")
     if sorted(zip(t.model, t.layer)) != sorted(layers):
         raise SystemExit(f"{path}: 층 목록이 다르다")
-    if ((t.lambda_index < 0) | (t.lambda_index >= n_lambda)).any():
+    if not np.issubdtype(t.lambda_index.dtype, np.integer) or ((t.lambda_index < 0) | (t.lambda_index >= n_lambda)).any():
         raise SystemExit(f"{path}: λ 번호가 범위를 벗어났다")
     return t
 
@@ -73,8 +75,8 @@ def check_baseline(out, task, name, expected, n_emotion=34, n_dimension=14, n_ro
     n = len(d5.LAMBDAS)
     if task == "ridge":
         t = check_pred(path, expected, dict(emotion_main=n_emotion, emotion_literature=n_emotion, dimension_main=n_dimension, dimension_literature=n_dimension))
-        check_array(t, "lambda_main", (n_emotion + n_dimension,), path, 0, n)
-        check_array(t, "lambda_literature", (n_emotion + n_dimension,), path, 0, n)
+        check_array(t, "lambda_main", (n_emotion + n_dimension,), path, 0, n, integer=True)
+        check_array(t, "lambda_literature", (n_emotion + n_dimension,), path, 0, n, integer=True)
         check_array(t, "mean_prediction", (n_emotion,), path, 0, 1.000001)
     elif task == "soft_bce":
         t = check_pred(path, expected, dict(pred=n_emotion))
@@ -82,12 +84,12 @@ def check_baseline(out, task, name, expected, n_emotion=34, n_dimension=14, n_ro
             raise SystemExit(f"{path}: weight decay 후보 표가 맞지 않다")
     elif task in ("signal", "video", "zone"):
         t = check_pred(path, expected, dict(pred=n_emotion))
-        check_array(t, "lambda_index", (n_emotion,), path, 0, n)
+        check_array(t, "lambda_index", (n_emotion,), path, 0, n, integer=True)
     elif task == "h2020":
         t = check_pred(path, expected, dict(pred=n_emotion, pred_by_roi=(n_roi, n_emotion)))
         check_array(t, "val_r_by_roi", (n_roi, n_emotion), path)
-        check_array(t, "lambda_index", (n_roi, n_emotion), path, 0, len(d5.H2020_LAMBDAS))
-        check_array(t, "n_roi_in_ensemble", (n_emotion,), path, 1, n_roi + 1)
+        check_array(t, "lambda_index", (n_roi, n_emotion), path, 0, len(d5.H2020_LAMBDAS), integer=True)
+        check_array(t, "n_roi_in_ensemble", (n_emotion,), path, 0, n_roi + 1, integer=True)  # 0은 기준을 넘는 ROI가 없어 안쪽 r이 가장 높은 ROI를 쓴 경우다
     else:
         raise ValueError(task)
     return t
