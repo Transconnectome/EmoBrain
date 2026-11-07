@@ -726,6 +726,8 @@
 
 전체 구성은 핵심 학습 조건 5개와 보조 비교 2개로, 뇌 모델 학습 조건 7개다. 입력이 다른 모델 두 개(Stimulus Model, Multimodal Model)를 별도로 쓴다. 이 7개에는 더하기 head와 상호작용 head의 비교, baseline, 대조군, fold와 seed별 반복 학습을 넣지 않았다.
 
+일곱 조건의 입력, 출력, loss는 이 절을 기준으로 한다. 이 문서의 다른 행과 다르면 이 절을 따른다 [정함, 11/7 석진 님].
+
 #### 1부. 모델 설명
 
 **A. 뇌로 Emotion만 예측하는 구조**
@@ -900,7 +902,7 @@ Multimodal Model의 head를 복사해 초기값으로 쓰고 encoder와 head를 
 | 2 | Brain → Emotion + Vision + Caption | 사람 평정, Vision과 Caption feature | 핵심 |
 | 3 | **Brain + Decoded Feature → Emotion** | 사람 평정, Vision과 Caption feature | **중심 모델** |
 | 4 | Brain → Emotion [distillation] | 사람 평정, Stimulus 예측 평정 | 핵심 |
-| 5 | Brain + Decoded Feature → Emotion [distillation] | 사람 평정, Stimulus 예측 평정, Vision과 Caption feature | 핵심 |
+| 5 | Brain + Decoded Feature → Emotion [distillation] | 사람 평정, Stimulus 예측 평정, Vision과 Caption feature | 핵심(돌리는 것은 핵심 조건, 해석은 보조) |
 | 6 | Brain → Emotion [representation, frozen head] | 사람 평정, Multimodal Model의 중간 표현 | 보조 |
 | 7 | Brain → Emotion [representation, trained head] | 사람 평정, Multimodal Model의 중간 표현 | 보조 |
 
@@ -1049,7 +1051,8 @@ inference는 가중치를 바꾸지 않고 예측을 계산하는 것이고, 검
     - 학습 영상과 시험 영상의 decoding 정확도 차이: 위의 "남는 주의". 한계로 적는다.
 - 조건과 분석의 구분 [정함, 11/2]: 1-3의 질문에 걸리는 것만 본문에 둔다.
     - 본문: Brain → Emotion부터 Brain + Decoded Feature → Emotion까지 네 조건의 비교(Brain → Emotion [distillation] 대 Brain → Emotion, Brain → Emotion + Vision + Caption 대 Brain → Emotion, Brain + Decoded Feature → Emotion 대 Brain → Emotion + Vision + Caption, Brain → Emotion + Vision + Caption 대 Brain → Emotion [distillation], 2-3), decoded features와 실제 특징의 대응(2-1), 40개 block ridge 층별 분석(2-1), 바꿔 끼우기(시각만, 캡션만, 둘 다)와 같은 크기의 무작위 변경 대조(2-2, 1-1), 더하기 head 대 상호작용 head와 결합 계산의 지표(1-2), 영역 다시 학습(1-3), 영역 교란(2-4), 내용 구역 제외 시험과 MC 시청 전이(1-4, 2-3. 회상은 필수 실행 범위 밖, 6-3)
-    - 보조와 SI: Brain + Decoded Feature → Emotion [distillation] 조건과 그 조건 대 Brain + Decoded Feature → Emotion 비교(정해진 조건, 해석은 보조), 쌍 비교(4-2의 보조 점검), 뇌를 포함한 teacher 점검(T_BVS 대 Stimulus Model, 뇌 바꿔 끼우기, T_BVS_SHUF, 프로젝트 규칙상 확인용), emotion query 대 평균 pooling(F7), baseline Stimulus Model(3-1, 3-3), 실제 특징을 head에 넣는 개입, 출력 distillation-시각과 -캡션(E5, 필수 실행 범위 밖), 멀티모달 teacher의 frozen head 비교(G16), 경로 평가의 14개 차원판(K1a)
+    - Brain + Decoded Feature → Emotion [distillation] 조건과 그 조건 대 Brain + Decoded Feature → Emotion 비교: 돌리는 것은 핵심 조건이고 해석은 보조다 [정함, 11/7 석진 님].
+    - 보조와 SI: 쌍 비교(4-2의 보조 점검), 뇌를 포함한 teacher 점검(T_BVS 대 Stimulus Model, 뇌 바꿔 끼우기, T_BVS_SHUF, 프로젝트 규칙상 확인용), emotion query 대 평균 pooling(F7), baseline Stimulus Model(3-1, 3-3), 실제 특징을 head에 넣는 개입, 출력 distillation-시각과 -캡션(E5, 필수 실행 범위 밖), 멀티모달 teacher의 frozen head 비교(G16), 경로 평가의 14개 차원판(K1a)
     - 하지 않음: CCA 공통 성분 교체(위)
     - 후속: 정서 손실을 막지 않은 Brain + Decoded Feature → Emotion(위)
 - 뇌, 시각 특징, 캡션 특징을 함께 받은 teacher의 표현 전달 [11/1 후속으로 미룸. 11/3 사용자: 보조 성능 비교 하나로 넣음(G16)]
