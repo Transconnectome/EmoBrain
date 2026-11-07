@@ -12,7 +12,7 @@ This folder holds asynchronous requests, evidence and reviews. Updating a file d
 
 | Location | Role |
 | --- | --- |
-| `docs/current/` | Current study design: accepted, proposed and unresolved items remain distinct |
+| `docs/final/` | Current study design |
 | `docs/coordination/` | Work assignments, discussion and evidence review |
 | `prereg_v2/design_docs/` | Preserved audit-era design snapshots, not the current protocol |
 | `prereg_v2/` audit code/results | Existing evidence; importing it does not approve old settings |
@@ -82,7 +82,7 @@ Read root AGENTS → this README → [BOARD](BOARD.md) → relevant open threads
 
 | 위치 | 역할 |
 | --- | --- |
-| `docs/current/` | 현재 연구 설계. 확정·제안·미확정을 구분 |
+| `docs/final/` | 현재 연구 설계 |
 | `docs/coordination/` | 작업 배정·논의·근거 검토 |
 | `prereg_v2/design_docs/` | 감사 당시 설계 사본. 현재 프로토콜이 아님 |
 | `prereg_v2/` 감사 코드·결과 | 기존 근거. 가져왔다고 과거 설정을 승인한 것은 아님 |

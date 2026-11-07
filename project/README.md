@@ -12,9 +12,9 @@ _Code navigation and migration boundary · 2026-10-06_
 
 ### Current specification
 
-Use [the study index](../docs/current/00_README.md),
-[implementation specification](../docs/current/02_IMPLEMENTATION_SPEC.md) and
-[implementation status](../docs/current/08_IMPLEMENTATION_STATUS.md).
+Use [the integrated design document](../docs/final/01_integrated_document.md),
+[implementation specification](../docs/archive/pre-final-2026-10/02_IMPLEMENTATION_SPEC.md) and
+[implementation status](../docs/archive/pre-final-2026-10/08_IMPLEMENTATION_STATUS.md).
 The former project contract is preserved in the [archive](../docs/archive/pre-handoff-2026-10-06/project/README.md).
 
 ### Existing code is not the current pipeline
@@ -52,9 +52,9 @@ _코드 안내와 최신 설계 전환의 범위 · 2026-10-06_
 
 ### 현재 기준 문서
 
-[연구 문서 목차](../docs/current/00_README.md),
-[구현 사양](../docs/current/02_IMPLEMENTATION_SPEC.md),
-[구현 상태](../docs/current/08_IMPLEMENTATION_STATUS.md)를 기준으로 작업한다.
+[통합문서](../docs/final/01_integrated_document.md),
+[구현 사양](../docs/archive/pre-final-2026-10/02_IMPLEMENTATION_SPEC.md),
+[구현 상태](../docs/archive/pre-final-2026-10/08_IMPLEMENTATION_STATUS.md)를 기준으로 작업한다.
 이전 프로젝트 규약은 [보관함](../docs/archive/pre-handoff-2026-10-06/project/README.md)에 보존되어 있다.
 
 ### 기존 코드와 최신 파이프라인은 다르다

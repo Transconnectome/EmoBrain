@@ -61,7 +61,7 @@ COHORT_DIRS = {"mindcaptioning": "MindCaptioning", "horikawa": "Horikawa"}
 # removed from the mask. A *_qc folder holds the arrays and the usable-row table; the
 # processing record (config, code) and the full pre-QC sample table stay in the base folder.
 RESPONSE_VERSIONS = {"mindcaptioning": "v2_qc", "horikawa": "v3_qc"}
-# Cohort roles (decision 2026-10-20, docs/current/04 D28): Horikawa 2020 is the training and
+# Cohort roles (decision 2026-10-20, docs/archive/pre-final-2026-10/04 D28): Horikawa 2020 is the training and
 # development cohort, MindCaptioning the later validation cohort. Models and settings are
 # fixed on Horikawa; MindCaptioning fMRI is not read by any training or tuning fit.
 # Final-test reserved content (MindCaptioning part == test) stays excluded from every

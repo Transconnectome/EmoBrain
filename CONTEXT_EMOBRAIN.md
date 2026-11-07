@@ -4,9 +4,9 @@ _Navigation only · 2026-10-06_
 
 ---
 
-The maintained design is [docs/current](docs/current/00_README.md).
-Use its [decision register](docs/current/04_DECISION_REGISTER.md) for accepted versus proposed items
-and its [implementation status](docs/current/08_IMPLEMENTATION_STATUS.md) for code gaps.
+The maintained design is [docs/final](docs/final/01_integrated_document.md).
+Use its [decision register](docs/archive/pre-final-2026-10/04_DECISION_REGISTER.md) for accepted versus proposed items
+and its [implementation status](docs/archive/pre-final-2026-10/08_IMPLEMENTATION_STATUS.md) for code gaps.
 
 - Brain-centered neuroscience; learn and interpret brain–visual–semantic relations.
 - Three analyses: measured-brain correspondence; learned relations/use and independent neural validation; affect readout and cohort replication.

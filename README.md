@@ -12,12 +12,12 @@ _Brain–content relations and normative affect readout · current design import
 
 ### Start here
 
-The single maintained study specification is [docs/current/00_README.md](docs/current/00_README.md).
+The single maintained study specification is [docs/final/01_integrated_document.md](docs/final/01_integrated_document.md). Older sections of this README describe the earlier design, kept in docs/archive/pre-final-2026-10.
 It supersedes the former H1–H4 argument and earlier server handoff copies as the working design.
 Approved principles, proposals and unresolved decisions remain distinct; importing documents does not freeze a protocol.
 
 For contributors and AI agents, read [AGENTS.md](AGENTS.md), then the current specification.
-[Implementation status](docs/current/08_IMPLEMENTATION_STATUS.md) records the gap between that design and this repository's code.
+[Implementation status](docs/archive/pre-final-2026-10/08_IMPLEMENTATION_STATUS.md) records the gap between that design and this repository's code.
 
 ### Research question
 
@@ -43,7 +43,7 @@ _Study overview: conceptual framework and three analyses of neural correspondenc
 
 Teacher training uses brain + video + descriptive captions. The student receives brain only during training and inference, with nested out-of-fold teacher **output guidance** during training.
 Content probes, CKA and selective perturbations are evaluations, not student content-reconstruction losses.
-See the [story](docs/current/01_STORY_AND_DESIGN.md) for rationale and interpretation limits.
+See the [story](docs/archive/pre-final-2026-10/01_STORY_AND_DESIGN.md) for rationale and interpretation limits.
 
 [Model Figure: Training / After Training](docs/assets/model_architecture.png)
 
@@ -53,14 +53,14 @@ The October design is **not yet implemented end to end** in the inherited code.
 The existing label-query decoder, log1p-z/MSE training and single-teacher cache are earlier implementations,
 not a runnable reference for the current protocol. No full training command is endorsed by this documentation update.
 
-First reconcile the server's actual code and data with the [implementation specification](docs/current/02_IMPLEMENTATION_SPEC.md).
-Use the [server prompt](docs/current/SERVER_PROMPT.md) and [action items](docs/current/03_ACTION_ITEMS.md).
+First reconcile the server's actual code and data with the [implementation specification](docs/archive/pre-final-2026-10/02_IMPLEMENTATION_SPEC.md).
+Use the [server prompt](docs/archive/pre-final-2026-10/SERVER_PROMPT.md) and [action items](docs/archive/pre-final-2026-10/03_ACTION_ITEMS.md).
 Training, preprocessing changes, test-set selection and publication of results are separate actions.
 
 ### Repository layout
 
 ```text
-docs/current/    maintained study design, decisions, actions and implementation status
+docs/final/      maintained study design, work order and records
 docs/archive/    superseded research plans and historical review records
 docs/reference/ literature and dataset evidence; not an alternative protocol
 docs/assets/    maintained overview image and its editable logic / generation prompt
@@ -93,12 +93,12 @@ _뇌–내용 관계와 규준 정서 프로필 예측 · 최신 설계 반영�
 
 ### 시작하기
 
-현재 연구 설계의 단일 관리 기준은 [docs/current/00_README.md](docs/current/00_README.md)다.
+현재 연구 설계의 단일 관리 기준은 [docs/final/01_integrated_document.md](docs/final/01_integrated_document.md)다. 이 README의 나머지 내용은 옛 설계(docs/archive/pre-final-2026-10) 설명이 남아 있다.
 이 문서군이 이전 H1–H4 논증과 과거 서버 전달본을 대체한다.
 승인된 원칙, 제안, 미확정 결정은 구분한다. 문서를 옮겼다는 사실만으로 연구 프로토콜이 동결되는 것은 아니다.
 
 기여자와 AI 에이전트는 [AGENTS.md](AGENTS.md)를 먼저 읽고 최신 설계를 확인한다.
-[구현 상태](docs/current/08_IMPLEMENTATION_STATUS.md)에는 최신 설계와 현재 저장소 코드 사이의 차이가 기록되어 있다.
+[구현 상태](docs/archive/pre-final-2026-10/08_IMPLEMENTATION_STATUS.md)에는 최신 설계와 현재 저장소 코드 사이의 차이가 기록되어 있다.
 
 ### 연구 질문
 
@@ -124,7 +124,7 @@ _연구 개요: 개념적 틀과 신경 대응·학습된 관계·정서 예측�
 
 Teacher는 학습 시 뇌 + 영상 + 서술형 caption을 사용한다. Student는 학습과 추론 모두 뇌만 입력받으며, 학습 중에는 중첩 OOF(out-of-fold) teacher의 **출력 지도**를 받는다.
 내용 probe, CKA, 선택적 교란은 평가용 분석이지 student의 내용 복원 학습 loss가 아니다.
-설계 근거와 해석의 한계는 [연구 스토리](docs/current/01_STORY_AND_DESIGN.md)에 설명되어 있다.
+설계 근거와 해석의 한계는 [연구 스토리](docs/archive/pre-final-2026-10/01_STORY_AND_DESIGN.md)에 설명되어 있다.
 
 [모델 피규어: Training / After Training](docs/assets/model_architecture.png)
 
@@ -134,14 +134,14 @@ Teacher는 학습 시 뇌 + 영상 + 서술형 caption을 사용한다. Student�
 현재의 label-query decoder, log1p-z/MSE 학습, 단일 teacher cache는 이전 구현이며 최신 프로토콜의 실행 가능한 기준 구현이 아니다.
 이번 문서 갱신은 전체 학습 명령의 실행을 승인하지 않는다.
 
-먼저 서버의 실제 코드와 데이터를 [구현 사양](docs/current/02_IMPLEMENTATION_SPEC.md)과 대조한다.
-[서버 AI 전달문](docs/current/SERVER_PROMPT.md)과 [상세 작업 목록](docs/current/03_ACTION_ITEMS.md)을 참고한다.
+먼저 서버의 실제 코드와 데이터를 [구현 사양](docs/archive/pre-final-2026-10/02_IMPLEMENTATION_SPEC.md)과 대조한다.
+[서버 AI 전달문](docs/archive/pre-final-2026-10/SERVER_PROMPT.md)과 [상세 작업 목록](docs/archive/pre-final-2026-10/03_ACTION_ITEMS.md)을 참고한다.
 학습 실행, 전처리 변경, test set을 이용한 선택, 결과 공개는 문서 정리와 별개의 작업이다.
 
 ### 저장소 구성
 
 ```text
-docs/current/    현재 연구 설계, 결정 기록, 작업 목록, 구현 상태
+docs/final/      현재 연구 설계, 작업 지시서, 기록
 docs/archive/    대체된 연구 계획과 과거 검토 기록
 docs/reference/ 문헌·데이터셋 근거 자료; 별도의 연구 프로토콜이 아님
 docs/assets/    현재 Overview 이미지와 수정 가능한 논리 / 생성 프롬프트

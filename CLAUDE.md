@@ -4,7 +4,7 @@ _Current instructions · 2026-10-06_
 
 ---
 
-Read [AGENTS.md](AGENTS.md), then [the current study index](docs/current/00_README.md).
+Read [AGENTS.md](AGENTS.md), then [the integrated design document](docs/final/01_integrated_document.md).
 These instructions apply to Claude, Codex and other project agents.
 
 The former v7 rules and H1–H4 design are archived in
@@ -12,7 +12,7 @@ The former v7 rules and H1–H4 design are archived in
 They are historical evidence, not the current protocol.
 
 Do not treat existing label-query/LLM training scripts as implementations of the current teacher–student design.
-Consult [implementation status](docs/current/08_IMPLEMENTATION_STATUS.md) before proposing execution.
+Consult the [work order and its record table](docs/final/04_claude_code_workorder.md) before proposing execution.
 GPU jobs are run by the user unless explicitly authorized otherwise.
 
 @docs/final/CLAUDE_EmoBrain.md

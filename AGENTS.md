@@ -8,17 +8,17 @@ _Current working rules · updated 2026-10-07_
 
 ### Authority and scope
 
-Start with [docs/current/00_README.md](docs/current/00_README.md). Current explicit user decisions take precedence over an approved freeze manifest, then the accepted principles in docs/current. Proposals and unresolved entries are not automatically approved. Record changes to an actual preregistration as amendments, not retroactive freezes.
+Start with [docs/final/01_integrated_document.md](docs/final/01_integrated_document.md). Current explicit user decisions take precedence over an approved freeze manifest, then the accepted principles in docs/current. Proposals and unresolved entries are not automatically approved. Record changes to an actual preregistration as amendments, not retroactive freezes.
 
 The former root rules, paper_logic_merged, project contracts and September review are historical. Their archived instructions do not govern new work. Reference literature and existing code do not independently define the current protocol.
 
-Read [implementation status](docs/current/08_IMPLEMENTATION_STATUS.md) before execution. A documentation update is not evidence of implementation or successful validation. Inspect the server's actual commit and uncommitted changes before changing it. Preserve other contributors' work.
+Read the [work order and its record table](docs/final/04_claude_code_workorder.md) before execution. A documentation update is not evidence of implementation or successful validation. Inspect the server's actual commit and uncommitted changes before changing it. Preserve other contributors' work.
 
 `prereg_v2/design_docs/` contains audit-era design snapshots, not a competing current protocol. Preserve those snapshots; audit code, manifests and results in `prereg_v2/` remain evidence to review, not automatically accepted design decisions.
 
 ### Coordination and roles
 
-- **GPT** is the user's research-idea and study-design coordinator: discuss the story, models and analyses with the user; synthesize independent checks; maintain `docs/current`, decision records and work assignments.
+- **GPT** is the user's research-idea and study-design coordinator: discuss the story, models and analyses with the user; synthesize independent checks. Who edits the design documents is set in [docs/final/CLAUDE_EmoBrain.md](docs/final/CLAUDE_EmoBrain.md), section 5.
 - **Claude Code** and **Codex** are server verification, implementation and experiment agents. Both may challenge ideas with evidence. Neither independently replaces the agreed study design.
 - **The user** makes final decisions on core research direction and material changes. Routine verification and implementation within already authorized scope do not require a new user decision for every step.
 - These names identify project roles, not the application hosting a conversation. Use GPT for this coordinating conversation and Codex for the dedicated coding agent, as requested by the user.
@@ -49,7 +49,7 @@ Without these answers, do not add it to the primary design. Novelty, popularity,
 
 ### Repository hygiene
 
-- Maintain one source of study truth in docs/current with stable filenames.
+- Maintain one source of study truth in docs/final with stable filenames.
 - Put superseded design material in docs/archive; use Git history for ordinary revisions.
 - Do not create dated current-document copies, duplicated all-in-one files, ZIPs, backup files or reports in the repository root.
 - Store server audit outputs together under project/output/audits; link evidence rather than duplicating data.
@@ -65,17 +65,17 @@ Without these answers, do not add it to the primary design. Novelty, popularity,
 
 ### 기준과 범위
 
-[docs/current/00_README.md](docs/current/00_README.md)부터 읽는다. 현재 사용자의 명시적 결정, 승인된 freeze manifest, docs/current의 확정 원칙 순으로 우선한다. 제안과 미확정 항목은 자동 승인되지 않는다. 실제 사전등록 변경은 소급 동결이 아니라 amendment로 기록한다.
+[docs/final/01_integrated_document.md](docs/final/01_integrated_document.md)부터 읽는다. 현재 사용자의 명시적 결정, 승인된 freeze manifest, docs/final의 확정 원칙 순으로 우선한다. 제안과 미확정 항목은 자동 승인되지 않는다. 실제 사전등록 변경은 소급 동결이 아니라 amendment로 기록한다.
 
 이전 루트 규칙, paper_logic_merged, project 계약과 9월 검토는 역사 기록이며 새 작업을 지배하지 않는다. 참고문헌과 기존 코드만으로 현재 프로토콜을 정하지 않는다.
 
-실행 전 [구현 상태](docs/current/08_IMPLEMENTATION_STATUS.md)를 읽는다. 문서 갱신이 구현·검증 완료의 증거는 아니다. 서버를 수정하기 전에 실제 커밋과 미커밋 변경을 확인하고 다른 작업자의 변경을 보존한다.
+실행 전 [작업 지시서와 기록 칸](docs/final/04_claude_code_workorder.md)을 읽는다. 문서 갱신이 구현·검증 완료의 증거는 아니다. 서버를 수정하기 전에 실제 커밋과 미커밋 변경을 확인하고 다른 작업자의 변경을 보존한다.
 
 `prereg_v2/design_docs/`는 감사 당시 설계 사본이며 별도의 최신 프로토콜이 아니다. 사본을 보존한다. `prereg_v2/`의 감사 코드·manifest·결과는 검토할 근거이지 자동 승인된 설계 결정이 아니다.
 
 ### 협업과 역할
 
-- **GPT**는 사용자와 연구 아이디어·설계를 논의하는 총괄이다. 스토리·모델·분석을 논의하고 독립 검증을 종합하며 `docs/current`, 결정 기록과 작업 배정을 관리한다.
+- **GPT**는 사용자와 연구 아이디어·설계를 논의하는 총괄이다. 스토리·모델·분석을 논의하고 독립 검증을 종합한다. 설계 문서를 누가 고치는지는 [docs/final/CLAUDE_EmoBrain.md](docs/final/CLAUDE_EmoBrain.md) 5절을 따른다.
 - **Claude Code**와 **Codex**는 서버 검증·구현·실험 담당이다. 둘 다 근거를 들어 아이디어에 이견을 낼 수 있지만 합의된 연구 설계를 독자적으로 대체하지 않는다.
 - **사용자**가 핵심 연구 방향과 중요한 변경을 최종 결정한다. 이미 승인된 범위의 일상적인 검증·구현은 단계마다 새 결정을 받지 않는다.
 - 명칭은 대화를 실행하는 앱이 아니라 프로젝트 역할을 구분한다. 사용자 요청에 따라 이 총괄 대화는 GPT, 코드 전용 에이전트는 Codex로 표기한다.
@@ -106,7 +106,7 @@ Without these answers, do not add it to the primary design. Novelty, popularity,
 
 ### 저장소 정리
 
-- 안정적인 파일명으로 docs/current에 연구 기준을 하나만 유지한다.
+- 안정적인 파일명으로 docs/final에 연구 기준을 하나만 유지한다.
 - 폐기된 설계는 docs/archive에 두고 일반 수정 이력은 Git으로 남긴다.
 - 날짜별 current 사본·중복 통합본·ZIP·백업 파일·루트 보고서를 만들지 않는다.
 - 새 서버 감사 산출물은 project/output/audits 아래에 모으고 데이터 복제 대신 근거를 연결한다.
