@@ -67,12 +67,12 @@
 - GPU 작업은 석진 님이 실행한다(M4). Claude Code는 스크립트와 실행 지시서(job script와 명령)만 만든다.
 - 자료 경계
     - 시험 fold를 설정 선택, 조기 종료, 표준화, Stimulus Model 학습에 쓰지 않는다(H5).
-    - 내용 구역과 이름표 짝을 정할 때 정서 점수, 뇌 자료, 모델 결과를 쓰지 않는다. 구역 수도 이것으로 정하지 않는다(4-2, 4-3, H5).
+    - 내용 구역과 이름표 짝을 정할 때 사람 평정, 뇌 자료, 모델 결과를 쓰지 않는다. 구역 수도 이것으로 정하지 않는다(4-2, 4-3, H5).
         - 내용 구역 k-means는 개발 영상 전체의 이름표 73개로 만든다(4-3).
         - 짝은 같은 시험 fold 안의 영상끼리 이름표 73개로 정한다(4-2).
     - MC 최종 시험 영상 72개와 그 중복 영상은 HK 개발의 모든 단계에서 뺀다(0절, 6-3). 학습, 설정 선택, 표준화, Stimulus Model, 내용 구역, 짝이 모두 해당한다.
     - 한 영상의 5명 행은 항상 같은 쪽(학습 또는 시험)에 둔다(H6).
-    - 시험 때 뇌 모델에 넣는 것은 뇌 반응뿐이다(0절). 실제 시각 특징과 캡션 특징은 학습 목표와 채점 정답으로만 쓴다.
+    - 시험 때 뇌 모델에 넣는 것은 뇌 반응뿐이다(0절). 실제 Vision feature와 Caption feature는 학습 목표와 채점 기준으로만 쓴다.
 - 정서 예측 모델의 설정 선택과 조기 종료는 모든 조건에서 실제 규범 평정에 대한 공통 검증 기준을 쓴다(7-O 3절, 11/3 사용자).
     - 설정 선택: 검증 자료의 정서별 Pearson r을 참가자마다 내고 34개 정서와 참가자에 걸쳐 평균한 값(5-5의 주 지표)
     - 조기 종료: 검증 자료의 정서 soft BCE(G13). patience 30, 최대 300 epoch
@@ -80,16 +80,16 @@
     - 적용 세부는 O6이다.
 - 결과를 보고 설계를 바꾸지 않는다. 결과에 따라 설계를 고르는 조건부 규칙도 만들지 않는다(0절). 결과에 따라 달라지는 것은 주장 범위뿐이다.
 - 레포의 docs/archive/pre-final-2026-10와 04_DECISION_REGISTER는 옛 설계다(0절, N37). 이 폴더의 문서와 충돌하면 이 폴더의 문서를 따른다.
-    - 옛 Study 1(joint latent 해석), Study 2 틀, teacher T_BVS는 구현하지 않는다(0절).
-    - 뇌를 받는 teacher의 성능 점검(T_BVS 대 Stimulus Model)은 필수 실행 범위 밖이다(E7, 1-3 관점 B).
+    - 옛 Study 1(joint latent 해석), Study 2 틀, 뇌를 받는 모델 T_BVS는 구현하지 않는다(0절).
+    - 뇌를 받는 모델의 성능 점검(T_BVS 대 Stimulus Model)은 필수 실행 범위 밖이다(E7, 1-3 관점 B).
 - 10월 사전 분석과 11/3 KHBM 초록용 분석의 수치는 논문 결과에 쓰지 않는다. 새 분할과 새 특징으로 다시 낸다(M6). 사전 분석에 노출된 선택은 노출로 기록한다(N1).
 - 용어(1-1)
     - 모델 이름과 역할 이름을 섞지 않는다.
-        - Feature Extractor: V-JEPA 2, DeBERTa처럼 특징을 뽑는 고정된 모델이다. teacher가 아니다.
-        - Stimulus Model(Stimulus Model, visual-caption emotion predictor): 시각 특징과 캡션 특징으로 정서를 내는 모델이다. Brain → Emotion [distillation]에서 teacher를 맡는다.
-        - 뇌 모델(brain-only emotion decoder): 뇌 반응만 받는 모델이다. student를 맡는다.
+        - Feature Extractor: V-JEPA 2, DeBERTa처럼 특징을 뽑는 고정된 모델이다. Stimulus Model이 아니다.
+        - Stimulus Model(visual-caption emotion predictor): Vision feature와 Caption feature로 정서를 내는 모델이다. Brain → Emotion [distillation]에 쓴다. 논문에서는 Stimulus Model다.
+        - 뇌 모델(brain-only emotion decoder): 뇌 반응만 받는 모델이다. 논문에서는 Brain Model다.
     - 뇌에서 특징을 맞히는 일은 feature decoding, 그 값은 decoded features, 그 손실은 feature decoding loss다. distillation이나 reconstruction이라고 부르지 않는다(5-2).
-    - 측정치는 "시각 특징"과 "캡션 특징"이다. Horikawa 외(2020)의 의미 이름표는 "이름표 73개"라고 부른다.
+    - 측정치는 Vision feature와 Caption feature다. Horikawa 외(2020)의 의미 이름표는 "이름표 73개"라고 부른다.
 
 ### 0-3. 자료 경계 요약
 
@@ -100,7 +100,7 @@
 | 남은 학습 fold 4개 | 뇌 모델의 가중치 학습 | |
 | D_k 전체(5개 fold) | 최종 Stimulus Model과 K1 head의 표준화(N3. 표준화는 모델마다 그 학습 자료로 맞춘다), Stimulus Model의 시험 fold 예측과 K1 head(O16), ridge의 안쪽 5겹(H3) | Brain → Emotion [distillation]의 nested OOF(E4) |
 | H2의 학습 fold 4개 | Brain → Emotion [distillation]의 nested OOF(E4, 안쪽 4겹) | |
-| MC 최종 시험 72개와 그 중복 | 6-3의 시험, decoded features 채점 정답 | HK 개발 전부, MC 입력층 학습과 설정 선택 |
+| MC 최종 시험 72개와 그 중복 | 6-3의 시험, decoded features 채점 기준 | HK 개발 전부, MC 입력층 학습과 설정 선택 |
 | 빠진 내용 구역(6-2) | 그 구역의 시험 | 그 실행의 학습, 설정 선택, 표준화, Stimulus Model |
 
 ## 1. 단계별 작업
@@ -128,7 +128,7 @@
         - PREPROC_QC_REPORT, PRELIM_STAGE0_REPORT.md: 0단계 기록
     - 자료 경로: 아래 자료의 위치를 적는다. 모두 [레포에서 확인].
         - HK 5명의 voxel 원자료 캐시(C1의 run 안 z, v3_qc)
-        - 34개 정답 파일(N2)
+        - 34개 사람 평정 파일(N2)
         - 14개 정서 차원(1~9점) 파일(B4)
         - semantic_features.csv(영상 2,196개 × 73개)와 그 출처인 Perlmutter의 Horikawa_Haka/meta(4-2, 4-3)
         - MC 사람 캡션(영상마다 20개, 3-4)
@@ -262,10 +262,10 @@
         - 참가자마다, fold마다 두 지표를 표로 낸다. 시험 run이 온 세션 수, 한 세션에서 온 run 수의 최댓값이다.
         - 이 검사를 분할 코드에 넣는다. 판정은 O8이다.
         - 11/1의 근사 점검은 fold마다 시험 run 10~11개가 6~8개 세션에서 왔고, 한 세션에서 온 run은 최대 3개였다. 서버의 분할 파일로 다시 확인한다.
-        - 정답만으로 세션별 34개 정서 평균의 차이를 확인해 둔다.
+        - 사람 평정만으로 세션별 34개 정서 평균의 차이를 확인해 둔다.
     - 내용 구역(4-3, J2)
         - 재료는 개발 영상의 이름표 73개 원래 비율이다. 표준화하지 않는다.
-        - 정서 정답과 뇌 자료는 쓰지 않는다.
+        - 사람 평정과 뇌 자료는 쓰지 않는다.
         - k-means 5개. scikit-learn KMeans(n_init=10, random_state=0). 11/2 계산은 scikit-learn 1.9.1이었다. 쓴 판을 기록한다.
         - 크기 제약을 두지 않는다.
         - 구역 배정 파일을 저장한다.
@@ -283,7 +283,7 @@
         - 짝: 같은 fold의 시험 영상 가운데 자기 자신을 뺀, 거리가 가장 가까운 영상 하나다. 동점이면 O9를 따른다.
         - 거리 상한은 두지 않는다.
         - 같은 짝 목록을 모든 참가자와 모든 모델 조건에 쓴다.
-        - 정서 점수와 모델 결과는 쓰지 않는다.
+        - 사람 평정과 모델 결과는 쓰지 않는다.
         - 짝마다 거리를 기록한다.
         - 짝이 없는 영상도 전체 정서 평가(2-3)에서는 빼지 않는다.
         - 짝 연결 묶음(O4 (2)): 최근접 짝으로 이어진 영상을 한 묶음으로 묶는다. ex) A→B와 C→B가 있으면 A, B, C가 한 묶음이다. fold마다 묶음 배정과 묶음 크기 분포를 저장한다. 바꿔 끼우기와 쌍 비교의 재표집 단위다.
@@ -322,17 +322,17 @@
 
 ### S3. 특징 추출
 
-- 목적: 학습 목표, baseline 특징, 저수준 시각 특징을 참가자가 본 영상 그대로 뽑는다. 추출 기록을 함께 저장한다.
+- 목적: 학습 목표, baseline 특징, 저수준 Vision feature를 참가자가 본 영상 그대로 뽑는다. 추출 기록을 함께 저장한다.
 - 근거: 3-1, 3-2, 3-3, 3-4, 3-4b, 3-6, D3~D7, D9, M2, 7-L 실행 순서 2
 - 입력: 영상 파일 2,196개, MC 사람 캡션(영상마다 20개), events_audited.tsv, stimuli.tsv, S1의 확인 결과
 - 공통 규칙
     - 대상 영상
         - 파일 2,196개 전부를 뽑는다.
-        - MC 72개의 특징은 6-3에서 decoded features를 채점하는 정답으로만 쓴다. HK 개발의 어느 단계에도 넣지 않는다(0-2).
+        - MC 72개의 특징은 6-3에서 decoded features를 채점하는 기준으로만 쓴다. HK 개발의 어느 단계에도 넣지 않는다(0-2).
     - 참가자가 본 영상을 재현한다(3-2).
         - 8초 미만 영상은 같은 영상을 반복해 8.0초에서 자른다(기록 칸 정할 것 11). 제시 길이는 코드 한 곳에서 받는다.
         - 반복 사이의 끊김도 그대로 둔다. 마지막 프레임으로 채우지 않는다.
-        - 이 입력을 모든 시각 특징(V-JEPA 2, VideoMAE, TimeSformer, CLIP)과 저수준 시각 특징에 쓴다.
+        - 이 입력을 모든 Vision feature(V-JEPA 2, VideoMAE, TimeSformer, CLIP)와 저수준 Vision feature에 쓴다.
     - 화면(3-2)
         - 종횡비를 유지해 줄인 뒤 가운데 정사각형을 자른다.
         - 크기는 체크포인트의 공식 설정을 따른다(11/6 석진 님). V-JEPA 2는 짧은 변 292에서 가운데 256, VideoMAE와 CLIP은 짧은 변 224에서 224, TimeSformer는 짧은 변 224에서 세 위치 224다. 코드는 시작할 때 설정 파일과 같은지 확인한다. 모델 사이의 화면 범위 차이는 모델 차이에 포함해 해석한다.
@@ -381,7 +381,7 @@
         - 모델 카드의 처리를 그대로 쓴다. 마지막 층 token 임베딩을 attention mask로 평균하고 L2 정규화한다. 384 word piece를 넘는 글은 기본값대로 잘린다.
         - 캡션 20개를 각각 임베딩해 평균한다. 평균한 뒤 다시 정규화하지 않는다(3-4b).
         - 10월 캐시는 M2의 추출 기록이 이 처리와 맞을 때만 쓰고, 아니면 다시 뽑는다.
-    - 저수준 시각 특징(3-6). 모두 6,558개
+    - 저수준 Vision feature(3-6). 모두 6,558개
         - 움직임 에너지 6,555개(Du 외, 2023의 설정)
             - pymoten을 쓴다.
             - 프레임을 96 × 96화소로 만든다. 종횡비를 유지해 줄인 뒤 가운데를 자른다.
@@ -413,7 +413,7 @@
 
 - 목적: Stimulus Model을 학습해 Brain → Emotion [distillation]에 쓸 fold 밖 출력과 경로 평가의 head(K1, K1a)를 만든다. 뇌 없이 두 특징의 겹침과 block의 성격을 확인한다.
 - 근거: 5-3, E1~E4, E6, H3, H4, N3, N26, N43, D12, 3-4, D8, J3, 4-3, 6-2, K1, K1a, B4, G10, 7-L 실행 순서 4
-- 입력: S3의 시각 목표(5,632차원)와 캡션 목표(4,096차원), 정답 34개, 14개 차원 정답(S5의 입력과 같은 파일), S2의 manifest
+- 입력: S3의 시각 목표(5,632차원)와 캡션 목표(4,096차원), 사람 평정 34개, 14개 차원 사람 평정(S5의 입력과 같은 파일), S2의 manifest
 - 할 일
     - Stimulus Model Stimulus Model(E1, E2, E3, 5-3)
         - 입력은 v와 c다. 뇌는 받지 않는다. PCA를 쓰지 않는다.
@@ -431,12 +431,12 @@
     - nested OOF 출력(E4, O16)
         - 바깥 fold k마다 H2의 학습 fold 4개(D_k에서 검증 fold를 뺀 것) 안의 안쪽 4겹으로 만든다. 후보와 epoch 수도 이 4겹 안에서 O16의 절차로 고른다.
         - 안쪽 fold j의 출력은 나머지 3개 안쪽 fold로 학습한, 고른 후보의 Stimulus Model이 낸다.
-        - H2의 검증 fold는 teacher의 학습, 설정 선택, 조기 종료에 쓰지 않는다(11/3 사용자, 기록 칸 정할 것 2).
-        - 6-3의 두 조건은 Stimulus 예측 평정를 쓰지 않으므로 6-3 전용 출력은 만들지 않는다(11/6 석진 님).
+        - H2의 검증 fold는 Stimulus Model의 학습, 설정 선택, 조기 종료에 쓰지 않는다(11/3 사용자, 기록 칸 정할 것 2).
+        - 6-3의 두 조건은 Stimulus 예측 평정을 쓰지 않으므로 6-3 전용 출력은 만들지 않는다(11/6 석진 님).
         - 영상 단위로 만든다.
         - 바깥 시험 fold의 영상을 쓰지 않는다.
         - 출력은 0~1로 자른다. 자르기 전 값과 자른 값을 모두 저장한다.
-        - 이 출력이 Brain → Emotion [distillation]과 Brain + Decoded Feature → Emotion [distillation]의 Stimulus 예측 평정 t다(5-2). student에게는 학습 영상마다 이 34개 값만 준다.
+        - 이 출력이 Brain → Emotion [distillation]과 Brain + Decoded Feature → Emotion [distillation]의 Stimulus 예측 평정 t다(5-2). Brain Model에게는 학습 영상마다 이 34개 값만 준다.
     - 바깥 시험 fold의 Stimulus Model 성능
         - 고른 후보로 D_k 전체에서 다시 학습한 모델로 낸다(O16).
         - 사전 분석으로만 보고한다(E6, N43). 뇌에 대한 결론으로 쓰지 않는다.
@@ -444,7 +444,7 @@
         - r = 0이 뽑힌 fold는 G10과 같은 규칙으로 보고한다. 상호작용 해석은 r > 0이 뽑힌 fold로 한정한다(N26).
     - 경로 평가(K1)의 head(O17)
         - D_k 전체로 학습한 Stimulus Model 두 개를 저장한다. 더하기판(r = 0)과 상호작용판(r ∈ {1, 2, 4, 8})이다.
-        - 두 head는 시각 특징과 캡션 특징을 함께 받는 하나의 Stimulus Model이다. 시각만, 캡션만 받는 head는 만들지 않는다(K1).
+        - 두 head는 Vision feature와 Caption feature를 함께 받는 하나의 Stimulus Model이다. 시각만, 캡션만 받는 head는 만들지 않는다(K1).
     - 경로 평가의 14개 차원판(K1a, 보조)에 쓰는 Stimulus Model
         - 입력과 그 표준화는 Stimulus Model와 같다(N3, H4, D9). decoded features를 같은 좌표로 넣기 위해서다.
         - 꼴: 출력 = a(v) + b(c) + U[(Av) ⊙ (Bc)]
@@ -454,7 +454,7 @@
             - sigmoid를 쓰지 않고 연속값을 낸다.
         - 판은 O17과 같게 나눈다. 더하기판(r = 0)과 상호작용판(r ∈ {1, 2, 4, 8})을 둘 다 학습한다.
         - 손실: MSE. 14개 차원과 영상에 같은 가중치를 둔다.
-        - 정답: 입력처럼 모델마다 그 학습 자료로 표준화한다(N3). 최종 모델의 통계를 저장해 되돌린다(S9, S10).
+        - 사람 평정: 입력처럼 모델마다 그 학습 자료로 표준화한다(N3). 최종 모델의 통계를 저장해 되돌린다(S9, S10).
         - AdamW, batch 64, 최대 300 epoch, learning rate와 weight decay는 Stimulus Model와 같은 후보(O16, E3)
         - 학습과 선택은 Stimulus Model와 같은 절차다(H3, O16, O17, 기록 칸 정할 것 10). D_k의 run fold 5개를 안쪽 5겹으로 쓴다.
             - 후보마다 안쪽 검증 MSE의 5겹 평균 곡선이 가장 낮은 epoch를 그 후보의 epoch 수로 정한다.
@@ -467,13 +467,13 @@
     - 겹침과 block의 성격(D12, O22)
         - V-JEPA 2의 40개 block 각각(1,408차원)으로 두 목표를 얼마나 예측하는지 ridge 교차 R²로 낸다.
             - 캡션 목표(DeBERTa 네 층, 4,096차원)
-            - 저수준 시각 특징(6,558개)
+            - 저수준 Vision feature(6,558개)
         - 뇌와 정서를 쓰지 않는다.
         - 결과는 block의 성격을 자료로 보이는 데 쓴다(3-2). 두 특징을 독립된 정보원으로 해석하지 않는 근거로도 쓴다(5-0).
         - 그 결과로 목표 block을 다시 고르지 않는다.
     - 정서어 제거판(3-4, D8, SI, O22)
-        - DeBERTa 캡션 특징으로 정서를 예측하는 ridge를 원 캡션과 정서어 제거 캡션에서 낸다. 사전 분석의 MPNet 값은 원 캡션 0.605, 정서어 181개를 지운 캡션 0.604였다(부록 2).
-        - 정서어 제거 캡션 특징으로 Stimulus Model도 만든다(D8).
+        - DeBERTa Caption feature로 정서를 예측하는 ridge를 원 캡션과 정서어 제거 캡션에서 낸다. 사전 분석의 MPNet 값은 원 캡션 0.605, 정서어 181개를 지운 캡션 0.604였다(부록 2).
+        - 정서어 제거 Caption feature로 Stimulus Model도 만든다(D8).
     - 내용 구역 제외(4-3, J3, 6-2)
         - 구역 제외 학습과 학습량 대조 학습(S2의 표본)마다 표준화와 보조 Stimulus Model을 그 학습 자료로 다시 만든다.
         - 빠진 구역은 쓰지 않는다.
@@ -484,13 +484,13 @@
     - nested OOF 출력(자르기 전 값, 자른 값)
     - 시험 fold 예측
     - K1 head 두 개
-    - K1a Stimulus Model 두 개와 정답 표준화 통계, fold마다 고른 epoch 수, r, weight decay
+    - K1a Stimulus Model 두 개와 사람 평정 표준화 통계, fold마다 고른 epoch 수, r, weight decay
     - D12 표, 정서어 제거판 결과
     - 위치는 project/output/ 아래(M3)
 - 확인 기준
     - OOF 출력의 영상 ID가 D_k에만 있다.
     - 각 OOF 출력이 그 영상을 학습에 쓰지 않은 모델에서 나왔다.
-    - 표준화 통계(14개 차원 정답 포함)에 시험 fold와 MC 72개가 들어가지 않았다.
+    - 표준화 통계(14개 차원 사람 평정 포함)에 시험 fold와 MC 72개가 들어가지 않았다.
     - fold마다 고른 epoch 수, r, weight decay의 표가 있다.
     - K1a Stimulus Model의 입력 좌표가 K1 head와 같다.
 - 실행 주체: Claude Code가 스크립트와 job script를 만든다. GPU가 필요하면 석진 님이 실행한다(M4).
@@ -498,16 +498,16 @@
 
 ### S5. ridge
 
-- 목적: 뇌에서 시각 특징과 캡션 특징을 층별로 얼마나 decoding할 수 있는지 본다(2-1). 정서 기준선을 낸다(I7).
+- 목적: 뇌에서 Vision feature와 Caption feature를 층별로 얼마나 decoding할 수 있는지 본다(2-1). 정서 기준선을 낸다(I7).
 - 근거: 2-1, 2-2, 3-2, 3-3, H3, N5, N15, N16, N21, I7, I10, B4, 2-0 (나), C1, C5, 6-1의 0행과 2-1행, 6-2, 7-L 실행 순서 5
-- 입력: 참가자별 voxel 반응, S2의 manifest와 공통 ROI, S3의 특징, 정답 34개, 14개 차원 정답(project/shared/data/cowen_horikawa_labels.csv의 *_score 열 14개, content_id로 붙임, 기록 칸 S0)
+- 입력: 참가자별 voxel 반응, S2의 manifest와 공통 ROI, S3의 특징, 사람 평정 34개, 14개 차원 사람 평정(project/shared/data/cowen_horikawa_labels.csv의 *_score 열 14개, content_id로 붙임, 기록 칸 S0)
 - 공통
     - 영상당 반응은 v3_qc의 블록 평균이다. 신호를 4초 밀어 영상 제시 구간과 뒤따르는 2초 휴지로 된 블록 안에서 평균하고(Horikawa 외(2020)의 구간), run 안에서 voxel마다 z-score했다(C1).
     - 입력은 뇌 모델과 같은 voxel이다. 공통 ROI 안의 voxel을 모두 쓰고, ROI가 겹치는 voxel은 한 번만 쓴다(I10). 참가자당 125,496~149,080개다.
     - 학습 자료의 encoding 성능으로 voxel을 고르지 않는다(3-2).
     - 표준화: voxel은 참가자별로, 특징 목표는 차원마다 그 모델의 실제 학습 자료로 맞춘다(C5, D9, N3). 안쪽 5겹은 안쪽 학습 자료, 최종 모델은 D_k, 주 비교판은 H2의 학습 fold 4개다.
     - 참가자마다 따로 학습한다(2-0의 (나)).
-    - 정서 ridge의 손실은 제곱 오차다(2-2). 정답은 비율 그대로 쓰고 z-score하지 않는다(B3).
+    - 정서 ridge의 손실은 제곱 오차다(2-2). 사람 평정은 비율 그대로 쓰고 z-score하지 않는다(B3).
     - λ 후보와 선택 지표는 O18이다. 모든 ridge에 같은 λ 후보를 쓴다. Horikawa 외(2020)의 복셀 선택 ridge만 그 공개 코드의 후보를 쓴다.
     - 같은 뇌 입력을 한 번 분해하면 목표가 늘어도 행렬 곱만 는다(3-2). 실제 실행 시간을 기록한다.
 - 할 일
@@ -517,7 +517,7 @@
         - 정칙화 강도는 층, 모델, 참가자마다 D_k 안의 안쪽 5겹으로 고른다(Horikawa, 2025의 방식). 기준은 안쪽 검증의 차원별 r 평균이다(O18).
         - 고른 값으로 D_k 전체에서 학습해 시험 fold를 예측한다.
         - 평가(N5, 6-1의 2-1행): 시험 영상에서 차원별 r의 평균(O20의 좌표), 같은 fold 안 영상 식별(O19), 순열 기준(O4)
-        - 결과는 보고만 한다. 그 결과로 student의 목표 층을 다시 고르지 않는다.
+        - 결과는 보고만 한다. 그 결과로 Brain Model의 목표 층을 다시 고르지 않는다.
     - 주 목표의 ridge decoded features(O21)
         - 층별 ridge의 block 10, 20, 30, 40 출력과 DeBERTa 층 6, 12, 18, 24 출력을 이어 붙인다.
         - 6-1의 [사전 2] 검정과 K1의 ridge판에 쓴다. [사전 2]의 검정 통계량은 차원별 r 평균이다(O19).
@@ -526,7 +526,7 @@
     - 정서 기준선(I7). 평가는 2-3의 방식이다(S10). 기준선은 통과 조건이 아니다(6-1).
         - 평균 예측: 학습 fold의 정서별 평균이다. 예측이 상수라 r을 낼 수 없다. 오차 지표(2-4, O25)의 기준선으로만 쓴다.
         - 영상 길이 기준선(O23): 원래 영상 길이의 자연로그 하나로 정서마다 ridge
-        - 저수준 시각 특징(6,558개)만으로 정서를 예측하는 기준선
+        - 저수준 Vision feature(6,558개)만으로 정서를 예측하는 기준선
         - 뇌 전체 평균과 block 신호 크기의 기준선. 정의는 0단계 기록을 따른다[레포에서 확인].
         - 정서 ridge(voxel 입력, 정서마다 따로, O18)
             - 주 비교판은 뇌 모델과 같은 규칙이다(N15). H2의 검증 fold 하나로 고르고, 남은 4개 fold로 학습한 모델을 그대로 시험한다.
@@ -538,7 +538,7 @@
     - 내용 구역 제외(6-2, I10): 정서 ridge(주 비교판)를 구역 제외 학습과 학습량 대조 학습에서 다시 학습한다. 구역 시험 영상에서 평가한다. 보조 모델이다.
     - 14개 정서 차원(B4, 보조, 부록에 보고)
         - 목표는 1~9점 평정의 평균 14개다. 모두 같은 지위로 다루고 미리 골라 둔 차원은 없다.
-        - 정서 ridge와 같은 절차다. 분할, 표준화, 시험 fold 사용 금지(H5), MC 72개와 그 중복 영상 제외가 모두 같고, 정답은 값 그대로 쓴다.
+        - 정서 ridge와 같은 절차다. 분할, 표준화, 시험 fold 사용 금지(H5), MC 72개와 그 중복 영상 제외가 모두 같고, 사람 평정은 값 그대로 쓴다.
         - 주 비교판(N15): 참가자와 차원마다 H2 검증 fold의 그 차원 r로 λ를 고르고, 남은 4개 fold로 학습한 모델을 그대로 시험한다(O18).
         - 안쪽 5겹판(H3): 문헌 비교용이다(O18).
         - 14개 차원으로 뇌 모델을 학습하지 않고 교체 분석도 하지 않는다.
@@ -559,7 +559,7 @@
 
 ### S6. 뇌 모델 구현
 
-- 목적: 다섯 학습 조건, 더하기 head, 대조군, 조건 6과 7(G16), 평균 pooling판, 외부 baseline을 같은 자료 경계에서 돌릴 수 있게 구현한다. 입력, 출력, loss는 01 5-A를 따른다.
+- 목적: 핵심 다섯 조건, 더하기 head, 대조군, 조건 6과 7(G16), 평균 pooling판, 외부 baseline을 같은 자료 경계에서 돌릴 수 있게 구현한다. 입력, 출력, loss는 01 5-A를 따른다.
 - 근거: 2-0 (가), 2-1, 2-2, 5-0, 5-2, 5-4, 5-5, 5-6, C4, C5, F3~F8, G1~G16, N4, N24, H2, M1
 - 입력: S2의 manifest, S3의 목표, S4의 nested OOF 출력, voxel 반응
 - 할 일
@@ -583,7 +583,7 @@
         - 학습하는 query 34개가 H를 교차 주의 1층(head 4)으로 읽는다.
         - 정서마다 선형층(d → 1)으로 logit g(H)를 낸다.
         - query끼리 self-attention은 두지 않는다.
-        - emotion query는 ROI token만 읽는다. decoded features는 emotion query가 읽지 않고, 따로 둔 경로로 정서 점수에 더해진다(2-1, 5-4).
+        - emotion query는 ROI token만 읽는다. decoded features는 emotion query가 읽지 않고, 따로 둔 경로로 예측 평정에 더해진다(2-1, 5-4).
     - emotion head(5-4, G4)
         - Brain → Emotion, Brain → Emotion [distillation], Brain → Emotion + Vision + Caption: z = g(H)
         - Brain + Decoded Feature → Emotion의 상호작용 head(기본): z = g(H) + a(v̂) + b(ĉ) + U[(Av̂) ⊙ (Bĉ)]
@@ -600,7 +600,7 @@
         - 그래서 feature head는 feature decoding loss로만 학습된다.
         - 공유 encoder와 입력층은 g(H)를 거쳐 정서 손실도 받는다.
         - 기울기를 흘리는 판은 만들지 않는다. 그 판은 후속이다(5-0).
-    - 다섯 조건(5-0, G1~G5)
+    - 핵심 다섯 조건(5-0, G1~G5)
         - Brain → Emotion: 손실 = soft BCE(p, y). feature head가 없다.
         - Brain → Emotion [distillation]: 손실 = soft BCE(p, (1 − α) y + α t). t는 S4의 nested OOF 출력이다. emotion head는 Brain → Emotion과 같다. feature head가 없다.
         - Brain → Emotion + Vision + Caption: 손실 = soft BCE(p, y) + λ × L_feat. emotion head는 Brain → Emotion과 같다(z = g(H)).
@@ -617,7 +617,7 @@
         - Brain → Emotion: d와 입력층 weight decay의 조합 K개(S7에서 정함)
         - Brain → Emotion [distillation]: α ∈ {0, 0.25, 0.5}. α = 0은 Brain → Emotion과 같으므로 0.25와 0.5만 새로 학습한다.
         - Brain → Emotion + Vision + Caption: λ ∈ {0, 0.1, 1.0}. λ = 0은 Brain → Emotion과 같으므로 0.1과 1.0만 새로 학습한다.
-        - Brain + Decoded Feature → Emotion(상호작용 head): λ ∈ {0.1, 1.0} × r ∈ {1, 2, 4, 8}, 8개. λ = 0은 없다(G9: stop-gradient 때문에 λ = 0이면 feature head가 실제 특징을 맞히도록 학습되지 않는다).
+        - Brain + Decoded Feature → Emotion(상호작용 head): λ ∈ {0.1, 1.0} × r ∈ {1, 2, 4, 8}, 8개. λ = 0은 없다(G9: stop-gradient 때문에 λ = 0이면 feature head가 실제 Vision feature와 Caption feature를 맞히도록 학습되지 않는다).
         - Brain + Decoded Feature → Emotion(더하기 head): λ ∈ {0.1, 1.0}, 2개
         - Brain + Decoded Feature → Emotion [distillation]: Brain + Decoded Feature → Emotion에서 고른 λ와 r을 고정한다. α ∈ {0, 0.25, 0.5}이고 0.25와 0.5만 새로 학습한다.
         - 고른 d와 입력층 weight decay는 그 바깥 fold의 모든 내부 조건에 같이 쓴다(5-5).
@@ -630,14 +630,14 @@
     - 배치(2-0, G15)
         - 한 행은 참가자 한 명의 영상 하나다.
         - 5명의 행을 섞어 배치를 만든다.
-        - 정답은 영상마다 하나이고 5명 행에 같다.
+        - 사람 평정은 영상마다 하나이고 5명 행에 같다.
     - seed는 0, 1, 2다(G14, L9). 재현성 설정은 O32다.
     - 대조군(G6, G11, G12). 평균 계산과 섞기는 그 학습 분할 안에서만 한다.
         - label smoothing(G11)
             - Brain → Emotion [distillation]과 같은 구조에서 t 대신 학습 자료의 정서별 평균 비율 ȳ를 쓴다.
             - 목표 = (1 − α) y + α ȳ. α ∈ {0.25, 0.5}
         - Stimulus Model 출력 섞기(G6, G12): Brain → Emotion [distillation]에 적용한다. 학습 영상 사이에 t를 바꿔 준다. α ∈ {0.25, 0.5}
-        - 장면 특징 짝 섞기(G6, G12): Brain → Emotion + Vision + Caption에 적용한다. 학습 영상 사이에 (v, c) 목표를 같은 순열로 바꾼다. 시각과 캡션은 같은 영상의 짝을 유지한다. λ ∈ {0.1, 1.0}
+        - Vision feature와 Caption feature 짝 섞기(G6, G12): Brain → Emotion + Vision + Caption에 적용한다. 학습 영상 사이에 (v, c) 목표를 같은 순열로 바꾼다. 시각과 캡션은 같은 영상의 짝을 유지한다. λ ∈ {0.1, 1.0}
         - 순열의 규칙(O1)
             - 바깥 fold와 seed마다 학습 영상(H2의 학습 fold 4개) 안에서 영상 단위 순열 하나를 만들어 모든 epoch에 유지한다.
             - 같은 fold와 seed에서는 설정 후보(α, λ)가 달라도 같은 순열을 쓴다.
@@ -648,28 +648,28 @@
             - Stimulus Model 출력 섞기에도 같은 규칙을 쓴다.
             - 순열과 그 seed를 저장한다(M1).
     - 조건 7은 조건 6과 같고, Multimodal Model의 head를 복사해 초기값으로 쓴 뒤 encoder와 함께 학습한다. Multimodal Model 원본은 고정한다.
-    - frozen-head distillation(G16, 조건 6). 보조 성능 비교다. 기본 run 분할에서만 한다.
-        - teacher와 student의 구조, 후보, seed(O5)
-            - teacher: 뇌 모델과 같은 입력층, encoder(F3), emotion query(F4)를 쓴다. 실제 시각 특징과 캡션 특징을 각각 선형층으로 d차원 token으로 바꿔 ROI token과 함께 encoder에 넣는다. 중간 표현은 emotion query 34개의 출력(34 × d, O26의 LayerNorm 뒤)이고, head는 정서별 선형층(d → 1)과 sigmoid다.
-            - teacher 후보: d와 입력층 weight decay는 그 바깥 fold의 Brain → Emotion이 고른 값이다. 두 특징 선형층의 weight decay ∈ {1e-4, 1e-3, 1e-2}만 공통 검증 기준으로 고른다.
-            - student: Brain → Emotion과 같은 뇌 모델(같은 d)이다. 연결층은 두지 않는다.
-            - seed: teacher를 seed 0으로 고르고 seed 1, 2를 더 학습한다. student seed s는 같은 seed s의 teacher와 짝짓는다.
+    - 조건 6(G16, frozen-head distillation). 보조 성능 비교다. 기본 run 분할에서만 한다.
+        - Multimodal Model과 Brain Model의 구조, 후보, seed(O5)
+            - Multimodal Model: 뇌 모델과 같은 입력층, encoder(F3), emotion query(F4)를 쓴다. 실제 Vision feature와 Caption feature를 각각 선형층으로 d차원 token으로 바꿔 ROI token과 함께 encoder에 넣는다. 중간 표현은 emotion query 34개의 출력(34 × d, O26의 LayerNorm 뒤)이고, head는 정서별 선형층(d → 1)과 sigmoid다.
+            - Multimodal Model 후보: d와 입력층 weight decay는 그 바깥 fold의 Brain → Emotion이 고른 값이다. 두 특징 선형층의 weight decay ∈ {1e-4, 1e-3, 1e-2}만 공통 검증 기준으로 고른다.
+            - Brain Model: Brain → Emotion과 같은 뇌 모델(같은 d)이다. 연결층은 두지 않는다.
+            - seed: Multimodal Model을 seed 0으로 고르고 seed 1, 2를 더 학습한다. Brain Model seed s는 같은 seed s의 Multimodal Model과 짝짓는다.
             - token으로 넣는 결합과 연결층 생략은 이번 비교에서 고른 설계 선택이다. 그래야만 한다는 뜻이 아니다(O5).
-            - teacher의 섞는 구조는 Brain + Decoded Feature → Emotion의 분리된 경로와 더하기 구조에 적용하지 않는다(O5).
-        - student 손실 = soft BCE(head_T(o_S), y) + λ × MSE(s(o_S), s(o_T))
-            - 고정 head에는 student 표현 o_S를 teacher가 학습할 때의 좌표 그대로 넣는다.
-            - s는 MSE 계산에만 쓰는 표준화다. teacher 표현의 차원별 평균과 표준편차로 나누며, 통계는 teacher가 학습한 4개 fold의 행에서 낸다.
+            - Multimodal Model의 섞는 구조는 Brain + Decoded Feature → Emotion의 분리된 경로와 더하기 구조에 적용하지 않는다(O5).
+        - Brain Model 손실 = soft BCE(head_T(o_S), y) + λ × MSE(s(o_S), s(o_T))
+            - 고정 head에는 Brain Model 표현 o_S를 Multimodal Model이 학습할 때의 좌표 그대로 넣는다.
+            - s는 MSE 계산에만 쓰는 표준화다. Multimodal Model 표현의 차원별 평균과 표준편차로 나누며, 통계는 Multimodal Model이 학습한 4개 fold의 행에서 낸다.
             - λ ∈ {0.1, 1.0}(G9). 0은 없다.
-            - teacher와 head의 가중치는 고정한다. 정서 손실은 고정된 head를 거쳐 student까지 전달된다. Brain + Decoded Feature → Emotion의 stop-gradient와 다르다.
-            - teacher의 정서 출력을 따라 하는 손실은 넣지 않는다.
+            - Multimodal Model과 head의 가중치는 고정한다. 정서 손실은 고정된 head를 거쳐 Brain Model까지 전달된다. Brain + Decoded Feature → Emotion의 stop-gradient와 다르다.
+            - Multimodal Model의 정서 출력을 따라 하는 손실은 넣지 않는다.
         - 자료 경계
-            - teacher와 student 모두 같은 학습 fold 4개로 가중치를 학습한다.
+            - Multimodal Model과 Brain Model 모두 같은 학습 fold 4개로 가중치를 학습한다.
             - 검증 fold는 설정 선택과 조기 종료에만 쓴다. 시험 fold는 평가에만 쓴다.
-            - teacher를 5개 fold 전체로 학습하지 않는다. 고정된 head가 검증 영상의 정답을 이미 보게 되기 때문이다.
-            - 한 학습 실행에서 teacher 하나를 고정해 그 표현만 목표로 쓴다. 서로 다른 teacher의 표현을 섞지 않는다.
+            - Multimodal Model을 5개 fold 전체로 학습하지 않는다. 고정된 head가 검증 영상의 사람 평정을 이미 보게 되기 때문이다.
+            - 한 학습 실행에서 Multimodal Model 하나를 고정해 그 표현만 목표로 쓴다. 서로 다른 Multimodal Model의 표현을 섞지 않는다.
         - 뇌 표현 복사 대조는 넣지 않는다.
-        - teacher의 시험 성능은 참고로만 보고한다.
-        - 비교 대상은 Brain → Emotion, Brain + Decoded Feature → Emotion, 이 student다. 시험 입력은 모두 뇌뿐이다.
+        - Multimodal Model의 시험 성능은 참고로만 보고한다.
+        - 비교 대상은 Brain → Emotion, Brain + Decoded Feature → Emotion, 조건 6, 7이다. 시험 입력은 모두 뇌뿐이다.
         - 내용 구역 제외, MC, 네트워크 분석, 대조군으로 넓히지 않는다.
     - 평균 pooling판(F7, 보조와 SI, O31)
         - Brain → Emotion: ROI token 평균 → 선형 34개
@@ -677,7 +677,7 @@
         - 설정은 그 바깥 fold의 표준 실행에서 고른 값을 그대로 쓴다(O31).
     - 외부 baseline 셋(5-2, O27, O28)
         - 공통
-            - 과제만 우리 것으로 맞춘다: run 묶음 분할, 34개 연속 정답, 우리 평가 지표
+            - 과제만 우리 것으로 맞춘다: run 묶음 분할, 34개 연속 사람 평정, 우리 평가 지표
             - 나머지는 원 논문과 공개 코드 그대로 둔다: 모델 구조, 입력 전처리, 손실, 정서 관계 그래프 기준(0.1), 구조의 크기, 참가자별 학습
             - 34개 가운데 그들의 27개에 없는 7개(contempt, disappointment, envy, guilt, pride, sympathy, triumph)도 함께 학습한다.
             - 원 논문이 탐색한 하이퍼파라미터는 H2의 검증 fold에서 공통 검증 기준으로 고른다(O27).
@@ -685,9 +685,9 @@
         - GED(Huang 외, 2022. github.com/zhongyu1998/GED)
             - 입력은 원래의 370개 영역이다.
             - 레포의 run_baselines.py와 third_party/GED를 370개 지도로 다시 돌린다.
-            - 공개 코드는 정답을 정서마다 전체 자극의 최소~최대로 정규화한다(utils.py의 load_data, 시험 자극 포함).
+            - 공개 코드는 사람 평정을 정서마다 전체 자극의 최소~최대로 정규화한다(utils.py의 load_data, 시험 자극 포함).
             - 최소와 최대를 바깥 학습 fold에서만 구하고, 평가 때 원래 비율로 되돌린다. 학습 fold의 최소~최대 밖은 예측하지 못한다.
-            - 정서 관계 그래프도 바깥 학습 fold의 정답으로만 만든다.
+            - 정서 관계 그래프도 바깥 학습 fold의 사람 평정으로만 만든다.
             - MSE 손실은 그대로 둔다.
         - ML-BVAE(Fu 외, 2022. github.com/KaichengFu1997/ML-BVAE)
             - 입력은 HCP360 피질 360개의 칸 평균이다.
@@ -716,11 +716,11 @@
     - Brain → Emotion과 Brain → Emotion [distillation] 모델에 feature head가 없다.
     - 시험 때 forward가 뇌 반응만 받는다.
     - Stimulus 예측 평정 t가 학습 영상에만 붙는다.
-    - frozen-head distillation의 teacher와 teacher head는 student 학습 중 바뀌지 않는다. 정서 손실의 기울기는 student에 도달한다.
+    - 조건 6의 Multimodal Model과 그 head는 Brain Model 학습 중 바뀌지 않는다. 정서 손실의 기울기는 Brain Model에 도달한다.
     - 표준화 통계와 섞기에 시험 fold와 MC 72개가 들어가지 않는다.
     - 설정 선택과 조기 종료가 모든 조건에서 실제 y로 계산된다.
 - 실행 주체: Claude Code(구현과 단위 시험). GPU 실행은 S7과 S8에서 석진 님이 한다.
-- 7-O 항목: O1(섞기 순열), O5(a(v̂), b(ĉ)와 frozen-head distillation 구조), O6(공통 검증 기준의 세부), O26(교차 주의 층), O27(외부 baseline 검증), O28(ML-BVAE 칸 수), O31(평균 pooling판), O32(재현성)
+- 7-O 항목: O1(섞기 순열), O5(a(v̂), b(ĉ)와 조건 6, 7 구조), O6(공통 검증 기준의 세부), O26(교차 주의 층), O27(외부 baseline 검증), O28(ML-BVAE 칸 수), O31(평균 pooling판), O32(재현성)
 
 ### S7. 파일럿과 실행 사양 동결
 
@@ -730,7 +730,7 @@
 - 할 일
     - 파일럿(N34)
         - fold 1의 안쪽 자료만 쓴다. 파일럿 fold는 노출로 기록한다.
-        - 학습 한 번의 실행 시간, GPU 메모리, epoch 수를 측정한다. 대상은 다섯 조건, 더하기 head, 대조군, frozen-head distillation의 teacher와 student, 외부 baseline 셋, 평균 pooling판이다.
+        - 학습 한 번의 실행 시간, GPU 메모리, epoch 수를 측정한다. 대상은 핵심 다섯 조건, 더하기 head, 대조군, Multimodal Model, 조건 6과 7, 외부 baseline 셋, 평균 pooling판이다.
         - G13의 값으로 수렴하는지 fold 1의 안쪽 검증 자료로만 확인한다. 값을 고르지 않는다. 그 자료는 다른 fold의 시험 영상이다.
         - learning rate 후보를 모든 조건에 넣을 때의 실행 시간을 측정한다(G13). 실행 예산을 넘으면 Brain → Emotion에서 고른 값을 다른 조건이 따르는 판으로 줄이고 본 실행 전에 확정한다. 성능을 보지 않는다.
         - 파일럿 뒤 구조를 바꿔야 하면 바꾸지 않고 보고한다(0-2). 바뀌면 그 사실을 기록한다(N34).
@@ -751,7 +751,7 @@
 
 | 묶음 | 학습 횟수 | 7-L의 계산(K = 6이면) |
 | --- | --- | --- |
-| 사다리(다섯 조건과 더하기 head) | 18K + 360 | learning rate 후보 3개를 포함한 값(G13). fold마다 Brain → Emotion 3K + 2, Brain → Emotion + Vision + Caption 8, Brain + Decoded Feature → Emotion(상호작용 head) 26, Brain + Decoded Feature → Emotion(더하기 head) 8, Brain → Emotion [distillation] 8, Brain + Decoded Feature → Emotion [distillation] 8. 각각 후보 수 + seed 2(L9). 468회 |
+| 사다리(핵심 다섯 조건과 더하기 head) | 18K + 360 | learning rate 후보 3개를 포함한 값(G13). fold마다 Brain → Emotion 3K + 2, Brain → Emotion + Vision + Caption 8, Brain + Decoded Feature → Emotion(상호작용 head) 26, Brain + Decoded Feature → Emotion(더하기 head) 8, Brain → Emotion [distillation] 8, Brain + Decoded Feature → Emotion [distillation] 8. 각각 후보 수 + seed 2(L9). 468회 |
 | 필수 대조군(G6) | 144 | 셋 × fold마다 8(후보 2 × learning rate 3 + seed 2) × 6 fold |
 | 처음 보는 장면(6-2) | 180K + 1,680 | 구역 5 × fold 6 × 제외 방식 2 × (Brain → Emotion 3K + 2 + Brain + Decoded Feature → Emotion 26). 2,760회 |
 | 네트워크 단독 학습(6-4a) | 468 | 13묶음 × 6 fold × seed 3 × 2조건(L10) |
@@ -796,15 +796,15 @@
         - Brain → Emotion + Vision + Caption에서 λ = 0, 또는 Brain → Emotion [distillation]이 들어간 조건에서 α = 0이 뽑힌 fold는 "그 fold에서 이득이 확인되지 않음"으로 보고한다.
         - 그 fold의 결과는 앞 조건(Brain → Emotion이나 Brain + Decoded Feature → Emotion)의 모델이다.
         - fold별 선택값을 표로 낸다.
-        - Brain + Decoded Feature → Emotion과 frozen-head distillation에는 0 후보가 없다(G9).
+        - Brain + Decoded Feature → Emotion과 조건 6, 7에는 0 후보가 없다(G9).
     - L10: 6-4a는 그 바깥 fold의 표준 실행에서 고른 d, 입력층 weight decay, λ, r을 그대로 쓴다.
     - N24: 후보별 시험 성능은 저장만 한다. 선택에 쓰지 않는다.
 - 묶음별 실행
     - 사다리(필수, L1)
-        - 다섯 조건과 더하기 head. 6 fold. 후보는 S6에 있다.
+        - 핵심 다섯 조건과 더하기 head. 6 fold. 후보는 S6에 있다.
         - 18K + 360회(learning rate 후보 포함, 7-L)
     - 필수 대조군(G6)
-        - label smoothing, Stimulus Model 출력 섞기(Brain → Emotion [distillation]에 적용), 장면 특징 짝 섞기(Brain → Emotion + Vision + Caption에 적용). 6 fold
+        - label smoothing, Stimulus Model 출력 섞기(Brain → Emotion [distillation]에 적용), Vision feature와 Caption feature 짝 섞기(Brain → Emotion + Vision + Caption에 적용). 6 fold
         - 순열은 O1의 결정을 따른다.
         - 144회
     - 처음 보는 장면(6-2, 필수)
@@ -847,7 +847,7 @@
         - MPNet: 캡션 목표만 바꾼다.
         - Stimulus Model과 Brain + Decoded Feature → Emotion만 같은 절차로 다시 돌린다. 층 분석과 ROI 분석은 하지 않는다.
         - 624회
-    - 정서어 제거판(3-4, SI): 정서어 제거 캡션 특징으로 Brain + Decoded Feature → Emotion을 돌린다. 156회
+    - 정서어 제거판(3-4, SI): 정서어 제거 Caption feature로 Brain + Decoded Feature → Emotion을 돌린다. 156회
     - 외부 baseline(I7, 5-2): GED, ML-BVAE, EmoGrowth. 우리 run 분할의 6 fold. I7의 기준선이므로 필수 실행 범위다(L1). seed와 검증은 O27이다.
     - 평균 pooling판(F7, 보조): 36회(O31). L3의 순서에 따라 남는 시간에 한다.
 - 순서(7-L)
@@ -857,7 +857,7 @@
     4. 네트워크 단독 학습(6-4a)
     5. MC 시청 전이(6-3, 시점은 일정 결정에서)
     6. 검정, 표, 그림(S10)
-    - frozen-head distillation은 핵심 분석 다음이다(L1).
+    - 조건 6, 7은 핵심 분석 다음이다(L1).
 - 시간이 모자랄 때 줄이는 순서(L3). 시간 기준이고 결과를 보고 바꾸지 않는다.
     1. baseline 특징과 정서어 제거판을 필수 실행 범위 밖으로 뺀다.
     2. 6-4a의 Brain + Decoded Feature → Emotion을 seed 1로 줄인다.
@@ -897,12 +897,12 @@
             - 같은 참가자, 같은 시험 fold에서 A와 B가 아닌 영상 C를 무작위로 고른다.
             - (C의 decoded features − A의 decoded features)를 방향으로 쓰고, 길이를 실제 A→B 변경의 길이(D9 좌표의 유클리드 길이)와 같게 맞춘다.
             - 두 경로를 함께 바꿀 때는 같은 C를 쓰고 경로마다 길이를 맞춘다.
-            - 채점은 원래 짝 B와의 정답 차이 Δy = y_B − y_A로 한다.
+            - 채점은 원래 짝 B와의 사람 평정 차이 Δy = y_B − y_A로 한다.
             - 반복은 100회로 고정한다. 매회 전체 쌍의 통계량을 낸 뒤 100개 통계량을 평균한다. 이것이 대조 평균이다. 예측값을 먼저 평균하지 않는다.
             - 이 100회에서는 p 값을 내지 않는다. 실제 교체와 대조 평균의 차이는 O4의 재표집(10,000회)으로 평가한다(S10).
             - 쌍마다, 반복마다의 대조 결과를 저장한다. 재표집 때 쌍과 함께 가져온다.
         - 효과(6-1의 2-2행, 1-1행, O2)
-            - 예측 변화 Δp = 교체 후 확률 − 원래 확률, 정답 차이 Δy = y_B − y_A다.
+            - 예측 변화 Δp = 교체 후 확률 − 원래 확률, 사람 평정 차이 Δy = y_B − y_A다.
             - 참가자, 정서, 교체 조건마다 6 fold의 모든 쌍에 걸친 Pearson r(Δp, Δy)을 대응으로 쓴다.
             - Δy가 0인 쌍도 넣는다(4-1). Δy가 모든 쌍에서 0인 정서는 빼고, Δp가 상수인 정서는 계산 불가로 따로 센다(2-6).
             - 효과는 실제 교체의 r에서 대조 평균의 r을 뺀 값이다.
@@ -931,19 +931,19 @@
         - 넣는 값은 두 가지다: ridge decoded features(S5), Brain + Decoded Feature → Emotion decoded features
         - Stimulus Model의 더하기판과 상호작용판 둘 다 한다.
         - 뇌 모델은 더 학습하지 않는다.
-        - decoded features는 Stimulus Model이 학습한 실제 특징과 같은 차원, 좌표, 표준화(D9)에 있어야 한다(5-4).
+        - decoded features는 Stimulus Model이 학습한 실제 Vision feature와 Caption feature와 같은 차원, 좌표, 표준화(D9)에 있어야 한다(5-4).
         - 크기 보정(N8)
             - 보정 전 판과 보정판을 함께 보고한다. 시험 결과를 보고 둘 중 하나를 고르지 않는다.
-            - 보정판은 decoded features의 차원별 평균과 분산을 실제 특징에 맞춘 것이다. Stimulus Model head가 받도록 학습한 좌표(D9)에서 맞춘다.
-            - 보정 통계는 H2의 검증 fold에서 낸다. 정서 정답과 시험 fold는 쓰지 않는다. 통계를 고정해 시험 영상에 적용한다.
+            - 보정판은 decoded features의 차원별 평균과 분산을 실제 Vision feature와 Caption feature에 맞춘 것이다. Stimulus Model head가 받도록 학습한 좌표(D9)에서 맞춘다.
+            - 보정 통계는 H2의 검증 fold에서 낸다. 사람 평정과 시험 fold는 쓰지 않는다. 통계를 고정해 시험 영상에 적용한다.
             - ridge의 보정 통계를 내는 자료는 O34, 분산이 아주 작은 차원의 처리는 O35다.
         - 보고: Brain → Emotion과 경로 평가 각각의 절대 성능(정서별 Pearson r)과, 같은 시험 영상에서 계산한 두 성능의 차이와 구간(O4). 비율은 쓰지 않는다(K1, N6).
     - 경로 평가의 14개 차원판(K1a, 보조)
-        - S4의 K1a Stimulus Model에 세 가지 값을 넣어 14개 차원을 예측한다. 실제 특징, ridge decoded features(S5), Brain + Decoded Feature → Emotion decoded features(상호작용 head, seed 3개)다.
+        - S4의 K1a Stimulus Model에 세 가지 값을 넣어 14개 차원을 예측한다. 실제 Vision feature와 Caption feature, ridge decoded features(S5), Brain + Decoded Feature → Emotion decoded features(상호작용 head, seed 3개)다.
         - 넣는 decoded features는 K1과 같다. 같은 참가자, 같은 fold, 같은 모델, 같은 seed의 값을 쓴다. ROI token 경로는 넣지 않는다.
         - 더하기판과 상호작용판 둘 다 한다. 뇌 모델과 Stimulus Model은 더 학습하지 않는다.
         - N8 보정은 K1과 같다. 보정 전 판과 보정판을 함께 내고, K1에서 낸 통계(O34, O35)를 그대로 쓴다.
-        - 예측은 fold의 정답 표준화 통계로 되돌려 1~9점 척도로 저장한다. 6 fold를 모으는 계산은 S10에서 한다(O20과 같은 이유).
+        - 예측은 fold의 사람 평정 표준화 통계로 되돌려 1~9점 척도로 저장한다. 6 fold를 모으는 계산은 S10에서 한다(O20과 같은 이유).
         - 14개 차원의 교체 분석은 하지 않는다(B4). 경로 사용은 34개 범주의 바꿔 끼우기만 답한다.
     - 네트워크 단위 입력 교란(6-4b)
         - 모델: 전체 뇌로 학습한 Brain → Emotion과 Brain + Decoded Feature → Emotion(상호작용 head)을 고정한다. 다시 학습하지 않는다.
@@ -979,10 +979,10 @@
 - 할 일
     - 주 지표(2-3, N12)
         - 참가자마다, 정서마다 6 fold의 시험 예측을 모은다(약 2,100개 영상).
-        - 모은 예측과 정답으로 Pearson r을 한 번 낸다. fold별 r을 평균하지 않는다.
+        - 모은 예측과 사람 평정으로 Pearson r을 한 번 낸다. fold별 r을 평균하지 않는다.
         - 34개를 산술평균해 참가자 점수를 낸다.
         - 5명의 점수, 5명 평균, 정서별 결과를 모두 보고한다.
-        - 계산할 수 없는 r(정답이나 예측에 변동이 없음)은 0으로 채우지 않는다. 빼고 그 수를 보고한다(2-6, N12).
+        - 계산할 수 없는 r(사람 평정이나 예측에 변동이 없음)은 0으로 채우지 않는다. 빼고 그 수를 보고한다(2-6, N12).
         - Fisher z 평균은 SI다.
         - seed마다 점수를 내고, 평균과 표준편차를 보고한다. seed 예측을 평균한 앙상블 점수는 내지 않는다(G14).
         - 모든 조건 비교는 같은 참가자, 같은 영상 행에서 한다(N11).
@@ -990,8 +990,8 @@
         - decoded features의 차원별 r은 O20의 좌표에서 낸다.
     - 보조 평가(2-4, N19)
         - 평균 예측 대비 오차 감소(O25)
-        - 영상별 프로필 상관: 한 영상 안에서 34개 예측과 정답의 상관이다. 학습 자료의 평균 프로필을 늘 내는 기준선을 함께 둔다.
-        - 0 정답 영상과 0보다 큰 영상을 나눈 오차, R²와 MAE 합을 r과 함께 낸다(N19).
+        - 영상별 프로필 상관: 한 영상 안에서 34개 예측과 사람 평정의 상관이다. 학습 자료의 평균 프로필을 늘 내는 기준선을 함께 둔다.
+        - 사람 평정이 0인 영상과 0보다 큰 영상을 나눈 오차, R²와 MAE 합을 r과 함께 낸다(N19).
         - 영상 식별(Horikawa 외, 2020의 범주 81.9%)은 선행 연구 비교용 보조 자료다.
         - 이진화 지표와 분포 거리는 내지 않는다.
     - 정서별 보고(2-6)
@@ -1008,7 +1008,7 @@
     - 재표집과 순열(6-1, I5, N13, O4)
         - 정해진 것: 주 재표집 단위는 영상이다. 같은 영상에 대한 두 조건의 예측과 5명의 예측을 함께 다시 뽑는다. 같은 내용 영상 묶음이 남아 있으면 묶음으로 뽑는다. run 단위 bootstrap은 민감도다. 재표집은 10,000번이다.
         - 순열(O4 (1))
-            - 섞는 것: 정답과 영상의 대응이다. 정서 검정은 규범 평정 벡터(34개)를, 2-1 검정은 실제 특징 벡터를 다른 영상에 다시 배정하고 예측은 그대로 둔다.
+            - 섞는 것: 사람 평정과 영상의 대응이다. 정서 검정은 규범 평정 벡터(34개)를, 2-1 검정은 실제 Vision feature와 Caption feature 벡터를 다른 영상에 다시 배정하고 예측은 그대로 둔다.
             - 섞는 범위(exchangeability block): HK에서는 같은 시험 fold 안에서도 같은 원래 run 안의 영상끼리만 섞는다(Winkler 외, 2014). 6-2에서는 구역 경계도 넘지 않는다. MC의 72개 반복 평균 자료는 72개 안에서 섞는다.
             - 34개 정서 벡터와 5명에 같은 순열을 쓴다. 같은 내용 쌍은 한 단위로 다룬다.
             - 검정력 때문에 범위를 넓히지 않는다(O4).
@@ -1026,13 +1026,13 @@
         - 정서 34개별 분석(1-1, 1-2)은 탐색으로 표시하고 BH-FDR을 쓴다. 보정 묶음은 참가자마다, 비교마다 34개 정서다.
         - 2-4(6-4b)는 13묶음의 하락폭 차이 검정을 한 묶음으로 Holm 보정한다.
         - 6-4의 나머지는 탐색으로 표시하고 BH-FDR을 쓴다. 나머지 10묶음의 단독 학습 결과, Brain + Decoded Feature → Emotion의 결과, 묶음 안 정서별 결과가 해당한다. 보정 묶음을 결과와 함께 밝힌다.
-        - 보조 비교는 Holm 15개에 넣지 않고 따로 보고한다. 방향을 예측하지 않는다. G6의 올바른 대응 대 섞은 대응, frozen-head distillation의 student 대 Brain + Decoded Feature → Emotion과 Brain → Emotion이 해당한다.
+        - 보조 비교는 Holm 15개에 넣지 않고 따로 보고한다. 방향을 예측하지 않는다. G6의 올바른 대응 대 섞은 대응, 조건 6, 7 대 Brain + Decoded Feature → Emotion과 Brain → Emotion이 해당한다.
         - 0행(전제 검정, O4 (4)): Brain → Emotion과 Brain + Decoded Feature → Emotion 각각의 34개 정서 평균 r을 순열 기준과 비교한다. 두 검정을 [사전] 15개와 따로 한 Holm 묶음(2개)으로 보정한다. 5명 평균과 참가자마다 각각 적용한다(6-1).
         - MC 전이(6-3, O4 (5))는 보정 없이 따로 보고한다.
 
 | 질문 | [사전] 비교 | 수 |
 | --- | --- | --- |
-| 2-1 decoding | 시각 특징, 캡션 특징의 ridge decoding 대 순열 기준. 통계량은 차원별 r 평균(O19) | 2 |
+| 2-1 decoding | Vision feature, Caption feature의 ridge decoding 대 순열 기준. 통계량은 차원별 r 평균(O19) | 2 |
 | 2-2 이용 | Brain + Decoded Feature → Emotion의 시각만, 캡션만, 둘 다 교체 대 같은 크기 무작위 변경 | 3 |
 | 2-3 성능 | (가) Brain → Emotion + Vision + Caption 대 Brain → Emotion, (나) Brain + Decoded Feature → Emotion 대 Brain → Emotion + Vision + Caption, (다) Brain → Emotion [distillation] 대 Brain → Emotion, (라) Brain → Emotion [distillation] 대 label smoothing, (마) Brain → Emotion + Vision + Caption 대 Brain → Emotion [distillation], (바) Brain + Decoded Feature → Emotion [distillation] 대 Brain + Decoded Feature → Emotion | 6 |
 | 처음 보는 장면 | Brain + Decoded Feature → Emotion 대 Brain → Emotion의 "다섯 내용 구역의 평균 성능" | 1 |
@@ -1041,24 +1041,24 @@
 - 할 일(이어서)
     - 처음 보는 장면(6-2)
         - 구역마다 6 fold의 시험 예측을 모아 참가자별, 정서별 r을 낸다. 다섯 구역을 섞은 r 하나로 대신하지 않는다.
-        - 평가 정서 목록: 구역마다, 그 구역 시험 영상에서 정답이 모두 같은 정서만 뺀다.
+        - 평가 정서 목록: 구역마다, 그 구역 시험 영상에서 사람 평정이 모두 같은 정서만 뺀다.
         - 같은 구역에서는 네 설정(Brain → Emotion과 Brain + Decoded Feature → Emotion, 각각 구역 제외와 학습량 대조)에 같은 목록을 쓴다. 구역마다 포함된 정서 수를 낸다.
-        - 모델이 상수만 예측한 경우는 정답이 상수인 경우와 따로 센다. 그 정서는 그 구역에서 네 설정 모두의 평균에서 뺀다. 어느 모델의 어느 정서였는지 적는다.
+        - 모델이 상수만 예측한 경우는 사람 평정이 상수인 경우와 따로 센다. 그 정서는 그 구역에서 네 설정 모두의 평균에서 뺀다. 어느 모델의 어느 정서였는지 적는다.
         - 요약값: 구역마다 평가 정서의 r을 평균하고, 다섯 구역을 같은 무게로 평균한다. 이것이 "다섯 내용 구역의 평균 성능"이다.
         - 낼 것
             - 절대 성능(구역 제외), 학습량 대조 대비 하락폭, 두 모델의 차이, 구역별 결과
-            - 정서별로 남은 0이 아닌 학습 영상 수(두 제외 방식), 시험 쪽 정답 분포
+            - 정서별로 남은 0이 아닌 학습 영상 수(두 제외 방식), 시험 쪽 사람 평정 분포
             - 보조 모델(ridge, Stimulus Model)의 결과
             - Brain + Decoded Feature → Emotion decoded features의 2-1 지표
         - "더 높다"와 "덜 떨어진다"는 따로 판정한다. 하락폭 차이는 직접 비교한다. 방향은 정하지 않았다.
     - MC 시청 전이(6-3)
         - 참가자별, 정서별로 72개 영상에 걸친 r을 내고 34개를 평균한다.
-        - 72개 시험 영상에서 정답이 모두 같은 정서는 두 조건 모두에서 빼고 그 수를 낸다.
+        - 72개 시험 영상에서 사람 평정이 모두 같은 정서는 두 조건 모두에서 빼고 그 수를 낸다.
         - 예측이 일정한 경우는 따로 낸다. 그 정서를 한 모델에서만 빼고 평균하지 않는다.
         - seed 3개를 참가자 3명처럼 다루지 않는다.
         - 시험 영상이 72개뿐이라 구간이 넓을 수 있음을 적는다.
     - 영역(6-4)
-        - 6-4a의 평가 정서는 34개 모두다. 시험 영상 전체에서 정답이나 예측이 상수라 r을 계산할 수 없는 정서만 빼고 그 수를 보고한다(6-4a, 2-6).
+        - 6-4a의 평가 정서는 34개 모두다. 시험 영상 전체에서 사람 평정이나 예측이 상수라 r을 계산할 수 없는 정서만 빼고 그 수를 보고한다(6-4a, 2-6).
         - 6-4a: 묶음마다 정서 예측 성능과 두 decoded features의 decoding 성능을 나란히 낸다. decoding 성능은 Brain + Decoded Feature → Emotion에서만 낸다.
         - 6-4b: 묶음마다 두 모델의 하락과 하락폭 차이의 불확실성을 낸다.
         - 13묶음의 참가자 간 일치도(S2)를 함께 적는다.
@@ -1066,7 +1066,7 @@
     - 14개 차원(B4, K1a, 보조). 표 하나로 낸다.
         - 차원마다 시험 영상에 걸친 Pearson r로 세 성능을 나란히 둔다. 참가자별 값과 5명 평균을 낸다. 6 fold를 모아 r을 한 번 낸다(2-3).
             - (1) B4 ridge의 뇌 직접 decoding(주 비교판)
-            - (2) 실제 특징을 넣은 Stimulus Model. 참고값이고 상한이 아니다.
+            - (2) 실제 Vision feature와 Caption feature를 넣은 Stimulus Model. 참고값이고 상한이 아니다.
             - (3) decoded features를 넣은 Stimulus Model. ridge판과 Brain + Decoded Feature → Emotion판, 더하기판과 상호작용판, 보정 전과 보정판이다. Brain + Decoded Feature → Emotion판은 seed마다 내고 평균과 표준편차를 적는다(G14).
         - (3)의 판마다 (1)과의 차이와 구간을 같은 참가자, 같은 시험 영상에서 낸다(N11, O4 (3)). 비율은 쓰지 않는다.
         - 차원별 검정은 탐색으로 표시하고 BH-FDR을 쓴다. 보정 묶음은 참가자마다, 비교마다 14개 차원이다. [사전] 15개의 Holm 묶음에 넣지 않는다.
@@ -1078,7 +1078,7 @@
         - 영상 길이 구간별 결과(3-2, SI)와 window로 나뉜 영상(개발 영상 80개)을 뺀 주 지표. 저장된 예측으로 계산하고 재학습하지 않는다.
         - ridge에서 λ의 양 끝이 뽑힌 횟수(O18), N8에서 평균만 옮긴 차원 수(O35)
 - 해석 문장 규칙. 결과 문장은 6-1 표의 행을 따른다. 아래는 짧게 모은 것이다.
-    - 정답은 규범 평정이다. 참가자가 느낀 정서를 읽었다고 쓰지 않는다.
+    - 사람 평정은 규범 평정이다. 참가자가 느낀 정서를 읽었다고 쓰지 않는다.
     - 차이가 확인되지 않으면 "확인하지 못했다"와 구간을 쓴다. "같다"고 쓰지 않는다.
     - 구간이 예상과 반대쪽으로 0을 넘으면 "낮아졌다"고 쓴다.
     - 한쪽만 유의하다는 이유로 둘이 다르다고 쓰지 않는다. 차이를 직접 검정한다.
@@ -1094,7 +1094,7 @@
     - 영역 결과는 "그 묶음의 신호만으로 예측할 수 있었다" 또는 "이번 교체 조건에서 그 묶음 입력에 더 민감했다"까지다. 신뢰도가 낮은 묶음의 낮은 성능을 "정보 없음"으로 읽지 않는다.
     - 처음 보는 장면은 "학습에서 뺀 이름표 구역"이다. 사전학습 모델이 본 적 없는 장면이라고 쓰지 않는다.
     - MC 결과를 "외부 검증"이나 "가벼운 보정"이라고 부르지 않는다.
-    - frozen-head distillation의 결과는 학습 방식 전체의 차이로만 쓴다. teacher의 뇌 사용이나 시각과 캡션의 고유한 기여를 입증했다고 쓰지 않는다(G16).
+    - 조건 6, 7의 결과는 학습 방식 전체의 차이로만 쓴다. Multimodal Model의 뇌 사용이나 시각과 캡션의 고유한 기여를 입증했다고 쓰지 않는다(G16).
     - 딥러닝 모델이 ridge보다 나빠도 설계를 바꾸지 않는다. 경로와 ROI 결과를 "이 모델 조건부"로 보고한다(N23).
     - 평균 pooling판이 query판과 같거나 나으면 "정서별 query" 주장을 거둔다(N22).
 - 출력: 6-1의 판정표, 정서별 표, 보조 평가 표, 구역별 표, 영역 표, 14개 차원 표, 선택값 표. 요약 표만 커밋한다(M3).
@@ -1142,7 +1142,7 @@
 | --- | --- | --- | --- |
 | S0. docs/archive/pre-final-2026-10와 04_DECISION_REGISTER의 위치, 옛 설계와 다른 점 | 점검한 레포: Transconnectome/EmoBrain, 브랜치 `docs/unify-study-design-20261006`, commit cb3a29f(10/28), Mac의 임시 clone에서 읽기만 함. 위치: `docs/archive/pre-final-2026-10/` 13개 파일(00~10, CHANGELOG, SERVER_PROMPT), `docs/archive/pre-final-2026-10/04_DECISION_REGISTER.md`. main에는 없음. 구현에 영향을 주는 차이: (1) Study 1(B, V, S latent 해석)과 Study 2 틀 (2) teacher 사다리 T_B~T_BVS_SHUF와 cross-attention teacher(02:219~246) 대 Stimulus Model 하나(E2) (3) distillation 손실 MSE(p_S, p_T)(02:268) 대 (1 − α)y + αp_T의 soft BCE(G7) (4) 조건 3개(Direct, Full-guided, Shuffled-guided) 대 5개, student에 feature head와 feature decoding loss가 없음 (5) 469개 지도와 ROI PCA 32(02:132~164) 대 370개 ROI 선형 투영(C4) (6) V-JEPA 2 ViT-L block 6/12/24, 8 fps 16프레임 window(02:192~207) 대 ViT-g 40 block, 4 fps 최대 64프레임(3-2) (7) 주 지표가 영상 안 34개 값의 r을 Fisher z로 모은 것(02:388) 대 정서별 r(2-3) (8) 14-D 독립 학습, encoding 분석(1a, 1b, 2d), Brain-JEPA식 보조 손실은 필수 범위 밖 (9) MC를 학습과 tuning에 쓰지 않음(04 D13) 대 MC 입력층 학습(6-3). "이전 F6 구조"와 "PCA 64"는 docs/archive/pre-final-2026-10에 없다. GPT 10/30 초안에서 온 항목이다. docs/archive/pre-final-2026-10를 경로로 가리키는 곳: 문서 10개(루트 README, AGENTS, CLAUDE, CONTEXT_EMOBRAIN, project/README, project/baseline/README, docs/coordination/README, threads/T004, docs/reports/prelim_2026-10/decisions_proposed, prereg_v2/design_docs/AGENTS), 코드 주석 1줄(project/data/pilot_adapter.py:64), 설정 문자열 1개(project/baseline/brain_decoding/config.json:29). 실행 중에 docs/archive/pre-final-2026-10를 읽는 코드는 없다 | 0절, N37 | 2026-11-03 |
 | S0. 기존 코드의 위치와 새 설계에서의 사용 여부 | 분할: project/analysis/prelim_2026-10/splits/make_horikawa_split.py, docs/reports/prelim_2026-10/splits/horikawa_rungroup6_v1.tsv, .json. 고쳐서 쓴다(MC 72개 제외, 1349/1363 묶기, 세션 조건 검사가 없음. 아래 불일치 행). 기록: prereg_v2/manifests/stimulus_crosswalk.tsv, runs.tsv, events_audited.tsv, stimuli.tsv는 그대로 쓴다. events_audited의 duration_sec는 TR 단위 block 길이이고 반복 횟수 기록은 없다. 다시 쓸 논리: project/data/pilot_adapter.py의 load_canonical_map, reserved_contents(MC part == test), compute_run_groups, select_dev_subset. V-JEPA 2: archive/v5_direction_split_20260628/dir3_ccn/study1/code/archive/extraction/extract_video_embeddings.py(16프레임 균등, 마지막 출력만)는 쓰지 않는다. 같은 폴더의 03_extract_layer_embeddings.py(40 block 평균 저장)를 출발점으로, 4 fps 제시 영상 규칙, 64프레임 상한, 가운데 정사각형 자르기, 버전 기록을 더한다. lowlevel_features.py: 33개 추출만 기록용으로 쓰고, 정서 R² 부분과 stage 1의 lowlevel_L 특징은 쓰지 않는다. build_lab_features.py: 캡션 생성 모델 오류는 "일부 캡션 오류 확인됨", "생성 캡션, 검수 전" 두 줄만 기록(9, 109행). run_baselines.py: 469개 지도(roi469, subroi4)로 돌렸다. third_party/GED는 git 밖이다(.gitignore:202, Perlmutter 사본에만 있음, zhongyu1998/GED 3ea8492). 370개 ROI로 다시 돌려야 한다. ML-BVAE, EmoGrowth 구현은 없다. archive의 01_glasser_parcellation.py: 쓰지 않는다(QC에서 실패한 MNI frame을 입력으로 씀, Tian S1을 10개로 가정, 결과 없음). mlp_pooled.sh: 공통 ROI = roi_valid와 유한값 조건의 5명 교집합(469개 중 466개). C6 규칙(HK와 MC 모두, 370개)으로 다시 센다. Brain-JEPA/atlas: Perlmutter EmoDe/Foundation_baseline/Brain-JEPA/atlas, Schaefer400 + Tian S3 = 450개다. 469개 지도는 참가자별 T1w dseg(v3/atlas)다. 둘 다 쓰지 않는다. PREPROC_QC_REPORT(9/28)는 옛 MNI 자료만 다룬다. PRELIM_STAGE0_REPORT(10/22)는 v3_qc 기준 block 수와 라벨 이름 규칙을 적는다 | S0 목록 | 2026-11-03 |
-| S0. 자료 경로(voxel 캐시, 정답, 14개 차원, semantic_features.csv, MC 캡션, MC fMRI) | Perlmutter 메인 세션이 /pscratch에서 직접 확인함(11/3). PM = /pscratch/sd/s/sjmoon. HK voxel: PM/Horikawa/sub-0X/v3_qc/ 5명 모두 있다. 파일 11개(blocks_common36_qc_runz.npy, 정규화 전 blocks_common36_qc.npy, samples_qc_usable.tsv, mask_qc.nii.gz, voxel_keep.npy, roi_valid.tsv, samples_qc.tsv, runs_qc.tsv, segments_qc.tsv, QC_SUMMARY.json, SUCCESS.json). 배열(block × voxel, float32): sub-01 2,191 × 202,143, sub-02 2,195 × 183,468, sub-03 2,187 × 164,116, sub-04 2,175 × 198,779, sub-05 2,085 × 199,936. QC 전 결과(v3: atlas/, atlas_counts/, confounds/, timeseries_stim/, code/)와 v2도 PM/Horikawa/sub-0X/에 있다. 전처리 설명 PREPROCESSING_FINAL.md는 Perlmutter에도 있다(PM/Horikawa/, PM/MindCaptioning/). 지도: roi_valid.tsv와 v3/atlas/의 지도 19종(Schaefer 100~400의 7, 17 네트워크판, Tian S1~S4, FSaseg, CerebLobules, Buckner 7, 17, HypoBNSTNBM, HypothalamusNuclei, MASSPsub, 450개와 469개 조합)에 HCP360이 없다(불일치 7). fMRIPrep 해부 결과(PM/Horikawa/fmriprep/horikawa_preprocess_sub0X/fmriprep/output/sub-0X/ses-anatomy/anat/)에는 개인 표면(white, pial, midthickness), fsaverage와 fsLR 등록 구면, T1w와 fsnative, MNI 사이 변환이 있다. FreeSurfer 원 폴더(sourcedata/freesurfer)는 Perlmutter에 없다. 34개 정답: 레포 project/shared/data/cowen_horikawa_labels.csv(2,185행 = content_id 1~2185, score_0~33과 14개 차원). 연구실 서버 파일의 Perlmutter 사본 PM/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/horikawa_meta_data_with_dimension_binary.csv(2,196행)의 score_0~33은 레포 파일과 2,185개 모두 같다(최대 차이 0). 14개 차원: 레포 csv의 2,185개 모두 값이 있다. "분석 영상 7개에 값 없음"은 라벨을 video_id로 붙일 때 생긴다. 분석 영상 가운데 7개(2186, 2189, 2190, 2191, 2192, 2193, 2196)는 B2에 따라 남긴 먼저 제시된 복사본이고 레포 csv에는 1~2185만 있으므로, 라벨은 content_id로 붙인다. 10월 사전 분석 코드는 video_id 2185 이하로 걸러 이 7개를 빼고 2,174개를 썼다(N1의 노출 기록에 함께 적는다). semantic_features.csv: PM/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/와 출처 /pscratch/sd/t/tylee/Horikawa_Haka/meta/ 둘 다 있고 md5가 같다(2,196행, id 열과 73개). MC 캡션: 레포 caption_ck20.csv와 PM/transfer/emobrain_stimulus_features_20261025/captions/의 사본은 md5가 같다(영상 2,196개 × 20개). MC 시청 fMRI: PM/MindCaptioning/sub-0X/v2_qc/ 6명 모두 있고 HK와 같은 11개 파일 구성이다. 사건 기록은 samples 표(session, run, run_index, onset_sec, duration_sec, part, rep, test_video_in_train_session 등)뿐이다. MC 72개: 목록 파일은 없다. 6명 모두 part == test의 영상이 72개로 같고, 학습 세션 안의 같은 영상 72행에 test_video_in_train_session이 표시되어 있다. 목록은 S1에서 이 표로 만든다. figshare 11988351: PM 아래(깊이 3)에서 찾지 못했다. 영상: PM/EmoViS/data/raw/CowenEmotionVideos에 mp4 2,196개(0001~2196) | N39 | 2026-11-03 |
+| S0. 자료 경로(voxel 캐시, 사람 평정, 14개 차원, semantic_features.csv, MC 캡션, MC fMRI) | Perlmutter 메인 세션이 /pscratch에서 직접 확인함(11/3). PM = /pscratch/sd/s/sjmoon. HK voxel: PM/Horikawa/sub-0X/v3_qc/ 5명 모두 있다. 파일 11개(blocks_common36_qc_runz.npy, 정규화 전 blocks_common36_qc.npy, samples_qc_usable.tsv, mask_qc.nii.gz, voxel_keep.npy, roi_valid.tsv, samples_qc.tsv, runs_qc.tsv, segments_qc.tsv, QC_SUMMARY.json, SUCCESS.json). 배열(block × voxel, float32): sub-01 2,191 × 202,143, sub-02 2,195 × 183,468, sub-03 2,187 × 164,116, sub-04 2,175 × 198,779, sub-05 2,085 × 199,936. QC 전 결과(v3: atlas/, atlas_counts/, confounds/, timeseries_stim/, code/)와 v2도 PM/Horikawa/sub-0X/에 있다. 전처리 설명 PREPROCESSING_FINAL.md는 Perlmutter에도 있다(PM/Horikawa/, PM/MindCaptioning/). 지도: roi_valid.tsv와 v3/atlas/의 지도 19종(Schaefer 100~400의 7, 17 네트워크판, Tian S1~S4, FSaseg, CerebLobules, Buckner 7, 17, HypoBNSTNBM, HypothalamusNuclei, MASSPsub, 450개와 469개 조합)에 HCP360이 없다(불일치 7). fMRIPrep 해부 결과(PM/Horikawa/fmriprep/horikawa_preprocess_sub0X/fmriprep/output/sub-0X/ses-anatomy/anat/)에는 개인 표면(white, pial, midthickness), fsaverage와 fsLR 등록 구면, T1w와 fsnative, MNI 사이 변환이 있다. FreeSurfer 원 폴더(sourcedata/freesurfer)는 Perlmutter에 없다. 34개 사람 평정: 레포 project/shared/data/cowen_horikawa_labels.csv(2,185행 = content_id 1~2185, score_0~33과 14개 차원). 연구실 서버 파일의 Perlmutter 사본 PM/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/horikawa_meta_data_with_dimension_binary.csv(2,196행)의 score_0~33은 레포 파일과 2,185개 모두 같다(최대 차이 0). 14개 차원: 레포 csv의 2,185개 모두 값이 있다. "분석 영상 7개에 값 없음"은 라벨을 video_id로 붙일 때 생긴다. 분석 영상 가운데 7개(2186, 2189, 2190, 2191, 2192, 2193, 2196)는 B2에 따라 남긴 먼저 제시된 복사본이고 레포 csv에는 1~2185만 있으므로, 라벨은 content_id로 붙인다. 10월 사전 분석 코드는 video_id 2185 이하로 걸러 이 7개를 빼고 2,174개를 썼다(N1의 노출 기록에 함께 적는다). semantic_features.csv: PM/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/와 출처 /pscratch/sd/t/tylee/Horikawa_Haka/meta/ 둘 다 있고 md5가 같다(2,196행, id 열과 73개). MC 캡션: 레포 caption_ck20.csv와 PM/transfer/emobrain_stimulus_features_20261025/captions/의 사본은 md5가 같다(영상 2,196개 × 20개). MC 시청 fMRI: PM/MindCaptioning/sub-0X/v2_qc/ 6명 모두 있고 HK와 같은 11개 파일 구성이다. 사건 기록은 samples 표(session, run, run_index, onset_sec, duration_sec, part, rep, test_video_in_train_session 등)뿐이다. MC 72개: 목록 파일은 없다. 6명 모두 part == test의 영상이 72개로 같고, 학습 세션 안의 같은 영상 72행에 test_video_in_train_session이 표시되어 있다. 목록은 S1에서 이 표로 만든다. figshare 11988351: PM 아래(깊이 3)에서 찾지 못했다. 영상: PM/EmoViS/data/raw/CowenEmotionVideos에 mp4 2,196개(0001~2196) | N39 | 2026-11-03 |
 | S0. 기존 특징 캐시의 상태와 추출 기록 | Perlmutter에서 직접 확인함(11/3). 새 설계(3-2, 3-3, 3-6)에 그대로 쓸 수 있는 캐시는 MPNet 하나이고 나머지는 다시 뽑는다. (1) V-JEPA 2: PM/transfer/emobrain_lab_features_20261026/vjepa2_vitg_final.npy(2,196 × 1,408, 마지막 block, 2186~2196은 1~11의 복사. 체크포인트와 16프레임 균등은 EmoViS 기록 archive/.../dir3_ccn/CLAUDE.md:139~140에만 있음). PM/EmoViS/study1/results/00_embeddings/vjepa2_layerwise/(block 4, 8, 12, ..., 40의 10개, 2,185행. block 10과 30이 없음)와 vjepa2/(마지막 출력). 10월 말 사전 분석용 video_models/vjepa2_win(같은 체크포인트, 2초 window 초당 8장, block 20, 32, 40, info.json에 모델 이름만). 모두 3-2의 규칙(초당 4장, 최대 64프레임, 8초 반복, 가운데 정사각형, 40개 block 저장, O10, O11)과 다르다. (2) DeBERTa-large: 캐시가 없다(PM의 transfer, EmoViS, EmoBrain/project, MindCaptioning 아래 깊이 5에서 찾지 못함). (3) MPNet: caption_human_mpnet.npy(2,196 × 768). 처리는 build_lab_features.py 기록과 같고 7-O 3절의 MPNet 처리와 맞는다. HF revision과 코드 버전 기록은 없다. 정서어를 지운 판 caption_human_noemo_mpnet.npy도 있다(3-4의 SI는 DeBERTa로 다시 낸다). (4) baseline 시각 모델: VideoMAE 캐시(videomae.npy, videomaewin.npy, EmoViS videomae/)는 Kinetics로 미세조정한 videomae-huge라 3-1의 ViT-B/16 사전학습 전용과 다르다. CLIP 캐시(clip_vitl14.npy, clip2fps.npy, EmoViS clip_layerwise/)는 ViT-L/14다(3-1은 MC가 쓴 판, 확인하지 못하면 ViT-B/16). TimeSformer 캐시(timesformer_l12.npy, timesformer_l6.npy, video_models/timesformer 12층)는 facebook/timesformer-base-finetuned-k400로 32프레임 간격과 세 위치 자르기를 따랐지만 8초 반복 영상이 아니라 원 영상에서 뽑았다(O14). DINOv2, X-CLIP, SigLIP2(추출 중단, parts만)는 3-1에서 쓰지 않는다. (5) 저수준: 움직임 에너지(3-6) 캐시가 없고 pymoten도 brainvlm_qwen_env에 설치되어 있지 않다. RGB 중앙값 캐시도 없다. 10월의 lowlevel_motion.npy(28개), EmoViS lowlevel/, sadeghi/는 3-6과 다른 특징이다. (6) 뇌: PM/EmoBrain/project/output/prelim_2026-10/roi_blocks/의 469개 지도 영역 평균은 5-5(370개 ROI의 voxel 입력)와 달라 쓰지 않는다 | 3-2, M2 | 2026-11-03 |
 | S0. 설계 동결 commit 해시 | 아직 하지 않음. 석진 님이 "GPT 전체 검증 반영이 끝났다"고 말한 뒤에 한다 | M5 | |
 | S1. 34개 라벨 열 대조 결과 | 일치(11/3). score_0~33(이름은 project/shared/data/cowen34_order.txt의 알파벳 순)을 원 범주 이름이 든 Horikawa 형식의 특징 파일 archive/v5_direction_split_20260628/dir3_ccn/data/raw/feature/category.mat(L.feat 2,196 × 34, 0~1, L.featname)의 같은 이름 열과 비교했고 34개 모두 값이 같다(최대 차이 0, content_id 1~2185). 같은 폴더의 categcontinuous.mat는 0~100 척도의 다른 평정이라 같은 이름 열과 r 0.92~0.99로 맞고 다른 이름 열과는 0.77 이하다. 대조표: project/analysis/final_2026-11/manifests/label_map_34.tsv, 코드 s1_labels_mc72.py. archive 코드(dir3_ccn/study1/code/archive/legacy_pipeline/21_cca_brain_video.py:36~43)의 다른 34개 이름 목록은 틀린 목록이다 category.mat은 공개 figshare 11988351 feature.tar.gz의 파일과 md5가 같다(11/4) | N2 | 2026-11-03 |
@@ -1178,9 +1178,9 @@
 | S2. 학습량 대조 표본의 seed | 6-2 학습용 표본 seed [20261104, 구역, fold], 거리 점검 seed [20261105, 구역, fold](numpy default_rng, 학습 fold에서 먼저 뽑고 검증 fold에서 뽑는다). 표본 manifests/s2/content_block_control_samples.tsv(role train, val). 영상 수는 30개 조합 모두 구역 제외와 같다. 참가자별 block 수는 QC로 빠진 block 때문에 달라질 수 있어(차이 최대 학습 10개, 검증 3개) 다시 뽑지 않고 manifests/s2/content_block_participant_counts.tsv에 적었다 | 4-3 | 2026-11-04 |
 | S2. 짝 거리 분포, 동점 수, 짝 영상이 빠진 참가자의 쌍 수, 서로가 최근접인 쌍 수 | 방향 있는 짝 2,109개, 거리 중앙값 0.089, 최댓값 0.187. 동점이 있는 영상 1개(영상 ID가 작은 쪽, O9). 순서 없는 쌍 1,690개, 그중 서로 최근접 419쌍. 연결 묶음 419개, 크기 2~24. 빠진 쌍(방향 있는 짝 / 순서 없는 쌍): sub-01 4 / 4, sub-02 1 / 1, sub-03 16 / 12, sub-04 38 / 33, sub-05 186 / 158. 거의 같은 내용인 1349와 1363은 서로 최근접 쌍이다(거리 0.041). 규칙대로 두었고, 자기 자신이 아니므로 뺄 근거가 없다. 표 manifests/s2/pairs_directed.tsv, pairs_unordered.tsv, pair_groups.tsv, pair_missing_counts.tsv | 4-2, O4, O9 | 2026-11-04 |
 | S2. CAB-NP 묶음별 ROI 수, 13묶음 참가자 간 일치도 | 배정 출처: ColeLab/ColeAnticevicNetPartition(commit e4ea9fd)의 LabelKey를 HCP 라벨 이름으로 대응했다(PM/atlas_sources/cab_np/). ROI 수: Default 77, Cingulo-Opercular 56, Visual2 54, Frontoparietal 50, Somatomotor 39, Language 23, Dorsal-Attention 23, Auditory 15, Subcortex 10, Posterior-Multimodal 7, Orbito-Affective 6, Visual1 6, Ventral-Multimodal 4. 일치도(0단계 방법, 영역 평균 run 안 z, 5명 공통 개발 영상 1,969개, 한 명 대 나머지 평균, ROI별 5명 평균의 묶음 중앙값): Posterior-Multimodal 0.528, Visual2 0.509, Visual1 0.483, Dorsal-Attention 0.463, Somatomotor 0.323, Language 0.299, Cingulo-Opercular 0.249, Default 0.246, Frontoparietal 0.207, Auditory 0.182, Ventral-Multimodal 0.147, Orbito-Affective 0.142, Subcortex 0.114. HK는 5명의 제시 순서가 같아 순서 효과가 섞일 수 있다. 이 결과로 묶음을 바꾸지 않고, 일치도가 낮은 묶음의 낮은 성능을 정보 없음으로 읽지 않는다. 표 manifests/s2/roi_table.tsv, cabnp_groups.tsv, agreement_hk_13groups.tsv, agreement_hk_roi.tsv. ROI별 voxel 열 번호는 project/output/final_2026-11/s2_manifest/roi_voxels/(11명, git 밖), 수는 manifests/s2/roi_voxel_counts.tsv | 6-4, K7, C6 | 2026-11-04 |
-| S2. MC 시험 반응 접근 기록 | 11/4 S2의 열 순서 점검 첫 판(s2_manifest.py --stage order, cc82896)이 MC 6명 배열의 앞 40행을 읽었다. MC 배열은 시험 세션이 맨 앞이라 6명 모두 시험 block이었고, 합계 240개, 모두 MC 최종 시험 72개에 드는 영상이다. 정규화 전 평균 패턴의 이웃 voxel 상관을 계산하는 데만 썼다. 정서 정답과 함께 쓰지 않았고, 모델 학습이나 지도, 분할, 묶음 결정에 쓰지 않았다. 보고에 "MC 시험 반응은 읽지 않았다"고 잘못 적었고 Codex가 찾았다(2026-11-05_s2_audit_cc82896.md). 코드를 고쳤다. 반응 배열은 metadata로 허용 행을 정한 뒤 read_rows로만 읽고(HK 개발 block, MC input_train), 허용되지 않은 행은 읽기 전에 멈춘다. stage_check에 시험 행이 배열 앞에 있는 상태의 회귀 검사를 넣었다. 다시 만든 표는 지난 접근을 없애지 않으므로 N1에 기록한다. 같은 이유로 HK 쪽도 고쳤다. 첫 판의 brain 단계와 s1_abnormal_blocks.py는 전체 행을 읽어, 개발에서 빠지는 행(참가자별 84~87개)까지 읽었다. 그중 MC 72개와 같은 내용은 참가자별 70~73개이고 나머지는 나중 중복이다. HK 일치도, 반복 신뢰도, 이상 block 계산에서는 빠져 있었고, 고친 뒤 이 표들은 값이 그대로다. 첫 판 order 단계의 앞 40행에는 참가자마다 MC 72개와 같은 내용 3행이 들어가 이웃 상관 계산에 실제로 쓰였다 | N1, 0-3, 6-3 | 2026-11-04 |
+| S2. MC 시험 반응 접근 기록 | 11/4 S2의 열 순서 점검 첫 판(s2_manifest.py --stage order, cc82896)이 MC 6명 배열의 앞 40행을 읽었다. MC 배열은 시험 세션이 맨 앞이라 6명 모두 시험 block이었고, 합계 240개, 모두 MC 최종 시험 72개에 드는 영상이다. 정규화 전 평균 패턴의 이웃 voxel 상관을 계산하는 데만 썼다. 사람 평정과 함께 쓰지 않았고, 모델 학습이나 지도, 분할, 묶음 결정에 쓰지 않았다. 보고에 "MC 시험 반응은 읽지 않았다"고 잘못 적었고 Codex가 찾았다(2026-11-05_s2_audit_cc82896.md). 코드를 고쳤다. 반응 배열은 metadata로 허용 행을 정한 뒤 read_rows로만 읽고(HK 개발 block, MC input_train), 허용되지 않은 행은 읽기 전에 멈춘다. stage_check에 시험 행이 배열 앞에 있는 상태의 회귀 검사를 넣었다. 다시 만든 표는 지난 접근을 없애지 않으므로 N1에 기록한다. 같은 이유로 HK 쪽도 고쳤다. 첫 판의 brain 단계와 s1_abnormal_blocks.py는 전체 행을 읽어, 개발에서 빠지는 행(참가자별 84~87개)까지 읽었다. 그중 MC 72개와 같은 내용은 참가자별 70~73개이고 나머지는 나중 중복이다. HK 일치도, 반복 신뢰도, 이상 block 계산에서는 빠져 있었고, 고친 뒤 이 표들은 값이 그대로다. 첫 판 order 단계의 앞 40행에는 참가자마다 MC 72개와 같은 내용 3행이 들어가 이웃 상관 계산에 실제로 쓰였다 | N1, 0-3, 6-3 | 2026-11-04 |
 | S2. MC 표 | stage_mc는 반응을 읽지 않고 표만 만들었다. 입력층 학습 run 58개를 O29대로 나눴다(5, 10, ..., 55번째 11개 run이 검증). 고유 영상은 2,103, 2,108, 2,106, 2,107, 2,108, 2,081개, 입력 학습/검증 block은 표 참조. 시험 72개 block은 360, 360, 360, 360, 359, 357개(영상당 4~5회, manifests/s2/mc_test_repeats.tsv). 시험 영상이 든 두 run의 72 block은 쓰지 않는다. MC 영상 2,180개 중 HK 개발에 없는 것은 시험 72개뿐이다. 표 manifests/s2/mc_blocks.tsv, hk_mc_id_map.tsv | 6-3, O29 | 2026-11-04 |
-| S3. 실제 특징 차원 | 영상 2,196개, 모두 float32, 비유한 값 0개. V-JEPA 2 blocks (2196, 40, 1408), 목표 5,632. DeBERTa (2196, 24, 1024), 목표 4,096, 캡션 43,920개(영상당 20개). 정서어 제거판도 같은 크기이고 1,063개 영상의 값이 원판과 다르다. VideoMAE (2196, 4, 768), 목표 3,072. TimeSformer (2196, 12, 768), 목표 3,072. CLIP (2196, 512). MPNet (2196, 768). 저수준 (2196, 6558). 목표가 지정한 층을 이어 붙인 값과 같음을 V-JEPA 2와 DeBERTa에서 확인했다. 시각과 움직임 특징에서 완전히 같은 영상 쌍은 15쌍이고 manifests/duplicates_15.tsv와 정확히 일치한다 | 5-4, D9 | 2026-11-06 |
+| S3. 실제 Vision feature와 Caption feature 차원 | 영상 2,196개, 모두 float32, 비유한 값 0개. V-JEPA 2 blocks (2196, 40, 1408), 목표 5,632. DeBERTa (2196, 24, 1024), 목표 4,096, 캡션 43,920개(영상당 20개). 정서어 제거판도 같은 크기이고 1,063개 영상의 값이 원판과 다르다. VideoMAE (2196, 4, 768), 목표 3,072. TimeSformer (2196, 12, 768), 목표 3,072. CLIP (2196, 512). MPNet (2196, 768). 저수준 (2196, 6558). 목표가 지정한 층을 이어 붙인 값과 같음을 V-JEPA 2와 DeBERTa에서 확인했다. 시각과 움직임 특징에서 완전히 같은 영상 쌍은 15쌍이고 manifests/duplicates_15.tsv와 정확히 일치한다 | 5-4, D9 | 2026-11-06 |
 | S3. 영상별 원래 초당 장 수, 홀수 프레임에서 뺀 장 수, 끝에 맞춘 window 수 | 원래 초당 장 수 1.25~100, 중앙값 14.3, 15 미만 1,238개. V-JEPA 2: N이 64 이하이고 홀수라 한 장 뺀 영상 141개, window로 나뉜 영상 81개, 모두 마지막 window를 끝에 맞췄고 window는 최대 6개. VideoMAE: 모든 영상이 16장을 넘어 window로 나뉘고 끝에 맞춘 영상 576개. 값은 s3_features/<모델>/video_info.tsv | O10, O11 | 2026-11-06 |
 | S3. 움직임 에너지 필터 수, Du 외(2023) 특징과의 대조 | 필터 6,555개. Du 외(2023) 공개 특징과의 대조는 Codex가 산출물 검토에서 했다(project/output/audits/codex/2026-11-06_s3_outputs_ef9bd8a.md). 같은 영상 r 중앙값 0.945, 최대 절대 차이 21.2로 같은 값이 아니고 원인은 분리하지 않았다. 저자와 같은 특징이라고 쓰지 않는다 | 3-6, O12 | 2026-11-06 |
 | S3. 추출 manifest의 위치 | project/output/final_2026-11/s3_features/<모델>/manifest.json(git 무시 대상). 8개 판 모두 추출 커밋 fabb336, 코드 변경 없는 상태에서 추출 | M2 | 2026-11-06 |
@@ -1214,12 +1214,12 @@
 | N1. 11/3 KHBM 초록용 분석의 노출 | 설계 동결 전에 개발 영상 2,108개(MC 72개와 1363 제외)의 시험 fold 결과를 봤다. 조건 비교, 더하기 head와 상호작용 head, 바꿔 끼우기와 정서별 경로 차이, 선택된 λ, α, r. 입력은 466개 영역 평균, 특징은 V-JEPA 2 마지막 block과 MPNet, 모델은 작은 MLP로 본 실험과 다르다. 설계와 후보값을 이 결과로 고르지 않았고, 보류된 결정 1~4의 근거로 쓰지 않는다. 코드 project/analysis/prelim_2026-10/perlmutter/khbm_pilot.py, 결과 project/output/prelim_2026-10/17_khbm_pilot/. 10월 말 위계 분석(16_hierarchy)도 같은 성격이다 11/4 S2 열 순서 점검 첫 판은 MC 6명의 시험 block 240개의 정규화 전 반응을 읽었다(S2 MC 시험 반응 접근 기록 행) | N1, M6 | 2026-11-04 |
 | 통합문서로 정할 수 없던 것 | 아래 행들 | 0-2 | 2026-11-03 |
 | 정할 것 1. 중복 쌍에서 남길 제시 | 정함(11/3 석진 님): (가) 먼저 제시된 쪽을 남긴다. Horikawa 외(2020) Methods가 같은 규칙이다("discarded samples that were presented later in the experiment"). 지금 분할이 이 규칙이므로 바꾸지 않고, 01의 B2를 고쳤고 02, 03, 04를 맞췄다(11/3) | B2 | 2026-11-03 |
-| 정할 것 2. H2 검증 fold의 정답이 Stimulus 예측 평정를 거쳐 student 학습에 들어간다 | E4와 O16은 teacher의 fold 밖 출력을 D_k의 5개 fold 전체로 만든다. 그래서 학습 영상의 Stimulus 예측 평정를 낸 안쪽 모델 가운데 4개는 H2 검증 fold의 정답으로도 학습한다. 뇌 모델이 이 점수로 학습한 뒤 같은 검증 fold로 α와 조기 종료를 정하면, Brain → Emotion [distillation]이 들어간 조건만 검증 점수에서 유리해질 수 있다. 시험 fold로 새지는 않는다. 옛 규칙(docs/archive/pre-final-2026-10/04 C01, 02:78~110)은 teacher를 검증 fold 밖에서 다시 만들어 이를 막았다. 정함(11/3 석진 님): Brain → Emotion [distillation]에 쓰는 Stimulus 예측 평정는 H2의 학습 fold 4개 안에서만 안쪽 4겹으로 만든다. 검증 fold와 바깥 시험 fold는 teacher의 학습, 설정 선택, 조기 종료에 쓰지 않는다. 01의 E4, O16, H3, 5-0을 고쳤고 02, 03과 04의 0-3 표, S4를 맞췄다(11/3) | E4, O16, H2 | 2026-11-03 |
+| 정할 것 2. H2 검증 fold의 사람 평정이 Stimulus 예측 평정을 거쳐 Brain Model 학습에 들어간다 | E4와 O16은 Stimulus Model의 fold 밖 출력을 D_k의 5개 fold 전체로 만든다. 그래서 학습 영상의 Stimulus 예측 평정을 낸 안쪽 모델 가운데 4개는 H2 검증 fold의 사람 평정으로도 학습한다. 뇌 모델이 이 점수로 학습한 뒤 같은 검증 fold로 α와 조기 종료를 정하면, Brain → Emotion [distillation]이 들어간 조건만 검증 점수에서 유리해질 수 있다. 시험 fold로 새지는 않는다. 옛 규칙(docs/archive/pre-final-2026-10/04 C01, 02:78~110)은 Stimulus Model을 검증 fold 밖에서 다시 만들어 이를 막았다. 정함(11/3 석진 님): Brain → Emotion [distillation]에 쓰는 Stimulus 예측 평정은 H2의 학습 fold 4개 안에서만 안쪽 4겹으로 만든다. 검증 fold와 바깥 시험 fold는 Stimulus Model의 학습, 설정 선택, 조기 종료에 쓰지 않는다. 01의 E4, O16, H3, 5-0을 고쳤고 02, 03과 04의 0-3 표, S4를 맞췄다(11/3) | E4, O16, H2 | 2026-11-03 |
 | 정할 것 3. 원문 방식의 지도를 만들 재료와 도구 | 11/4 정할 것 5로 대체됐다. FreeSurfer 폴더 전송, HCP360 annot, FLIRT는 쓰지 않는다. 11/3 기록: 내려받기 허락, FreeSurfer 폴더는 석진 님이 연구실 서버에서 옮긴다. (1) HCP360: figshare의 "HCP-MMP1.0 projected on fsaverage"(Mills, 2016, doi 10.6084/m9.figshare.3498446.v2)의 lh, rh.HCP-MMP1.annot을 PM/atlas_sources/hcp_mmp1_fsaverage/에 받았다(md5가 figshare 값과 같음, 꼭짓점 163,842개, 반구마다 영역 180개와 미지정 1개). 원문이 같은 파일을 썼는지는 [미확인]. (2) WFU PickAtlas: NITRC(group 46)는 로그인이 필요해, Codex가 공개 사본 UMPsychMethodsCore/MethodsCore(commit 1cff4ae)의 3.0.5b를 PM/atlas_sources/wfu_pickatlas/WFU_PickAtlas_3.0.5b_MethodsCore/에 받았다(출처 기록 CODEX_* 파일). 검증(11/3, PM/atlas_sources/README.md): 두 번째 공개 사본 superkeyor/SPMJobs12와 지도 파일 122개가 같은 내용이다(11개는 줄바꿈 방식만 다름). AAL은 GIN의 aal_for_SPM12(2015) ROI_MNI_V4.nii와 116개 영역의 voxel 구성과 이름이 모두 같다(저장 방향과 라벨 번호만 다름). 공식 배포본 대조(11/4): 석진 님이 NITRC에서 받은 3.0.5b를 PM/atlas_sources/wfu_pickatlas/official/에 두었다. 공통 파일 435개 중 421개는 바이트까지 같고 14개는 줄바꿈 방식만 달라, 사본에 내용 차이가 없다. AAL과 Talairach Daemon 두 판의 지도도 모두 같다. 이후 코드는 공식본 경로를 쓴다. Talairach Daemon 지도는 두 판(MNI_atlas_templates, TD-ICBM_MNI_atlas_templates)이 있고 파일이 다르다. 공식 설명서는 MNI_atlas_templates만 적고, 저자 공개 ROI도 이 판에 더 가깝다(S1 피질하 행). (3) FreeSurfer 폴더: HK는 처음 fMRIPrep 실행의 /storage/bigdata/Horikawa/fmriprep/horikawa_preprocess_sub0X/fmriprep/output/sourcedata/freesurfer/sub-0X(fmriprep_sdc 실행이 여기서 복사함), MC는 /storage/bigdata/MindCaptioning/fmriprep/sub-0X/output/sourcedata/freesurfer/sub-0X(fMRIPrep 기본 위치로 추정, [미확인]). 받는 곳: PM/Horikawa/freesurfer/sub-0X(5명), PM/MindCaptioning/freesurfer/sub-0X(6명), fsaverage는 PM/Horikawa/freesurfer/fsaverage. (4) 도구: shifter의 nipreps/fmriprep:25.0.0 이미지에 FreeSurfer 도구(mri_surf2surf, mri_label2vol, recon과 같은 7.3.2 판, PREPROCESSING_FINAL.md 2.2절)와 FSL FLIRT 6.0이 있다(11/3 확인). 원문과 같은 도구로 할 수 있다. | 5-5, 불일치 7 | 2026-11-03 |
 | 정할 것 4. B6의 이상 block과 이상 run | 정함(11/3 석진 님): 빼지 않는다. 01 B6을 고쳤고 02, 03, 04(S1, S2)를 맞췄다. 기준값의 출처: 5(블록 신호 크기), 15(run 안 z 최대 절댓값), 4(run)는 0단계 점검 코드(project/analysis/prelim_2026-10/prelim/confound_and_block_check.py:178, 206, 10/22)가 정한 값이고 근거 문헌이나 이유가 기록되어 있지 않다. 0단계 기록은 이 표시를 "표시만 했고 제외 안 함"(stage1/00_status/zero_handoff.tsv:8)으로 다뤘다. B6이 이 표시를 제외 기준으로 옮겼고, B6의 이유 칸 "움직임 지표(FD, DVARS) 기준"은 실제 정의(블록 신호 크기, run 안 z)와 다르다. MC와 겹치는 블록을 빼고 다시 내면 이상 run이 sub-03 run_index 31에서 33으로 바뀐다(S1 이상 block 행). FD와 DVARS 비교(개발 블록 안의 백분위, project/analysis/final_2026-11/manifests/abnormal_motion_check.tsv, 코드 s1_abnormal_motion.py): 블록 892(sub-02) FD 0.276 mm 89%, DVARS 1.431 84%. 289(sub-02) FD 0.313 mm 93%, DVARS 1.553 97%. 312(sub-02) FD 71%, DVARS 3%. 1158(sub-03) FD 24%, DVARS 50%. 879(sub-04) FD 22%, DVARS 73%. run(sub-03 run 61개 안의 백분위): 31 평균 FD 0.193 mm 77%, 평균 DVARS 41%, 최대 FD 1.19 mm(volume 2.2% 검열, 그 근처 블록 2개는 이미 FD QC로 빠짐). 32 FD 69%, DVARS 5%. 33 FD 21%, DVARS 7%. 다섯 블록과 세 run 모두 이미 적용된 QC 기준(블록 반응 구간의 FD > 0.9 mm, run 평균 FD > 0.5 mm 등, PREPROCESSING_FINAL.md 1.2절)을 넘지 않는다. 289가 가장 높지만 FD 0.31 mm다. 석진 님 지시(11/3): 뚜렷한 원인(움직임, 신호 급변)이 있는 것만 그 이유로 빼고, 원인이 없으면 반응 크기 기준으로는 빼지 않는다(despike만) | B6 | 2026-11-03 |
 | 정할 것 5. ROI 지도의 출처 | 정함(11/4 석진 님): (나). 피질 360개는 공개 ROI, 피질하 10개는 11명 모두 같은 절차로 새로 만든다. 01의 5-5를 고쳤고 02, 03, 04를 맞췄다. 근거, 발견(11/4): 공개 자료에 저자가 쓴 참가자별 ROI가 voxel 좌표와 함께 있다(HK figshare 11988351의 fmri_SubjectN_Session1.h5 metadata, MC figshare 25808179의 testPerception_SN.mat metainf). 370개 모두 있고 11명 모두 좌표가 우리 T1w 2 mm 격자 간격에 맞는다(최대 잔차 2e-6 voxel, manifests/original_roi_grid.tsv). 격자에 맞는 것과 촬영 범위 안에 있는 것은 다르다. 격자 밖 voxel이 HK sub-02에 71개, sub-03에 6,589개 있다. 받은 파일의 판과 md5는 manifests/original_roi_sources.tsv다. 피질 360개의 합집합은 FreeSurfer aseg 피질과 안 옮겼을 때 가장 잘 맞고(11명 모두, Dice 0.67~0.72) HK voxel 수가 논문 값과 같다. 개별 영역의 경계까지 검증한 것은 아니다. 피질하는 aseg로 비교할 수 있는 8종에서 10명에게 큰 위치 이상이 없다(ROI별 10명 평균 Dice 0.47~0.82, z축으로 옮겨도 가장 좋은 위치가 6 mm 이내). 시상하부와 측좌핵(BA34)은 aseg에 없어 이 비교에 들어가지 않는다. HK sub-03만 어긋난다. 그대로는 해마 Dice 0.00, 소뇌 0.05다. z축으로만 옮겨 찾으면 해마 +24, 시상 +20, 편도체 +16, 창백핵 +12, 조가비핵 +8, 미상핵 +4, 뇌간 +24, 소뇌 +32 mm에서 가장 좋지만 그래도 Dice 0.21~0.57이라 단순 이동으로 복구되지 않는다. 격자 안의 소뇌 voxel 1,870개는 다른 사람의 약 12분의 1이다. 격자가 작아서 생긴 일은 아니다(공개 해마 3,582개 중 3,572개가 격자 안인데 aseg 해마와 겹치는 voxel이 0개). 피질은 정상이다. 이것은 현재 격자에서 공개 sub-03 피질하를 그대로 쓸 수 없는 정렬 이상이고, 어느 단계가 원인인지는 미확인이다. 선택지: (가) 피질 360개와 피질하(10명)는 공개 ROI를 쓰고, sub-03 피질하만 같은 지도(PickAtlas MNI_atlas_templates, AAL)와 fMRIPrep 변환으로 새로 만든다 (나) 피질은 공개 ROI, 피질하는 11명 모두 새로 만든다 (다) 정할 것 3대로 FreeSurfer부터 모두 새로 만든다. 새로 만드는 방법은 정할 것 7이다. 공개 mask를 임의로 옮겨 쓰지 않는다. 다른 선택지로 자동 전환하는 규칙도 두지 않는다. (가)와 (나)는 FreeSurfer 폴더 전송이 필요 없다. | 5-5, C6, 정할 것 3 | 2026-11-04 |
 | 정할 것 6. 공통 ROI의 기준 | 정함(11/4 석진 님): (가). 370은 목표가 아니라 이 기준을 적용한 결과다. 01의 C6를 고쳤다. 근거: C6는 "해부학적 mask와 촬영 범위의 교집합"이라고만 적었고 voxel 수 기준이 없다. (가) QC mask 안에 voxel이 있으면 유효, 참가자별 남은 voxel 수와 비율을 기록한다. 지금 공개 mask로 370개 (나) 전처리의 roi_valid 규칙(10개 이상, 20% 이상). 지금 362개, sub-03 수정 뒤 363개로 예상한다. 지금은 모두 14개 이상이라 차이는 사실상 20% 기준이다. 이 기준이 신호 품질을 보장한다는 근거도, 14개가 충분하다는 근거도 없다. (나)는 MC sub-04, sub-05 등의 일부 영역 때문에 OFC와 25번 등이 11명 모두에서 빠진다. (가)는 그 token이 그 사람에게 남은 부분의 신호이지 영역 전체가 아니라는 한계를 네트워크 분석과 전이 해석에 적는다. 수는 S1 공통 ROI 행 |
-| 정할 것 7. 피질하를 새로 만드는 방법 | 정함(11/4 석진 님): PickAtlas MNI_T1.nii 직접 등록, overlap_2mm. 측좌핵 ROI는 표와 논문에서 "BA34 기반 ROI"라고 부르고 원자료 키 nuc_accum과의 대응은 유지한다. 근거. 공간: PickAtlas 설명서는 지도를 SPM MNI 기준이라고 적고, fMRIPrep 변환은 MNI152NLin2009cAsym 기준이다. 두 공간을 같다고 놓을 근거가 없으므로 fMRIPrep 변환을 쓰지 않고, PickAtlas의 MNI_T1.nii(moving)를 개인 T1w(fixed)에 ANTs로 직접 등록한다(antsRegistrationSyNQuick.sh 기본값 -t s, 참가자당 2~3분). 복셀화 후보: 미리 정한 둘은 코드 이름 nn_2mm(2 mm 격자로 최근접 이웃)와 overlap_2mm다. overlap_2mm의 실제 정의는 라벨을 T1w 1 mm 격자로 최근접 이웃으로 옮기고, ROI에 속한 1 mm voxel의 중심이 드는 2 mm voxel을 포함하는 것이다. 정확한 부피 교차 판정이 아니다. 결과(manifests/subcortex_rebuild_check.tsv, 코드 s1_subcortex_rebuild.py): HK sub-03의 overlap_2mm는 aseg와 Dice 해마 0.64, 시상 0.80, 소뇌 0.86, z축 최적 위치 −2~0 mm이고 QC mask 안의 시상하부 37개, 측좌핵 349개다. 나머지 10명에서 aseg 8종의 평균 Dice는 공개 mask 0.62, nn_2mm 0.66, overlap_2mm 0.65이고 z축 최적 위치는 각각 6, 8, 6 mm 이내다. 공개 mask 대비 크기는 ROI별 10명 평균 기준 nn_2mm 0.21~0.93배, overlap_2mm 0.52~1.03배이고, 개인 × ROI 전체로는 0.156~1.008배, 0.444~1.169배다. 공개 mask와의 Dice는 ROI별 10명 평균 기준 nn_2mm 0.31~0.86, overlap_2mm 0.54~0.87이다. aseg는 정답이 아니고 지도 정의도 달라 이 차이로 어느 mask가 더 정확하다고 하지 않는다. 시상하부와 측좌핵(BA34)은 aseg 비교에 없다. 크기 진단(manifests/subcortex_size_check.tsv, 코드 s1_subcortex_size_check.py): 같은 변환으로 ROI를 선형 보간하고 보간값 기준을 바꾸면 시상하부가 0.5 이상 10.5개, 0.25 이상 27.5개, 0.1 이상 49.3개, 0.001 이상 79.7개다(공개 84.5개). 0.001 이상이면 ROI별 10명 평균 크기가 공개 mask의 0.92~1.13배이고 공개 mask와 Dice는 0.71~0.90이다. 보간값은 부피 겹침 비율이 아니다(Codex 반례, 실제 겹침 0에서 보간값 0.125). 크기가 경계 처리에 민감하다는 것과 경계 처리로 크기 차이를 설명할 수 있다는 근거이고, 저자의 실제 처리와 차이의 기여량, 남은 차이의 원인은 미확인이다. 0.001 기준은 채택하지 않는다. 크기를 본 뒤 저자 크기에 맞추려고 더한 기준이고, ROI 범위 밖 voxel까지 포함할 수 있으며, (나)의 이유인 절차 통일에는 저자 크기에 맞출 필요가 없다. 새 mask가 공개 mask보다 작다는 것만으로 잘못이라고도, 맞다고도 하지 않는다. (나)에 overlap_2mm를 고른 것은 정확도 측정의 결론이 아니라 11명에게 같은 절차를 쓰고, 규칙이 명확하며, 추가 기준을 고르지 않는다는 방법 선택이다. "원문 재현"이라고 쓰지 않는다. fMRI 해상도가 1 mm가 되는 것이 아니고, 작은 ROI의 경계 voxel에는 주변 조직 신호가 섞일 수 있으므로 시상하부 token을 순수한 시상하부 신호로 해석하지 않는다. 실행 기록: 등록과 크기 진단은 login21에서 돌렸다(등록 3명씩 병렬, 8 thread, 약 12분). 이런 가볍고 간단한 계산은 로그인 노드에서 바로 돌려도 된다(11/4 석진 님) | 5-5, 정할 것 5 | 2026-11-04 |
+| 정할 것 7. 피질하를 새로 만드는 방법 | 정함(11/4 석진 님): PickAtlas MNI_T1.nii 직접 등록, overlap_2mm. 측좌핵 ROI는 표와 논문에서 "BA34 기반 ROI"라고 부르고 원자료 키 nuc_accum과의 대응은 유지한다. 근거. 공간: PickAtlas 설명서는 지도를 SPM MNI 기준이라고 적고, fMRIPrep 변환은 MNI152NLin2009cAsym 기준이다. 두 공간을 같다고 놓을 근거가 없으므로 fMRIPrep 변환을 쓰지 않고, PickAtlas의 MNI_T1.nii(moving)를 개인 T1w(fixed)에 ANTs로 직접 등록한다(antsRegistrationSyNQuick.sh 기본값 -t s, 참가자당 2~3분). 복셀화 후보: 미리 정한 둘은 코드 이름 nn_2mm(2 mm 격자로 최근접 이웃)와 overlap_2mm다. overlap_2mm의 실제 정의는 라벨을 T1w 1 mm 격자로 최근접 이웃으로 옮기고, ROI에 속한 1 mm voxel의 중심이 드는 2 mm voxel을 포함하는 것이다. 정확한 부피 교차 판정이 아니다. 결과(manifests/subcortex_rebuild_check.tsv, 코드 s1_subcortex_rebuild.py): HK sub-03의 overlap_2mm는 aseg와 Dice 해마 0.64, 시상 0.80, 소뇌 0.86, z축 최적 위치 −2~0 mm이고 QC mask 안의 시상하부 37개, 측좌핵 349개다. 나머지 10명에서 aseg 8종의 평균 Dice는 공개 mask 0.62, nn_2mm 0.66, overlap_2mm 0.65이고 z축 최적 위치는 각각 6, 8, 6 mm 이내다. 공개 mask 대비 크기는 ROI별 10명 평균 기준 nn_2mm 0.21~0.93배, overlap_2mm 0.52~1.03배이고, 개인 × ROI 전체로는 0.156~1.008배, 0.444~1.169배다. 공개 mask와의 Dice는 ROI별 10명 평균 기준 nn_2mm 0.31~0.86, overlap_2mm 0.54~0.87이다. aseg는 사람 평정이 아니고 지도 정의도 달라 이 차이로 어느 mask가 더 정확하다고 하지 않는다. 시상하부와 측좌핵(BA34)은 aseg 비교에 없다. 크기 진단(manifests/subcortex_size_check.tsv, 코드 s1_subcortex_size_check.py): 같은 변환으로 ROI를 선형 보간하고 보간값 기준을 바꾸면 시상하부가 0.5 이상 10.5개, 0.25 이상 27.5개, 0.1 이상 49.3개, 0.001 이상 79.7개다(공개 84.5개). 0.001 이상이면 ROI별 10명 평균 크기가 공개 mask의 0.92~1.13배이고 공개 mask와 Dice는 0.71~0.90이다. 보간값은 부피 겹침 비율이 아니다(Codex 반례, 실제 겹침 0에서 보간값 0.125). 크기가 경계 처리에 민감하다는 것과 경계 처리로 크기 차이를 설명할 수 있다는 근거이고, 저자의 실제 처리와 차이의 기여량, 남은 차이의 원인은 미확인이다. 0.001 기준은 채택하지 않는다. 크기를 본 뒤 저자 크기에 맞추려고 더한 기준이고, ROI 범위 밖 voxel까지 포함할 수 있으며, (나)의 이유인 절차 통일에는 저자 크기에 맞출 필요가 없다. 새 mask가 공개 mask보다 작다는 것만으로 잘못이라고도, 맞다고도 하지 않는다. (나)에 overlap_2mm를 고른 것은 정확도 측정의 결론이 아니라 11명에게 같은 절차를 쓰고, 규칙이 명확하며, 추가 기준을 고르지 않는다는 방법 선택이다. "원문 재현"이라고 쓰지 않는다. fMRI 해상도가 1 mm가 되는 것이 아니고, 작은 ROI의 경계 voxel에는 주변 조직 신호가 섞일 수 있으므로 시상하부 token을 순수한 시상하부 신호로 해석하지 않는다. 실행 기록: 등록과 크기 진단은 login21에서 돌렸다(등록 3명씩 병렬, 8 thread, 약 12분). 이런 가볍고 간단한 계산은 로그인 노드에서 바로 돌려도 된다(11/4 석진 님) | 5-5, 정할 것 5 | 2026-11-04 |
 | Codex 검토(S1 ROI 결정) | 보고서 project/output/audits/codex/2026-11-04_s1_roi_decisions_3a71fd59.md. 반드시 고칠 것 4개를 모두 받아들였다. (1) sub-03 피질하와 (2) 공간과 복셀화는 정할 것 5, 7로 남는다. (3) 이동 검사의 경계 감김은 좌표 이동으로 고쳤고 큰 이동 진단을 코드에 넣었다(s1_original_roi_align.py). 값은 z축 검색으로 다시 냈다. (4) 실패 전파와 완전성 검사를 고쳤다(두 .sh의 set -e, summary의 11명 × 370개 검사, 코드와 mask 해시로 건너뛰기, manifests/original_roi_sources.tsv). 추출은 다시 돌리지 않았다. 수치가 바뀌지 않고, 좌표는 ijk와 affine으로 되살릴 수 있다. npz의 affine과 shape는 다음 추출부터 들어간다. Codex 첫 판단은 결정 1, 2 모두 (가)였다. 추천을 알고 검토했으므로 맹검 검토는 아니지만, 코드와 mask를 따로 계산해 수치를 재현했다. 후속 보고서 2개(2026-11-05_s1_roi_followup_d307d7f.md, s1_boundary_rule_c26d05c.md)의 설명 정정을 정할 것 7에 반영했다. Codex의 최신 의견은 (나)에 overlap_2mm다 | 정할 것 5, 6, 7 | 2026-11-04 |
 | 정할 것 8. 학습량 대조와 H2의 연결 | 정함(11/5 석진 님): (가). 01의 4-3, J3과 02, 03, 04를 고치고 표본과 거리 점검을 다시 만들었다. 경위: 4-3의 학습량 대조는 시험 fold를 뺀 영상에서 구역 제외 학습과 같은 수를 뽑는다. 그런데 H2는 그중 다음 fold를 검증으로 떼므로, 실제 가중치 학습 영상 수는 30개 조합 중 28개에서 달라진다(최대 23개, 중앙값 5개, 학습 958~1,259개 기준. ex) 구역 1, 시험 fold 1은 구역 제외 965개, 대조 978개). 선택지: (가) 학습 fold 4개와 검증 fold에서 각각 구역 제외 조건과 같은 수를 뽑아 학습, 검증 수를 모두 맞춘다 (나) 지금 표본을 쓰고 수 차이를 보고한다. (가)가 영상 수 차이를 줄이려는 대조의 목적에 맞다. 정서별 학습 사례 분포와 참가자별 QC 결측 차이는 남으므로, 성능 차이를 내용 차이만의 영향으로 분리하지 않는다(01의 4-3). 뇌 반응과 성능은 보지 않았다 | 4-3, H2 | 2026-11-04 |
 | 정할 것 9. MC 시험 영상의 반복이 4회인 경우 | 정함(11/5 석진 님): (가). 원 논문과 같이 같은 영상의 반복을 평균한다. 원문(Horikawa, 2025, doi 10.1126/sciadv.adw1464)은 5회 평균이라고 적었고, 키워드로 찾은 범위에서 움직임으로 block을 뺀다는 문장은 없다. 4회는 우리 움직임 QC에서 생겼으므로 남은 반복을 평균한다. 4회인 영상은 4로 나누고, 참가자, 영상별 반복 수를 manifests/s2/mc_test_repeats.tsv에 적었으며, 평균 구현은 시험 단계에서 이 표를 따른다. 경위: 6-3은 5회 반복 평균이라고 적었다. QC 뒤 MC sub-05 영상 219, sub-06 영상 189, 1594, 1642는 4회만 남았고, 72개 영상은 모두 있다. 선택지: (가) 남은 반복으로 평균하고 영상을 유지하며 목록을 적는다(B7의 있는 block만 쓴다와 같은 원칙) (나) 5회가 모두 남은 영상만 평가한다. 표는 metadata만 봤고 MC 시험 성능을 보기 전에 정했다. 4회 평균의 정밀도가 5회와 같다고 주장하지 않는다 | 6-3, B7 | 2026-11-04 |
@@ -1227,11 +1227,11 @@
 | Codex 재검토(S2, 05a7d96) | 보고서 project/output/audits/codex/2026-11-05_s2_recheck_05a7d96.md. 판정: 이번 S2 변경 코드와 실제 표의 검산은 통과했다. S3와 이후 구현을 통과시킨 판정은 아니다. 실제 뇌 반응은 읽지 않았다. 반드시 고칠 것: Claude Code의 보고 문장 "성능 차이를 내용을 뺀 효과로 읽을 수 있다"는 01의 4-3보다 강해 철회한다. 쓸 수 있는 범위: 학습과 검증의 영상 수를 각각 맞춘 무작위 대조와 내용 구역 제외 조건을 비교한다. 정서별 학습 사례 분포와 참가자별 QC 결측 차이는 남으므로, 성능 차이를 내용 차이만의 영향으로 분리하지 않는다. 보완 반영(11/5): (1) stage_check가 반복표의 참가자 행 전체 누락과 중복을 잡지 못했다. 전체 키 일치와 중복 검사, 잘못된 표를 실제로 거절하는지 보는 검사를 넣었다. (2) 1.33은 20번 평균의 진단 통계이고 실제 고정 표본의 최솟값은 1.30이다. 고정 표본의 거리를 표에 더했고 표본은 바꾸지 않았다. (3) 거리 동률 허용 오차 1e-12를 넣었다. 대조보다 먼 시험 영상의 비율이 구역 4 fold 4와 구역 5 fold 5에서 영상 1개씩 줄었다. 진단 값이고 표본과 결정에는 영향이 없다. 미반영: 03의 419행 5회 평균 문장은 11/5 갱신 규칙에 따라 동결 때 고친다. 아직 확인하지 않은 것: MC 실제 평균 계산과 시험 forward(후속 코드) | 4-3, 6-3, S2 | 2026-11-05 |
 | Codex 재검토(S2, 756fb35) | 보고서 project/output/audits/codex/2026-11-05_s2_recheck_756fb35.md. 판정: 코드와 표의 검산은 통과. S3 이후와 긴 영상 평균의 예측상 타당성을 승인한 것은 아니다. 실제 뇌 반응은 읽지 않았다. 반드시 고칠 것 1건을 고쳤다(11/5): 16초 이상(87개), 16초 초과(86개), 64프레임 초과(81개)를 구별하고, window 기준을 프레임 수 N으로, 홀수 처리는 N이 64 이하일 때만으로 적었다(O11의 문장 순서와 "프레임을 버리지 않고"를 따른 해석이다. 달라지는 영상은 N = 65인 338 하나다). 층화의 16초 이상 지표는 그대로 두고 "window로 나뉘는 영상"이라는 설명만 뺐다. 보완 반영: 코드 머리말의 옛 분할 설명, 04의 옛 "지금" 표현, MC 차이의 "마지막 약 2초" 표현을 고쳤다. Claude Code의 보고 문장 "어느 fold도 특정 정서나 긴 영상에 치우치지 않는다"는 범위를 넘어 철회한다. 쓸 수 있는 범위: 정한 균형 지표가 개선됐고 크기와 세션 조건을 통과했다. 긴 영상 시간 비율은 16초 초과 원 영상 기준으로 개발 영상 17.3%다(앞서 보고한 17.5%는 16초 이상 기준). 미확인: 제시 로그, 평균 특징의 실제 손실, S3 이후 | 2-0, O11, S2 | 2026-11-05 |
 | 정할 것 10. K1a Stimulus Model의 설정 선택 경로 | 정함(11/5 석진 님): (나). 학습 횟수는 learning rate 후보를 넣은 뒤(11/6) 1,362회다. 아래의 462회는 그 전 값이다. 범주를 맞힐 때와 같게 한다("14개 정서 차원도 범주 맞힐 때랑 동일하게"). 01의 K1a, H3, 7-L과 04의 S4를 고쳤다. 경위: 11/5 결정문의 두 문장이 서로 다른 규칙을 가리켜 이 항목만 반영을 멈췄다. "설정 선택과 조기 종료는 H2의 검증 fold를 쓴다"와 "head는 K1의 Stimulus Model과 같고, 그 밖의 학습 설정은 Stimulus Model와 같다"이다. Stimulus Model와 K1 head는 H2가 아니라 H3, O16, O17을 따른다. D_k 안쪽 5겹의 평균 곡선으로 후보와 epoch 수를 정하고 D_k 전체에서 다시 학습한다. 선택 기준(14개 차원 r 평균)과 조기 종료 기준(MSE)은 두 경우 모두 같고, 시험 fold는 어느 쪽도 쓰지 않는다(H5). 선택지: (가) H2의 검증 fold 하나. 학습 fold 4개로 학습하고 고른 모델을 그대로 시험한다. 학습 90회(후보 15개 × 6 fold). 정서와 차원 ridge의 주 비교판, 뇌 모델과 같은 검증 fold를 쓰고, 그 fold가 head 학습에 들어가지 않는다. 대신 head의 학습 자료가 K1 head보다 한 fold 적고, 선택이 fold 하나에 달리며, Stimulus Model에 없는 값을 새로 정해야 한다(O16은 300 epoch 곡선의 최저점을 쓰고 patience가 없다. G13의 patience 30은 뇌 모델 값이다). (나) H3, O16, O17을 그대로 쓴다. 학습 462회(후보 15개 × 안쪽 5겹 × 6 fold + 최종 모델 2개 × 6 fold). K1 head와 학습 경로가 같고 새로 정할 값이 없다. (나)는 결정문의 "K1과 같다"를 그대로 지키고 새 값을 만들지 않는다. 뇌를 받지 않는 작은 모델이라 학습 수 차이의 부담이 작을 것으로 본다(실행 시간은 재지 않았다) | K1a, H2, H3, O16, O17, G13 | 2026-11-05 |
-| S0. 14개 차원 정답 파일과 평정 신뢰도(B4, K1a) | 정답 파일을 확인했다(11/5). project/shared/data/cowen_horikawa_labels.csv의 *_score 열 14개(arousal, dominance, valence, approach, attention, certainty, commitment, control, effort, fairness, identity, obstruction, safety, upswing)이고 2,185행에 결측이 없다. 개발 영상 2,109개의 content_id가 모두 있다. Perlmutter의 PM/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/horikawa_meta_data_with_14dims.csv와 같은 2,185개의 값이 모두 같다(최대 차이 0). 확인 때 2,185개 전체(MC 72개 포함)의 차원별 최소, 평균, 최대를 봤고 뇌 반응과 성능은 보지 않았다. 평정 신뢰도: 개별 평정이 없어 계산할 수 없다(원문은 평균 평정만 요청 가능, 01의 2-6). Cowen & Keltner(2017)의 PMC 본문에서 14개 차원의 신뢰도 값을 찾지 못했다. 본문 뒤쪽 일부와 보충자료는 직접 읽지 못했으므로 값이 없다고 단정하지 않고 [미확인]으로 둔다 | B4, K1a | 2026-11-05 |
+| S0. 14개 차원 사람 평정 파일과 평정 신뢰도(B4, K1a) | 사람 평정 파일을 확인했다(11/5). project/shared/data/cowen_horikawa_labels.csv의 *_score 열 14개(arousal, dominance, valence, approach, attention, certainty, commitment, control, effort, fairness, identity, obstruction, safety, upswing)이고 2,185행에 결측이 없다. 개발 영상 2,109개의 content_id가 모두 있다. Perlmutter의 PM/Horikawa_embedding/horikawa_filtered_MNI_to_TRs/metadata/horikawa_meta_data_with_14dims.csv와 같은 2,185개의 값이 모두 같다(최대 차이 0). 확인 때 2,185개 전체(MC 72개 포함)의 차원별 최소, 평균, 최대를 봤고 뇌 반응과 성능은 보지 않았다. 평정 신뢰도: 개별 평정이 없어 계산할 수 없다(원문은 평균 평정만 요청 가능, 01의 2-6). Cowen & Keltner(2017)의 PMC 본문에서 14개 차원의 신뢰도 값을 찾지 못했다. 본문 뒤쪽 일부와 보충자료는 직접 읽지 못했으므로 값이 없다고 단정하지 않고 [미확인]으로 둔다 | B4, K1a | 2026-11-05 |
 | 정할 것 11. 8초 미만 영상의 제시 종료 시점 | 정함(11/5 석진 님): (가) 8.0초에서 자른다. 01의 3-2와 D4, 04의 S3를 고쳤다. 원문 문구를 확보했다(11/5. Codex가 찾았고 Claude Code가 같은 PDF를 받아 확인했다). Horikawa 외(2020) Supplemental Information(mmc1.pdf) 15쪽, Transparent Methods의 Experimental design: "For stimulus blocks with videos shorter than 8 s, the same video stimulus was repeatedly presented until the total presentation duration went beyond 8 s. For stimulus blocks with videos longer than 8 s, the video stimulus was presented once and followed by ~2-s rest period so that the total duration of each stimulus block can be divided by 2 s (TR). All stimulus blocks were followed by an additional 2-s rest period." 마지막 반복을 어디서 끝냈는지는 적혀 있지 않다. 문구와 기록을 함께 보면 다음과 같다. (1) 모든 자극 block 뒤에 2초 휴지가 있고, 8초 미만 영상의 block은 모두 10초이므로 자극 block은 8초로 읽힌다. 길이 경계에서도 7.98초 영상은 10초, 8.00초 영상은 12초(8 + 약 2 + 2)다. (2) 마지막 반복을 끝까지 재생했다면 파일 1,573개 모두 8초를 넘어 2초 휴지를 더하면 10초를 넘는다. 휴지를 줄였다고 해도 557개(35%)는 10초 안에 들어가지 않는다. 그래서 끝까지 재생은 기록과 맞지 않는다. 남는 불확실성: 문구가 8.0초를 직접 쓰지 않았고, TR 단위 기록으로는 8초보다 조금 길게 재생되어 휴지가 그만큼 짧았을 가능성을 없앨 수 없다. 선택지: (가) 8.0초에서 자른다. 장 수는 O10대로 floor(8 × f)이고 초당 4장이면 32장, 초당 15장이면 120장이다. 분석 영상의 72%(1,564개)에 적용된다. 방법 절에는 문구와 기록에서 추론한 값이라고 적는다. (나) 연구실 서버의 제시 로그나 제시 코드(/storage/bigdata/Horikawa/raw, 이 세션에서 접근할 수 없음)를 먼저 확인하고 정한다. 추천은 (가)다. 문구와 기록을 함께 만족하는 가장 단순한 값이고, 제시 길이를 코드 한 곳에서 받게 만들면 나중에 로그가 나와도 다시 뽑을 수 있다. | 3-2, O10, O12, D4, 불일치 8 | 2026-11-05 |
 | 정할 것 12. 분할에 정서 평정과 영상 길이 층화 넣기 | 정함(11/5 석진 님): 다시 짠다. 정서만 맞춘 v3 뒤에 길이도 맞추라고 정해 v4로 확정했다(v3는 30초 이상 영상이 fold마다 1, 9, 5, 5, 6, 4개로 쏠렸다). 결과는 S2 분할 행. 경위: 11/5 석진 님 지적: 분할은 정서 평정을 보고 fold마다 고르게 나눠야 한다. 층화 전 분할(v2)은 영상 수만 맞췄고 정서 평정을 쓰지 않았다. 6/22 지시("stim 은 stratified sampling")가 01 2-0에 옮겨지지 않은 채 v1을 그대로 썼다. 영상 단위로는 나눌 수 없다. 이웃 block의 혈류 반응이 섞이지 않게 run 단위로 나누기 때문이다(2-0). 그래서 run 묶음 45개(33~103개 영상)를 fold에 배정하는 층화만 가능하다. v2의 상태(개발 영상, 정서 평정만 사용, 뇌 반응과 성능은 보지 않음): fold 평균과 전체 평균의 차이는 정서 표준편차 단위로 중앙값 0.027, 최댓값 0.126이다. run을 무작위 배정한 300번의 중앙값은 0.033, 최댓값의 중앙값은 0.143이라 무작위 수준이다. 정서가 0이 아닌 영상은 fold, 정서마다 최소 15개다. 미리보기(세션 조건 없이 영상 수 ±10%, 정서 평균만 맞춤): 중앙값 0.016, 최댓값 0.070, fold 영상 317~378개, 0이 아닌 영상 최소 13개. 무작위 배정과 미리보기는 임시 스크립트의 진단(무작위 seed 0)이라 커밋된 코드로 재현되지 않으며, 분할을 정하는 데 쓰지 않았다. 평균만 맞추면 드문 정서의 수가 줄 수 있어 기준에 함께 넣어야 한다. 다시 나누면 S2의 fold에 달린 표(짝, 대조 표본, 거리, 세션 표)를 다시 만들고 Codex 재검토를 그 뒤에 한다. 내용 구역 배정은 fold와 무관하다 | 2-0, H1, O8, S2 | 2026-11-05 |
 | 정할 것 13. MC 영상의 반복 길이 | 정함(11/5 석진 님): (가) MC에도 HK와 같은 8.0초판 특징을 쓴다. 10초판을 따로 뽑지 않는다. 경위: MC 참가자는 10초보다 짧은 영상을 10초를 넘을 때까지 반복해서 봤다(Horikawa, 2025: "videos shorter than 10 s were repeated until the total duration exceeded 10 s"). 선례: Horikawa(2025) 본문의 특징 계산은 영상마다("For each video") 프레임을 고르고 8개 미만이면 "to cover the entire video length"로 뽑으며, Horikawa 외(2020)도 "all frames"를 "within each video" 평균했다. 두 본문 모두 특징 계산에서 제시 반복을 재현한다는 문장은 찾지 못했다(키워드 검색, 공개 코드는 확인하지 않음). 그래서 MC만 제시 길이에 맞춰 따로 뽑는 근거가 없고, HK로 학습한 모델과 같은 특징을 유지한다. 한계: MC의 실제 반복 제시 시간축을 그대로 재현한 특징은 아니다. 8~10초 영상도 MC에서는 반복됐고 HK 특징에는 반복이 없다. 방법 절에 적는다. 별도 기록: 우리 3-2의 "8초 반복을 재현해 특징을 뽑는다"는 두 원 논문 본문의 서술과 다르다. 11/5 보고했고 석진 님이 유지로 정했다. 차이는 방법 절에 적는다 | 3-2, O30, 6-3, 정할 것 11 | 2026-11-05 |
-| S3. 코드와 시험 실행 | 코드 project/analysis/final_2026-11/s3_common.py, s3_vision.py, s3_text.py, s3_lowlevel.py, s3_collect.py와 각 .sh. 뇌 반응과 정서 정답은 읽지 않는다. 복호기: 시스템 ffmpeg에 h264 복호기가 없어 PM/swift_PTL2/bin의 ffmpeg, ffprobe 7.0.2를 쓴다(prereg_v2 기록과 같은 복호기). 파일 2,196개 모두 복호 프레임 수와 프레임 시각 수가 같고 8초 미만 1,573개는 초당 4장에서 32장이다. stimuli.tsv의 n_decoded_frames와 다른 영상: 649(41 대 181), 1643(421 대 1,402)은 예전 기록이 프레임을 채워 넣은 값이고 실제 프레임은 앞의 수다. 745, 850, 1420, 1875, 1951은 packet 수가 복호 프레임 수보다 많아 packet이 아니라 복호 프레임의 시각을 쓴다. 11/5 Codex 지적으로 코드를 고쳤다(Codex 검토 S3 행). 아래 CPU 시험은 고치기 전 코드의 기록이다. 저자 특징 대조는 본 추출 뒤 s3_author_check.py로 전체를 다시 낸다. 저자 특징 대조(figshare 25808179 feature.zip, 영상 1~40): DeBERTa 층 6, 12, 18, 24의 영상 평균이 저자 값과 소수 넷째 자리까지 같다(최대 차이 0.0000, 같은 영상 r = 1.00000, 다음 영상 r 0.83~0.94). 영상 순서도 같다. TimeSformer 층 12는 짧은 영상 8개에서 저자 값과의 r 중앙값이 반복 재현 0.915, 반복 없음 0.920, 다른 영상 0.643이다. 같지 않고 두 입력의 차이도 작아 저자가 반복을 재현했는지 이 값으로는 정할 수 없다. O14대로 "Horikawa(2025)와 같은 처리"라고 쓰지 않는다. 체크포인트가 다를 수도 있다(04 S1). CPU 시험: V-JEPA 2(영상 2개, 65프레임 두 window 포함), VideoMAE, TimeSformer, CLIP, DeBERTa, MPNet, 저수준 모두 차원이 맞고 NaN이 없다. 시험 결과는 지웠다. CPU에서 V-JEPA 2는 영상 2개에 91초다(GPU 시간은 아직 재지 않았다). 받은 파일: microsoft/deberta-large, MCG-NJU/videomae-base, openai/clip-vit-base-patch16 가중치, pymoten 0.1.3(PM/pydeps/pymoten에 따로 설치) | 3-2, O10~O15, M2 | 2026-11-05 |
+| S3. 코드와 시험 실행 | 코드 project/analysis/final_2026-11/s3_common.py, s3_vision.py, s3_text.py, s3_lowlevel.py, s3_collect.py와 각 .sh. 뇌 반응과 사람 평정은 읽지 않는다. 복호기: 시스템 ffmpeg에 h264 복호기가 없어 PM/swift_PTL2/bin의 ffmpeg, ffprobe 7.0.2를 쓴다(prereg_v2 기록과 같은 복호기). 파일 2,196개 모두 복호 프레임 수와 프레임 시각 수가 같고 8초 미만 1,573개는 초당 4장에서 32장이다. stimuli.tsv의 n_decoded_frames와 다른 영상: 649(41 대 181), 1643(421 대 1,402)은 예전 기록이 프레임을 채워 넣은 값이고 실제 프레임은 앞의 수다. 745, 850, 1420, 1875, 1951은 packet 수가 복호 프레임 수보다 많아 packet이 아니라 복호 프레임의 시각을 쓴다. 11/5 Codex 지적으로 코드를 고쳤다(Codex 검토 S3 행). 아래 CPU 시험은 고치기 전 코드의 기록이다. 저자 특징 대조는 본 추출 뒤 s3_author_check.py로 전체를 다시 낸다. 저자 특징 대조(figshare 25808179 feature.zip, 영상 1~40): DeBERTa 층 6, 12, 18, 24의 영상 평균이 저자 값과 소수 넷째 자리까지 같다(최대 차이 0.0000, 같은 영상 r = 1.00000, 다음 영상 r 0.83~0.94). 영상 순서도 같다. TimeSformer 층 12는 짧은 영상 8개에서 저자 값과의 r 중앙값이 반복 재현 0.915, 반복 없음 0.920, 다른 영상 0.643이다. 같지 않고 두 입력의 차이도 작아 저자가 반복을 재현했는지 이 값으로는 정할 수 없다. O14대로 "Horikawa(2025)와 같은 처리"라고 쓰지 않는다. 체크포인트가 다를 수도 있다(04 S1). CPU 시험: V-JEPA 2(영상 2개, 65프레임 두 window 포함), VideoMAE, TimeSformer, CLIP, DeBERTa, MPNet, 저수준 모두 차원이 맞고 NaN이 없다. 시험 결과는 지웠다. CPU에서 V-JEPA 2는 영상 2개에 91초다(GPU 시간은 아직 재지 않았다). 받은 파일: microsoft/deberta-large, MCG-NJU/videomae-base, openai/clip-vit-base-patch16 가중치, pymoten 0.1.3(PM/pydeps/pymoten에 따로 설치) | 3-2, O10~O15, M2 | 2026-11-05 |
 | Codex 검토(S3 코드, e09c351) | 보고서 project/output/audits/codex/2026-11-05_s3_code_e09c351.md. 판정: 미통과. 반드시 고칠 것 4건을 모두 받아들여 고쳤다. (1) 반복 경계: np.mod의 부동소수 오차로 정확한 반복 시작 시각에 마지막 프레임이 골라졌다(ex) 영상 243의 4.0초). 시간 계산으로 4 fps 46개 영상 51시점, 15 fps 104개 영상 156시점에 해당한다. 경계를 먼저 처리하게 고쳤고, 8초 미만 파일 전체를 정확한 분수 계산과 비교해 어긋난 시점이 0이다. (2) 화면 순서: 문서는 줄인 뒤 가운데 자르기인데 코드는 반대였다. 문서대로 고쳤다. RGB 중앙값만 원래 화소에서 낸다. 보간 방식도 체크포인트 설정 값으로 맞췄다(이전 코드는 모두 bicubic). (3) 출처: 조각마다 사양 번호를 넣고, 사양이 다른 조각은 건너뛰지 않고 멈춘다. 커밋하지 않은 코드로는 본 추출을 시작하지 않는다. 추출 커밋과 모으는 커밋을 따로 적고, 영상별 원래 프레임 수를 video_info.tsv에 남긴다. (4) 수집 검사: RGB NaN, window별 값의 NaN과 누락, 평균과 window 평균의 불일치, 정서어 제거판과 캡션별 파일 누락, 캡션 영상 번호 오류, MPNet 값 오류를 거절한다. 회귀 시험 s3_tests.py 29개 통과. 캡션 추출은 이어 뽑지 않고 끊기면 처음부터 돌린다고 설명을 고쳤다 | 3-2, O10, O13, M2 | 2026-11-05 |
 | Codex 재검토(S3 코드, 74ba7e2) | 보고서 project/output/audits/codex/2026-11-05_s3_recheck_74ba7e2.md. 판정: 미통과. 반복 경계, 화면 순서, 시각과 저수준 조각의 출처, 수집 오류는 수정을 확인했다. 반드시 고칠 것 2건을 받아들여 고쳤다. (1) 캡션 출처: 계산이 끝난 뒤 커밋과 해시를 읽어, 계산 중에 코드나 캡션이 바뀌면 나중 값이 기록되고 수집을 통과했다. 계산 전에 커밋, 코드 해시, 캡션 내용, 정서어 목록을 고정해 그 내용으로 처리하고, 저장 전에 코드와 입력이 바뀌었으면 저장하지 않고 멈춘다. 커밋만 바뀐 경우는 실행 커밋을 그대로 두고 저장 때의 커밋을 따로 적는다. (2) 저자 특징 비교: NaN이 있으면 차이 비교가 거짓이 되어 통과했다. 입력의 NaN과 무한대를 거절하고, 판정을 NaN도 실패로 잡히는 식으로 바꾸고, 상수 벡터 수를 따로 적는다. 보완 반영: 화면 시험을 화소 비교로 바꿔 옛 순서를 잡게 했고, 시험 자료의 해시를 맞춘 뒤 영상 번호와 NaN 검사를 직접 시험하고, 커밋 전 코드로 뽑은 결과를 수집이 거절하게 했으며(시험에서만 S3_ALLOW_DIRTY_COLLECT=1), TimeSformer의 화면 기록을 세 위치로 고치고, 01 3-2에 RGB 예외를 적었다. 회귀 시험 45개 통과. DeBERTa 저자 대조의 합격 기준은 최대 절대 차이 1e-3 이하다 | 3-2, O13, M2 | 2026-11-05 |
 | Codex 재검토(S3 코드, 26f0160) | 보고서 project/output/audits/codex/2026-11-05_s3_recheck_26f0160.md. 판정: 미통과. 계산 중 입력 변경 차단, NaN 거절, 커밋 전 출력 거절, 화면 시험과 문서 수정은 확인했다. 반드시 고칠 것 2건을 받아들여 고쳤다. (1) 출처 고정 시점: 모델을 불러오는 동안 코드가 바뀌면 나중 커밋과 해시가 기록됐다. 코드를 불러온 순간의 커밋과 해시(s3_common의 START_HEAD, START_CODE)를 쓰고, 모델을 불러온 뒤 계산 전에 다시 비교해 멈춘다. 같은 구간이 있던 시각과 저수준 추출의 사양에도 적용했다. (2) 저자 비교: 상수 행을 지운 뒤 다음 영상을 정해 비교 대상이 달라졌다. 원래 순서에서 짝을 먼저 정하고, 상수 여부를 행의 값 범위로 판단하고, 유효한 짝이 없으면 계산 불가로 적는다. 절대 차이 판정은 그대로다. 보간: Codex도 체크포인트 설정의 보간을 추천했다. 보간 종류와 정규화는 체크포인트 설정을, 화면 범위는 프로젝트 공통 규칙을 따른다. 영향을 재지는 않았다. 보간은 체크포인트 설정 값으로 정함(11/6 석진 님) | M2, S3 | 2026-11-06 |
@@ -1241,22 +1241,22 @@
 | S3. GPU 시간 측정 | 코드 project/analysis/final_2026-11/s3_timing.sh. 무작위 영상 30개(seed 20261106, 길이 평균 6.3초, 전체 평균 6.6초)와 가장 긴 영상 879번(90초)을 시각 모델 넷으로 뽑는다. 결과는 s3_timing 폴더에 따로 저장한다. 측정값은 실행 뒤 적는다 | N34 | 2026-11-06 |
 | S3. 추출 완료와 시간 | 11/6 로그인 노드 GPU에서 bash로 실행했다(석진 님). 모델별로 시작부터 저장까지 V-JEPA 2 약 1시간 43분, VideoMAE 약 21분, TimeSformer 약 26분, CLIP 약 18분(동시 실행, 공유 GPU). 저수준은 CPU 동시 10개로 약 35분. 시간 측정(s3_timing.sh)의 GPU 메모리 최대 13,128 MiB | N34, M4 | 2026-11-06 |
 | S3. 저자 공개 특징 대조 | manifests/s3/author_feature_check.tsv. DeBERTa 네 층: 2,196개 모두 같은 영상 r 1.000, 최대 절대 차이 0.00003으로 일치한다. TimeSformer: 같은 영상 r 중앙값(다음 영상 r 중앙값)이 층 3 0.668(0.425), 층 6 0.982(0.957), 층 9 0.991(0.967), 층 12 0.927(0.695)이고 값이 같지 않다. 8초 이상이라 반복하지 않은 영상에서도 r이 크게 오르지 않아 반복만으로 설명되지 않는다. 저자 추출 코드가 공개되지 않아 원인은 확인하지 못했다. TimeSformer는 baseline이고 저자와 같은 특징이라고 쓰지 않는다 | O14, M2 | 2026-11-06 |
-| S4. 코드와 합성 자료 시험 | 코드 project/analysis/final_2026-11/s4_common.py, s4_feature_model.py, s4_ridge.py, s4_window_change.py, s4_collect.py, s4_tests.py와 각 .sh. 합성 자료 시험 107개 통과(11/6, B1~B5 반영 뒤). 실제 정답과 뇌 반응은 읽지 않았고 실제 결과를 내지 않았다. 실제 자료로 돌리려면 설계 동결 커밋을 주어야 하며 없으면 멈춘다. window 사이 변화량의 지표: 개발 영상으로 표준화한 좌표의 block 10, 20, 30, 40에서, 한 영상 안 window 쌍의 코사인 거리 평균을 그 영상과 다른 개발 영상 500개(seed 20261106) 사이 거리의 중앙값과 비교한다(결정 문서 B4에서 확인받는다). 무작위 숫자로 잰 학습 한 번(300 epoch, 입력 5,632와 4,096차원, 영상 1,400개, batch 64)은 CPU 8 thread로 약 25초다. GPU 시간은 재지 않았다 | S4, O16, O22, 3-2 | 2026-11-06 |
-| Codex 검토(S4 코드, a81231f) | 보고서 project/output/audits/codex/2026-11-06_s4_code_a81231f.md. 판정: 수정 후 재검토. 합성 실행으로 시험 fold, H2 검증 정답, MC 경계와 OOF의 가중치 학습 제외는 확인됐다. 반드시 고칠 것 3건을 고쳤다. (1) 코드만 같으면 입력이 달라도 옛 결과를 재사용하던 것: 코드, 입력 파일, S2 표, 설정, 동결 커밋을 묶은 실행 번호로 비교하고, 입력 해시를 읽기 전에 내어 읽은 뒤와 저장 전에 다시 본다. (2) NaN 예측을 선택 점수 0으로 처리하던 것: 입력, 표준화, 손실, 예측, 가중치의 NaN과 Inf에서 저장 전에 멈추고, 유효한 점수가 없으면 첫 후보를 고르지 않는다. (3) 시험 예측의 누락과 중복을 허용하던 것: 모든 과제를 정해진 시험 영상과 정확히 대조하고 평가에도 그 목록만 쓴다. 보완 2건도 반영했다(D12 시험 예측과 정서어 제거 ridge의 λ 저장, window 변화량의 계산 불가 건수). 실제 결과가 오염됐다는 지적이 아니라 잘못된 입력에서 멈추지 않는다는 지적이다. 시험 96개 통과. OOF는 가중치 학습에서 fold 밖 값이지만 설정 선택에는 그 fold가 함께 쓰인다는 점은 O16의 설계이고 01에 이미 적혀 있다 | M1, M2, O6, O16, O20, 4-3 | 2026-11-06 |
-| Codex 재검토(S4 코드, f92e422) | 보고서 project/output/audits/codex/2026-11-06_s4_recheck_f92e422.md. 판정: 필수 2, 3번은 수정 확인, 1번은 수집 단계에 한 경로가 남았다. 수집이 입력을 파일 경로로 비교해, 내용이 다른 특징 사본을 쓴 fold 결과가 섞여도 통과했다. 고쳤다: 입력을 역할 이름(시각 목표, 원 캡션, 정서어 제거 캡션, 정답, S2 표)으로 기록하고 경로와 상관없이 역할별 내용 해시를 대조한다. 같은 과제의 설정도 대조한다. 보완 사항인 예측 배열의 전체 크기 검사도 넣었다(한 열이 34개 정서로 복제되는 경우). 시험 102개 통과 | M1, M2 | 2026-11-06 |
-| 결정 문서 B1~B5(11/6 석진 님) | B1 6-3 전용 Stimulus 예측 평정를 만들지 않음(01 E4, 코드에서 hkfinal 삭제). B2 teacher의 intercept에 weight decay를 적용하지 않음(01 O16, 코드). B3 initialization, last batch, seed 하나, 300 epoch 후 평균 곡선 선택을 유지하고 근거 수준을 01 O16에 적음. 고른 epoch가 300인지 표에 적음(selection 표의 at_cap). B4 window 사이 cosine distance는 점검표로만 씀. B5 D12의 R²는 모은 시험 영상의 평균 기준. 뇌 모델의 intercept는 보류된 결정 3과 함께 정한다. 01, 04의 "window"을 window로 바꿨고 02, 03은 동결 때 맞춘다 | E4, O16, O22, 3-2 | 2026-11-06 |
-| 결정 C1~C12(11/6 석진 님) | C2 teacher의 learning rate를 1e-4, 1e-3, 1e-2 후보로 넣는다(후보 45개, teacher 학습 약 18,700회, 코드 반영). C4 표준화를 모델마다 그 학습 자료로 맞춘다(N3를 고침, Codex 11/6과 저자 코드 근거). 안쪽 validation 영상의 feature와 14개 차원 정답이 들어가던 것을 뺐다. C7 λ를 저자 공개 decoding 코드의 10^1~10^6 로그 간격 10개로 맞춘다(논문 본문의 encoding 설명과 코드가 달라 코드를 따른다). 나머지 C1, C3, C5, C6, C8, C10, C12는 문서대로다. 시험 114개 통과. 같은 표준화 원칙을 S5의 ridge와 S6의 뇌 모델에도 적용한다(아래 행) | E3, N3, O6, O16, O18, C5, D9 | 2026-11-06 |
+| S4. 코드와 합성 자료 시험 | 코드 project/analysis/final_2026-11/s4_common.py, s4_feature_model.py, s4_ridge.py, s4_window_change.py, s4_collect.py, s4_tests.py와 각 .sh. 합성 자료 시험 107개 통과(11/6, B1~B5 반영 뒤). 실제 사람 평정과 뇌 반응은 읽지 않았고 실제 결과를 내지 않았다. 실제 자료로 돌리려면 설계 동결 커밋을 주어야 하며 없으면 멈춘다. window 사이 변화량의 지표: 개발 영상으로 표준화한 좌표의 block 10, 20, 30, 40에서, 한 영상 안 window 쌍의 코사인 거리 평균을 그 영상과 다른 개발 영상 500개(seed 20261106) 사이 거리의 중앙값과 비교한다(결정 문서 B4에서 확인받는다). 무작위 숫자로 잰 학습 한 번(300 epoch, 입력 5,632와 4,096차원, 영상 1,400개, batch 64)은 CPU 8 thread로 약 25초다. GPU 시간은 재지 않았다 | S4, O16, O22, 3-2 | 2026-11-06 |
+| Codex 검토(S4 코드, a81231f) | 보고서 project/output/audits/codex/2026-11-06_s4_code_a81231f.md. 판정: 수정 후 재검토. 합성 실행으로 시험 fold, H2 검증 사람 평정, MC 경계와 OOF의 가중치 학습 제외는 확인됐다. 반드시 고칠 것 3건을 고쳤다. (1) 코드만 같으면 입력이 달라도 옛 결과를 재사용하던 것: 코드, 입력 파일, S2 표, 설정, 동결 커밋을 묶은 실행 번호로 비교하고, 입력 해시를 읽기 전에 내어 읽은 뒤와 저장 전에 다시 본다. (2) NaN 예측을 선택 점수 0으로 처리하던 것: 입력, 표준화, 손실, 예측, 가중치의 NaN과 Inf에서 저장 전에 멈추고, 유효한 점수가 없으면 첫 후보를 고르지 않는다. (3) 시험 예측의 누락과 중복을 허용하던 것: 모든 과제를 정해진 시험 영상과 정확히 대조하고 평가에도 그 목록만 쓴다. 보완 2건도 반영했다(D12 시험 예측과 정서어 제거 ridge의 λ 저장, window 변화량의 계산 불가 건수). 실제 결과가 오염됐다는 지적이 아니라 잘못된 입력에서 멈추지 않는다는 지적이다. 시험 96개 통과. OOF는 가중치 학습에서 fold 밖 값이지만 설정 선택에는 그 fold가 함께 쓰인다는 점은 O16의 설계이고 01에 이미 적혀 있다 | M1, M2, O6, O16, O20, 4-3 | 2026-11-06 |
+| Codex 재검토(S4 코드, f92e422) | 보고서 project/output/audits/codex/2026-11-06_s4_recheck_f92e422.md. 판정: 필수 2, 3번은 수정 확인, 1번은 수집 단계에 한 경로가 남았다. 수집이 입력을 파일 경로로 비교해, 내용이 다른 특징 사본을 쓴 fold 결과가 섞여도 통과했다. 고쳤다: 입력을 역할 이름(시각 목표, 원 캡션, 정서어 제거 캡션, 사람 평정, S2 표)으로 기록하고 경로와 상관없이 역할별 내용 해시를 대조한다. 같은 과제의 설정도 대조한다. 보완 사항인 예측 배열의 전체 크기 검사도 넣었다(한 열이 34개 정서로 복제되는 경우). 시험 102개 통과 | M1, M2 | 2026-11-06 |
+| 결정 문서 B1~B5(11/6 석진 님) | B1 6-3 전용 Stimulus 예측 평정을 만들지 않음(01 E4, 코드에서 hkfinal 삭제). B2 Stimulus Model의 intercept에 weight decay를 적용하지 않음(01 O16, 코드). B3 initialization, last batch, seed 하나, 300 epoch 후 평균 곡선 선택을 유지하고 근거 수준을 01 O16에 적음. 고른 epoch가 300인지 표에 적음(selection 표의 at_cap). B4 window 사이 cosine distance는 점검표로만 씀. B5 D12의 R²는 모은 시험 영상의 평균 기준. 뇌 모델의 intercept는 보류된 결정 3과 함께 정한다. 01, 04의 "window"을 window로 바꿨고 02, 03은 동결 때 맞춘다 | E4, O16, O22, 3-2 | 2026-11-06 |
+| 결정 C1~C12(11/6 석진 님) | C2 Stimulus Model의 learning rate를 1e-4, 1e-3, 1e-2 후보로 넣는다(후보 45개, Stimulus Model 학습 약 18,700회, 코드 반영). C4 표준화를 모델마다 그 학습 자료로 맞춘다(N3를 고침, Codex 11/6과 저자 코드 근거). 안쪽 validation 영상의 feature와 14개 차원 사람 평정이 들어가던 것을 뺐다. C7 λ를 저자 공개 decoding 코드의 10^1~10^6 로그 간격 10개로 맞춘다(논문 본문의 encoding 설명과 코드가 달라 코드를 따른다). 나머지 C1, C3, C5, C6, C8, C10, C12는 문서대로다. 시험 114개 통과. 같은 표준화 원칙을 S5의 ridge와 S6의 뇌 모델에도 적용한다(아래 행) | E3, N3, O6, O16, O18, C5, D9 | 2026-11-06 |
 | Codex 재검토(S4 코드, 2382f73) | 보고서 project/output/audits/codex/2026-11-07_s4_recheck_2382f73.md. 판정: 범위 통과, 반드시 고칠 것 없음. 그 뒤 C2, C4, C7로 코드를 다시 바꿔 그 부분의 재검토가 필요하다 | M1, O16 | 2026-11-06 |
 | Codex 재검토(S4 코드, 6338375) | 보고서 project/output/audits/codex/2026-11-07_s4_recheck_6338375.md. 판정: 범위 통과, 반드시 고칠 것 없음. 보완으로 표준화 설명의 옛 문구를 고쳤다. 표준화 규칙 N3을 S5 ridge와 S6 뇌 모델에도 적용하기로 정했다(11/6 석진 님, Codex 동의) | N3, C5, D9, O30 | 2026-11-06 |
-| S5. 코드와 합성 자료 시험 | 코드 project/analysis/final_2026-11/s5_common.py, s5_decoding.py, s5_baselines.py, s5_collect.py, s5_tests.py와 각 .sh. 합성 자료 시험 115개 통과(11/7, Codex 재검토 반영 뒤). 실제 정답과 뇌 반응은 읽지 않았고, 동결 커밋 없이는 실제 자료로 돌지 않는다. 순열 검정과 편상관은 S10에서 한다. block 신호 크기는 prelim_2026-10/prelim/confound_and_block_check.py 169행과 같게 QC mask 전체의 voxel 평균과 표준편차다. **정할 것:** (1) Horikawa 2020 ridge의 ROI ensemble(공개 코드의 안쪽 r 0.095 이상 ROI 평균)을 주 비교값으로 쓸지. 기준을 넘는 ROI가 없을 때 코드는 시험 성능이 가장 높은 ROI를 쓰는데, 시험 정보를 쓰지 않도록 안쪽 r로 바꿨다. (2) 이 기준선의 시간(CPU 8 thread 상한 추정 약 22시간)이 커서 필수 범위와 L3 순서를 어떻게 둘지. (3) 뇌 입력 기준선의 intercept(보류된 결정 3과 함께). (4) 길이와 저수준 기준선을 주 비교판 규칙으로 개발 영상 전체에 대해 fold마다 하나씩 학습하는 가정. 실제 크기 파일과 GPU 시간은 확인하지 않았다 | I7, I10, O18, O23, O24 | 2026-11-06 |
+| S5. 코드와 합성 자료 시험 | 코드 project/analysis/final_2026-11/s5_common.py, s5_decoding.py, s5_baselines.py, s5_collect.py, s5_tests.py와 각 .sh. 합성 자료 시험 115개 통과(11/7, Codex 재검토 반영 뒤). 실제 사람 평정과 뇌 반응은 읽지 않았고, 동결 커밋 없이는 실제 자료로 돌지 않는다. 순열 검정과 편상관은 S10에서 한다. block 신호 크기는 prelim_2026-10/prelim/confound_and_block_check.py 169행과 같게 QC mask 전체의 voxel 평균과 표준편차다. **정할 것:** (1) Horikawa 2020 ridge의 ROI ensemble(공개 코드의 안쪽 r 0.095 이상 ROI 평균)을 주 비교값으로 쓸지. 기준을 넘는 ROI가 없을 때 코드는 시험 성능이 가장 높은 ROI를 쓰는데, 시험 정보를 쓰지 않도록 안쪽 r로 바꿨다. (2) 이 기준선의 시간(CPU 8 thread 상한 추정 약 22시간)이 커서 필수 범위와 L3 순서를 어떻게 둘지. (3) 뇌 입력 기준선의 intercept(보류된 결정 3과 함께). (4) 길이와 저수준 기준선을 주 비교판 규칙으로 개발 영상 전체에 대해 fold마다 하나씩 학습하는 가정. 실제 크기 파일과 GPU 시간은 확인하지 않았다 | I7, I10, O18, O23, O24 | 2026-11-06 |
 | Codex 검토(S5 코드, a078190) | 보고서 project/output/audits/codex/2026-11-07_s5_code_a078190.md. 판정: 수정 후 재검토. 정상 자료의 ridge 계산은 독립 계산과 맞았다. 반드시 고칠 것 5건을 고쳤다. (1) 수집이 지금 입력과 같은 과제의 설정을 대조하지 않던 것(역할별 내용 해시와 설정 대조, 수집 중 변경도 저장 전에 멈춤). (2) 영상 식별의 눈금에 그 참가자에게 없는 영상이 들어가던 것(그 참가자의 D_k로 맞춤). (3) 상수 벡터의 식별을 0점으로 처리하던 것(규칙이 없어 오류로 멈춤). (4) 안쪽 fold 밖 예측과 λ 선택 기록이 없어도 완료되던 것(과제별 필수 파일과 배열 검사). (5) 음수와 중복 qc_row를 허용하던 것(반응을 열기 전에 멈춤. 지금 표에는 이상이 없다). 보완도 반영했다: S5에 결정적 모드 연결(GPU 동작은 미확인), h2020이 원문 재현이 아닌 점을 코드에 적음, 실행 안내의 sbatch와 bash 구분. 시험 108개 통과 | M1, N3, O19, O32, O34 | 2026-11-06 |
 | Codex 재검토(S5 코드, 7bca72a) | 보고서 project/output/audits/codex/2026-11-07_s5_recheck_7bca72a.md. 판정: 1, 2, 3, 5번 수정 확인, 4번의 수정이 새 오류를 만들었다. 수집이 Horikawa ridge의 기준 통과 ROI 수 0을 거절해, 기준을 넘는 ROI가 없어 안쪽 r이 가장 높은 ROI를 쓴 정상 결과에서 멈췄다. 고쳤다: 0을 허용하고 실제 함수에서 저장과 점검까지 잇는 시험을 넣었다. 보완으로 λ 번호의 NaN과 소수도 막았다. 시험 115개 통과 | I7, M1 | 2026-11-07 |
 | Codex 재검토(S5 코드, ccf3495) | 보고서 project/output/audits/codex/2026-11-07_s5_recheck_ccf3495.md. 판정: 범위 통과, 반드시 고칠 것 없음. 실제 크기 파일과 GPU 동작은 확인 범위 밖이다 | I7, M1 | 2026-11-07 |
 | 결정(11/7 석진 님) | 뇌 모델의 learning rate를 모든 조건의 후보로 넣는다(01 G13, 7-L 실행량을 고침). Horikawa 2020 ridge를 baseline으로 둔다(I7). 문서 위치는 docs/final이고, 옛 docs/current를 docs/archive/pre-final-2026-10으로 옮겨 CLAUDE.md, AGENTS.md, README.md, CONTEXT_EMOBRAIN.md, project/README.md, docs/coordination/README.md의 경로를 고쳤다. AGENTS.md의 역할 문구는 CLAUDE_EmoBrain 5절을 가리키게 했다. 02, 03의 경로는 동결 때 맞춘다. 보류된 결정 3(weight decay 범위)은 아직이다 | G13, I7, 7-L, N37 | 2026-11-07 |
 | 결정과 코드(11/7 석진 님) | soft BCE 선형은 learning rate와 weight decay의 9개 조합에서 고른다(코드 반영, 시험 116개 통과). 길이와 저수준 기준선은 바깥 fold마다 공통 모델 하나다(O23). GPT 전체 검증은 끝났다는 확인이 없다. 지정 커밋의 Codex 코드 검토 통과와 다른 일이고, 설계 동결은 그 확인 뒤에 한다. 조건 이름 변경은 석진 님 확인 뒤에 한다 | G13, O23, O24, M5 | 2026-11-07 |
-| 조건 이름(11/7 석진 님) | 다섯 조건을 Brain → Emotion, Brain → Emotion [distillation], Brain → Emotion + Vision + Caption, Brain + Decoded Feature → Emotion, Brain + Decoded Feature → Emotion [distillation]로 부른다. 옛 이름은 직접 학습, 출력 distillation, 특징 맞히기 연습, 주 조건, 주 조건 + 출력 distillation이다. 01, 04, CLAUDE_EmoBrain을 바꿨고 02, 03은 동결 때 맞춘다. 코드 이름은 brain_only, brain_only_distill, brain_only_featdec, brain_decoded, brain_decoded_distill이다 | 1-1 | 2026-11-07 |
-| 용어(11/7 석진 님) | Stimulus Model(논문에서는 teacher), Stimulus 예측 평정, 사람 평정, 예측 평정으로 통일한다. 01, 04, CLAUDE_EmoBrain의 특징 모델, T_VS, teacher 점수, teacher 출력을 바꿨다. [distillation] 표시는 유지한다. 시각 특징, 캡션 특징, 정답, 정서 점수의 문서 전체 치환은 뜻을 행마다 봐야 해서 아직 하지 않았다. G16과 뇌를 받는 모델(T_BVS)의 teacher 표기도 남아 있다. S4 코드의 T_VS 이름은 다음 코드 수정 때 바꾼다 | 1-1 | 2026-11-07 |
-| 모델 정리(11/7 석진 님) | GPT가 정리한 모델과 학습 흐름을 01 5-A에 넣었다. 중심 모델은 Brain + Decoded Feature → Emotion이다. 조건 7을 더해 뇌 모델 학습 조건이 일곱이다. 입력이 Brain + Vision + Caption인 teacher를 Multimodal Model로 부른다. 01의 나머지 행에 남은 "다섯 조건"과 G16의 teacher 표기는 행마다 고칠 항목이다 | 5-A, G16, 7-L | 2026-11-07 |
+| 조건 이름(11/7 석진 님) | 핵심 다섯 조건을 Brain → Emotion, Brain → Emotion [distillation], Brain → Emotion + Vision + Caption, Brain + Decoded Feature → Emotion, Brain + Decoded Feature → Emotion [distillation]로 부른다. 옛 이름은 직접 학습, 출력 distillation, 특징 맞히기 연습, 주 조건, 주 조건 + 출력 distillation이다. 01, 04, CLAUDE_EmoBrain을 바꿨고 02, 03은 동결 때 맞춘다. 코드 이름은 brain_only, brain_only_distill, brain_only_featdec, brain_decoded, brain_decoded_distill이다 | 1-1 | 2026-11-07 |
+| 용어(11/7 석진 님) | Stimulus Model(논문에서는 teacher), Stimulus 예측 평정, 사람 평정, 예측 평정으로 통일한다. 01, 04, CLAUDE_EmoBrain의 특징 모델, T_VS, teacher 점수, teacher 출력을 바꿨다. [distillation] 표시는 유지한다. 시각 특징, 캡션 특징, 정답, 정서 점수는 뜻을 행마다 보고 고쳤다(11/7). 인용문과 논문 문장은 그대로 두었고, 논문 문장의 용어는 03을 맞출 때 정한다. G16과 뇌를 받는 모델(T_BVS)의 teacher 표기도 남아 있다. S4 코드의 T_VS 이름은 다음 코드 수정 때 바꾼다 | 1-1 | 2026-11-07 |
+| 모델 정리(11/7 석진 님) | GPT가 정리한 모델과 학습 흐름을 01 5-A에 넣었다. 중심 모델은 Brain + Decoded Feature → Emotion이다. 조건 7을 더해 뇌 모델 학습 조건이 일곱이다. 입력이 Brain + Vision + Caption인 teacher를 Multimodal Model로 부른다. 01의 나머지 행도 5-A에 맞춰 고쳤다 | 5-A, G16, 7-L | 2026-11-07 |
 | S2. 구역 안 이름표 짝(6-2) | s2_manifest.py --stage pairs_within_block. 같은 fold, 같은 구역의 시험 영상에서 찾는다. 방향 있는 짝 2,109개, 순서 없는 쌍 1,691개, 짝 없는 영상 0개, 구역과 fold의 시험 영상 31~120개다. 참가자별 block이 없어 빠지는 짝은 sub-01 4, sub-02 1, sub-03 14, sub-04 40, sub-05 187개다. 짝이 같은 구역과 fold 안에 있고 가장 가까운지 stage_check가 확인한다. S9, S10의 계산은 뇌 모델 저장 형식이 정해진 뒤 넣는다 | 6-2, 4-2, O9 | 2026-11-07 |
 | S4, S5. 점검 항목 반영 | S4: 과제 이름을 stimulus로 바꿨고, 시험 예측에 더하기 head와 상호작용 head의 예측을 함께 저장한다. baseline 특징의 Stimulus Model을 더했다(VideoMAE, TimeSformer, CLIP은 시각 입력만, MPNet은 캡션 입력만 교체, 6 fold, 5,424회). nested OOF와 K1 head는 그 조건에서 쓰지 않아 만들지 않는다. D12, 정서어 제거 ridge, window 변화의 존재와 크기를 수집에서 점검한다. S5: 영상 식별은 모든 영상 A의 평균이다(O19). Horikawa ridge를 돌리지 않으면 --without h2020을 명시하고 collection_status.tsv에 남긴다. S4, S5의 done.json에 실행 시간을 남긴다. 담당을 정했다: 층별 순열 기준은 S10, O21의 이어 붙이기는 S9가 맡는다. 시험 s4 133개, s5 126개 통과 | O19, O21, M1, 3-1 | 2026-11-07 |
 | 정할 것. MPNet의 거의 상수인 차원 | 개발 영상에서 768차원 중 4개(756, 555, 688, 34)의 표준편차가 2e-35~1e-7이고 중앙값은 0.025다. 표준화하면 수치 잡음이 표준편차 1로 커진다. 처리 규칙이 없어 석진 님 결정을 기다린다. MPNet baseline에만 해당한다 | 3-3, D9 | 2026-11-07 |
@@ -1271,14 +1271,14 @@
 
 ### 3-1. 필수 실행 범위 밖(L2와 각 절의 후속)
 
-- 뇌를 받는 teacher의 성능 점검(T_BVS 대 Stimulus Model). 선형판과 딥러닝판 모두 보류한다(E7, 1-3 관점 B).
+- 뇌를 받는 모델의 성능 점검(T_BVS 대 Stimulus Model). 선형판과 딥러닝판 모두 보류한다(E7, 1-3 관점 B).
 - encoding(N42)
 - MC 회상(6-3, A11). 회상 구간 분리 확인도 하지 않는다.
 - 14개 차원으로 뇌 모델을 학습하는 분석과 14개 교체 분석(B4). B4 ridge(S5)와 K1의 14개판(K1a, S4, S9)은 필수 범위의 보조 분석이다.
 - 패턴 발견(단서 수준 분석)(N44)
 - 기여도 방법(IG 등)(K8). attention 가중치를 기여도로 읽지도 않는다.
 - GLMsingle과 LSS(C1)
-- 출력 distillation-시각과 -캡션, 그 teacher인 시각만, 캡션만 Stimulus Model(E5, G2)
+- 출력 distillation-시각과 -캡션, 거기에 쓰는 시각만, 캡션만 받는 Stimulus Model(E5, G2)
 - 빼고 다시 학습(6-4)
 - 중간 표현 distillation 가운데 G16 밖의 판(ex) 뇌 표현 복사 대조), FiLM, I²MoE, ModDrop(L2)
 - 정서 손실의 역전파를 허용한 Brain + Decoded Feature → Emotion(5-0의 후속)
@@ -1291,11 +1291,11 @@
 ### 3-2. 필수 범위에 없는 SI와 보조. 할지는 석진 님이 정한다
 
 - 다시 학습한 head(K2), 특징만 학습한 모델(K1, G6)
-- 시각 특징만 decoding, 캡션 특징만 decoding(G6)
+- Vision feature만 decoding, Caption feature만 decoding(G6)
 - 같은 용량의 probe(N25)
 - 추가 분석 후보(N33)
-- 시각 특징(V-JEPA 2)으로 나눈 구역판(N27)
-- 실제 특징을 head에 넣는 개입(Koh 외, 2020의 test-time intervention)(5-0)
+- Vision feature(V-JEPA 2)로 나눈 구역판(N27)
+- 실제 Vision feature와 Caption feature를 head에 넣는 개입(Koh 외, 2020의 test-time intervention)(5-0)
 - Horikawa 외(2020)의 VGG19와 이름표 73개의 닮음과 쓸모 비교(3-7)
 - V-JEPA 2의 4초 window 평균판(3-2)
 - 평균 pooling판(F7)의 실행(O31)
@@ -1305,7 +1305,7 @@
 ### 3-3. 쓰지 않기로 한 방법
 
 - 자료와 라벨
-    - 34개를 27개로 줄이기, 정답의 z-score(B3), 34개 합을 1로 맞추기(2-5), softmax(2-1)
+    - 34개를 27개로 줄이기, 사람 평정의 z-score(B3), 34개 합을 1로 맞추기(2-5), softmax(2-1)
     - 평정자 수 가중(2-2), 거꾸로 센 평정자 수(B8), 평정자 수를 가정한 상한선(2-6)
     - 이진화 지표와 분포 거리(2-4), 16개 정서만의 평균, "0.5를 넘는 영상이 없으면 해석하지 않음"(2-6), J6의 0.3 기준(4-1)
     - 켜짐/꺼짐형 대 넓게 옅은형 묶음, "Brain → Emotion이 약한 정서" 묶음(I9)
@@ -1335,9 +1335,9 @@
     - FC 입력(C8), 뇌 기반 모델의 사전학습(C9)
     - 이전 F6 구조(decoded features를 token으로 만들어 ROI token과 함께 attention)(5-4)
     - Brain + Decoded Feature → Emotion의 λ = 0 후보(G9)
-    - 다섯 학습 조건에 frozen head 쓰기(5-2)
+    - 핵심 다섯 조건에 frozen head 쓰기(5-2)
     - CCA 공통 성분 교체(5-0)
-    - G16의 뇌 표현 복사 대조, G16 teacher를 5개 fold 전체로 학습하기(G16)
+    - G16의 뇌 표현 복사 대조, G16의 Multimodal Model을 5개 fold 전체로 학습하기(G16)
     - 옛 Study 1, Study 2 틀과 T_BVS(0절)
 - 학습과 평가
     - 뇌 모델의 안쪽 5겹 설정 선택, 바깥 학습 자료 전체로 다시 학습하기(H2, L9)

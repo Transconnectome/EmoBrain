@@ -131,7 +131,7 @@
 - 인용은 정확한 APA 저자-연도로 쓴다. 방법이나 자료 이름만으로 인용하지 않는다. ex) "(MindCaptioning)" 대신 "(Horikawa, 2025)"
 - 용어
     - 개념은 "시각 정보"와 "의미 정보"다. 의미 정보를 풀어 쓸 때는 "상황"이라고 쓴다.
-    - 측정치는 출처로 부른다. "시각 특징"은 시각 모델에서 뽑은 것, "캡션 특징"은 사람이 쓴 캡션을 언어 모델로 바꾼 것이다. "영상 특징", "의미 특징"이라고 쓰지 않는다.
+    - 측정치는 출처로 부른다. Vision feature는 시각 모델에서 뽑은 것, Caption feature는 사람이 쓴 캡션을 언어 모델로 바꾼 것이다(11/7 석진 님). "영상 특징", "의미 특징", "장면 feature"라고 쓰지 않는다. 사람이 매긴 값은 사람 평정, 모델이 낸 값은 예측 평정이다. 모델은 Stimulus Model(논문에서는 teacher), Multimodal Model, Brain Model로 부른다. 조건은 01 5-A의 이름을 쓴다.
     - "맥락"을 공식 용어로 쓰지 않는다.
     - 이 연구의 정서는 "시각 자극이 일으킨 정서(visually evoked emotion)"다.
     - 모델 이름(뇌 모델, Stimulus Model, Feature Extractor)과 역할 이름(teacher, student)을 섞지 않는다.
