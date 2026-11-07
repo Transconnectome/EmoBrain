@@ -36,11 +36,11 @@
 - 단계마다 같은 틀을 쓴다: 목적, 근거, 입력, 할 일, 출력, 확인 기준, 실행 주체, 7-O 항목.
     - "7-O 항목"은 그 단계에 걸린 7-O의 행이다. 통합문서로 정할 수 없던 세부는 모두 7-O로 옮겼다.
 - 조건 이름(1-1). 한국어 이름과 thesis 영어 이름을 같이 쓴다.
-    - 직접 학습: Direct training
-    - 출력 distillation: Response-based distillation
-    - 특징 맞히기 연습: Auxiliary feature decoding
-    - 주 조건: Decoded-feature readout
-    - 주 조건 + 출력 distillation: Decoded-feature readout + response-based distillation
+    - Brain → Emotion: Direct training
+    - Brain → Emotion [distillation]: Response-based distillation
+    - Brain → Emotion + Vision + Caption: Auxiliary feature decoding
+    - Brain + Decoded Feature → Emotion: Decoded-feature readout
+    - Brain + Decoded Feature → Emotion [distillation]: Decoded-feature readout + response-based distillation
     - frozen head 비교(G16): frozen-head distillation
     - 5-6의 그림에는 이전 영어 이름이 남아 있다. 코드와 결과 폴더에는 1-1의 이름을 쓴다(M3).
 - 기호
@@ -86,7 +86,7 @@
 - 용어(1-1)
     - 모델 이름과 역할 이름을 섞지 않는다.
         - Feature Extractor: V-JEPA 2, DeBERTa처럼 특징을 뽑는 고정된 모델이다. teacher가 아니다.
-        - 특징 모델(T_VS, visual-caption emotion predictor): 시각 특징과 캡션 특징으로 정서를 내는 모델이다. 출력 distillation에서 teacher를 맡는다.
+        - 특징 모델(T_VS, visual-caption emotion predictor): 시각 특징과 캡션 특징으로 정서를 내는 모델이다. Brain → Emotion [distillation]에서 teacher를 맡는다.
         - 뇌 모델(brain-only emotion decoder): 뇌 반응만 받는 모델이다. student를 맡는다.
     - 뇌에서 특징을 맞히는 일은 feature decoding, 그 값은 decoded features, 그 손실은 feature decoding loss다. distillation이나 reconstruction이라고 부르지 않는다(5-2).
     - 측정치는 "시각 특징"과 "캡션 특징"이다. Horikawa 외(2020)의 의미 이름표는 "이름표 73개"라고 부른다.
@@ -98,8 +98,8 @@
 | 바깥 시험 fold k | 평가 | 설정 선택, 조기 종료, 표준화, 특징 모델 학습, nested OOF |
 | 검증 fold(H2, D_k 안의 1개) | 뇌 모델의 설정 선택과 조기 종료, N8의 보정 통계 | 뇌 모델의 가중치 학습 |
 | 남은 학습 fold 4개 | 뇌 모델의 가중치 학습 | |
-| D_k 전체(5개 fold) | 최종 특징 모델과 K1 head의 표준화(N3. 표준화는 모델마다 그 학습 자료로 맞춘다), 특징 모델의 시험 fold 예측과 K1 head(O16), ridge의 안쪽 5겹(H3) | 출력 distillation의 nested OOF(E4) |
-| H2의 학습 fold 4개 | 출력 distillation의 nested OOF(E4, 안쪽 4겹) | |
+| D_k 전체(5개 fold) | 최종 특징 모델과 K1 head의 표준화(N3. 표준화는 모델마다 그 학습 자료로 맞춘다), 특징 모델의 시험 fold 예측과 K1 head(O16), ridge의 안쪽 5겹(H3) | Brain → Emotion [distillation]의 nested OOF(E4) |
+| H2의 학습 fold 4개 | Brain → Emotion [distillation]의 nested OOF(E4, 안쪽 4겹) | |
 | MC 최종 시험 72개와 그 중복 | 6-3의 시험, decoded features 채점 정답 | HK 개발 전부, MC 입력층 학습과 설정 선택 |
 | 빠진 내용 구역(6-2) | 그 구역의 시험 | 그 실행의 학습, 설정 선택, 표준화, 특징 모델 |
 
@@ -411,7 +411,7 @@
 
 ### S4. 뇌 없는 분석
 
-- 목적: 특징 모델을 학습해 출력 distillation에 쓸 fold 밖 출력과 경로 평가의 head(K1, K1a)를 만든다. 뇌 없이 두 특징의 겹침과 block의 성격을 확인한다.
+- 목적: 특징 모델을 학습해 Brain → Emotion [distillation]에 쓸 fold 밖 출력과 경로 평가의 head(K1, K1a)를 만든다. 뇌 없이 두 특징의 겹침과 block의 성격을 확인한다.
 - 근거: 5-3, E1~E4, E6, H3, H4, N3, N26, N43, D12, 3-4, D8, J3, 4-3, 6-2, K1, K1a, B4, G10, 7-L 실행 순서 4
 - 입력: S3의 시각 목표(5,632차원)와 캡션 목표(4,096차원), 정답 34개, 14개 차원 정답(S5의 입력과 같은 파일), S2의 manifest
 - 할 일
@@ -436,7 +436,7 @@
         - 영상 단위로 만든다.
         - 바깥 시험 fold의 영상을 쓰지 않는다.
         - 출력은 0~1로 자른다. 자르기 전 값과 자른 값을 모두 저장한다.
-        - 이 출력이 출력 distillation과 주 조건 + 출력 distillation의 teacher 점수 t다(5-2). student에게는 학습 영상마다 이 34개 값만 준다.
+        - 이 출력이 Brain → Emotion [distillation]과 Brain + Decoded Feature → Emotion [distillation]의 teacher 점수 t다(5-2). student에게는 학습 영상마다 이 34개 값만 준다.
     - 바깥 시험 fold의 특징 모델 성능
         - 고른 후보로 D_k 전체에서 다시 학습한 모델로 낸다(O16).
         - 사전 분석으로만 보고한다(E6, N43). 뇌에 대한 결론으로 쓰지 않는다.
@@ -478,7 +478,7 @@
         - 구역 제외 학습과 학습량 대조 학습(S2의 표본)마다 표준화와 보조 특징 모델을 그 학습 자료로 다시 만든다.
         - 빠진 구역은 쓰지 않는다.
         - 특징 모델은 6-2의 보조 모델이다. 구역 시험 영상에서 평가한다.
-        - 6-2의 두 조건(직접 학습, 주 조건)은 teacher 출력과 frozen head를 쓰지 않는다(4-3). 그래서 구역 제외 학습의 nested OOF 출력과 K1 head는 만들지 않는다.
+        - 6-2의 두 조건(Brain → Emotion, Brain + Decoded Feature → Emotion)은 teacher 출력과 frozen head를 쓰지 않는다(4-3). 그래서 구역 제외 학습의 nested OOF 출력과 K1 head는 만들지 않는다.
 - 출력
     - fold마다 특징 모델(체크포인트, 고른 epoch 수, r, weight decay)
     - nested OOF 출력(자르기 전 값, 자른 값)
@@ -585,27 +585,27 @@
         - query끼리 self-attention은 두지 않는다.
         - emotion query는 ROI token만 읽는다. decoded features는 emotion query가 읽지 않고, 따로 둔 경로로 정서 점수에 더해진다(2-1, 5-4).
     - emotion head(5-4, G4)
-        - 직접 학습, 출력 distillation, 특징 맞히기 연습: z = g(H)
-        - 주 조건의 상호작용 head(기본): z = g(H) + a(v̂) + b(ĉ) + U[(Av̂) ⊙ (Bĉ)]
+        - Brain → Emotion, Brain → Emotion [distillation], Brain → Emotion + Vision + Caption: z = g(H)
+        - Brain + Decoded Feature → Emotion의 상호작용 head(기본): z = g(H) + a(v̂) + b(ĉ) + U[(Av̂) ⊙ (Bĉ)]
             - a(v̂), b(ĉ)는 편향이 있는 선형층이다. a: 5,632 → 34, b: 4,096 → 34. 더하기 head와 상호작용 head에서 같다(O5).
             - A: r × 5,632, B: r × 4,096, U: 34 × r. r ∈ {1, 2, 4, 8}. 편향 없는 선형이다(O5).
-        - 주 조건의 더하기 head(1-2의 비교 조건): 마지막 항을 뺀다.
+        - Brain + Decoded Feature → Emotion의 더하기 head(1-2의 비교 조건): 마지막 항을 뺀다.
         - 출력 p = sigmoid(z). 경로별 점수를 더한 뒤에는 sigmoid만 둔다.
         - 두 decoded feature 경로를 합친 attention이나 공통 MLP를 더하기 앞에 두지 않는다.
         - 이전 F6(decoded features를 token으로 만들어 ROI token과 함께 읽음)은 쓰지 않는다.
         - 특징 모델의 가중치를 공유하거나 복사하지 않는다(5-4).
     - stop-gradient(G8, 5-0)
-        - 주 조건과 주 조건 + 출력 distillation에서 v̂, ĉ가 a(v̂), b(ĉ), 상호작용 항으로 들어가기 전에 기울기를 끊는다.
+        - Brain + Decoded Feature → Emotion과 Brain + Decoded Feature → Emotion [distillation]에서 v̂, ĉ가 a(v̂), b(ĉ), 상호작용 항으로 들어가기 전에 기울기를 끊는다.
         - 값은 그대로 전달된다. 막는 것은 기울기다.
         - 그래서 feature head는 feature decoding loss로만 학습된다.
         - 공유 encoder와 입력층은 g(H)를 거쳐 정서 손실도 받는다.
         - 기울기를 흘리는 판은 만들지 않는다. 그 판은 후속이다(5-0).
     - 다섯 조건(5-0, G1~G5)
-        - 직접 학습: 손실 = soft BCE(p, y). feature head가 없다.
-        - 출력 distillation: 손실 = soft BCE(p, (1 − α) y + α t). t는 S4의 nested OOF 출력이다. emotion head는 직접 학습과 같다. feature head가 없다.
-        - 특징 맞히기 연습: 손실 = soft BCE(p, y) + λ × L_feat. emotion head는 직접 학습과 같다(z = g(H)).
-        - 주 조건: 손실은 특징 맞히기 연습과 같다. emotion head만 주 조건의 꼴이다.
-        - 주 조건 + 출력 distillation: 손실 = soft BCE(p, (1 − α) y + α t) + λ × L_feat. emotion head는 주 조건의 꼴이다.
+        - Brain → Emotion: 손실 = soft BCE(p, y). feature head가 없다.
+        - Brain → Emotion [distillation]: 손실 = soft BCE(p, (1 − α) y + α t). t는 S4의 nested OOF 출력이다. emotion head는 Brain → Emotion과 같다. feature head가 없다.
+        - Brain → Emotion + Vision + Caption: 손실 = soft BCE(p, y) + λ × L_feat. emotion head는 Brain → Emotion과 같다(z = g(H)).
+        - Brain + Decoded Feature → Emotion: 손실은 Brain → Emotion + Vision + Caption과 같다. emotion head만 Brain + Decoded Feature → Emotion의 꼴이다.
+        - Brain + Decoded Feature → Emotion [distillation]: 손실 = soft BCE(p, (1 − α) y + α t) + λ × L_feat. emotion head는 Brain + Decoded Feature → Emotion의 꼴이다.
     - 손실(G7, N4, 2-2)
         - soft BCE = −[y log p + (1 − y) log(1 − p)]
         - 34개 정서와 행에 같은 가중치를 둔다. 평정자 수로 가중하지 않는다.
@@ -614,12 +614,12 @@
         - λ는 시각과 캡션에 하나로 공유한다(G9).
     - 후보값(G9)
         - learning rate: 모든 조건에서 {1e-4, 1e-3, 1e-2}를 후보에 넣는다(G13, 11/7 석진 님). 아래 후보 수에 곱해진다
-        - 직접 학습: d와 입력층 weight decay의 조합 K개(S7에서 정함)
-        - 출력 distillation: α ∈ {0, 0.25, 0.5}. α = 0은 직접 학습과 같으므로 0.25와 0.5만 새로 학습한다.
-        - 특징 맞히기 연습: λ ∈ {0, 0.1, 1.0}. λ = 0은 직접 학습과 같으므로 0.1과 1.0만 새로 학습한다.
-        - 주 조건(상호작용 head): λ ∈ {0.1, 1.0} × r ∈ {1, 2, 4, 8}, 8개. λ = 0은 없다(G9: stop-gradient 때문에 λ = 0이면 feature head가 실제 특징을 맞히도록 학습되지 않는다).
-        - 주 조건(더하기 head): λ ∈ {0.1, 1.0}, 2개
-        - 주 조건 + 출력 distillation: 주 조건에서 고른 λ와 r을 고정한다. α ∈ {0, 0.25, 0.5}이고 0.25와 0.5만 새로 학습한다.
+        - Brain → Emotion: d와 입력층 weight decay의 조합 K개(S7에서 정함)
+        - Brain → Emotion [distillation]: α ∈ {0, 0.25, 0.5}. α = 0은 Brain → Emotion과 같으므로 0.25와 0.5만 새로 학습한다.
+        - Brain → Emotion + Vision + Caption: λ ∈ {0, 0.1, 1.0}. λ = 0은 Brain → Emotion과 같으므로 0.1과 1.0만 새로 학습한다.
+        - Brain + Decoded Feature → Emotion(상호작용 head): λ ∈ {0.1, 1.0} × r ∈ {1, 2, 4, 8}, 8개. λ = 0은 없다(G9: stop-gradient 때문에 λ = 0이면 feature head가 실제 특징을 맞히도록 학습되지 않는다).
+        - Brain + Decoded Feature → Emotion(더하기 head): λ ∈ {0.1, 1.0}, 2개
+        - Brain + Decoded Feature → Emotion [distillation]: Brain + Decoded Feature → Emotion에서 고른 λ와 r을 고정한다. α ∈ {0, 0.25, 0.5}이고 0.25와 0.5만 새로 학습한다.
         - 고른 d와 입력층 weight decay는 그 바깥 fold의 모든 내부 조건에 같이 쓴다(5-5).
         - 0.1과 1.0은 문헌이 보장한 최적값이 아니라 시험 전에 고정한 탐색 후보다(G9).
     - 설정 선택과 조기 종료: 모든 조건에서 공통 검증 기준(0-2)과 O6을 따른다.
@@ -634,10 +634,10 @@
     - seed는 0, 1, 2다(G14, L9). 재현성 설정은 O32다.
     - 대조군(G6, G11, G12). 평균 계산과 섞기는 그 학습 분할 안에서만 한다.
         - label smoothing(G11)
-            - 출력 distillation과 같은 구조에서 t 대신 학습 자료의 정서별 평균 비율 ȳ를 쓴다.
+            - Brain → Emotion [distillation]과 같은 구조에서 t 대신 학습 자료의 정서별 평균 비율 ȳ를 쓴다.
             - 목표 = (1 − α) y + α ȳ. α ∈ {0.25, 0.5}
-        - 특징 모델 출력 섞기(G6, G12): 출력 distillation에 적용한다. 학습 영상 사이에 t를 바꿔 준다. α ∈ {0.25, 0.5}
-        - 장면 특징 짝 섞기(G6, G12): 특징 맞히기 연습에 적용한다. 학습 영상 사이에 (v, c) 목표를 같은 순열로 바꾼다. 시각과 캡션은 같은 영상의 짝을 유지한다. λ ∈ {0.1, 1.0}
+        - 특징 모델 출력 섞기(G6, G12): Brain → Emotion [distillation]에 적용한다. 학습 영상 사이에 t를 바꿔 준다. α ∈ {0.25, 0.5}
+        - 장면 특징 짝 섞기(G6, G12): Brain → Emotion + Vision + Caption에 적용한다. 학습 영상 사이에 (v, c) 목표를 같은 순열로 바꾼다. 시각과 캡션은 같은 영상의 짝을 유지한다. λ ∈ {0.1, 1.0}
         - 순열의 규칙(O1)
             - 바깥 fold와 seed마다 학습 영상(H2의 학습 fold 4개) 안에서 영상 단위 순열 하나를 만들어 모든 epoch에 유지한다.
             - 같은 fold와 seed에서는 설정 후보(α, λ)가 달라도 같은 순열을 쓴다.
@@ -650,16 +650,16 @@
     - frozen-head distillation(G16). 보조 성능 비교다. 기본 run 분할에서만 한다.
         - teacher와 student의 구조, 후보, seed(O5)
             - teacher: 뇌 모델과 같은 입력층, encoder(F3), emotion query(F4)를 쓴다. 실제 시각 특징과 캡션 특징을 각각 선형층으로 d차원 token으로 바꿔 ROI token과 함께 encoder에 넣는다. 중간 표현은 emotion query 34개의 출력(34 × d, O26의 LayerNorm 뒤)이고, head는 정서별 선형층(d → 1)과 sigmoid다.
-            - teacher 후보: d와 입력층 weight decay는 그 바깥 fold의 직접 학습이 고른 값이다. 두 특징 선형층의 weight decay ∈ {1e-4, 1e-3, 1e-2}만 공통 검증 기준으로 고른다.
-            - student: 직접 학습과 같은 뇌 모델(같은 d)이다. 연결층은 두지 않는다.
+            - teacher 후보: d와 입력층 weight decay는 그 바깥 fold의 Brain → Emotion이 고른 값이다. 두 특징 선형층의 weight decay ∈ {1e-4, 1e-3, 1e-2}만 공통 검증 기준으로 고른다.
+            - student: Brain → Emotion과 같은 뇌 모델(같은 d)이다. 연결층은 두지 않는다.
             - seed: teacher를 seed 0으로 고르고 seed 1, 2를 더 학습한다. student seed s는 같은 seed s의 teacher와 짝짓는다.
             - token으로 넣는 결합과 연결층 생략은 이번 비교에서 고른 설계 선택이다. 그래야만 한다는 뜻이 아니다(O5).
-            - teacher의 섞는 구조는 주 조건의 분리된 경로와 더하기 구조에 적용하지 않는다(O5).
+            - teacher의 섞는 구조는 Brain + Decoded Feature → Emotion의 분리된 경로와 더하기 구조에 적용하지 않는다(O5).
         - student 손실 = soft BCE(head_T(o_S), y) + λ × MSE(s(o_S), s(o_T))
             - 고정 head에는 student 표현 o_S를 teacher가 학습할 때의 좌표 그대로 넣는다.
             - s는 MSE 계산에만 쓰는 표준화다. teacher 표현의 차원별 평균과 표준편차로 나누며, 통계는 teacher가 학습한 4개 fold의 행에서 낸다.
             - λ ∈ {0.1, 1.0}(G9). 0은 없다.
-            - teacher와 head의 가중치는 고정한다. 정서 손실은 고정된 head를 거쳐 student까지 전달된다. 주 조건의 stop-gradient와 다르다.
+            - teacher와 head의 가중치는 고정한다. 정서 손실은 고정된 head를 거쳐 student까지 전달된다. Brain + Decoded Feature → Emotion의 stop-gradient와 다르다.
             - teacher의 정서 출력을 따라 하는 손실은 넣지 않는다.
         - 자료 경계
             - teacher와 student 모두 같은 학습 fold 4개로 가중치를 학습한다.
@@ -668,11 +668,11 @@
             - 한 학습 실행에서 teacher 하나를 고정해 그 표현만 목표로 쓴다. 서로 다른 teacher의 표현을 섞지 않는다.
         - 뇌 표현 복사 대조는 넣지 않는다.
         - teacher의 시험 성능은 참고로만 보고한다.
-        - 비교 대상은 직접 학습, 주 조건, 이 student다. 시험 입력은 모두 뇌뿐이다.
+        - 비교 대상은 Brain → Emotion, Brain + Decoded Feature → Emotion, 이 student다. 시험 입력은 모두 뇌뿐이다.
         - 내용 구역 제외, MC, 네트워크 분석, 대조군으로 넓히지 않는다.
     - 평균 pooling판(F7, 보조와 SI, O31)
-        - 직접 학습: ROI token 평균 → 선형 34개
-        - 주 조건: ROI 경로만 ROI token 평균 → 선형 34개로 바꾼다. 두 decoded feature 경로와 feature head는 그대로다.
+        - Brain → Emotion: ROI token 평균 → 선형 34개
+        - Brain + Decoded Feature → Emotion: ROI 경로만 ROI token 평균 → 선형 34개로 바꾼다. 두 decoded feature 경로와 feature head는 그대로다.
         - 설정은 그 바깥 fold의 표준 실행에서 고른 값을 그대로 쓴다(O31).
     - 외부 baseline 셋(5-2, O27, O28)
         - 공통
@@ -706,13 +706,13 @@
         - 시험 예측: sigmoid 전 logit과 확률
         - decoded features(시험 fold와 H2 검증 fold 모두. N8의 보정 통계에 검증 fold 값을 쓴다)
         - emotion query와 feature query의 attention 값
-        - 주 조건과 특징 맞히기 연습은 학습 영상과 검증 영상의 decoding 정확도도 기록한다(5-0의 남는 주의).
+        - Brain + Decoded Feature → Emotion과 Brain → Emotion + Vision + Caption은 학습 영상과 검증 영상의 decoding 정확도도 기록한다(5-0의 남는 주의).
         - 후보별 시험 성능도 저장한다. 민감도 표에만 쓰고 선택에는 쓰지 않는다(N24).
 - 출력: 모델 코드, 조건별 설정 파일, 단위 시험, 학습 가중치 수 표
 - 확인 기준(단위 시험으로 만든다)
     - 더하기 head에서 ROI token을 고정하고 v̂, ĉ만 바꾸면 결합 지표 I가 수치 오차 안에서 0이다.
-    - 주 조건에서 정서 손실만 역전파하면 feature head 가중치의 기울기가 0이다.
-    - 직접 학습과 출력 distillation 모델에 feature head가 없다.
+    - Brain + Decoded Feature → Emotion에서 정서 손실만 역전파하면 feature head 가중치의 기울기가 0이다.
+    - Brain → Emotion과 Brain → Emotion [distillation] 모델에 feature head가 없다.
     - 시험 때 forward가 뇌 반응만 받는다.
     - teacher 점수 t가 학습 영상에만 붙는다.
     - frozen-head distillation의 teacher와 teacher head는 student 학습 중 바뀌지 않는다. 정서 손실의 기울기는 student에 도달한다.
@@ -731,7 +731,7 @@
         - fold 1의 안쪽 자료만 쓴다. 파일럿 fold는 노출로 기록한다.
         - 학습 한 번의 실행 시간, GPU 메모리, epoch 수를 측정한다. 대상은 다섯 조건, 더하기 head, 대조군, frozen-head distillation의 teacher와 student, 외부 baseline 셋, 평균 pooling판이다.
         - G13의 값으로 수렴하는지 fold 1의 안쪽 검증 자료로만 확인한다. 값을 고르지 않는다. 그 자료는 다른 fold의 시험 영상이다.
-        - learning rate 후보를 모든 조건에 넣을 때의 실행 시간을 측정한다(G13). 실행 예산을 넘으면 직접 학습에서 고른 값을 다른 조건이 따르는 판으로 줄이고 본 실행 전에 확정한다. 성능을 보지 않는다.
+        - learning rate 후보를 모든 조건에 넣을 때의 실행 시간을 측정한다(G13). 실행 예산을 넘으면 Brain → Emotion에서 고른 값을 다른 조건이 따르는 판으로 줄이고 본 실행 전에 확정한다. 성능을 보지 않는다.
         - 파일럿 뒤 구조를 바꿔야 하면 바꾸지 않고 보고한다(0-2). 바뀌면 그 사실을 기록한다(N34).
     - d와 입력층 weight decay의 후보(5-5). 5-5가 Claude Code에게 맡긴 결정이다.
         - 실제 mask로 ROI별 voxel 수, 입력층 가중치 수(참가자당 약 d × 사용 voxel 수), 메모리, 실행 비용을 계산한다.
@@ -750,14 +750,14 @@
 
 | 묶음 | 학습 횟수 | 7-L의 계산(K = 6이면) |
 | --- | --- | --- |
-| 사다리(다섯 조건과 더하기 head) | 18K + 360 | learning rate 후보 3개를 포함한 값(G13). fold마다 직접 학습 3K + 2, 특징 맞히기 연습 8, 주 조건(상호작용 head) 26, 주 조건(더하기 head) 8, 출력 distillation 8, 주 조건 + 출력 distillation 8. 각각 후보 수 + seed 2(L9). 468회 |
+| 사다리(다섯 조건과 더하기 head) | 18K + 360 | learning rate 후보 3개를 포함한 값(G13). fold마다 Brain → Emotion 3K + 2, Brain → Emotion + Vision + Caption 8, Brain + Decoded Feature → Emotion(상호작용 head) 26, Brain + Decoded Feature → Emotion(더하기 head) 8, Brain → Emotion [distillation] 8, Brain + Decoded Feature → Emotion [distillation] 8. 각각 후보 수 + seed 2(L9). 468회 |
 | 필수 대조군(G6) | 144 | 셋 × fold마다 8(후보 2 × learning rate 3 + seed 2) × 6 fold |
-| 처음 보는 장면(6-2) | 180K + 1,680 | 구역 5 × fold 6 × 제외 방식 2 × (직접 학습 3K + 2 + 주 조건 26). 2,760회 |
+| 처음 보는 장면(6-2) | 180K + 1,680 | 구역 5 × fold 6 × 제외 방식 2 × (Brain → Emotion 3K + 2 + Brain + Decoded Feature → Emotion 26). 2,760회 |
 | 네트워크 단독 학습(6-4a) | 468 | 13묶음 × 6 fold × seed 3 × 2조건(L10) |
-| MC 시청 전이(6-3) | (3K + 28) + 입력층 36 | HK 최종 모델(직접 학습 3K + 2, 주 조건 26). MC 입력층은 2조건 × seed 3 × 6명. 46회 + 36회 |
+| MC 시청 전이(6-3) | (3K + 28) + 입력층 36 | HK 최종 모델(Brain → Emotion 3K + 2, Brain + Decoded Feature → Emotion 26). MC 입력층은 2조건 × seed 3 × 6명. 46회 + 36회 |
 | 본문 소계 | | 약 3,920회 |
-| baseline 특징(보조) | 624 | VideoMAE, TimeSformer, CLIP, MPNet 넷 × 주 조건 fold마다 26 × 6 |
-| 정서어 제거판(SI) | 156 | 주 조건 fold마다 26 × 6 |
+| baseline 특징(보조) | 624 | VideoMAE, TimeSformer, CLIP, MPNet 넷 × Brain + Decoded Feature → Emotion fold마다 26 × 6 |
+| 정서어 제거판(SI) | 156 | Brain + Decoded Feature → Emotion fold마다 26 × 6 |
 | frozen-head distillation(G16) | 약 60 | 7-L의 값. O5대로 fold마다 teacher 3 + 2, student 2 + 2로 54회 |
 | 평균 pooling판(F7, 보조) | 36 | O31: 2조건 × seed 3 × 6 fold |
 
@@ -788,14 +788,14 @@
         - seed 0 모델은 검증 fold에서 뽑힌 것이다. seed 사이 차이를 볼 때 이 점을 적는다.
         - 방법 절에 뇌 모델의 설정 선택을 "안쪽 5-fold 교차검증"이라고 쓰지 않는다.
     - 바깥 fold 안의 순서
-        - 직접 학습으로 d와 입력층 weight decay를 먼저 고른다.
+        - Brain → Emotion으로 d와 입력층 weight decay를 먼저 고른다.
         - 그 값으로 나머지 조건을 학습한다.
-        - 주 조건 + 출력 distillation은 주 조건에서 고른 λ와 r을 쓴다.
+        - Brain + Decoded Feature → Emotion [distillation]은 Brain + Decoded Feature → Emotion에서 고른 λ와 r을 쓴다.
     - G10
-        - 특징 맞히기 연습에서 λ = 0, 또는 출력 distillation이 들어간 조건에서 α = 0이 뽑힌 fold는 "그 fold에서 이득이 확인되지 않음"으로 보고한다.
-        - 그 fold의 결과는 앞 조건(직접 학습이나 주 조건)의 모델이다.
+        - Brain → Emotion + Vision + Caption에서 λ = 0, 또는 Brain → Emotion [distillation]이 들어간 조건에서 α = 0이 뽑힌 fold는 "그 fold에서 이득이 확인되지 않음"으로 보고한다.
+        - 그 fold의 결과는 앞 조건(Brain → Emotion이나 Brain + Decoded Feature → Emotion)의 모델이다.
         - fold별 선택값을 표로 낸다.
-        - 주 조건과 frozen-head distillation에는 0 후보가 없다(G9).
+        - Brain + Decoded Feature → Emotion과 frozen-head distillation에는 0 후보가 없다(G9).
     - L10: 6-4a는 그 바깥 fold의 표준 실행에서 고른 d, 입력층 weight decay, λ, r을 그대로 쓴다.
     - N24: 후보별 시험 성능은 저장만 한다. 선택에 쓰지 않는다.
 - 묶음별 실행
@@ -803,12 +803,12 @@
         - 다섯 조건과 더하기 head. 6 fold. 후보는 S6에 있다.
         - 18K + 360회(learning rate 후보 포함, 7-L)
     - 필수 대조군(G6)
-        - label smoothing, 특징 모델 출력 섞기(출력 distillation에 적용), 장면 특징 짝 섞기(특징 맞히기 연습에 적용). 6 fold
+        - label smoothing, 특징 모델 출력 섞기(Brain → Emotion [distillation]에 적용), 장면 특징 짝 섞기(Brain → Emotion + Vision + Caption에 적용). 6 fold
         - 순열은 O1의 결정을 따른다.
         - 144회
     - 처음 보는 장면(6-2, 필수)
         - 구역 5개 × 바깥 fold 6개 × 제외 방식 2개(구역 제외, 학습량 대조)
-        - 조건은 직접 학습과 주 조건(상호작용 head)이다. 두 조건은 teacher 출력과 frozen head를 쓰지 않는다(4-3).
+        - 조건은 Brain → Emotion과 Brain + Decoded Feature → Emotion(상호작용 head)이다. 두 조건은 teacher 출력과 frozen head를 쓰지 않는다(4-3).
         - 시험: 시험 run fold 안의 그 구역 영상. 두 제외 방식과 두 조건이 같은 시험 영상을 쓴다.
         - 학습 자료
             - 구역 제외: 시험 run fold 전체와 그 구역 전체를 뺀 영상
@@ -818,17 +818,17 @@
         - 180K + 1,680회
     - 네트워크 단독 학습(6-4a, 필수)
         - 13묶음 각각의 ROI token만 넣고 다시 학습한다. 다른 영역의 정보가 섞이기 전부터 입력을 제한한다.
-        - 직접 학습과 주 조건. 6 fold × seed 3. 설정은 L10이다.
-        - 주 조건에서는 decoded visual features와 decoded caption features도 채점한다(2-1의 지표).
+        - Brain → Emotion과 Brain + Decoded Feature → Emotion. 6 fold × seed 3. 설정은 L10이다.
+        - Brain + Decoded Feature → Emotion에서는 decoded visual features와 decoded caption features도 채점한다(2-1의 지표).
         - 468회
     - MC 시청 전이(6-3). 시점은 일정 결정에서 정한다(6-3, L1).
         - HK 최종 모델
-            - 개발 영상 전체로 학습한 직접 학습과 주 조건이다.
+            - 개발 영상 전체로 학습한 Brain → Emotion과 Brain + Decoded Feature → Emotion이다.
             - 설정은 H2 규칙(검증 fold 하나)을 개발 영상 전체에 적용해 고른다. 검증 fold는 O7이다.
             - seed 3개
         - 고정하는 것: encoder, query, feature head, emotion head, e(r) 등 HK의 공유 가중치 전부
         - 새로 학습하는 것: MC 참가자마다 W(s, r), b(s, r)만
-            - 각 조건의 원래 손실을 그대로 쓴다. 직접 학습은 정서 손실, 주 조건은 정서 손실과 feature decoding loss다.
+            - 각 조건의 원래 손실을 그대로 쓴다. Brain → Emotion은 정서 손실, Brain + Decoded Feature → Emotion은 정서 손실과 feature decoding loss다.
             - feature decoding loss의 목표 좌표는 O30이다(HK 개발 영상의 D9 통계).
             - 학습 자료는 MC 시청 학습 세션 2,108개다. 검증 run은 O29다.
             - 입력층의 weight decay와 조기 종료는 검증 run에서 공통 검증 기준으로 고른다.
@@ -844,9 +844,9 @@
     - baseline 특징(3-1, 3-3, 보조)
         - VideoMAE, TimeSformer, CLIP: 시각 목표만 바꾼다. 캡션 목표는 DeBERTa 그대로 둔다.
         - MPNet: 캡션 목표만 바꾼다.
-        - 특징 모델과 주 조건만 같은 절차로 다시 돌린다. 층 분석과 ROI 분석은 하지 않는다.
+        - 특징 모델과 Brain + Decoded Feature → Emotion만 같은 절차로 다시 돌린다. 층 분석과 ROI 분석은 하지 않는다.
         - 624회
-    - 정서어 제거판(3-4, SI): 정서어 제거 캡션 특징으로 주 조건을 돌린다. 156회
+    - 정서어 제거판(3-4, SI): 정서어 제거 캡션 특징으로 Brain + Decoded Feature → Emotion을 돌린다. 156회
     - 외부 baseline(I7, 5-2): GED, ML-BVAE, EmoGrowth. 우리 run 분할의 6 fold. I7의 기준선이므로 필수 실행 범위다(L1). seed와 검증은 O27이다.
     - 평균 pooling판(F7, 보조): 36회(O31). L3의 순서에 따라 남는 시간에 한다.
 - 순서(7-L)
@@ -859,7 +859,7 @@
     - frozen-head distillation은 핵심 분석 다음이다(L1).
 - 시간이 모자랄 때 줄이는 순서(L3). 시간 기준이고 결과를 보고 바꾸지 않는다.
     1. baseline 특징과 정서어 제거판을 필수 실행 범위 밖으로 뺀다.
-    2. 6-4a의 주 조건을 seed 1로 줄인다.
+    2. 6-4a의 Brain + Decoded Feature → Emotion을 seed 1로 줄인다.
     3. 보조 분석 전체의 seed를 3에서 2로 줄인다.
     4. 본문 조건의 seed를 3에서 2로 줄인다.
     - 6-1의 [사전] 비교 15개에 필요한 조건은 끝까지 유지한다.
@@ -882,7 +882,7 @@
 - 입력: S8의 체크포인트, decoded features(시험 fold와 검증 fold), 시험 예측, S2의 짝 목록, S4의 K1 head와 K1a 특징 모델, S5의 ridge decoded features
 - 할 일
     - 바꿔 끼우기(4-2, 5-0)
-        - 모델: 주 조건의 상호작용 head(5-4). 바깥 fold마다, seed마다, 참가자마다 한다.
+        - 모델: Brain + Decoded Feature → Emotion의 상호작용 head(5-4). 바깥 fold마다, seed마다, 참가자마다 한다.
         - 짝: 영상 A와 같은 시험 fold의 짝 B(S2)
         - v̂_B, ĉ_B는 같은 참가자, 같은 fold, 같은 모델이 B에서 낸 값이다. 다른 fold의 모델이 만든 값을 섞지 않는다.
         - 네 조건(ROI token, decoded visual features, decoded caption features)
@@ -919,7 +919,7 @@
         - 같은 영상이 여러 쌍과 여러 참가자에 반복되므로 쌍은 독립이 아니다. 쌍 수를 표본 수로 세지 않는다(O4).
     - 내용이 비슷한 영상 쌍 비교(4-2의 분석 1, 보조 점검, O33)
         - 이미 얻은 시험 예측으로 계산한다. 학습을 더 하지 않는다.
-        - 모델은 직접 학습과 주 조건이다.
+        - 모델은 Brain → Emotion과 Brain + Decoded Feature → Emotion이다.
         - 정서마다 쌍의 실제 점수 차이(B 빼기 A)와 예측 차이(B 빼기 A)의 Pearson r을 내고 34개 평균도 낸다.
         - 쌍은 순서 없는 쌍으로 센다(O4 (7), O33). 서로 최근접인 쌍은 한 번만 쓰고 영상 번호가 작은 쪽을 A로 둔다. S2의 순서 없는 쌍 목록을 쓴다.
         - 구간은 O4 (2)의 이어진 묶음 단위 재표집으로 낸다.
@@ -927,7 +927,7 @@
     - 상호작용 head 대 더하기 head(1-2의 (가)): 정서마다 두 head의 시험 성능을 비교한다(S10).
     - 경로 평가(K1, 보조)
         - 두 decoded features만 특징 모델의 고정 head(S4, 두 특징을 함께 받는 것 하나)에 넣어 정서를 예측한다. ROI token 경로는 넣지 않는다.
-        - 넣는 값은 두 가지다: ridge decoded features(S5), 주 조건 decoded features
+        - 넣는 값은 두 가지다: ridge decoded features(S5), Brain + Decoded Feature → Emotion decoded features
         - 특징 모델의 더하기판과 상호작용판 둘 다 한다.
         - 뇌 모델은 더 학습하지 않는다.
         - decoded features는 특징 모델이 학습한 실제 특징과 같은 차원, 좌표, 표준화(D9)에 있어야 한다(5-4).
@@ -936,16 +936,16 @@
             - 보정판은 decoded features의 차원별 평균과 분산을 실제 특징에 맞춘 것이다. 특징 모델 head가 받도록 학습한 좌표(D9)에서 맞춘다.
             - 보정 통계는 H2의 검증 fold에서 낸다. 정서 정답과 시험 fold는 쓰지 않는다. 통계를 고정해 시험 영상에 적용한다.
             - ridge의 보정 통계를 내는 자료는 O34, 분산이 아주 작은 차원의 처리는 O35다.
-        - 보고: 직접 학습과 경로 평가 각각의 절대 성능(정서별 Pearson r)과, 같은 시험 영상에서 계산한 두 성능의 차이와 구간(O4). 비율은 쓰지 않는다(K1, N6).
+        - 보고: Brain → Emotion과 경로 평가 각각의 절대 성능(정서별 Pearson r)과, 같은 시험 영상에서 계산한 두 성능의 차이와 구간(O4). 비율은 쓰지 않는다(K1, N6).
     - 경로 평가의 14개 차원판(K1a, 보조)
-        - S4의 K1a 특징 모델에 세 가지 값을 넣어 14개 차원을 예측한다. 실제 특징, ridge decoded features(S5), 주 조건 decoded features(상호작용 head, seed 3개)다.
+        - S4의 K1a 특징 모델에 세 가지 값을 넣어 14개 차원을 예측한다. 실제 특징, ridge decoded features(S5), Brain + Decoded Feature → Emotion decoded features(상호작용 head, seed 3개)다.
         - 넣는 decoded features는 K1과 같다. 같은 참가자, 같은 fold, 같은 모델, 같은 seed의 값을 쓴다. ROI token 경로는 넣지 않는다.
         - 더하기판과 상호작용판 둘 다 한다. 뇌 모델과 특징 모델은 더 학습하지 않는다.
         - N8 보정은 K1과 같다. 보정 전 판과 보정판을 함께 내고, K1에서 낸 통계(O34, O35)를 그대로 쓴다.
         - 예측은 fold의 정답 표준화 통계로 되돌려 1~9점 척도로 저장한다. 6 fold를 모으는 계산은 S10에서 한다(O20과 같은 이유).
         - 14개 차원의 교체 분석은 하지 않는다(B4). 경로 사용은 34개 범주의 바꿔 끼우기만 답한다.
     - 네트워크 단위 입력 교란(6-4b)
-        - 모델: 전체 뇌로 학습한 직접 학습과 주 조건(상호작용 head)을 고정한다. 다시 학습하지 않는다.
+        - 모델: 전체 뇌로 학습한 Brain → Emotion과 Brain + Decoded Feature → Emotion(상호작용 head)을 고정한다. 다시 학습하지 않는다.
         - 13묶음마다 그 묶음 ROI의 입력 x(s, r)만 같은 참가자의 다른 영상 값으로 바꾼다. 0으로 지우지 않는다.
         - ROI token은 그 ROI의 voxel만으로 만들어지므로, 이것은 shared self-attention 전에 바꾸는 것과 같다.
         - 한 묶음 안의 ROI는 같은 참가자의 같은 다른 영상에서 함께 가져온다.
@@ -1024,31 +1024,31 @@
         - [사전] 15개(아래 표)는 Holm 보정을 쓴다. 5명 평균의 검정 묶음과 참가자마다의 검정 묶음에 각각 적용한다.
         - 정서 34개별 분석(1-1, 1-2)은 탐색으로 표시하고 BH-FDR을 쓴다. 보정 묶음은 참가자마다, 비교마다 34개 정서다.
         - 2-4(6-4b)는 13묶음의 하락폭 차이 검정을 한 묶음으로 Holm 보정한다.
-        - 6-4의 나머지는 탐색으로 표시하고 BH-FDR을 쓴다. 나머지 10묶음의 단독 학습 결과, 주 조건의 결과, 묶음 안 정서별 결과가 해당한다. 보정 묶음을 결과와 함께 밝힌다.
-        - 보조 비교는 Holm 15개에 넣지 않고 따로 보고한다. 방향을 예측하지 않는다. G6의 올바른 대응 대 섞은 대응, frozen-head distillation의 student 대 주 조건과 직접 학습이 해당한다.
-        - 0행(전제 검정, O4 (4)): 직접 학습과 주 조건 각각의 34개 정서 평균 r을 순열 기준과 비교한다. 두 검정을 [사전] 15개와 따로 한 Holm 묶음(2개)으로 보정한다. 5명 평균과 참가자마다 각각 적용한다(6-1).
+        - 6-4의 나머지는 탐색으로 표시하고 BH-FDR을 쓴다. 나머지 10묶음의 단독 학습 결과, Brain + Decoded Feature → Emotion의 결과, 묶음 안 정서별 결과가 해당한다. 보정 묶음을 결과와 함께 밝힌다.
+        - 보조 비교는 Holm 15개에 넣지 않고 따로 보고한다. 방향을 예측하지 않는다. G6의 올바른 대응 대 섞은 대응, frozen-head distillation의 student 대 Brain + Decoded Feature → Emotion과 Brain → Emotion이 해당한다.
+        - 0행(전제 검정, O4 (4)): Brain → Emotion과 Brain + Decoded Feature → Emotion 각각의 34개 정서 평균 r을 순열 기준과 비교한다. 두 검정을 [사전] 15개와 따로 한 Holm 묶음(2개)으로 보정한다. 5명 평균과 참가자마다 각각 적용한다(6-1).
         - MC 전이(6-3, O4 (5))는 보정 없이 따로 보고한다.
 
 | 질문 | [사전] 비교 | 수 |
 | --- | --- | --- |
 | 2-1 decoding | 시각 특징, 캡션 특징의 ridge decoding 대 순열 기준. 통계량은 차원별 r 평균(O19) | 2 |
-| 2-2 이용 | 주 조건의 시각만, 캡션만, 둘 다 교체 대 같은 크기 무작위 변경 | 3 |
-| 2-3 성능 | (가) 특징 맞히기 연습 대 직접 학습, (나) 주 조건 대 특징 맞히기 연습, (다) 출력 distillation 대 직접 학습, (라) 출력 distillation 대 label smoothing, (마) 특징 맞히기 연습 대 출력 distillation, (바) 주 조건 + 출력 distillation 대 주 조건 | 6 |
-| 처음 보는 장면 | 주 조건 대 직접 학습의 "다섯 내용 구역의 평균 성능" | 1 |
-| 1-3 영역 | 1차 시각, 2차 시각, Default 묶음의 직접 학습 모델 대 순열 기준 | 3 |
+| 2-2 이용 | Brain + Decoded Feature → Emotion의 시각만, 캡션만, 둘 다 교체 대 같은 크기 무작위 변경 | 3 |
+| 2-3 성능 | (가) Brain → Emotion + Vision + Caption 대 Brain → Emotion, (나) Brain + Decoded Feature → Emotion 대 Brain → Emotion + Vision + Caption, (다) Brain → Emotion [distillation] 대 Brain → Emotion, (라) Brain → Emotion [distillation] 대 label smoothing, (마) Brain → Emotion + Vision + Caption 대 Brain → Emotion [distillation], (바) Brain + Decoded Feature → Emotion [distillation] 대 Brain + Decoded Feature → Emotion | 6 |
+| 처음 보는 장면 | Brain + Decoded Feature → Emotion 대 Brain → Emotion의 "다섯 내용 구역의 평균 성능" | 1 |
+| 1-3 영역 | 1차 시각, 2차 시각, Default 묶음의 Brain → Emotion 모델 대 순열 기준 | 3 |
 
 - 할 일(이어서)
     - 처음 보는 장면(6-2)
         - 구역마다 6 fold의 시험 예측을 모아 참가자별, 정서별 r을 낸다. 다섯 구역을 섞은 r 하나로 대신하지 않는다.
         - 평가 정서 목록: 구역마다, 그 구역 시험 영상에서 정답이 모두 같은 정서만 뺀다.
-        - 같은 구역에서는 네 설정(직접 학습과 주 조건, 각각 구역 제외와 학습량 대조)에 같은 목록을 쓴다. 구역마다 포함된 정서 수를 낸다.
+        - 같은 구역에서는 네 설정(Brain → Emotion과 Brain + Decoded Feature → Emotion, 각각 구역 제외와 학습량 대조)에 같은 목록을 쓴다. 구역마다 포함된 정서 수를 낸다.
         - 모델이 상수만 예측한 경우는 정답이 상수인 경우와 따로 센다. 그 정서는 그 구역에서 네 설정 모두의 평균에서 뺀다. 어느 모델의 어느 정서였는지 적는다.
         - 요약값: 구역마다 평가 정서의 r을 평균하고, 다섯 구역을 같은 무게로 평균한다. 이것이 "다섯 내용 구역의 평균 성능"이다.
         - 낼 것
             - 절대 성능(구역 제외), 학습량 대조 대비 하락폭, 두 모델의 차이, 구역별 결과
             - 정서별로 남은 0이 아닌 학습 영상 수(두 제외 방식), 시험 쪽 정답 분포
             - 보조 모델(ridge, 특징 모델)의 결과
-            - 주 조건 decoded features의 2-1 지표
+            - Brain + Decoded Feature → Emotion decoded features의 2-1 지표
         - "더 높다"와 "덜 떨어진다"는 따로 판정한다. 하락폭 차이는 직접 비교한다. 방향은 정하지 않았다.
     - MC 시청 전이(6-3)
         - 참가자별, 정서별로 72개 영상에 걸친 r을 내고 34개를 평균한다.
@@ -1058,15 +1058,15 @@
         - 시험 영상이 72개뿐이라 구간이 넓을 수 있음을 적는다.
     - 영역(6-4)
         - 6-4a의 평가 정서는 34개 모두다. 시험 영상 전체에서 정답이나 예측이 상수라 r을 계산할 수 없는 정서만 빼고 그 수를 보고한다(6-4a, 2-6).
-        - 6-4a: 묶음마다 정서 예측 성능과 두 decoded features의 decoding 성능을 나란히 낸다. decoding 성능은 주 조건에서만 낸다.
+        - 6-4a: 묶음마다 정서 예측 성능과 두 decoded features의 decoding 성능을 나란히 낸다. decoding 성능은 Brain + Decoded Feature → Emotion에서만 낸다.
         - 6-4b: 묶음마다 두 모델의 하락과 하락폭 차이의 불확실성을 낸다.
         - 13묶음의 참가자 간 일치도(S2)를 함께 적는다.
-    - 경로 평가(K1): 직접 학습과 경로 평가의 절대 성능, 두 성능의 차이와 구간을 낸다. 보정 전과 보정판을 둘 다 낸다. 비율은 쓰지 않는다.
+    - 경로 평가(K1): Brain → Emotion과 경로 평가의 절대 성능, 두 성능의 차이와 구간을 낸다. 보정 전과 보정판을 둘 다 낸다. 비율은 쓰지 않는다.
     - 14개 차원(B4, K1a, 보조). 표 하나로 낸다.
         - 차원마다 시험 영상에 걸친 Pearson r로 세 성능을 나란히 둔다. 참가자별 값과 5명 평균을 낸다. 6 fold를 모아 r을 한 번 낸다(2-3).
             - (1) B4 ridge의 뇌 직접 decoding(주 비교판)
             - (2) 실제 특징을 넣은 특징 모델. 참고값이고 상한이 아니다.
-            - (3) decoded features를 넣은 특징 모델. ridge판과 주 조건판, 더하기판과 상호작용판, 보정 전과 보정판이다. 주 조건판은 seed마다 내고 평균과 표준편차를 적는다(G14).
+            - (3) decoded features를 넣은 특징 모델. ridge판과 Brain + Decoded Feature → Emotion판, 더하기판과 상호작용판, 보정 전과 보정판이다. Brain + Decoded Feature → Emotion판은 seed마다 내고 평균과 표준편차를 적는다(G14).
         - (3)의 판마다 (1)과의 차이와 구간을 같은 참가자, 같은 시험 영상에서 낸다(N11, O4 (3)). 비율은 쓰지 않는다.
         - 차원별 검정은 탐색으로 표시하고 BH-FDR을 쓴다. 보정 묶음은 참가자마다, 비교마다 14개 차원이다. [사전] 15개의 Holm 묶음에 넣지 않는다.
         - 차원별 평정 신뢰도 칸은 [미확인]으로 둔다(기록 칸 S0). 값이 확인되어도 분석에 넣거나 빼는 조건으로 쓰지 않는다.
@@ -1085,11 +1085,11 @@
     - 한 경로를 바꿔 효과가 작아도 그 경로가 정보를 담지 않았거나 쓰이지 않았다고 쓰지 않는다. ROI token 경로가 남아 있다.
     - 두 경로를 함께 바꾼 효과는 두 경로에 대한 공동 의존성이다. 공유 정보의 양이 아니다.
     - I는 모델 계산의 비가산성이다. 공유 정보량이나 뇌의 인과적 상호작용이 아니다.
-    - 경로 평가가 잘되어도 "고정된 규칙을 decoded features에 적용할 수 있었다"까지다. 주 조건이 그 특징을 실제로 썼는지는 바꿔 끼우기가 답한다(K1). 보정판은 크기 차이를 보는 보조 결과다(N8).
+    - 경로 평가가 잘되어도 "고정된 규칙을 decoded features에 적용할 수 있었다"까지다. Brain + Decoded Feature → Emotion이 그 특징을 실제로 썼는지는 바꿔 끼우기가 답한다(K1). 보정판은 크기 차이를 보는 보조 결과다(N8).
     - 14개 차원은 "뇌에서 decoding한 장면 특징으로 일부 정서 차원도 예측할 수 있었다"까지다. "뇌 모델이 정서 차원 예측에 장면 정보 경로를 썼다", "범주 결과가 valence나 arousal로 설명된다", "설명되지 않는다"고 쓰지 않는다. 결과를 본 뒤 메인 분석으로 올리지 않는다(K1a).
-    - 출력 distillation의 이득은 label smoothing을 넘을 때만 teacher 점수의 내용 효과로 쓴다. 이득이 모든 정서에 고르면 정칙화 효과일 가능성을 함께 쓴다(N10).
+    - Brain → Emotion [distillation]의 이득은 label smoothing을 넘을 때만 teacher 점수의 내용 효과로 쓴다. 이득이 모든 정서에 고르면 정칙화 효과일 가능성을 함께 쓴다(N10).
     - 특징 모델 성능은 뇌 모델의 상한이 아니다. "격차를 몇 % 메웠다"고 쓰지 않는다. 고른 λ, α를 기여 비율로 읽지 않는다(N10).
-    - 특징 맞히기 연습에서 λ = 0이 뽑힌 실행을 "특징 학습의 이득"으로 해석하지 않는다(G10).
+    - Brain → Emotion + Vision + Caption에서 λ = 0이 뽑힌 실행을 "특징 학습의 이득"으로 해석하지 않는다(G10).
     - 영역 결과는 "그 묶음의 신호만으로 예측할 수 있었다" 또는 "이번 교체 조건에서 그 묶음 입력에 더 민감했다"까지다. 신뢰도가 낮은 묶음의 낮은 성능을 "정보 없음"으로 읽지 않는다.
     - 처음 보는 장면은 "학습에서 뺀 이름표 구역"이다. 사전학습 모델이 본 적 없는 장면이라고 쓰지 않는다.
     - MC 결과를 "외부 검증"이나 "가벼운 보정"이라고 부르지 않는다.
@@ -1213,7 +1213,7 @@
 | N1. 11/3 KHBM 초록용 분석의 노출 | 설계 동결 전에 개발 영상 2,108개(MC 72개와 1363 제외)의 시험 fold 결과를 봤다. 조건 비교, 더하기 head와 상호작용 head, 바꿔 끼우기와 정서별 경로 차이, 선택된 λ, α, r. 입력은 466개 영역 평균, 특징은 V-JEPA 2 마지막 block과 MPNet, 모델은 작은 MLP로 본 실험과 다르다. 설계와 후보값을 이 결과로 고르지 않았고, 보류된 결정 1~4의 근거로 쓰지 않는다. 코드 project/analysis/prelim_2026-10/perlmutter/khbm_pilot.py, 결과 project/output/prelim_2026-10/17_khbm_pilot/. 10월 말 위계 분석(16_hierarchy)도 같은 성격이다 11/4 S2 열 순서 점검 첫 판은 MC 6명의 시험 block 240개의 정규화 전 반응을 읽었다(S2 MC 시험 반응 접근 기록 행) | N1, M6 | 2026-11-04 |
 | 통합문서로 정할 수 없던 것 | 아래 행들 | 0-2 | 2026-11-03 |
 | 정할 것 1. 중복 쌍에서 남길 제시 | 정함(11/3 석진 님): (가) 먼저 제시된 쪽을 남긴다. Horikawa 외(2020) Methods가 같은 규칙이다("discarded samples that were presented later in the experiment"). 지금 분할이 이 규칙이므로 바꾸지 않고, 01의 B2를 고쳤고 02, 03, 04를 맞췄다(11/3) | B2 | 2026-11-03 |
-| 정할 것 2. H2 검증 fold의 정답이 teacher 점수를 거쳐 student 학습에 들어간다 | E4와 O16은 teacher의 fold 밖 출력을 D_k의 5개 fold 전체로 만든다. 그래서 학습 영상의 teacher 점수를 낸 안쪽 모델 가운데 4개는 H2 검증 fold의 정답으로도 학습한다. 뇌 모델이 이 점수로 학습한 뒤 같은 검증 fold로 α와 조기 종료를 정하면, 출력 distillation이 들어간 조건만 검증 점수에서 유리해질 수 있다. 시험 fold로 새지는 않는다. 옛 규칙(docs/archive/pre-final-2026-10/04 C01, 02:78~110)은 teacher를 검증 fold 밖에서 다시 만들어 이를 막았다. 정함(11/3 석진 님): 출력 distillation에 쓰는 teacher 점수는 H2의 학습 fold 4개 안에서만 안쪽 4겹으로 만든다. 검증 fold와 바깥 시험 fold는 teacher의 학습, 설정 선택, 조기 종료에 쓰지 않는다. 01의 E4, O16, H3, 5-0을 고쳤고 02, 03과 04의 0-3 표, S4를 맞췄다(11/3) | E4, O16, H2 | 2026-11-03 |
+| 정할 것 2. H2 검증 fold의 정답이 teacher 점수를 거쳐 student 학습에 들어간다 | E4와 O16은 teacher의 fold 밖 출력을 D_k의 5개 fold 전체로 만든다. 그래서 학습 영상의 teacher 점수를 낸 안쪽 모델 가운데 4개는 H2 검증 fold의 정답으로도 학습한다. 뇌 모델이 이 점수로 학습한 뒤 같은 검증 fold로 α와 조기 종료를 정하면, Brain → Emotion [distillation]이 들어간 조건만 검증 점수에서 유리해질 수 있다. 시험 fold로 새지는 않는다. 옛 규칙(docs/archive/pre-final-2026-10/04 C01, 02:78~110)은 teacher를 검증 fold 밖에서 다시 만들어 이를 막았다. 정함(11/3 석진 님): Brain → Emotion [distillation]에 쓰는 teacher 점수는 H2의 학습 fold 4개 안에서만 안쪽 4겹으로 만든다. 검증 fold와 바깥 시험 fold는 teacher의 학습, 설정 선택, 조기 종료에 쓰지 않는다. 01의 E4, O16, H3, 5-0을 고쳤고 02, 03과 04의 0-3 표, S4를 맞췄다(11/3) | E4, O16, H2 | 2026-11-03 |
 | 정할 것 3. 원문 방식의 지도를 만들 재료와 도구 | 11/4 정할 것 5로 대체됐다. FreeSurfer 폴더 전송, HCP360 annot, FLIRT는 쓰지 않는다. 11/3 기록: 내려받기 허락, FreeSurfer 폴더는 석진 님이 연구실 서버에서 옮긴다. (1) HCP360: figshare의 "HCP-MMP1.0 projected on fsaverage"(Mills, 2016, doi 10.6084/m9.figshare.3498446.v2)의 lh, rh.HCP-MMP1.annot을 PM/atlas_sources/hcp_mmp1_fsaverage/에 받았다(md5가 figshare 값과 같음, 꼭짓점 163,842개, 반구마다 영역 180개와 미지정 1개). 원문이 같은 파일을 썼는지는 [미확인]. (2) WFU PickAtlas: NITRC(group 46)는 로그인이 필요해, Codex가 공개 사본 UMPsychMethodsCore/MethodsCore(commit 1cff4ae)의 3.0.5b를 PM/atlas_sources/wfu_pickatlas/WFU_PickAtlas_3.0.5b_MethodsCore/에 받았다(출처 기록 CODEX_* 파일). 검증(11/3, PM/atlas_sources/README.md): 두 번째 공개 사본 superkeyor/SPMJobs12와 지도 파일 122개가 같은 내용이다(11개는 줄바꿈 방식만 다름). AAL은 GIN의 aal_for_SPM12(2015) ROI_MNI_V4.nii와 116개 영역의 voxel 구성과 이름이 모두 같다(저장 방향과 라벨 번호만 다름). 공식 배포본 대조(11/4): 석진 님이 NITRC에서 받은 3.0.5b를 PM/atlas_sources/wfu_pickatlas/official/에 두었다. 공통 파일 435개 중 421개는 바이트까지 같고 14개는 줄바꿈 방식만 달라, 사본에 내용 차이가 없다. AAL과 Talairach Daemon 두 판의 지도도 모두 같다. 이후 코드는 공식본 경로를 쓴다. Talairach Daemon 지도는 두 판(MNI_atlas_templates, TD-ICBM_MNI_atlas_templates)이 있고 파일이 다르다. 공식 설명서는 MNI_atlas_templates만 적고, 저자 공개 ROI도 이 판에 더 가깝다(S1 피질하 행). (3) FreeSurfer 폴더: HK는 처음 fMRIPrep 실행의 /storage/bigdata/Horikawa/fmriprep/horikawa_preprocess_sub0X/fmriprep/output/sourcedata/freesurfer/sub-0X(fmriprep_sdc 실행이 여기서 복사함), MC는 /storage/bigdata/MindCaptioning/fmriprep/sub-0X/output/sourcedata/freesurfer/sub-0X(fMRIPrep 기본 위치로 추정, [미확인]). 받는 곳: PM/Horikawa/freesurfer/sub-0X(5명), PM/MindCaptioning/freesurfer/sub-0X(6명), fsaverage는 PM/Horikawa/freesurfer/fsaverage. (4) 도구: shifter의 nipreps/fmriprep:25.0.0 이미지에 FreeSurfer 도구(mri_surf2surf, mri_label2vol, recon과 같은 7.3.2 판, PREPROCESSING_FINAL.md 2.2절)와 FSL FLIRT 6.0이 있다(11/3 확인). 원문과 같은 도구로 할 수 있다. | 5-5, 불일치 7 | 2026-11-03 |
 | 정할 것 4. B6의 이상 block과 이상 run | 정함(11/3 석진 님): 빼지 않는다. 01 B6을 고쳤고 02, 03, 04(S1, S2)를 맞췄다. 기준값의 출처: 5(블록 신호 크기), 15(run 안 z 최대 절댓값), 4(run)는 0단계 점검 코드(project/analysis/prelim_2026-10/prelim/confound_and_block_check.py:178, 206, 10/22)가 정한 값이고 근거 문헌이나 이유가 기록되어 있지 않다. 0단계 기록은 이 표시를 "표시만 했고 제외 안 함"(stage1/00_status/zero_handoff.tsv:8)으로 다뤘다. B6이 이 표시를 제외 기준으로 옮겼고, B6의 이유 칸 "움직임 지표(FD, DVARS) 기준"은 실제 정의(블록 신호 크기, run 안 z)와 다르다. MC와 겹치는 블록을 빼고 다시 내면 이상 run이 sub-03 run_index 31에서 33으로 바뀐다(S1 이상 block 행). FD와 DVARS 비교(개발 블록 안의 백분위, project/analysis/final_2026-11/manifests/abnormal_motion_check.tsv, 코드 s1_abnormal_motion.py): 블록 892(sub-02) FD 0.276 mm 89%, DVARS 1.431 84%. 289(sub-02) FD 0.313 mm 93%, DVARS 1.553 97%. 312(sub-02) FD 71%, DVARS 3%. 1158(sub-03) FD 24%, DVARS 50%. 879(sub-04) FD 22%, DVARS 73%. run(sub-03 run 61개 안의 백분위): 31 평균 FD 0.193 mm 77%, 평균 DVARS 41%, 최대 FD 1.19 mm(volume 2.2% 검열, 그 근처 블록 2개는 이미 FD QC로 빠짐). 32 FD 69%, DVARS 5%. 33 FD 21%, DVARS 7%. 다섯 블록과 세 run 모두 이미 적용된 QC 기준(블록 반응 구간의 FD > 0.9 mm, run 평균 FD > 0.5 mm 등, PREPROCESSING_FINAL.md 1.2절)을 넘지 않는다. 289가 가장 높지만 FD 0.31 mm다. 석진 님 지시(11/3): 뚜렷한 원인(움직임, 신호 급변)이 있는 것만 그 이유로 빼고, 원인이 없으면 반응 크기 기준으로는 빼지 않는다(despike만) | B6 | 2026-11-03 |
 | 정할 것 5. ROI 지도의 출처 | 정함(11/4 석진 님): (나). 피질 360개는 공개 ROI, 피질하 10개는 11명 모두 같은 절차로 새로 만든다. 01의 5-5를 고쳤고 02, 03, 04를 맞췄다. 근거, 발견(11/4): 공개 자료에 저자가 쓴 참가자별 ROI가 voxel 좌표와 함께 있다(HK figshare 11988351의 fmri_SubjectN_Session1.h5 metadata, MC figshare 25808179의 testPerception_SN.mat metainf). 370개 모두 있고 11명 모두 좌표가 우리 T1w 2 mm 격자 간격에 맞는다(최대 잔차 2e-6 voxel, manifests/original_roi_grid.tsv). 격자에 맞는 것과 촬영 범위 안에 있는 것은 다르다. 격자 밖 voxel이 HK sub-02에 71개, sub-03에 6,589개 있다. 받은 파일의 판과 md5는 manifests/original_roi_sources.tsv다. 피질 360개의 합집합은 FreeSurfer aseg 피질과 안 옮겼을 때 가장 잘 맞고(11명 모두, Dice 0.67~0.72) HK voxel 수가 논문 값과 같다. 개별 영역의 경계까지 검증한 것은 아니다. 피질하는 aseg로 비교할 수 있는 8종에서 10명에게 큰 위치 이상이 없다(ROI별 10명 평균 Dice 0.47~0.82, z축으로 옮겨도 가장 좋은 위치가 6 mm 이내). 시상하부와 측좌핵(BA34)은 aseg에 없어 이 비교에 들어가지 않는다. HK sub-03만 어긋난다. 그대로는 해마 Dice 0.00, 소뇌 0.05다. z축으로만 옮겨 찾으면 해마 +24, 시상 +20, 편도체 +16, 창백핵 +12, 조가비핵 +8, 미상핵 +4, 뇌간 +24, 소뇌 +32 mm에서 가장 좋지만 그래도 Dice 0.21~0.57이라 단순 이동으로 복구되지 않는다. 격자 안의 소뇌 voxel 1,870개는 다른 사람의 약 12분의 1이다. 격자가 작아서 생긴 일은 아니다(공개 해마 3,582개 중 3,572개가 격자 안인데 aseg 해마와 겹치는 voxel이 0개). 피질은 정상이다. 이것은 현재 격자에서 공개 sub-03 피질하를 그대로 쓸 수 없는 정렬 이상이고, 어느 단계가 원인인지는 미확인이다. 선택지: (가) 피질 360개와 피질하(10명)는 공개 ROI를 쓰고, sub-03 피질하만 같은 지도(PickAtlas MNI_atlas_templates, AAL)와 fMRIPrep 변환으로 새로 만든다 (나) 피질은 공개 ROI, 피질하는 11명 모두 새로 만든다 (다) 정할 것 3대로 FreeSurfer부터 모두 새로 만든다. 새로 만드는 방법은 정할 것 7이다. 공개 mask를 임의로 옮겨 쓰지 않는다. 다른 선택지로 자동 전환하는 규칙도 두지 않는다. (가)와 (나)는 FreeSurfer 폴더 전송이 필요 없다. | 5-5, C6, 정할 것 3 | 2026-11-04 |
@@ -1253,8 +1253,9 @@
 | Codex 재검토(S5 코드, ccf3495) | 보고서 project/output/audits/codex/2026-11-07_s5_recheck_ccf3495.md. 판정: 범위 통과, 반드시 고칠 것 없음. 실제 크기 파일과 GPU 동작은 확인 범위 밖이다 | I7, M1 | 2026-11-07 |
 | 결정(11/7 석진 님) | 뇌 모델의 learning rate를 모든 조건의 후보로 넣는다(01 G13, 7-L 실행량을 고침). Horikawa 2020 ridge를 baseline으로 둔다(I7). 문서 위치는 docs/final이고, 옛 docs/current를 docs/archive/pre-final-2026-10으로 옮겨 CLAUDE.md, AGENTS.md, README.md, CONTEXT_EMOBRAIN.md, project/README.md, docs/coordination/README.md의 경로를 고쳤다. AGENTS.md의 역할 문구는 CLAUDE_EmoBrain 5절을 가리키게 했다. 02, 03의 경로는 동결 때 맞춘다. 보류된 결정 3(weight decay 범위)은 아직이다 | G13, I7, 7-L, N37 | 2026-11-07 |
 | 결정과 코드(11/7 석진 님) | soft BCE 선형은 learning rate와 weight decay의 9개 조합에서 고른다(코드 반영, 시험 116개 통과). 길이와 저수준 기준선은 바깥 fold마다 공통 모델 하나다(O23). GPT 전체 검증은 끝났다는 확인이 없다. 지정 커밋의 Codex 코드 검토 통과와 다른 일이고, 설계 동결은 그 확인 뒤에 한다. 조건 이름 변경은 석진 님 확인 뒤에 한다 | G13, O23, O24, M5 | 2026-11-07 |
+| 조건 이름(11/7 석진 님) | 다섯 조건을 Brain → Emotion, Brain → Emotion [distillation], Brain → Emotion + Vision + Caption, Brain + Decoded Feature → Emotion, Brain + Decoded Feature → Emotion [distillation]로 부른다. 옛 이름은 직접 학습, 출력 distillation, 특징 맞히기 연습, 주 조건, 주 조건 + 출력 distillation이다. 01, 04, CLAUDE_EmoBrain을 바꿨고 02, 03은 동결 때 맞춘다. 코드 이름은 brain_only, brain_only_distill, brain_only_featdec, brain_decoded, brain_decoded_distill이다 | 1-1 | 2026-11-07 |
 | 동결 때 02, 03에 맞출 것 | 11/5 갱신 규칙(CLAUDE_EmoBrain 5절)에 따라 미룬 항목이다. 14개 차원(B4, K1a), 8초 종료 규칙(정할 것 11), 정서 층화 분할(정할 것 12), MC 4회 평균의 상태, 03의 419행 5회 평균 문장(Codex 재검토), window 평균의 근거 문헌을 부록 1, 4와 references.bib에 넣는 일(Arnab 외 2021, Wang 외 2016, Korbar 외 2019, Feichtenhofer 외 2019, Wu 외 2019, Du 외 2023 등). 동결 전에 01과 차례로 대조한다 | CLAUDE_EmoBrain 5절 | 2026-11-05 |
-| 보류된 결정 1. 질문 2의 뒷부분 | 정함(11/6 석진 님): (가). 6-2의 주 조건 모델로 그 구역의 시험 영상에서도 바꿔 끼우기를 한다. 탐색 결과로 표시한다. 01의 6-2와 A4를 고쳤다. 짝 규칙과 학습량 대조 모델의 비교도 정했다(11/6). S2에 구역 안 짝 목록을, S9에 계산을 더해야 한다. 구역은 이름표 73개를 하나씩 뺀 것이 아니라 그 73개로 묶은 5개다. 구역 수 5개를 근거를 다시 확인하고 유지했고, 01 4-3의 이유와 논문 문장을 "blockCV 기본값 채택"에서 "영상 수와 학습 비용을 고려한 설계 선택"으로 고쳤다. 문헌 Shirakawa 외(2025)를 01 부록 1, 4에 더했고 references.bib는 동결 때 맞춘다 | 1-3, 6-2, A4 | 2026-11-06 |
+| 보류된 결정 1. 질문 2의 뒷부분 | 정함(11/6 석진 님): (가). 6-2의 Brain + Decoded Feature → Emotion 모델로 그 구역의 시험 영상에서도 바꿔 끼우기를 한다. 탐색 결과로 표시한다. 01의 6-2와 A4를 고쳤다. 짝 규칙과 학습량 대조 모델의 비교도 정했다(11/6). S2에 구역 안 짝 목록을, S9에 계산을 더해야 한다. 구역은 이름표 73개를 하나씩 뺀 것이 아니라 그 73개로 묶은 5개다. 구역 수 5개를 근거를 다시 확인하고 유지했고, 01 4-3의 이유와 논문 문장을 "blockCV 기본값 채택"에서 "영상 수와 학습 비용을 고려한 설계 선택"으로 고쳤다. 문헌 Shirakawa 외(2025)를 01 부록 1, 4에 더했고 references.bib는 동결 때 맞춘다 | 1-3, 6-2, A4 | 2026-11-06 |
 | 보류된 결정 2. 1-1의 주 검정 | 정함(11/6 석진 님): 01의 가설과 6-1을 지금대로 둔다. 정서별 두 경로의 효과와 차이를 보고하고, 정서 사이의 패턴은 결과를 두고 해석한다. 가설 검증과 결과 해석을 구분한다. 03 1.7.2의 문구는 동결 때 01에 맞춘다. Kragel 외(2019) 비교는 보조로 둔다 | 1-3, 6-1, 03 1.7.2 | 2026-11-06 |
 | 보류된 결정 3. G13 weight decay 0.01의 범위 | 정함(11/7 석진 님): 입력층 weight는 d와 함께 후보에서 고른다. 나머지 linear와 attention의 weight, query, ROI embedding은 0.01이다. bias와 LayerNorm에는 적용하지 않는다(01 G13). 코드에서 파라미터마다 어느 묶음인지 명시한다 | G13, 5-5 | 2026-11-07 |
 | 보류된 결정 4. S7 수렴 확인 뒤 바꿀 수 있는 것 | 정함(11/7 석진 님): learning rate는 모든 조건의 후보로 넣는다(G13). 첫 fold의 안쪽 자료는 수렴 확인에만 쓰고 값을 고르지 않는다. 수렴하지 않으면 혼자 바꾸지 않고 측정값과 함께 보고한다 | G13, S7 | 2026-11-07 |
@@ -1274,7 +1275,7 @@
 - 출력 distillation-시각과 -캡션, 그 teacher인 시각만, 캡션만 특징 모델(E5, G2)
 - 빼고 다시 학습(6-4)
 - 중간 표현 distillation 가운데 G16 밖의 판(ex) 뇌 표현 복사 대조), FiLM, I²MoE, ModDrop(L2)
-- 정서 손실의 역전파를 허용한 주 조건(5-0의 후속)
+- 정서 손실의 역전파를 허용한 Brain + Decoded Feature → Emotion(5-0의 후속)
 - 두 단계 학습(decoding 먼저, 정서 미세조정)(N35)
 - N36의 후속 목록: 뇌와 내용의 상호작용, 뇌를 학습 때만 쓰는 영상 정서 학습, 사건 핵심 3층 분리, 비슷한 감각 다른 상황 쌍, 정서별 시각 다양성, 특징 모델 오류 전이 진단, 더 강한 뇌 단독 방법(증강, 자기지도), CLIP 공간에서 영상과 캡션과 뇌를 함께 맞추는 설계, 처음 보는 참가자(LOSO), 라벨 효율 학습 곡선, 한국어 평정, White 외부 검증
 - 370개 ROI마다의 ridge decoding 지도(6-4)
@@ -1301,7 +1302,7 @@
     - 34개를 27개로 줄이기, 정답의 z-score(B3), 34개 합을 1로 맞추기(2-5), softmax(2-1)
     - 평정자 수 가중(2-2), 거꾸로 센 평정자 수(B8), 평정자 수를 가정한 상한선(2-6)
     - 이진화 지표와 분포 거리(2-4), 16개 정서만의 평균, "0.5를 넘는 영상이 없으면 해석하지 않음"(2-6), J6의 0.3 기준(4-1)
-    - 켜짐/꺼짐형 대 넓게 옅은형 묶음, "직접 학습이 약한 정서" 묶음(I9)
+    - 켜짐/꺼짐형 대 넓게 옅은형 묶음, "Brain → Emotion이 약한 정서" 묶음(I9)
 - 특징
     - 학습 목표의 PCA, 특징 모델 입력의 PCA(D9, 5-4)
     - 마지막 block 하나만 목표로 쓰기, 앞쪽 block을 따로 두 번째 목표로 두기(3-2, E1, F5)
@@ -1327,7 +1328,7 @@
     - subroi4 ridge와 subroi4 MLP(I7, F2)
     - FC 입력(C8), 뇌 기반 모델의 사전학습(C9)
     - 이전 F6 구조(decoded features를 token으로 만들어 ROI token과 함께 attention)(5-4)
-    - 주 조건의 λ = 0 후보(G9)
+    - Brain + Decoded Feature → Emotion의 λ = 0 후보(G9)
     - 다섯 학습 조건에 frozen head 쓰기(5-2)
     - CCA 공통 성분 교체(5-0)
     - G16의 뇌 표현 복사 대조, G16 teacher를 5개 fold 전체로 학습하기(G16)
