@@ -837,11 +837,11 @@
         - 시험: 72개 영상의 반복 평균 뇌 반응만 넣는다. QC 뒤 남은 반복으로 평균한다(정할 것 9, manifests/s2/mc_test_repeats.tsv).
         - seed 3개를 각각 전이한다. 결과를 seed마다 낸다.
         - (3K + 28) + 36회
-    - frozen-head distillation(G16, 보조)
+    - 조건 6, 7(G16, 보조)
         - 핵심 분석 다음 순서다.
         - S7에서 측정한 시간으로 우선순위를 정한다.
         - 자동으로 빼는 규칙은 두지 않는다. 실행하지 못하면 기록 칸에 미실행으로 적는다.
-        - 약 60회(O5대로면 54회)
+        - 162회(조건 6, 7, Multimodal Model 포함, 7-L)
     - baseline 특징(3-1, 3-3, 보조)
         - VideoMAE, TimeSformer, CLIP: 시각 목표만 바꾼다. 캡션 목표는 DeBERTa 그대로 둔다.
         - MPNet: 캡션 목표만 바꾼다.
