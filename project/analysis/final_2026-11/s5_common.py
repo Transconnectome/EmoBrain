@@ -15,11 +15,15 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")  # O32. 결정적 모드에 필요하다
+
 import numpy as np
 import pandas as pd
 import torch
 
 import s4_common as c
+
+torch.use_deterministic_algorithms(True)  # O32
 
 PM = Path(os.environ.get("S5_PM", "/pscratch/sd/s/sjmoon"))
 OUT = Path(os.environ.get("S5_OUT", c.REPO / "project/output/final_2026-11/s5_ridge"))
@@ -78,6 +82,18 @@ def roi_path(s):
     return ROI_VOXELS / f"hk_sub-{s}.npz"
 
 
+def check_qc_rows(rows, n_rows=None):
+    """반응 행 번호는 음수가 아닌 정수이고 겹치지 않아야 한다. -1은 마지막 행을 읽고, 겹치면 같은 반응이 다른 영상에 붙는다."""
+    rows = np.asarray(rows)
+    if not np.issubdtype(rows.dtype, np.integer):
+        raise ValueError("반응 행 번호가 정수가 아니다")
+    if (rows < 0).any() or len(set(rows.tolist())) != len(rows):
+        raise ValueError("반응 행 번호에 음수나 중복이 있다")
+    if n_rows is not None and (rows >= n_rows).any():
+        raise ValueError("반응 행 번호가 배열 범위를 벗어났다")
+    return rows
+
+
 def allowed_rows(s, table=None, crosswalk=None, mc72=None):
     """반응 배열에서 읽어도 되는 행을 metadata로 먼저 정한다. MC 72개와 같은 내용이 있으면 멈춘다(s2_manifest.allowed_response_rows와 같은 규칙)."""
     table = pd.read_csv(BLOCKS, sep="\t") if table is None else table
@@ -87,12 +103,14 @@ def allowed_rows(s, table=None, crosswalk=None, mc72=None):
     canon = t.video_id.map(cw)
     if len(t) == 0 or canon.isna().any() or canon.isin(mc).any():
         raise ValueError(f"sub-{s}: 허용 행에 MC 시험 72개와 같은 내용이 있거나 표가 비었다")
+    check_qc_rows(t.qc_row.to_numpy())
     return t.sort_values("qc_row").reset_index(drop=True)
 
 
 def read_rows(raw, rows, allowed):
     """반응 배열을 읽는 유일한 입구. 허용되지 않은 행을 요청하면 읽기 전에 멈춘다."""
-    rows = np.asarray(rows)
+    rows = check_qc_rows(rows, raw.shape[0])
+    check_qc_rows(allowed, raw.shape[0])
     if not np.isin(rows, allowed).all():
         raise ValueError(f"허용되지 않은 반응 행 요청: {rows[~np.isin(rows, allowed)][:5]}")
     return np.asarray(raw[rows], np.float32)

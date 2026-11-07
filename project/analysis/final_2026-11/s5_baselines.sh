@@ -9,7 +9,7 @@
 #SBATCH --time=12:00:00
 #SBATCH --output=/pscratch/sd/s/sjmoon/EmoBrain/project/output/final_2026-11/logs/s5_baselines_%j.log
 # S5 기준선. GPU 작업이다. 설계 동결 뒤에만 돈다. 끝난 결과는 건너뛴다.
-# 사용: bash s5_baselines.sh <ridge|soft_bce|signal|zone|h2020> <참가자> <동결 커밋>, 또는 bash s5_baselines.sh video "" <동결 커밋>
+# 인자: <ridge|soft_bce|signal|zone|h2020> <참가자> <동결 커밋>, 또는 video "" <동결 커밋>. 새 할당은 sbatch, GPU가 있는 노드에서 직접 돌릴 때는 bash로 같은 인자를 준다
 set -euo pipefail
 export PYTHONDONTWRITEBYTECODE=1 OMP_NUM_THREADS=8
 cd /pscratch/sd/s/sjmoon/EmoBrain/project/analysis/final_2026-11

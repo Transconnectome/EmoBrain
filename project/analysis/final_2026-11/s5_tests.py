@@ -161,6 +161,8 @@ def t_identification():
     check("틀린 영상은 정확도를 낮춘다", v < 1)
     a = np.array([[1.0, 2, 3], [3, 2, 1]])
     check("같은 값은 이긴 것으로 세지 않는다(크면 1, 아니면 0)", col.identification(a, a[[0, 0]]) == 0.0)
+    check("상수 벡터의 식별은 0점이 아니라 오류다(Codex 3)", stops(lambda: col.identification(np.ones((3, 5)), np.random.default_rng(0).normal(size=(3, 5)))))
+    check("실제 특징이 상수여도 오류다", stops(lambda: col.identification(np.random.default_rng(0).normal(size=(3, 5)), np.ones((3, 5)))))
 
 
 def t_layer_metrics():
@@ -168,8 +170,18 @@ def t_layer_metrics():
     split = pd.DataFrame(dict(video_id=np.arange(1, n + 1), fold=np.arange(n) % 6 + 1))
     y = np.random.default_rng(0).normal(size=(n, 8)).astype(np.float32) * 3 + 2
     preds = {k: dict(video_id=split.video_id[split.fold == k].to_numpy(), vjepa2_10=y[split.fold == k]) for k in range(1, 7)}
-    m = col.layer_metrics(preds, {("vjepa2", 10): y}, split, "sub-01")
+    m = col.layer_metrics(preds, {("vjepa2", 10): y}, split, "sub-01", split.video_id.tolist())
     check("완벽한 예측의 차원별 r 평균과 식별이 1이다(O19, O20)", abs(m.mean_r[0] - 1) < 1e-6 and m.identification[0] == 1)
+    g = np.random.default_rng(5)
+    noisy = {k: dict(video_id=v["video_id"], vjepa2_10=v["vjepa2_10"] + g.normal(size=v["vjepa2_10"].shape).astype(np.float32) * 5) for k, v in preds.items()}
+    missing = [13, 26]  # 이 참가자에게 block이 없는 영상. D_k 통계에 들어가면 안 된다
+    has = [v for v in split.video_id.tolist() if v not in missing]
+    kept = {k: dict(video_id=np.array([x for x in v["video_id"] if x not in missing]), vjepa2_10=v["vjepa2_10"][[x not in missing for x in v["video_id"]]]) for k, v in noisy.items()}
+    a1 = col.layer_metrics(kept, {("vjepa2", 10): y}, split, "sub-01", has)
+    y2 = y.copy()
+    y2[[12, 25]] += 500
+    a2 = col.layer_metrics(kept, {("vjepa2", 10): y2}, split, "sub-01", has)
+    check("참가자에게 없는 영상의 특징은 식별 눈금에 들어가지 않는다(Codex 2)", a1.identification[0] == a2.identification[0] and a1.mean_r[0] == a2.mean_r[0])
 
 
 def t_soft_bce():
@@ -295,6 +307,21 @@ def t_boundaries():
     check("다섯 명의 허용 행 표가 MC 72개와 겹치지 않는다", True)
 
 
+def t_qc_rows():
+    check("음수 행 번호는 멈춘다(Codex 5)", stops(lambda: d5.check_qc_rows(np.array([0, -1]))))
+    check("중복 행 번호는 멈춘다(Codex 5)", stops(lambda: d5.check_qc_rows(np.array([1, 1]))))
+    check("범위 밖 행 번호는 멈춘다", stops(lambda: d5.check_qc_rows(np.array([1, 9]), 5)))
+    check("정수가 아니면 멈춘다", stops(lambda: d5.check_qc_rows(np.array([1.0, 2.0]))))
+    raw = np.arange(20).reshape(10, 2)
+    check("정상 행은 읽는다", d5.read_rows(raw, np.array([1, 2]), np.array([1, 2, 3])).shape == (2, 2))
+    check("허용 목록에 음수가 있어도 멈춘다(Codex 5)", stops(lambda: d5.read_rows(raw, np.array([-1]), np.array([-1, 2]))))
+    t = pd.DataFrame(dict(participant="sub-01", video_id=[1, 2], qc_row=[0, -1]))
+    check("표의 음수 qc_row는 반응을 열기 전에 멈춘다(Codex 5)", stops(lambda: d5.allowed_rows("01", t, pd.Series({1: "a", 2: "b"}), [])))
+    t2 = pd.DataFrame(dict(participant="sub-01", video_id=[1, 2], qc_row=[3, 3]))
+    check("표의 중복 qc_row는 반응을 열기 전에 멈춘다(Codex 5)", stops(lambda: d5.allowed_rows("01", t2, pd.Series({1: "a", 2: "b"}), [])))
+    check("결정적 모드가 켜져 있다(O32)", torch.are_deterministic_algorithms_enabled())
+
+
 def t_collect():
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
@@ -308,14 +335,51 @@ def t_collect():
         p[0, 0] = np.nan
         np.savez(td / "c.npz", video_id=np.array([1, 2]), pred=p)
         check("NaN이 있으면 멈춘다", stops(lambda: col.check_pred(td / "c.npz", [1, 2], dict(pred=3))))
-        for n, h, f in (("x", "1", "a"), ("y", "1", "a")):
-            (td / n).mkdir()
-            (td / n / "done.json").write_text(json.dumps(dict(code_sha256="c", design_freeze=f, inputs=dict(r=h))))
-        col.check_runs(td, ["x", "y"])
-        (td / "y/done.json").write_text(json.dumps(dict(code_sha256="c", design_freeze="a", inputs=dict(r="2"))))
-        check("같은 역할의 입력 내용이 다르면 멈춘다", stops(lambda: col.check_runs(td, ["x", "y"])))
-        (td / "y/done.json").write_text(json.dumps(dict(code_sha256="d", design_freeze="a", inputs=dict(r="1"))))
-        check("코드가 다르면 멈춘다", stops(lambda: col.check_runs(td, ["x", "y"])))
+        base = dict(code_sha256="c", design_freeze="a", inputs=dict(r="1"), settings=dict(lam=1))
+        for n in ("t/x", "t/y"):
+            (td / n).mkdir(parents=True)
+            (td / n / "done.json").write_text(json.dumps(base))
+        names = ["t/x", "t/y"]
+        col.check_runs(td, names)
+        def changed(**kw):
+            (td / "t/y/done.json").write_text(json.dumps(dict(base, **kw)))
+        changed(inputs=dict(r="2"))
+        check("같은 역할의 입력 내용이 다르면 멈춘다", stops(lambda: col.check_runs(td, names)))
+        changed(code_sha256="d")
+        check("코드가 다르면 멈춘다", stops(lambda: col.check_runs(td, names)))
+        changed(settings=dict(lam=2))
+        check("같은 과제의 설정이 다르면 멈춘다(Codex 1)", stops(lambda: col.check_runs(td, names)))
+        changed()
+        check("지금 파일이 결과를 만들 때와 다르면 멈춘다(Codex 1)", stops(lambda: col.check_runs(td, names, current=lambda role: "다른 해시")))
+        col.check_runs(td, names, current=lambda role: "1")
+        check("역할 이름이 실행 코드와 같다", {"vjepa2_blocks", "deberta_video_mean", "labels", "lowlevel", "stimuli", "response:sub-01", "raw_response:sub-05", "roi:sub-03"} <= set(col.role_paths()) and all(f"s2:{p.name}" in col.role_paths() for p in d5.S2_TABLES))
+        # 필수 저장물(Codex 4)
+        ids = [1, 2]
+        nl = len(d5.LAMBDAS)
+        ridge = dict(video_id=np.array(ids), emotion_main=np.zeros((2, 34)), emotion_literature=np.zeros((2, 34)), dimension_main=np.zeros((2, 14)), dimension_literature=np.zeros((2, 14)), lambda_main=np.zeros(48, int), lambda_literature=np.zeros(48, int), mean_prediction=np.zeros(34))
+        (td / "ridge/s").mkdir(parents=True)
+        np.savez(td / "ridge/s/pred.npz", **ridge)
+        col.check_baseline(td, "ridge", "s", ids)
+        for key in ("lambda_main", "lambda_literature", "mean_prediction"):
+            np.savez(td / "ridge/s/pred.npz", **{k: v for k, v in ridge.items() if k != key})
+            check(f"ridge에 {key}가 없으면 멈춘다(Codex 4)", stops(lambda: col.check_baseline(td, "ridge", "s", ids)))
+        np.savez(td / "ridge/s/pred.npz", **dict(ridge, lambda_main=np.full(48, nl)))
+        check("λ 번호가 범위를 벗어나면 멈춘다", stops(lambda: col.check_baseline(td, "ridge", "s", ids)))
+        h = dict(video_id=np.array(ids), pred=np.zeros((2, 34)), pred_by_roi=np.zeros((2, 370, 34)), val_r_by_roi=np.zeros((370, 34)), lambda_index=np.zeros((370, 34), int), n_roi_in_ensemble=np.ones(34, int))
+        (td / "h2020/s").mkdir(parents=True)
+        np.savez(td / "h2020/s/pred.npz", **h)
+        col.check_baseline(td, "h2020", "s", ids)
+        for key in ("val_r_by_roi", "lambda_index", "n_roi_in_ensemble"):
+            np.savez(td / "h2020/s/pred.npz", **{k: v for k, v in h.items() if k != key})
+            check(f"h2020에 {key}가 없으면 멈춘다(Codex 4)", stops(lambda: col.check_baseline(td, "h2020", "s", ids)))
+        np.savez(td / "o.npz", video_id=np.array([3, 4, 5]), inner_fold=np.array([2, 2, 3]), vjepa2_10=np.zeros((3, 4)))
+        col.check_inner_oof(td / "o.npz", [3, 4, 5], {3: 2, 4: 2, 5: 3}, dict(vjepa2_10=4))
+        check("안쪽 fold 밖 예측의 영상이 D_k와 다르면 멈춘다(Codex 4)", stops(lambda: col.check_inner_oof(td / "o.npz", [3, 4, 5, 6], {3: 2, 4: 2, 5: 3, 6: 3}, dict(vjepa2_10=4))))
+        check("inner_fold가 실제 fold와 다르면 멈춘다(Codex 4)", stops(lambda: col.check_inner_oof(td / "o.npz", [3, 4, 5], {3: 2, 4: 3, 5: 3}, dict(vjepa2_10=4))))
+        check("안쪽 fold 밖 예측이 없으면 멈춘다(Codex 4)", stops(lambda: col.check_inner_oof(td / "없음.npz", [3], {3: 2}, dict(vjepa2_10=4)), errors=(SystemExit, ValueError, FileNotFoundError)))
+        pd.DataFrame(dict(model=["vjepa2", "deberta"], layer=[10, 6], lambda_index=[0, 1])).to_csv(td / "ch.tsv", sep="\t", index=False)
+        col.check_chosen(td / "ch.tsv", [("vjepa2", 10), ("deberta", 6)], nl)
+        check("층이 빠지면 멈춘다(Codex 4)", stops(lambda: col.check_chosen(td / "ch.tsv", [("vjepa2", 10), ("deberta", 6), ("deberta", 12)], nl)))
     table = pd.DataFrame(dict(participant="sub-01", video_id=[1, 2, 7]))
     split = pd.DataFrame(dict(video_id=np.arange(1, 13), fold=np.arange(12) % 6 + 1))
     e = col.expected_tests(split, table, "01")
@@ -323,7 +387,7 @@ def t_collect():
 
 
 def main():
-    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_layer_metrics, t_soft_bce, t_h2020, t_video_zone, t_boundaries, t_collect):
+    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_layer_metrics, t_qc_rows, t_soft_bce, t_h2020, t_video_zone, t_boundaries, t_collect):
         f()
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)

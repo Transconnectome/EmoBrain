@@ -8,6 +8,7 @@
 - video: 영상 길이의 자연로그(O23)와 저수준 시각 특징(3-6). 뇌를 쓰지 않아 fold마다 하나이고, 시험은 개발 영상 전체다. 주 비교판의 규칙이다.
 - zone: 내용 구역 제외와 학습량 대조의 정서 ridge 주 비교판(6-2, I10).
 - h2020: Horikawa 외(2020)의 복셀 선택 ridge(I7). ROI마다, 목표마다 상위 500 voxel, λ는 logspace(1, 4, 20), 안쪽 5겹으로 목표마다 고른다. 이어 붙인 안쪽 예측의 r을 쓰고, ensemble은 안쪽 r 0.095 이상인 ROI의 평균이다(공개 코드). 코드와 달리 전체 표본 z-score는 옮기지 않는다(H5).
+h2020은 원문 재현이 아니다. 전체 표본 z-score를 하지 않고(H5), ROI 선택을 바깥 fold마다 그 D_k 안에서 하며, 기준을 넘는 ROI가 없을 때 시험 성능이 아니라 안쪽 r로 ROI를 고른다. ROI 지도와 분할도 다르다. 방법 절에 함께 적는다.
 정답은 값 그대로 쓴다(B3, B4). 편상관과 순열 검정은 S10이다. 사용: s5_baselines.py --task ridge --participant 01 --design-freeze <커밋>
 """
 import argparse

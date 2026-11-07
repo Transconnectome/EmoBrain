@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """S5 결과 점검과 층별 지표 (04 S5의 확인 기준, 01 O19, O20, N3, 2026-11-06).
 
-확인: 64개 층 × 5명, 14개 차원 × 5명 × 6 fold의 두 판이 모두 있고, 시험 영상이 정해진 목록과 정확히 같으며, 값이 온전하고, 같은 역할의 입력은 내용이 같다.
+확인: 64개 층 × 5명, 14개 차원 × 5명 × 6 fold의 두 판과 O34의 안쪽 fold 밖 예측, λ 선택 기록이 모두 있고, 시험 영상이 정해진 목록과 정확히 같으며, 값이 온전하다.
+결과끼리 코드, 동결 커밋, 같은 역할의 입력 내용이 같고, 같은 과제는 설정도 같으며, 지금 파일이 결과를 만들 때와 같다.
 지표: 시험 예측을 원래 척도로 모아 낸 차원별 r 평균(O20)과, 같은 fold 안 영상 식별(O19, 그 fold의 D_k 좌표), λ가 끝값인 횟수. 순열 기준은 S10이다.
 사용: s5_collect.py --design-freeze <커밋>
 """
@@ -35,8 +36,67 @@ def check_pred(path, expected, keys):
     return t
 
 
-def check_runs(out, names, design_freeze=None):
-    seen, code, freeze = {}, None, set()
+def check_array(t, key, shape, path, low=None, high=None):
+    """필수 배열의 크기와 값의 범위. low 이상 high 미만."""
+    if key not in t:
+        raise SystemExit(f"{path}: {key}가 없다")
+    v = t[key]
+    if v.shape != tuple(shape):
+        raise SystemExit(f"{path}: {key}의 크기 {v.shape}가 {tuple(shape)}와 다르다")
+    if not np.isfinite(v).all():
+        raise SystemExit(f"{path}: {key}에 NaN 또는 Inf가 있다")
+    if low is not None and ((v < low).any() or (v >= high).any()):
+        raise SystemExit(f"{path}: {key}의 값이 범위를 벗어났다")
+
+
+def check_inner_oof(path, dk_ids, fold_of, keys):
+    """O34. 영상은 그 참가자의 D_k와 정확히 같고, inner_fold는 영상의 실제 fold다."""
+    t = check_pred(path, dk_ids, keys)
+    if "inner_fold" not in t or t["inner_fold"].tolist() != [fold_of[v] for v in t["video_id"].tolist()]:
+        raise SystemExit(f"{path}: inner_fold가 영상의 실제 fold와 다르다")
+    return t
+
+
+def check_chosen(path, layers, n_lambda):
+    """기대한 층이 한 번씩 있고 λ 번호가 범위 안이다."""
+    t = pd.read_csv(path, sep="\t")
+    if sorted(zip(t.model, t.layer)) != sorted(layers):
+        raise SystemExit(f"{path}: 층 목록이 다르다")
+    if ((t.lambda_index < 0) | (t.lambda_index >= n_lambda)).any():
+        raise SystemExit(f"{path}: λ 번호가 범위를 벗어났다")
+    return t
+
+
+def check_baseline(out, task, name, expected, n_emotion=34, n_dimension=14, n_roi=370):
+    """과제별 필수 파일과 배열. out은 결과 폴더의 뿌리다."""
+    path = Path(out) / task / name / "pred.npz"
+    n = len(d5.LAMBDAS)
+    if task == "ridge":
+        t = check_pred(path, expected, dict(emotion_main=n_emotion, emotion_literature=n_emotion, dimension_main=n_dimension, dimension_literature=n_dimension))
+        check_array(t, "lambda_main", (n_emotion + n_dimension,), path, 0, n)
+        check_array(t, "lambda_literature", (n_emotion + n_dimension,), path, 0, n)
+        check_array(t, "mean_prediction", (n_emotion,), path, 0, 1.000001)
+    elif task == "soft_bce":
+        t = check_pred(path, expected, dict(pred=n_emotion))
+        if len(pd.read_csv(Path(out) / task / name / "selection.tsv", sep="\t")) != len(d5.SOFT_BCE_DECAYS):
+            raise SystemExit(f"{path}: weight decay 후보 표가 맞지 않다")
+    elif task in ("signal", "video", "zone"):
+        t = check_pred(path, expected, dict(pred=n_emotion))
+        check_array(t, "lambda_index", (n_emotion,), path, 0, n)
+    elif task == "h2020":
+        t = check_pred(path, expected, dict(pred=n_emotion, pred_by_roi=(n_roi, n_emotion)))
+        check_array(t, "val_r_by_roi", (n_roi, n_emotion), path)
+        check_array(t, "lambda_index", (n_roi, n_emotion), path, 0, len(d5.H2020_LAMBDAS))
+        check_array(t, "n_roi_in_ensemble", (n_emotion,), path, 1, n_roi + 1)
+    else:
+        raise ValueError(task)
+    return t
+
+
+def check_runs(out, names, design_freeze=None, current=None):
+    """결과끼리 코드와 동결 커밋이 같고, 같은 역할의 입력 내용이 같고, 같은 과제는 설정이 같다. 경로는 비교하지 않는다.
+    current는 역할 -> 지금 파일의 해시 함수다. 주면 지금 파일과도 맞춘다. 경로가 같아도 내용이 바뀌었으면 멈춘다."""
+    seen, code, freeze, settings = {}, None, set(), {}
     for n in names:
         d = json.loads((Path(out) / n / "done.json").read_text())
         code = d["code_sha256"] if code is None else code
@@ -46,17 +106,35 @@ def check_runs(out, names, design_freeze=None):
         for role, h in d["inputs"].items():
             if seen.setdefault(role, h) != h:
                 raise SystemExit(f"{n}: 입력 {role}의 내용이 다른 결과와 다르다")
+        task = n.split("/")[0]
+        if settings.setdefault(task, d["settings"]) != d["settings"]:
+            raise SystemExit(f"{n}: 같은 과제인데 설정이 다르다")
     if len(freeze) != 1 or (design_freeze is not None and freeze != {design_freeze}):
         raise SystemExit(f"결과의 설계 동결 커밋이 다르다: {freeze}")
+    if current is not None:
+        for role, h in seen.items():
+            if current(role) != h:
+                raise SystemExit(f"지금의 {role}가 결과를 만들 때와 다르다")
     return seen
+
+
+def role_paths():
+    """역할 이름 -> 지금 설정의 파일. 실행 코드의 역할 이름과 같다."""
+    out = {f"s2:{p.name}": p for p in d5.S2_TABLES}
+    out.update(vjepa2_blocks=c.FEATURES / "vjepa2/blocks.npy", deberta_video_mean=c.FEATURES / "deberta/video_mean.npy", labels=c.LABELS, stimuli=d5.STIMULI, lowlevel=c.FEATURES / f"{c.LOWLEVEL}.npy")
+    for s in d5.HK:
+        out.update({f"response:sub-{s}": d5.response_path(s), f"raw_response:sub-{s}": d5.response_path(s, normalized=False), f"roi:sub-{s}": d5.roi_path(s)})
+    return out
 
 
 def identification(pred, true):
     """O19. A의 예측과 A의 실제의 r이 A의 예측과 B의 실제의 r보다 크면 1이다. 같은 fold의 모든 B를 평균하고 모든 A를 평균한다."""
     a = pred - pred.mean(1, keepdims=True)
     b = true - true.mean(1, keepdims=True)
-    a = a / np.linalg.norm(a, axis=1, keepdims=True)
-    b = b / np.linalg.norm(b, axis=1, keepdims=True)
+    na, nb = np.linalg.norm(a, axis=1, keepdims=True), np.linalg.norm(b, axis=1, keepdims=True)
+    if not ((na > 0).all() and (nb > 0).all()):  # 문서에 처리 규칙이 없다. 0점이나 우연 수준으로 바꾸지 않고 멈춘다
+        raise ValueError("차원에 걸쳐 상수인 벡터가 있어 영상 식별의 상관을 계산할 수 없다")
+    a, b = a / na, b / nb
     s = a @ b.T
     d = np.diag(s)
     n = len(s)
@@ -66,8 +144,10 @@ def identification(pred, true):
     return float((wins / (n - 1)).mean())
 
 
-def layer_metrics(preds, targets, split, participant):
-    """preds: fold -> 예측 파일 값. targets: 층 -> split 순서의 실제 특징."""
+def layer_metrics(preds, targets, split, participant, participant_ids):
+    """preds: fold -> 예측 파일 값. targets: 층 -> split 순서의 실제 특징. participant_ids: 그 참가자에게 block이 있는 영상.
+    식별의 눈금은 decoder와 같이 그 참가자의 D_k 영상으로 맞춘다(N3, O19)."""
+    has = np.isin(split.video_id.to_numpy(), list(participant_ids))
     pos = {v: i for i, v in enumerate(split.video_id.tolist())}
     rows = []
     for layer, y in targets.items():
@@ -75,7 +155,7 @@ def layer_metrics(preds, targets, split, participant):
         all_pred, all_true, ids = [], [], []
         for k, t in preds.items():
             r = c.roles(k)
-            dk = np.isin(split.fold.to_numpy(), r["dk"])
+            dk = np.isin(split.fold.to_numpy(), r["dk"]) & has
             m, s = y[dk].astype(np.float64).mean(0), y[dk].astype(np.float64).std(0)
             at = [pos[v] for v in t["video_id"].tolist()]
             true = y[at]
@@ -99,9 +179,13 @@ def main():
     split = c.load_split()
     table = pd.read_csv(d5.BLOCKS, sep="\t")
     blocks = pd.read_csv(c.S2 / "content_blocks_assignment.tsv", sep="\t")
+    paths = role_paths()
+    start = {role: c.sha256(p) for role, p in paths.items()}  # 읽기 전에 낸다
     targets = load_targets(split)
     names, metric, chosen = [], [], []
     keys = {layer_name(l): len(targets[l][0]) for l in targets}
+    target_keys = {layer_name(l): keys[layer_name(l)] for l in d5.TARGET_LAYERS}
+    fold_of = dict(zip(split.video_id.tolist(), split.fold.tolist()))
     for s in d5.HK:
         exp = expected_tests(split, table, s)
         preds = {}
@@ -109,30 +193,31 @@ def main():
             d = d5.OUT / "decoding" / f"sub-{s}_fold{k}"
             names.append(f"decoding/sub-{s}_fold{k}")
             preds[k] = check_pred(d / "test_pred.npz", exp[k], keys)
-            t = pd.read_csv(d / "chosen.tsv", sep="\t")
+            check_inner_oof(d / "inner_oof_target.npz", sum((exp[f] for f in c.roles(k)["dk"]), []), fold_of, target_keys)
+            t = check_chosen(d / "chosen.tsv", d5.LAYERS, len(d5.LAMBDAS))
             t.insert(0, "fold", k), t.insert(0, "participant", s)
             chosen.append(t)
-            names.append(f"ridge/sub-{s}_fold{k}")
-            check_pred(d5.OUT / "ridge" / f"sub-{s}_fold{k}" / "pred.npz", exp[k], dict(emotion_main=34, emotion_literature=34, dimension_main=14, dimension_literature=14))
-            for task in ("soft_bce", "signal"):
+            for task in ("ridge", "soft_bce", "signal", "h2020"):
                 names.append(f"{task}/sub-{s}_fold{k}")
-                check_pred(d5.OUT / task / f"sub-{s}_fold{k}" / "pred.npz", exp[k], dict(pred=34))
-            names.append(f"h2020/sub-{s}_fold{k}")
-            check_pred(d5.OUT / "h2020" / f"sub-{s}_fold{k}" / "pred.npz", exp[k], dict(pred=34, pred_by_roi=(370, 34)))
+                check_baseline(d5.OUT, task, f"sub-{s}_fold{k}", exp[k])
             for b in sorted(blocks.block.unique().tolist()):
                 want = sorted(set(exp[k]) & set(blocks.video_id[blocks.block == b]))
                 for kind in ("excluded", "control"):
-                    names.append(f"zone/sub-{s}_block{b}_fold{k}_{kind}")
-                    check_pred(d5.OUT / "zone" / f"sub-{s}_block{b}_fold{k}_{kind}" / "pred.npz", want, dict(pred=34))
-        metric.append(layer_metrics(preds, targets, split, f"sub-{s}"))
+                    n = f"sub-{s}_block{b}_fold{k}_{kind}"
+                    names.append(f"zone/{n}")
+                    check_baseline(d5.OUT, "zone", n, want)
+        metric.append(layer_metrics(preds, targets, split, f"sub-{s}", sum(exp.values(), [])))
     for name in ("length", "lowlevel"):
         for k in range(1, c.N_FOLDS + 1):
             names.append(f"video/{name}_fold{k}")
-            check_pred(d5.OUT / "video" / f"{name}_fold{k}" / "pred.npz", split.video_id[split.fold == k].tolist(), dict(pred=34))
-    check_runs(d5.OUT, names, a.design_freeze)
+            check_baseline(d5.OUT, "video", f"{name}_fold{k}", split.video_id[split.fold == k].tolist())
+    check_runs(d5.OUT, names, a.design_freeze, current=lambda role: start[role])
+    table_lambda, table_metric = pd.concat(chosen), pd.concat(metric)
+    if {role: c.sha256(p) for role, p in paths.items()} != start:  # 수집 중에 바뀌었으면 저장하지 않는다
+        raise SystemExit("수집 중 입력이 바뀌었다")
     MANIFEST.mkdir(parents=True, exist_ok=True)
-    pd.concat(chosen).to_csv(MANIFEST / "decoding_lambda.tsv", sep="\t", index=False, float_format="%.6g")
-    pd.concat(metric).to_csv(MANIFEST / "decoding_layer_metrics.tsv", sep="\t", index=False, float_format="%.6g")
+    table_lambda.to_csv(MANIFEST / "decoding_lambda.tsv", sep="\t", index=False, float_format="%.6g")
+    table_metric.to_csv(MANIFEST / "decoding_layer_metrics.tsv", sep="\t", index=False, float_format="%.6g")
     print("층별 표를 저장했다", MANIFEST, flush=True)
 
 
