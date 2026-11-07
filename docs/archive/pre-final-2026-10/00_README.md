@@ -1,3 +1,5 @@
+> **대체됨(2026-11-07).** 이 폴더는 10월까지의 옛 설계다. 지금 설계 기준은 [docs/final/01_integrated_document.md](../../final/01_integrated_document.md)다.
+
 # EmoBrain 서버 AI 인수인계
 
 _2026-10-19 · 유지·편집하는 단일 연구 기준 · 결과 보고서가 아닌 실행 계획_

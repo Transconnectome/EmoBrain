@@ -8,7 +8,7 @@ _Current working rules · updated 2026-10-07_
 
 ### Authority and scope
 
-Start with [docs/final/01_integrated_document.md](docs/final/01_integrated_document.md). Current explicit user decisions take precedence over an approved freeze manifest, then the accepted principles in docs/current. Proposals and unresolved entries are not automatically approved. Record changes to an actual preregistration as amendments, not retroactive freezes.
+Start with [docs/final/01_integrated_document.md](docs/final/01_integrated_document.md). Current explicit user decisions take precedence over an approved freeze manifest, then the accepted principles in docs/final. Proposals and unresolved entries are not automatically approved. Record changes to an actual preregistration as amendments, not retroactive freezes.
 
 The former root rules, paper_logic_merged, project contracts and September review are historical. Their archived instructions do not govern new work. Reference literature and existing code do not independently define the current protocol.
 
