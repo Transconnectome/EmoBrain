@@ -1051,7 +1051,7 @@ inference는 가중치를 바꾸지 않고 예측을 계산하는 것이고, 검
     - 학습 영상과 시험 영상의 decoding 정확도 차이: 위의 "남는 주의". 한계로 적는다.
 - 조건과 분석의 구분 [정함, 11/2]: 1-3의 질문에 걸리는 것만 본문에 둔다.
     - 본문: Brain → Emotion부터 Brain + Decoded Feature → Emotion까지 네 조건의 비교(Brain → Emotion [distillation] 대 Brain → Emotion, Brain → Emotion + Vision + Caption 대 Brain → Emotion, Brain + Decoded Feature → Emotion 대 Brain → Emotion + Vision + Caption, Brain → Emotion + Vision + Caption 대 Brain → Emotion [distillation], 2-3), decoded features와 실제 Vision feature와 Caption feature의 대응(2-1), 40개 block ridge 층별 분석(2-1), 바꿔 끼우기(시각만, 캡션만, 둘 다)와 같은 크기의 무작위 변경 대조(2-2, 1-1), 더하기 head 대 상호작용 head와 결합 계산의 지표(1-2), 영역 다시 학습(1-3), 영역 교란(2-4), 내용 구역 제외 시험과 MC 시청 전이(1-4, 2-3. 회상은 필수 실행 범위 밖, 6-3)
-    - Brain + Decoded Feature → Emotion [distillation] 조건과 그 조건 대 Brain + Decoded Feature → Emotion 비교: 돌리는 것은 핵심 조건이고 해석은 보조다 [정함, 11/7 석진 님].
+    - Brain + Decoded Feature → Emotion [distillation] 조건과 그 조건 대 Brain + Decoded Feature → Emotion 비교: 돌리는 것은 핵심 조건이고 해석은 보조다 [정함, 11/7 석진 님]. 이 비교는 6-1 2-3의 (바)로 [사전] 15개와 Holm 보정에 그대로 든다. 보조라고 그 묶음에서 빼지 않는다.
     - 보조와 SI: 쌍 비교(4-2의 보조 점검), 뇌를 받는 모델의 점검(T_BVS 대 Stimulus Model, 뇌 바꿔 끼우기, T_BVS_SHUF, 프로젝트 규칙상 확인용), emotion query 대 평균 pooling(F7), baseline Stimulus Model(3-1, 3-3), 실제 Vision feature와 Caption feature를 head에 넣는 개입, 출력 distillation-시각과 -캡션(E5, 필수 실행 범위 밖), 조건 6, 7(G16), 경로 평가의 14개 차원판(K1a)
     - 하지 않음: CCA 공통 성분 교체(위)
     - 후속: 정서 손실을 막지 않은 Brain + Decoded Feature → Emotion(위)
