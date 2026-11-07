@@ -14,6 +14,8 @@ import os
 import shutil
 import subprocess
 import tempfile
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -29,6 +31,7 @@ LABELS = Path(os.environ.get("S4_LABELS", REPO / "project/shared/data/cowen_hori
 DIMENSIONS = ["arousal", "dominance", "valence", "approach", "attention", "certainty", "commitment", "control", "effort", "fairness", "identity", "obstruction", "safety", "upswing"]
 VISUAL_TARGET, CAPTION_TARGET, CAPTION_NO_EMOTION = "vjepa2/target", "deberta/target", "deberta_no_emotion_words/target"
 LOWLEVEL = "lowlevel/lowlevel"
+BASELINE_FEATURES = dict(videomae=("visual", "videomae/target"), timesformer=("visual", "timesformer/target"), clip=("visual", "clip/image"), mpnet=("caption", "mpnet/video_mean"))  # 3-1, 3-3. 04 S8: 시각 모델은 시각 입력만, MPNet은 캡션 입력만 바꾼다
 N_FOLDS = 6
 MAX_EPOCHS = 300  # O16
 S2_TABLES = [S2 / "split_hk_dev.tsv", S2 / "fold_roles.tsv", S2 / "content_blocks_assignment.tsv", S2 / "content_block_control_samples.tsv", LABEL_MAP]
@@ -94,7 +97,12 @@ class Run:
 
 def role_paths():
     """지금 설정의 역할별 입력 파일. 역할 이름은 모든 S4 과제에서 같다."""
-    return {"visual_target": FEATURES / f"{VISUAL_TARGET}.npy", "caption_target": FEATURES / f"{CAPTION_TARGET}.npy", "caption_no_emotion": FEATURES / f"{CAPTION_NO_EMOTION}.npy", "labels": LABELS, **{f"s2:{p.name}": p for p in S2_TABLES}}
+    return {"visual_target": FEATURES / f"{VISUAL_TARGET}.npy", "caption_target": FEATURES / f"{CAPTION_TARGET}.npy", "caption_no_emotion": FEATURES / f"{CAPTION_NO_EMOTION}.npy", "labels": LABELS, "vjepa2_blocks": FEATURES / "vjepa2/blocks.npy", "lowlevel": FEATURES / f"{LOWLEVEL}.npy", "vjepa2_windows": FEATURES / "vjepa2/windows_per_video.npz", **{f"baseline_{m}": FEATURES / f"{v[1]}.npy" for m, v in BASELINE_FEATURES.items()}, **{f"s2:{p.name}": p for p in S2_TABLES}}
+
+
+def timing(started):
+    """done.json에 남기는 실행 시간. run_key에는 넣지 않는다."""
+    return dict(started_at=datetime.fromtimestamp(started, timezone.utc).isoformat(), elapsed_seconds=round(time.time() - started, 3))
 
 
 def load_split():

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""S4 특징 모델: 실제 시각 특징과 캡션 특징으로 정서를 맞히는 모델(T_VS, K1a, 정서어 제거판, 구역 제외) (04 S4, 01 E1~E6, H3, O6, O16, O17, K1a, 2026-11-06).
+"""S4 Stimulus Model(논문의 teacher): 실제 Vision feature와 Caption feature로 Emotion을 맞히는 모델(K1a, 정서어 제거판, 구역 제외, baseline 특징) (04 S4, 01 E1~E6, H3, O6, O16, O17, K1a, 2026-11-06).
 
 뇌 반응은 읽지 않는다. 결과는 사전 분석이고 뇌에 대한 결론으로 쓰지 않는다(E6, N43).
 
@@ -12,16 +12,18 @@
 표준화(N3): 안쪽 모델은 그 안쪽 학습 자료로, 최종 모델은 D_k로 따로 맞춘다. 저자 코드(Horikawa, 2025)도 regression마다 그 학습 자료로 맞춘다.
 
 과제
-- tvs: 바깥 fold k. D_k 안쪽 5겹으로 고른 모델로 시험 fold 예측, K1 head 두 개(더하기판, 상호작용판), H2 학습 fold 4개 안쪽 4겹의 nested OOF 출력(E4).
+- stimulus: 바깥 fold k. D_k 안쪽 5겹으로 고른 모델로 시험 fold 예측, K1 head 두 개(더하기판, 상호작용판)와 그 시험 예측, H2 학습 fold 4개 안쪽 4겹의 nested OOF 출력(E4).
 - k1a: 14개 차원. 손실 MSE, sigmoid 없음, 정답도 입력처럼 각 모델의 학습 자료로 표준화. 더하기판과 상호작용판(K1a).
-- noemo: 정서어 제거 캡션으로 같은 T_VS 선택과 시험 예측(D8, SI).
+- noemo: 정서어 제거 캡션으로 같은 Stimulus Model 선택과 시험 예측(D8, SI).
+- baseline: VideoMAE, TimeSformer, CLIP은 시각 입력만, MPNet은 캡션 입력만 바꾼 같은 선택과 시험 예측(3-1, 3-3, 04 S8, 보조). Brain + Decoded Feature → Emotion은 Stimulus 예측 평정을 쓰지 않으므로 nested OOF와 K1 head는 만들지 않는다.
 - zone: 구역 제외와 학습량 대조마다 그 학습 자료로 표준화와 선택을 다시 하고 구역 시험 영상을 예측(J3, 4-3).
 
-사용: s4_feature_model.py --task tvs --design-freeze <커밋> [--part 0/4] [--device cuda]
+사용: s4_feature_model.py --task stimulus --design-freeze <커밋> [--part 0/4] [--device cuda]
 """
 import argparse
 import json
 import os
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -233,7 +235,7 @@ def save_state(path, model, row, coord):
     torch.save(dict(state_dict={k: t.cpu() for k, t in model.state_dict().items()}, r=int(row.r), weight_decay=float(row.weight_decay), lr=float(row.lr), epochs=int(row.epochs), **{k: torch.as_tensor(v) for k, v in coord.arrays().items()}), path)
 
 
-def task_tvs(spec, d, k, device, out):
+def task_stimulus(spec, d, k, device, out):
     r = c.roles(k)
     dk = d.mask(r["dk"])
     coord = Coordinates(d.v[dk], d.cap[dk])  # 정답은 표준화하지 않는다(B3)
@@ -241,16 +243,19 @@ def task_tvs(spec, d, k, device, out):
     table.to_csv(out / "selection_dk.tsv", sep="\t", index=False)
     np.save(out / "curves_dk.npy", curve)
     np.savez(out / "coordinates.npz", **coord.arrays())
-    rows = dict(teacher_family=choose(table), additive=choose(table, [0]), interaction=choose(table, [x for x in RANKS if x]))
+    rows = dict(all_ranks=choose(table), additive=choose(table, [0]), interaction=choose(table, [x for x in RANKS if x]))
     json.dump({n: {x: float(v[x]) for x in SELECTED} for n, v in rows.items()}, open(out / "chosen.json", "w"), indent=1)
     models = {}
     for n in ("additive", "interaction"):
         models[n] = refit(spec, rows[n], d, coord, dk, device)
         save_state(out / f"head_{n}.pt", models[n], rows[n], coord)
-    best = models["additive"] if int(rows["teacher_family"].r) == 0 else models["interaction"]
+    best = "additive" if int(rows["all_ranks"].r) == 0 else "interaction"
     te = d.mask([k])
-    logit, p = predict(spec, best, d, coord, te, device)
-    np.savez(out / "test_pred.npz", video_id=d.ids[te], logit=logit, p=p)
+    per_head = {}
+    for n, model in models.items():
+        per_head[f"{n}_logit"], per_head[f"{n}_p"] = predict(spec, model, d, coord, te, device)
+    # logit과 p는 r = 0을 포함한 전체에서 고른 판이다(E2). 두 판의 시험 예측도 함께 둔다(E6, 사전 분석)
+    np.savez(out / "test_pred.npz", video_id=d.ids[te], logit=per_head[f"{best}_logit"], p=per_head[f"{best}_p"], **per_head)
     oof, t4, c4, row4 = nested_oof(spec, d, d.mask(r["train"]), device)
     np.savez(out / "oof.npz", **oof)
     t4.to_csv(out / "selection_oof.tsv", sep="\t", index=False)
@@ -296,35 +301,49 @@ def task_select_predict(spec, d, rows, test_rows, device, out):
 
 
 def enumerate_tasks(task, split=None):
-    if task in ("tvs", "k1a", "noemo"):
+    if task in ("stimulus", "k1a", "noemo"):
         return [dict(task=task, k=k, name=f"fold{k}") for k in range(1, c.N_FOLDS + 1)]
+    if task == "baseline":
+        return [dict(task=task, model=m, k=k, name=f"{m}_fold{k}") for m in c.BASELINE_FEATURES for k in range(1, c.N_FOLDS + 1)]
     if task == "zone":
         return [dict(task=task, block=b, k=k, kind=kind, name=f"block{b}_fold{k}_{kind}") for b in range(1, 6) for k in range(1, c.N_FOLDS + 1) for kind in ("excluded", "control")]
     raise SystemExit(task)
 
 
-def input_paths(task):
+def input_paths(task, model=None):
+    """역할 -> 파일. baseline은 바꾸는 쪽만 baseline_<모델> 역할로 대신한다."""
     cap = {"caption_no_emotion": c.FEATURES / f"{c.CAPTION_NO_EMOTION}.npy"} if task == "noemo" else {"caption_target": c.FEATURES / f"{c.CAPTION_TARGET}.npy"}
-    return {"visual_target": c.FEATURES / f"{c.VISUAL_TARGET}.npy", **cap, "labels": c.LABELS}
+    vis = {"visual_target": c.FEATURES / f"{c.VISUAL_TARGET}.npy"}
+    if task == "baseline":
+        side, name = c.BASELINE_FEATURES[model]
+        if side == "visual":
+            vis = {f"baseline_{model}": c.FEATURES / f"{name}.npy"}
+        else:
+            cap = {f"baseline_{model}": c.FEATURES / f"{name}.npy"}
+    return {**vis, **cap, "labels": c.LABELS}
 
 
-def load_data(task, split):
+def load_data(task, split, model=None):
     ids = split.video_id.to_numpy()
-    cap = c.CAPTION_NO_EMOTION if task == "noemo" else c.CAPTION_TARGET
+    vis, cap = c.VISUAL_TARGET, c.CAPTION_NO_EMOTION if task == "noemo" else c.CAPTION_TARGET
+    if task == "baseline":
+        side, name = c.BASELINE_FEATURES[model]
+        vis, cap = (name, cap) if side == "visual" else (vis, name)
     y, _ = c.load_scores(split, "dimensions" if task == "k1a" else "emotions")
-    return Data(ids, split.fold.to_numpy(), c.load_rows(c.VISUAL_TARGET, ids, split), c.load_rows(cap, ids, split), y)
+    return Data(ids, split.fold.to_numpy(), c.load_rows(vis, ids, split), c.load_rows(cap, ids, split), y)
 
 
 def run_one(t, spec, d, split, device, out, run):
     if c.done_or_new(out, run.key):
         print("건너뜀", out, flush=True)
         return
+    started = time.time()
     with c.Atomic(out) as tmp:
-        if t["task"] == "tvs":
-            extra = task_tvs(spec, d, t["k"], device, tmp)
+        if t["task"] == "stimulus":
+            extra = task_stimulus(spec, d, t["k"], device, tmp)
         elif t["task"] == "k1a":
             extra = task_k1a(spec, d, t["k"], device, tmp)
-        elif t["task"] == "noemo":
+        elif t["task"] in ("noemo", "baseline"):
             r = c.roles(t["k"])
             extra = task_select_predict(spec, d, d.mask(r["dk"]), d.mask([t["k"]]), device, tmp)
         elif t["task"] == "zone":
@@ -333,27 +352,30 @@ def run_one(t, spec, d, split, device, out, run):
         else:
             raise ValueError(t["task"])
         run.check()  # 저장 전에 코드와 입력이 시작 때와 같은지 다시 본다
-        json.dump(dict(run.prov, task=t, **extra), open(tmp / "done.json", "w"), indent=1)
+        json.dump(dict(run.prov, task=t, **c.timing(started), **extra), open(tmp / "done.json", "w"), indent=1)
     print("저장", out, flush=True)
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--task", required=True, choices=["tvs", "k1a", "noemo", "zone"])
+    ap.add_argument("--task", required=True, choices=["stimulus", "k1a", "noemo", "zone", "baseline"])
     ap.add_argument("--design-freeze", default="")
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--part", default="0/1", help="나눠 돌릴 때 i/n. 끝난 과제는 건너뛴다")
     a = ap.parse_args()
     c.guard(a.design_freeze)
     spec = Spec(kind="dimensions" if a.task == "k1a" else "emotions")
-    run = c.Run(a.design_freeze, input_paths(a.task), task=a.task, batch=spec.batch, max_epochs=spec.max_epochs, seed=spec.seed, candidates=spec.candidates, torch=torch.__version__)  # 읽기 전에 해시를 낸다
-    split = c.load_split()
-    d = load_data(a.task, split)
-    run.check()  # 읽은 내용이 기록한 해시와 같음을 확인한다
     i, n = (int(x) for x in a.part.split("/"))
-    tasks = enumerate_tasks(a.task, split)
-    for t in tasks[i::n]:
-        run_one(t, spec, d, split, a.device, c.OUT / a.task / t["name"], run)
+    tasks = enumerate_tasks(a.task)[i::n]
+    split = None
+    for model in dict.fromkeys(t.get("model") for t in tasks):  # baseline은 모델마다 입력이 달라 실행 번호도 다르다
+        run = c.Run(a.design_freeze, input_paths(a.task, model), task=a.task, batch=spec.batch, max_epochs=spec.max_epochs, seed=spec.seed, candidates=spec.candidates, torch=torch.__version__)  # 읽기 전에 해시를 낸다
+        split = c.load_split() if split is None else split
+        d = load_data(a.task, split, model)
+        run.check()  # 읽은 내용이 기록한 해시와 같음을 확인한다
+        for t in tasks:
+            if t.get("model") == model:
+                run_one(t, spec, d, split, a.device, c.OUT / a.task / t["name"], run)
 
 
 if __name__ == "__main__":

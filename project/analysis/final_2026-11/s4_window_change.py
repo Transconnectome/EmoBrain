@@ -11,6 +11,7 @@
 """
 import argparse
 import json
+import time
 
 import numpy as np
 import pandas as pd
@@ -71,6 +72,7 @@ def main():
     run = c.Run(a.design_freeze, {"vjepa2_windows": c.FEATURES / "vjepa2/windows_per_video.npz", "vjepa2_blocks": c.FEATURES / "vjepa2/blocks.npy"}, seed=SEED)
     if c.done_or_new(out, run.key):
         return
+    started = time.time()
     split = c.load_split()
     ids = split.video_id.to_numpy()
     w = np.load(c.FEATURES / "vjepa2/windows_per_video.npz")
@@ -83,7 +85,7 @@ def main():
         table.to_csv(tmp / "window_change.tsv", sep="\t", index=False, float_format="%.6g")
         summary.to_csv(tmp / "window_change_summary.tsv", sep="\t", index=False, float_format="%.6g")
         run.check()
-        json.dump(dict(run.prov, n_videos=len(windows)), open(tmp / "done.json", "w"), indent=1)
+        json.dump(dict(run.prov, n_videos=len(windows), **c.timing(started)), open(tmp / "done.json", "w"), indent=1)
     print(summary.round(4).to_string(index=False))
 
 

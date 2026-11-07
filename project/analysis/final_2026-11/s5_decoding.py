@@ -10,6 +10,7 @@
 """
 import argparse
 import json
+import time
 
 import numpy as np
 import pandas as pd
@@ -106,6 +107,7 @@ def main():
         if c.done_or_new(out, run.key):
             print("건너뜀", out, flush=True)
             continue
+        started = time.time()
         with c.Atomic(out) as tmp:
             pred, table, curves, oof = decode_fold(brain, targets, d5.LAYERS, d5.TARGET_LAYERS, k, a.device)
             np.savez(tmp / "test_pred.npz", **pred)
@@ -113,7 +115,7 @@ def main():
             np.savez(tmp / "curves.npz", **curves)
             table.to_csv(tmp / "chosen.tsv", sep="\t", index=False, float_format="%.6g")
             run.check()
-            json.dump(dict(run.prov, participant=s, fold=k, n_voxels=brain.X.shape[1], n_voxels_with_overlap=brain.n_voxels_with_overlap), open(tmp / "done.json", "w"), indent=1)
+            json.dump(dict(run.prov, participant=s, fold=k, n_voxels=brain.X.shape[1], n_voxels_with_overlap=brain.n_voxels_with_overlap, **c.timing(started)), open(tmp / "done.json", "w"), indent=1)
         print("저장", out, flush=True)
 
 

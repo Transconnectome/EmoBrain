@@ -4,7 +4,8 @@
 확인: 64개 층 × 5명, 14개 차원 × 5명 × 6 fold의 두 판과 O34의 안쪽 fold 밖 예측, λ 선택 기록이 모두 있고, 시험 영상이 정해진 목록과 정확히 같으며, 값이 온전하다.
 결과끼리 코드, 동결 커밋, 같은 역할의 입력 내용이 같고, 같은 과제는 설정도 같으며, 지금 파일이 결과를 만들 때와 같다.
 지표: 시험 예측을 원래 척도로 모아 낸 차원별 r 평균(O20)과, 같은 fold 안 영상 식별(O19, 그 fold의 D_k 좌표), λ가 끝값인 횟수. 순열 기준은 S10이다.
-사용: s5_collect.py --design-freeze <커밋>
+Horikawa 2020 ridge를 돌리지 않았으면 --without h2020을 명시한다. 이때 멈추지 않고, 빠진 사실을 manifests/s5/collection_status.tsv에 적는다. 기본은 필수다.
+사용: s5_collect.py --design-freeze <커밋> [--without h2020]
 """
 import argparse
 import json
@@ -129,8 +130,8 @@ def role_paths():
     return out
 
 
-def identification(pred, true):
-    """O19. A의 예측과 A의 실제의 r이 A의 예측과 B의 실제의 r보다 크면 1이다. 같은 fold의 모든 B를 평균하고 모든 A를 평균한다."""
+def identification_scores(pred, true):
+    """O19. A의 예측과 A의 실제의 r이 A의 예측과 B의 실제의 r보다 크면 1이다. 같은 fold의 모든 B를 평균한 값이 A의 정확도다. 돌려주는 값: 영상 A마다의 정확도."""
     a = pred - pred.mean(1, keepdims=True)
     b = true - true.mean(1, keepdims=True)
     na, nb = np.linalg.norm(a, axis=1, keepdims=True), np.linalg.norm(b, axis=1, keepdims=True)
@@ -143,7 +144,11 @@ def identification(pred, true):
     if n < 2:
         raise ValueError("식별에는 영상이 둘 이상 있어야 한다")
     wins = (d[:, None] > s).sum(1)  # 자기 자신은 같아서 세지 않는다
-    return float((wins / (n - 1)).mean())
+    return wins / (n - 1)
+
+
+def identification(pred, true):
+    return float(identification_scores(pred, true).mean())
 
 
 def layer_metrics(preds, targets, split, participant, participant_ids):
@@ -161,11 +166,21 @@ def layer_metrics(preds, targets, split, participant, participant_ids):
             m, s = y[dk].astype(np.float64).mean(0), y[dk].astype(np.float64).std(0)
             at = [pos[v] for v in t["video_id"].tolist()]
             true = y[at]
-            ids.append(identification((t[name] - m) / s, (true - m) / s))
+            ids.append(identification_scores((t[name] - m) / s, (true - m) / s))
             all_pred.append(t[name]), all_true.append(true)
         r = c.pearson(np.concatenate(all_true), np.concatenate(all_pred))
-        rows.append(dict(participant=participant, model=layer[0], layer=layer[1], mean_r=float(np.nanmean(r)), n_dim_not_computable=int(np.isnan(r).sum()), identification=float(np.mean(ids))))
+        rows.append(dict(participant=participant, model=layer[0], layer=layer[1], mean_r=float(np.nanmean(r)), n_dim_not_computable=int(np.isnan(r).sum()), identification=float(np.concatenate(ids).mean())))
     return pd.DataFrame(rows)
+
+
+def participant_tasks(without=()):
+    """참가자, fold마다 있어야 하는 기준선 과제. 기본은 모두 필수이고, 뺄 때는 명시한다."""
+    return [t for t in ("ridge", "soft_bce", "signal", "h2020") if t not in without]
+
+
+def collection_status(without=()):
+    """돌린 과제와 빠진 과제의 표. 빠진 사실을 결과에 남긴다."""
+    return pd.DataFrame([dict(task=t, included=t not in without) for t in ("decoding", "ridge", "soft_bce", "signal", "zone", "video", "h2020")])
 
 
 def expected_tests(split, table, s):
@@ -176,6 +191,7 @@ def expected_tests(split, table, s):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--design-freeze", default="")
+    ap.add_argument("--without", action="append", default=[], choices=["h2020"], help="돌리지 않은 기준선. 명시할 때만 뺀다")
     a = ap.parse_args()
     c.guard(a.design_freeze)
     split = c.load_split()
@@ -199,7 +215,7 @@ def main():
             t = check_chosen(d / "chosen.tsv", d5.LAYERS, len(d5.LAMBDAS))
             t.insert(0, "fold", k), t.insert(0, "participant", s)
             chosen.append(t)
-            for task in ("ridge", "soft_bce", "signal", "h2020"):
+            for task in participant_tasks(a.without):
                 names.append(f"{task}/sub-{s}_fold{k}")
                 check_baseline(d5.OUT, task, f"sub-{s}_fold{k}", exp[k])
             for b in sorted(blocks.block.unique().tolist()):
@@ -220,6 +236,7 @@ def main():
     MANIFEST.mkdir(parents=True, exist_ok=True)
     table_lambda.to_csv(MANIFEST / "decoding_lambda.tsv", sep="\t", index=False, float_format="%.6g")
     table_metric.to_csv(MANIFEST / "decoding_layer_metrics.tsv", sep="\t", index=False, float_format="%.6g")
+    collection_status(a.without).to_csv(MANIFEST / "collection_status.tsv", sep="\t", index=False)
     print("층별 표를 저장했다", MANIFEST, flush=True)
 
 

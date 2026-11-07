@@ -11,6 +11,7 @@
 import argparse
 import json
 import os
+import time
 from pathlib import Path
 
 import numpy as np
@@ -60,6 +61,7 @@ def pred_dir(out):
 
 
 def d12(split, device, out, run):
+    started = time.time()
     ids, folds = split.video_id.to_numpy(), split.fold.to_numpy()
     blocks = np.load(c.FEATURES / "vjepa2/blocks.npy", mmap_mode="r")
     c.check_dev(ids, split)
@@ -90,7 +92,7 @@ def d12(split, device, out, run):
         np.savez(tmp / "d12_r2_per_dimension.npz", **per_dim)
         os.rename(pred_dir(out), tmp / "predictions")
         run.check()
-        json.dump(run.prov, open(tmp / "done.json", "w"), indent=1)
+        json.dump(dict(run.prov, **c.timing(started)), open(tmp / "done.json", "w"), indent=1)
 
 
 def _standardize(x, rows):
@@ -146,6 +148,7 @@ def emotion_ridge(x, y, folds, device):
 
 
 def noemo(split, device, out, run):
+    started = time.time()
     ids, folds = split.video_id.to_numpy(), split.fold.to_numpy()
     y, cols = c.load_scores(split, "emotions")
     run.check()
@@ -162,7 +165,7 @@ def noemo(split, device, out, run):
         pd.DataFrame(rows).to_csv(tmp / "noemo_ridge.tsv", sep="\t", index=False, float_format="%.6g")
         np.savez(tmp / "noemo_ridge_pred.npz", **preds)
         run.check()
-        json.dump(run.prov, open(tmp / "done.json", "w"), indent=1)
+        json.dump(dict(run.prov, **c.timing(started)), open(tmp / "done.json", "w"), indent=1)
 
 
 def input_paths(task):

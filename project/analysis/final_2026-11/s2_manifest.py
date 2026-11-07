@@ -5,6 +5,7 @@
   split   : HK 개발 영상 분할(run 묶음을 정서 평정과 영상 길이로 층화해 fold에 배정, v4, fold는 통합문서처럼 1~6), 세션 검사(O8), 세션별 정서 평균, 참가자별 block 표, fold 역할(H2, O7)
   blocks  : 내용 구역 k-means 5개(4-3, J2), 구역 기록, 거리 점검, 학습량 대조 표본, 정서별 0이 아닌 학습 영상 수
   pairs   : 이름표 짝(4-2, O9), 짝 연결 묶음과 순서 없는 쌍(O4), 참가자별 빠진 쌍 수
+  pairs_within_block : 같은 fold, 같은 구역 안의 이름표 짝(6-2). 거리, 동점, 빠진 block은 4-2와 O9와 같다. 이름표와 표만 읽는다
   roi     : 370개 ROI의 참가자별 voxel 열 번호(저자 피질 + 새 피질하, 정할 것 5~7), ROI 표, CAB-NP 13묶음(6-4)
   mc      : MC 시청 자료의 입력층 학습과 검증 run(O29), 시험 72개, HK와 MC의 영상 ID 대응(6-3). 표만 읽고 반응은 읽지 않는다
   brain   : 새 지도의 영역 평균(개발 block과 반복 쌍만), HK 참가자 간 일치도(K7, 13묶음), HK 반복 신뢰도(14쌍). 정서 정답은 읽지 않는다. 이 결과로 지도나 묶음을 바꾸지 않는다
@@ -409,43 +410,58 @@ def stage_blocks():
 
 
 # ---------- pairs
+def nearest_pairs(v, X_all, fold, prefix, block=None):
+    """v(오름차순 영상 ID) 안에서 이름표 거리가 가장 가까운 영상을 짝으로 한다. 동점이면 영상 ID가 작은 쪽이다(O9). 돌려주는 값: 짝 행, 연결 묶음 행."""
+    d = label_distance(X_all[v - 1], X_all[v - 1])
+    np.fill_diagonal(d, np.inf)
+    nearest = d.min(1)
+    tied = np.isclose(d, nearest[:, None], rtol=0, atol=1e-12)
+    pick = tied.argmax(1)  # v가 오름차순이므로 동점이면 영상 ID가 작은 쪽(O9)
+    parent = {int(x): int(x) for x in v}
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+    extra = {} if block is None else dict(block=block)
+    rows, groups = [], []
+    for i, a in enumerate(v):
+        b = v[pick[i]]
+        rows.append(dict(**extra, fold=fold, video_a=int(a), video_b=int(b), distance=float(nearest[i]), n_tied=int(tied[i].sum()), mutual=bool(v[pick[pick[i]]] == a)))
+        parent[find(int(a))] = find(int(b))
+    roots = {}
+    for a in v:
+        r = find(int(a))
+        roots.setdefault(r, len(roots) + 1)
+        groups.append(dict(**extra, fold=fold, video_id=int(a), pair_group=f"{prefix}g{roots[r]}"))
+    return rows, groups
+
+
+def unordered_pairs(R, keys=("fold",)):
+    """순서 없는 쌍(O4). 서로 최근접인 쌍은 한 번만 쓰고 영상 번호가 작은 쪽을 A로 둔다."""
+    out, seen = [], set()
+    for r in R.to_dict("records"):
+        key = (min(r["video_a"], r["video_b"]), max(r["video_a"], r["video_b"]))
+        if key not in seen:
+            seen.add(key)
+            out.append(dict(**{c: r[c] for c in keys}, video_a=key[0], video_b=key[1], distance=r["distance"], mutual=r["mutual"]))
+    return pd.DataFrame(out)
+
+
 def stage_pairs():
     D = load_split()
     _, X_all = semantic()
     P = pd.read_csv(OUT / "participant_blocks_hk.tsv", sep="\t")
-    rows, groups, unordered = [], [], []
+    rows, groups = [], []
     for k in range(1, K + 1):
         v = np.sort(D[D.fold == k].video_id.to_numpy())
-        d = label_distance(X_all[v - 1], X_all[v - 1])
-        np.fill_diagonal(d, np.inf)
-        nearest = d.min(1)
-        tied = np.isclose(d, nearest[:, None], rtol=0, atol=1e-12)
-        pick = tied.argmax(1)  # v가 오름차순이므로 동점이면 영상 ID가 작은 쪽(O9)
-        parent = {int(x): int(x) for x in v}
-
-        def find(x):
-            while parent[x] != x:
-                parent[x] = parent[parent[x]]
-                x = parent[x]
-            return x
-        for i, a in enumerate(v):
-            b = v[pick[i]]
-            rows.append(dict(fold=k, video_a=int(a), video_b=int(b), distance=float(nearest[i]), n_tied=int(tied[i].sum()), mutual=bool(v[pick[pick[i]]] == a)))
-            parent[find(int(a))] = find(int(b))
-        roots = {}
-        for a in v:
-            r = find(int(a))
-            roots.setdefault(r, len(roots) + 1)
-            groups.append(dict(fold=k, video_id=int(a), pair_group=f"f{k}g{roots[r]}"))
+        r, g = nearest_pairs(v, X_all, k, f"f{k}")
+        rows += r
+        groups += g
     R = pd.DataFrame(rows)
     G = pd.DataFrame(groups)
-    seen = set()
-    for r in R.itertuples():
-        key = (min(r.video_a, r.video_b), max(r.video_a, r.video_b))
-        if key not in seen:
-            seen.add(key)
-            unordered.append(dict(fold=r.fold, video_a=key[0], video_b=key[1], distance=r.distance, mutual=r.mutual))
-    U = pd.DataFrame(unordered)
+    U = unordered_pairs(R)
     G["group_size"] = G.pair_group.map(G.groupby("pair_group").size())
     tsv(R, "pairs_directed.tsv")
     tsv(G, "pair_groups.tsv")
@@ -458,6 +474,76 @@ def stage_pairs():
     print("연결 묶음 수", G.pair_group.nunique(), "크기 분포", gs)
     print(pd.DataFrame(miss).to_string(index=False))
     print("1349의 짝:", R[R.video_a.isin([1349, 1363])][["video_a", "video_b", "distance"]].to_dict("records"))
+
+
+def stage_pairs_within_block():
+    """6-2의 바꿔 끼우기에 쓰는 짝. 같은 시험 fold, 같은 구역의 시험 영상 안에서만 찾는다. 기존 짝(pairs_directed.tsv)은 구역을 넘을 수 있어 그대로 쓸 수 없다."""
+    D = load_split()
+    A = pd.read_csv(OUT / "content_blocks_assignment.tsv", sep="\t")
+    if A.video_id.tolist() != D.video_id.tolist():
+        raise ValueError("구역 표와 분할 표의 영상이 다르다")
+    _, X_all = semantic()
+    P = pd.read_csv(OUT / "participant_blocks_hk.tsv", sep="\t")
+    rows, groups, counts = [], [], []
+    for z in sorted(A.block.unique().tolist()):
+        for k in range(1, K + 1):
+            v = np.sort(A[(A.block == z) & (A.fold == k)].video_id.to_numpy())
+            if len(v) < 2:  # 짝을 찾을 영상이 없다. 다른 구역에서 빌리지 않는다
+                counts.append(dict(block=z, fold=k, n_test=len(v), n_directed=0, n_unordered=0, n_tied_videos=0, n_no_partner=len(v)))
+                continue
+            r, g = nearest_pairs(v, X_all, k, f"b{z}f{k}", block=z)
+            rows += r
+            groups += g
+            u = unordered_pairs(pd.DataFrame(r), keys=("block", "fold"))
+            counts.append(dict(block=z, fold=k, n_test=len(v), n_directed=len(r), n_unordered=len(u), n_tied_videos=int(sum(x["n_tied"] > 1 for x in r)), n_no_partner=0))
+    R, G, C = pd.DataFrame(rows), pd.DataFrame(groups), pd.DataFrame(counts)
+    U = pd.concat([unordered_pairs(g, keys=("block", "fold")) for _, g in R.groupby(["block", "fold"], sort=True)], ignore_index=True)
+    G["group_size"] = G.pair_group.map(G.groupby("pair_group").size())
+    check_pairs_within_block(R, U, G, C, A, X_all)
+    tsv(R, "pairs_within_block_directed.tsv")
+    tsv(U, "pairs_within_block_unordered.tsv")
+    tsv(G, "pairs_within_block_groups.tsv")
+    tsv(C, "pairs_within_block_counts.tsv")
+    miss = []
+    for s in HK:
+        have = set(P[P.participant == f"sub-{s}"].video_id)
+        for (z, k), g in R.groupby(["block", "fold"]):
+            u = U[(U.block == z) & (U.fold == k)]
+            miss.append(dict(participant=f"sub-{s}", block=z, fold=k, n_directed_all=len(g), n_directed_missing=int((~(g.video_a.isin(have) & g.video_b.isin(have))).sum()), n_unordered_all=len(u), n_unordered_missing=int((~(u.video_a.isin(have) & u.video_b.isin(have))).sum())))
+    M = pd.DataFrame(miss)
+    tsv(M, "pairs_within_block_missing_counts.tsv")
+    print("짝", len(R), "순서 없는 쌍", len(U), "묶음", G.pair_group.nunique(), "거리 중앙값", round(R.distance.median(), 4), "최댓값", round(R.distance.max(), 4), "동점 있는 영상", int((R.n_tied > 1).sum()), "짝을 못 찾은 영상", int(C.n_no_partner.sum()))
+    print("구역과 fold의 시험 영상 수 범위", int(C.n_test.min()), int(C.n_test.max()))
+    print(M.groupby("participant")[["n_directed_all", "n_directed_missing", "n_unordered_all", "n_unordered_missing"]].sum().to_string())
+
+
+def check_pairs_within_block(R, U, G, C, A, X_all, distance_tol=1e-12):
+    """짝이 같은 구역과 같은 fold 안에 있고, 정말 가장 가까우며, 동점은 작은 ID이고, 모든 시험 영상이 한 번씩 나오는지 본다. 파일에서 읽은 거리는 유효 숫자 6자리라 distance_tol을 넓혀 준다."""
+    block_of, fold_of = A.set_index("video_id").block, A.set_index("video_id").fold
+    if not R.video_a.is_unique or (R.video_a == R.video_b).any():
+        raise ValueError("한 영상의 짝이 둘이거나 자기 자신이 짝이다")
+    for name, x in (("video_a", R.video_a), ("video_b", R.video_b)):
+        if not (x.map(block_of) == R.block).all() or not (x.map(fold_of) == R.fold).all():
+            raise ValueError(f"{name}가 그 행의 구역이나 fold 밖에 있다")
+    for (z, k), g in R.groupby(["block", "fold"]):
+        v = np.sort(A[(A.block == z) & (A.fold == k)].video_id.to_numpy())
+        if sorted(g.video_a.tolist()) != v.tolist():
+            raise ValueError(f"구역 {z}, fold {k}: 시험 영상이 짝 표와 다르다")
+        for r in g.itertuples():
+            d = label_distance(X_all[[r.video_a - 1]], X_all[v - 1])[0]
+            d[v == r.video_a] = np.inf
+            best = v[np.isclose(d, d.min(), rtol=0, atol=1e-12)]
+            if abs(d.min() - r.distance) > distance_tol or r.video_b != best.min():
+                raise ValueError(f"영상 {r.video_a}의 짝이 가장 가까운 영상이 아니거나 동점 규칙과 다르다")
+    if not (U.video_a < U.video_b).all() or U.duplicated(["video_a", "video_b"]).any():
+        raise ValueError("순서 없는 쌍이 잘못됐다")
+    want = {(min(a, b), max(a, b)) for a, b in zip(R.video_a, R.video_b)}
+    if want != set(zip(U.video_a, U.video_b)):
+        raise ValueError("순서 없는 쌍이 짝 표와 다르다")
+    if sorted(G.video_id.tolist()) != sorted(R.video_a.tolist()) or int(C.n_directed.sum()) != len(R) or int(C.n_unordered.sum()) != len(U):
+        raise ValueError("묶음이나 수 표가 짝 표와 다르다")
+    if int(C.n_test.sum()) != len(A):
+        raise ValueError("구역과 fold의 영상 수 합이 개발 영상 수와 다르다")
 
 
 # ---------- roi
@@ -726,6 +812,11 @@ def stage_check():
         t = pd.read_csv(OUT / name, sep="\t")
         for c in cols:
             assert not t[c].map(cw).isin(mc).any(), (name, c)
+    _, X_all = semantic()
+    W = pd.read_csv(OUT / "pairs_within_block_directed.tsv", sep="\t")
+    for c in ("video_a", "video_b"):
+        assert not W[c].map(cw).isin(mc).any(), c
+    check_pairs_within_block(W, pd.read_csv(OUT / "pairs_within_block_unordered.tsv", sep="\t"), pd.read_csv(OUT / "pairs_within_block_groups.tsv", sep="\t"), pd.read_csv(OUT / "pairs_within_block_counts.tsv", sep="\t"), pd.read_csv(OUT / "content_blocks_assignment.tsv", sep="\t"), X_all, distance_tol=1e-5)
     R = pd.read_csv(OUT / "pairs_directed.tsv", sep="\t")
     assert (R.video_a != R.video_b).all()
     assert (R.video_a.map(fold_by_video) == R.video_b.map(fold_by_video)).all(), "짝이 다른 fold"
@@ -805,11 +896,11 @@ def stage_check():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--stage", required=True, choices=["split", "blocks", "pairs", "roi", "mc", "brain", "order", "check", "all"])
+    ap.add_argument("--stage", required=True, choices=["split", "blocks", "pairs", "pairs_within_block", "roi", "mc", "brain", "order", "check", "all"])
     a = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     BIG.mkdir(parents=True, exist_ok=True)
-    stages = dict(split=stage_split, blocks=stage_blocks, pairs=stage_pairs, roi=stage_roi, mc=stage_mc, brain=stage_brain, order=stage_order, check=stage_check)
+    stages = dict(split=stage_split, blocks=stage_blocks, pairs=stage_pairs, pairs_within_block=stage_pairs_within_block, roi=stage_roi, mc=stage_mc, brain=stage_brain, order=stage_order, check=stage_check)
     for name in (list(stages) if a.stage == "all" else [a.stage]):
         print(f"===== {name}", flush=True)
         stages[name]()

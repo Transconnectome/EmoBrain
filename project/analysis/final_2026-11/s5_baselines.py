@@ -13,6 +13,7 @@ h2020은 원문 재현이 아니다. 전체 표본 z-score를 하지 않고(H5),
 """
 import argparse
 import json
+import time
 
 import numpy as np
 import pandas as pd
@@ -189,13 +190,13 @@ def log_length(split):
     return np.log(t.loc[split.video_id].to_numpy(np.float64))[:, None]
 
 
-def save(out, run, arrays, table=None, **extra):
+def save(out, run, arrays, started, table=None, **extra):
     with c.Atomic(out) as tmp:
         np.savez(tmp / "pred.npz", **arrays)
         if table is not None:
             table.to_csv(tmp / "selection.tsv", sep="\t", index=False, float_format="%.6g")
         run.check()
-        json.dump(dict(run.prov, **extra), open(tmp / "done.json", "w"), indent=1)
+        json.dump(dict(run.prov, **c.timing(started), **extra), open(tmp / "done.json", "w"), indent=1)
     print("저장", out, flush=True)
 
 
@@ -230,7 +231,8 @@ def main():
             for k in folds:
                 out = d5.OUT / "video" / f"{name}_fold{k}"
                 if not c.done_or_new(out, run.key):
-                    save(out, run, video_task(x, y_em, fold, ids, k, a.device), baseline=name, fold=k)
+                    started = time.time()
+                    save(out, run, video_task(x, y_em, fold, ids, k, a.device), started, baseline=name, fold=k)
         return
     if a.task == "signal":
         x, ids = d5.signal_baseline_input(s, split)
@@ -240,7 +242,8 @@ def main():
         for k in folds:
             out = d5.OUT / "signal" / f"sub-{s}_fold{k}"
             if not c.done_or_new(out, run.key):
-                save(out, run, video_task(x, y, fold, ids, k, a.device), participant=s, fold=k)
+                started = time.time()
+                save(out, run, video_task(x, y, fold, ids, k, a.device), started, participant=s, fold=k)
         return
     brain = d5.load_brain(s, split)
     y = d5.align(y_em, split, brain.video_id)
@@ -251,19 +254,21 @@ def main():
                 for kind in ("excluded", "control"):
                     out = d5.OUT / "zone" / f"sub-{s}_block{b}_fold{k}_{kind}"
                     if not c.done_or_new(out, run.key):
-                        save(out, run, zone_task(brain, y, split, b, k, kind, a.device), participant=s, block=b, fold=k, kind=kind)
+                        started = time.time()
+                        save(out, run, zone_task(brain, y, split, b, k, kind, a.device), started, participant=s, block=b, fold=k, kind=kind)
         return
     for k in folds:
         out = d5.OUT / a.task / f"sub-{s}_fold{k}"
         if c.done_or_new(out, run.key):
             continue
+        started = time.time()
         if a.task == "ridge":
-            save(out, run, ridge_task(brain, y, d5.align(y_dim, split, brain.video_id), k, a.device), participant=s, fold=k)
+            save(out, run, ridge_task(brain, y, d5.align(y_dim, split, brain.video_id), k, a.device), started, participant=s, fold=k)
         elif a.task == "soft_bce":
             arrays, table, chosen = soft_bce_task(brain, y, k, a.device)
-            save(out, run, arrays, table, participant=s, fold=k, chosen=chosen)
+            save(out, run, arrays, started, table, participant=s, fold=k, chosen=chosen)
         else:
-            save(out, run, h2020_task(brain, y, k, a.device), participant=s, fold=k)
+            save(out, run, h2020_task(brain, y, k, a.device), started, participant=s, fold=k)
 
 
 if __name__ == "__main__":

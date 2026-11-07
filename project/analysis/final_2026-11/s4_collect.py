@@ -17,9 +17,10 @@ import pandas as pd
 import s4_common as c
 
 MANIFEST = c.CODE_DIR / "manifests/s4"
-FOLD_TASKS = ("tvs", "k1a", "noemo")
-N_OUT = dict(tvs=34, noemo=34, zone=34, k1a=14)
-PRED_KEYS = dict(tvs=("logit", "p"), noemo=("logit", "p"), zone=("logit", "p"), k1a=("additive_z", "additive_score", "interaction_z", "interaction_score"))
+FOLD_TASKS = ("stimulus", "k1a", "noemo")
+ALL_TASKS = ("stimulus", "k1a", "noemo", "zone", "baseline")
+N_OUT = dict(stimulus=34, noemo=34, zone=34, baseline=34, k1a=14)
+PRED_KEYS = dict(stimulus=("logit", "p", "additive_logit", "additive_p", "interaction_logit", "interaction_p"), noemo=("logit", "p"), zone=("logit", "p"), baseline=("logit", "p"), k1a=("additive_z", "additive_score", "interaction_z", "interaction_score"))
 
 
 def _load(path):
@@ -34,6 +35,8 @@ def expected_tests(split, task, blocks=None):
     """과제의 결과 폴더 이름 -> 시험 영상. 구역은 그 구역과 그 fold의 영상이다."""
     if task in FOLD_TASKS:
         return {f"fold{k}": fold_ids(split, k) for k in range(1, c.N_FOLDS + 1)}
+    if task == "baseline":
+        return {f"{m}_fold{k}": fold_ids(split, k) for m in c.BASELINE_FEATURES for k in range(1, c.N_FOLDS + 1)}
     blocks = pd.read_csv(c.S2 / "content_blocks_assignment.tsv", sep="\t") if blocks is None else blocks
     out = {}
     for b in sorted(blocks.block.unique().tolist()):
@@ -67,7 +70,7 @@ def check_oof(path, expected, n_out):
     return t
 
 
-def check_folds(split, out=None, tasks=("tvs", "k1a", "noemo", "zone"), blocks=None, n_out=None):
+def check_folds(split, out=None, tasks=ALL_TASKS, blocks=None, n_out=None):
     out = c.OUT if out is None else out
     n_out = N_OUT if n_out is None else n_out
     for task in tasks:
@@ -75,8 +78,8 @@ def check_folds(split, out=None, tasks=("tvs", "k1a", "noemo", "zone"), blocks=N
             check_pred(out / task / name / "test_pred.npz", ids, PRED_KEYS[task], n_out[task])
     for k in range(1, c.N_FOLDS + 1):
         r = c.roles(k)
-        check_oof(out / "tvs" / f"fold{k}" / "oof.npz", split.video_id[split.fold.isin(r["train"])].tolist(), n_out["tvs"])
-        coord = np.load(out / "tvs" / f"fold{k}" / "coordinates.npz")
+        check_oof(out / "stimulus" / f"fold{k}" / "oof.npz", split.video_id[split.fold.isin(r["train"])].tolist(), n_out["stimulus"])
+        coord = np.load(out / "stimulus" / f"fold{k}" / "coordinates.npz")
         k1a = np.load(out / "k1a" / f"fold{k}" / "coordinates.npz")
         for n in ("visual_mean", "visual_std", "caption_mean", "caption_std"):
             if not np.array_equal(coord[n], k1a[n]):
@@ -109,20 +112,78 @@ def check_runs(out, names, design_freeze=None, current=None):
     return seen
 
 
-def selection_table(out=None):
+def selection_table(out=None, tasks=ALL_TASKS):
+    """fold별 고른 epoch, rank r, weight decay, learning rate. 구역과 baseline 특징은 block, kind, feature 열로 구별한다."""
     out = c.OUT if out is None else out
     rows = []
-    for k in range(1, c.N_FOLDS + 1):
-        ch = _load(out / "tvs" / f"fold{k}")
-        for n, v in ch.items():
-            rows.append(dict(model="T_VS", fold=k, version=n, **v))
-        oof = json.loads((out / "tvs" / f"fold{k}" / "done.json").read_text())["oof_chosen"]
-        rows.append(dict(model="T_VS", fold=k, version="nested_oof", **oof))
-        for n, v in _load(out / "k1a" / f"fold{k}").items():
-            rows.append(dict(model="K1a", fold=k, version=n, **v))
+    if "stimulus" in tasks:
+        for k in range(1, c.N_FOLDS + 1):
+            for n, v in _load(out / "stimulus" / f"fold{k}").items():
+                rows.append(dict(model="Stimulus Model", fold=k, version=n, **v))
+            oof = json.loads((out / "stimulus" / f"fold{k}" / "done.json").read_text())["oof_chosen"]
+            rows.append(dict(model="Stimulus Model", fold=k, version="nested_oof", **oof))
+    if "k1a" in tasks:
+        for k in range(1, c.N_FOLDS + 1):
+            for n, v in _load(out / "k1a" / f"fold{k}").items():
+                rows.append(dict(model="K1a", fold=k, version=n, **v))
+    if "noemo" in tasks:
+        for k in range(1, c.N_FOLDS + 1):
+            rows.append(dict(model="noemo", fold=k, version="all_ranks", **_load(out / "noemo" / f"fold{k}")))
+    if "zone" in tasks:
+        for b in range(1, 6):
+            for k in range(1, c.N_FOLDS + 1):
+                for kind in ("excluded", "control"):
+                    rows.append(dict(model="zone", fold=k, version="all_ranks", block=b, kind=kind, **_load(out / "zone" / f"block{b}_fold{k}_{kind}")))
+    if "baseline" in tasks:
+        for m in c.BASELINE_FEATURES:
+            for k in range(1, c.N_FOLDS + 1):
+                rows.append(dict(model="baseline", fold=k, version="all_ranks", feature=m, **_load(out / "baseline" / f"{m}_fold{k}")))
     t = pd.DataFrame(rows)
     t["at_cap"] = t.epochs >= c.MAX_EPOCHS  # 탐색 범위의 끝이 선택됐다는 뜻이다. 그 뒤로 좋아지는지는 확인하지 않았다
     return t
+
+
+def check_d12(path, ids, n_blocks=40, n_caption=4096, n_lowlevel=6558):
+    """D12의 표, 차원별 R², block별 원래 척도 시험 예측. 없거나 크기가 다르면 멈춘다."""
+    t = pd.read_csv(path / "d12.tsv", sep="\t")
+    want = sorted((b, n) for b in range(1, n_blocks + 1) for n in ("caption", "lowlevel"))
+    if sorted(zip(t.block, t.target)) != want:
+        raise SystemExit(f"{path}: d12.tsv의 block과 목표가 다르다")
+    r2 = np.load(path / "d12_r2_per_dimension.npz")
+    sizes = dict(caption=n_caption, lowlevel=n_lowlevel)
+    for b in range(1, n_blocks + 1):
+        p = np.load(path / "predictions" / f"block{b:02d}.npz")
+        if p["video_id"].tolist() != list(ids):
+            raise SystemExit(f"{path}: block {b}의 시험 영상이 개발 영상과 다르다")
+        for n, q in sizes.items():
+            if r2[f"block{b}_{n}"].shape != (q,) or p[n].shape != (len(ids), q) or not np.isfinite(p[n]).all():
+                raise SystemExit(f"{path}: block {b}의 {n} 크기나 값이 잘못됐다")
+
+
+def check_noemo_ridge(path, ids, n_emotion=34, n_folds=c.N_FOLDS):
+    """정서어 제거판 ridge의 표와 예측, fold별 λ 번호."""
+    t = pd.read_csv(path / "noemo_ridge.tsv", sep="\t")
+    if sorted(t.caption.value_counts().to_dict().items()) != [("no_emotion_words", n_emotion), ("original", n_emotion)]:
+        raise SystemExit(f"{path}: noemo_ridge.tsv의 행이 다르다")
+    p = np.load(path / "noemo_ridge_pred.npz")
+    if p["video_id"].tolist() != list(ids):
+        raise SystemExit(f"{path}: 시험 영상이 개발 영상과 다르다")
+    for n in ("original", "no_emotion_words"):
+        if p[n].shape != (len(ids), n_emotion) or not np.isfinite(p[n]).all():
+            raise SystemExit(f"{path}: {n} 예측의 크기나 값이 잘못됐다")
+        for k in range(1, n_folds + 1):
+            if p[f"{n}_lambda_index_fold{k}"].shape != (n_emotion,):
+                raise SystemExit(f"{path}: {n}의 fold {k} λ 번호가 없다")
+
+
+def check_window_change(path, n_videos, n_blocks=4):
+    """창 사이 변화 표. 영벡터로 계산 불가인 값은 허용하고 그 건수가 요약에 있어야 한다."""
+    t = pd.read_csv(path / "window_change.tsv", sep="\t")
+    if len(t) != n_videos * n_blocks or t.video_id.nunique() != n_videos:
+        raise SystemExit(f"{path}: window_change.tsv의 행 수가 다르다")
+    s = pd.read_csv(path / "window_change_summary.tsv", sep="\t")
+    if len(s) != n_blocks or not {"n_valid", "n_not_computable"} <= set(s.columns):
+        raise SystemExit(f"{path}: 요약 표가 다르다")
 
 
 def pooled(out, task, expected, y, ids, key):
@@ -143,10 +204,14 @@ def pooled(out, task, expected, y, ids, key):
 def summaries(split, y_em, y_dim, em_cols, dim_cols, out=None, blocks=None):
     out = c.OUT if out is None else out
     ids = split.video_id.to_numpy()
-    folds = expected_tests(split, "tvs")
-    r, _ = pooled(out, "tvs", folds, y_em, ids, "p")
-    tvs = pd.DataFrame(dict(emotion=em_cols, r=r))
-    tvs["r_no_emotion_words"], _ = pooled(out, "noemo", folds, y_em, ids, "p")
+    folds = expected_tests(split, "stimulus")
+    r, _ = pooled(out, "stimulus", folds, y_em, ids, "p")
+    stim = pd.DataFrame(dict(emotion=em_cols, r=r))
+    for v in ("additive", "interaction"):
+        stim[f"r_{v}"], _ = pooled(out, "stimulus", folds, y_em, ids, f"{v}_p")
+    stim["r_no_emotion_words"], _ = pooled(out, "noemo", folds, y_em, ids, "p")
+    for m in c.BASELINE_FEATURES:
+        stim[f"r_baseline_{m}"], _ = pooled(out, "baseline", {f"{m}_fold{k}": folds[f"fold{k}"] for k in range(1, c.N_FOLDS + 1)}, y_em, ids, "p")
     k1a = pd.DataFrame(dict(dimension=dim_cols))
     for v in ("additive", "interaction"):
         k1a[f"r_{v}"], _ = pooled(out, "k1a", folds, y_dim, ids, f"{v}_score")
@@ -157,7 +222,7 @@ def summaries(split, y_em, y_dim, em_cols, dim_cols, out=None, blocks=None):
             want = {n: v for n, v in zone.items() if n.startswith(f"block{b}_") and n.endswith(kind)}
             r, n = pooled(out, "zone", want, y_em, ids, "p")
             z.append(pd.DataFrame(dict(block=b, kind=kind, emotion=em_cols, r=r, n_test=n)))
-    return tvs, k1a, pd.concat(z, ignore_index=True)
+    return stim, k1a, pd.concat(z, ignore_index=True)
 
 
 def main():
@@ -167,18 +232,23 @@ def main():
     c.guard(a.design_freeze)
     split = c.load_split()
     blocks = pd.read_csv(c.S2 / "content_blocks_assignment.tsv", sep="\t")
-    names = [f"{t}/{n}" for t in ("tvs", "k1a", "noemo", "zone") for n in expected_tests(split, t, blocks)]
+    names = [f"{t}/{n}" for t in ALL_TASKS for n in expected_tests(split, t, blocks)] + ["ridge_d12", "ridge_noemo", "window_change"]
     paths = c.role_paths()
     check_runs(c.OUT, names, a.design_freeze, current=lambda role: c.sha256(paths[role]))
     check_folds(split, blocks=blocks)
+    ids = split.video_id.tolist()
+    check_d12(c.OUT / "ridge_d12", ids)
+    check_noemo_ridge(c.OUT / "ridge_noemo", ids)
+    windows = np.load(c.FEATURES / "vjepa2/windows_per_video.npz")
+    check_window_change(c.OUT / "window_change", len(set(int(k[1:]) for k in windows.files) & set(ids)))
     MANIFEST.mkdir(parents=True, exist_ok=True)
     sel = selection_table()
     sel.to_csv(MANIFEST / "feature_model_selection.tsv", sep="\t", index=False, float_format="%.6g")
     y_em, em_cols = c.load_scores(split, "emotions")
     y_dim, dim_cols = c.load_scores(split, "dimensions")
-    tvs, k1a, zone = summaries(split, y_em, y_dim, em_cols, dim_cols, blocks=blocks)
+    stim, k1a, zone = summaries(split, y_em, y_dim, em_cols, dim_cols, blocks=blocks)
     (c.OUT / "summary").mkdir(exist_ok=True)
-    tvs.to_csv(c.OUT / "summary/feature_model_test_r.tsv", sep="\t", index=False, float_format="%.6g")
+    stim.to_csv(c.OUT / "summary/feature_model_test_r.tsv", sep="\t", index=False, float_format="%.6g")
     k1a.to_csv(c.OUT / "summary/k1a_test_r.tsv", sep="\t", index=False, float_format="%.6g")
     zone.to_csv(c.OUT / "summary/zone_test_r.tsv", sep="\t", index=False, float_format="%.6g")
     print(sel.to_string(index=False))

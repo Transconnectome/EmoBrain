@@ -323,6 +323,50 @@ def t_qc_rows():
     check("결정적 모드가 켜져 있다(O32)", torch.are_deterministic_algorithms_enabled())
 
 
+def t_identification_mean():
+    """O19는 모든 A를 평균한다. fold 크기가 다르면 fold 평균의 평균과 다르다."""
+    sizes = [30, 6, 6, 6, 6, 6]
+    fold = np.concatenate([np.full(s, i + 1) for i, s in enumerate(sizes)])
+    n = len(fold)
+    split = pd.DataFrame(dict(video_id=np.arange(1, n + 1), fold=fold))
+    g = np.random.default_rng(3)
+    y = g.normal(size=(n, 12)).astype(np.float32)
+    bad = g.normal(size=(6, 12)).astype(np.float32)
+    preds = {1: dict(video_id=split.video_id[fold == 1].to_numpy(), vjepa2_10=y[fold == 1]), 2: dict(video_id=split.video_id[fold == 2].to_numpy(), vjepa2_10=bad)}
+    m = col.layer_metrics(preds, {("vjepa2", 10): y}, split, "sub-01", split.video_id.tolist())
+    scores = []
+    for k in (1, 2):
+        dk = np.isin(fold, c.roles(k)["dk"])
+        mu, sd = y[dk].astype(np.float64).mean(0), y[dk].astype(np.float64).std(0)
+        scores.append(col.identification_scores((preds[k]["vjepa2_10"] - mu) / sd, (y[fold == k] - mu) / sd))
+    all_a = float(np.concatenate(scores).mean())
+    fold_mean = float(np.mean([s.mean() for s in scores]))
+    check("영상 식별은 모든 영상 A의 평균이다(O19)", abs(m.identification[0] - all_a) < 1e-12)
+    check("시험의 두 값이 실제로 다르다", abs(all_a - fold_mean) > 1e-3)
+    check("영상별 정확도의 평균이 identification과 같다", abs(col.identification(y[:8], y[:8]) - col.identification_scores(y[:8], y[:8]).mean()) < 1e-12)
+
+
+def t_without_h2020():
+    check("기본은 h2020이 필수다", "h2020" in col.participant_tasks())
+    check("명시하면 h2020을 뺀다", col.participant_tasks(["h2020"]) == ["ridge", "soft_bce", "signal"])
+    s = col.collection_status(["h2020"])
+    check("빠진 사실을 표에 적는다", not s[s.task == "h2020"].included.iloc[0] and s[s.task == "ridge"].included.iloc[0])
+    check("기본 표에는 빠진 과제가 없다", col.collection_status().included.all())
+
+
+def t_timing():
+    import time as _t
+    r = c.timing(_t.time() - 2)
+    check("실행 시간 기록에 시작 시각과 걸린 초가 있다", r["elapsed_seconds"] >= 2 and "T" in r["started_at"])
+    with tempfile.TemporaryDirectory() as td:
+        run = d5.Run(None, {})
+        out = Path(td) / "x"
+        b5.save(out, run, dict(video_id=np.array([1]), pred=np.zeros((1, 3))), _t.time(), participant="01", fold=1)
+        done = json.loads((out / "done.json").read_text())
+        check("기준선 결과의 done.json에 실행 시간이 있다", "started_at" in done and "elapsed_seconds" in done)
+        check("실행 시간은 실행 번호에 들어가지 않는다", d5.Run(None, {}).key == run.key and c.done_or_new(out, run.key))
+
+
 def t_collect():
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
@@ -408,7 +452,7 @@ def t_collect():
 
 
 def main():
-    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_layer_metrics, t_qc_rows, t_soft_bce, t_h2020, t_video_zone, t_boundaries, t_collect):
+    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_identification_mean, t_without_h2020, t_timing, t_layer_metrics, t_qc_rows, t_soft_bce, t_h2020, t_video_zone, t_boundaries, t_collect):
         f()
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)
