@@ -41,7 +41,7 @@
     - Brain → Emotion + Vision + Caption: Auxiliary feature decoding
     - Brain + Decoded Feature → Emotion: Decoded-feature readout
     - Brain + Decoded Feature → Emotion [distillation]: Decoded-feature readout + response-based distillation
-    - frozen head 비교(G16): frozen-head distillation
+    - Multimodal Model의 중간 표현 비교(G16, 01 5-A의 조건 6, 7): 조건 6은 frozen-head distillation, 조건 7은 head를 복사해 함께 학습
     - 5-6의 그림에는 이전 영어 이름이 남아 있다. 코드와 결과 폴더에는 1-1의 이름을 쓴다(M3).
 - 기호
     - s는 참가자다. 식 t(s, r)의 r은 ROI 번호다.
@@ -559,7 +559,7 @@
 
 ### S6. 뇌 모델 구현
 
-- 목적: 다섯 학습 조건, 더하기 head, 대조군, frozen-head distillation, 평균 pooling판, 외부 baseline을 같은 자료 경계에서 돌릴 수 있게 구현한다.
+- 목적: 다섯 학습 조건, 더하기 head, 대조군, 조건 6과 7(G16), 평균 pooling판, 외부 baseline을 같은 자료 경계에서 돌릴 수 있게 구현한다. 입력, 출력, loss는 01 5-A를 따른다.
 - 근거: 2-0 (가), 2-1, 2-2, 5-0, 5-2, 5-4, 5-5, 5-6, C4, C5, F3~F8, G1~G16, N4, N24, H2, M1
 - 입력: S2의 manifest, S3의 목표, S4의 nested OOF 출력, voxel 반응
 - 할 일
@@ -647,7 +647,8 @@
             - 검증 자료와 시험 자료는 섞지 않는다.
             - Stimulus Model 출력 섞기에도 같은 규칙을 쓴다.
             - 순열과 그 seed를 저장한다(M1).
-    - frozen-head distillation(G16). 보조 성능 비교다. 기본 run 분할에서만 한다.
+    - 조건 7은 조건 6과 같고, Multimodal Model의 head를 복사해 초기값으로 쓴 뒤 encoder와 함께 학습한다. Multimodal Model 원본은 고정한다.
+    - frozen-head distillation(G16, 조건 6). 보조 성능 비교다. 기본 run 분할에서만 한다.
         - teacher와 student의 구조, 후보, seed(O5)
             - teacher: 뇌 모델과 같은 입력층, encoder(F3), emotion query(F4)를 쓴다. 실제 시각 특징과 캡션 특징을 각각 선형층으로 d차원 token으로 바꿔 ROI token과 함께 encoder에 넣는다. 중간 표현은 emotion query 34개의 출력(34 × d, O26의 LayerNorm 뒤)이고, head는 정서별 선형층(d → 1)과 sigmoid다.
             - teacher 후보: d와 입력층 weight decay는 그 바깥 fold의 Brain → Emotion이 고른 값이다. 두 특징 선형층의 weight decay ∈ {1e-4, 1e-3, 1e-2}만 공통 검증 기준으로 고른다.
@@ -758,7 +759,7 @@
 | 본문 소계 | | 약 3,920회 |
 | baseline 특징(보조) | 624 | VideoMAE, TimeSformer, CLIP, MPNet 넷 × Brain + Decoded Feature → Emotion fold마다 26 × 6 |
 | 정서어 제거판(SI) | 156 | Brain + Decoded Feature → Emotion fold마다 26 × 6 |
-| frozen-head distillation(G16) | 약 60 | 7-L의 값. O5대로 fold마다 teacher 3 + 2, student 2 + 2로 54회 |
+| 조건 6, 7(G16) | 162 | 7-L의 값. fold마다 Multimodal Model 11, 조건 6과 7 각각 8 |
 | 평균 pooling판(F7, 보조) | 36 | O31: 2조건 × seed 3 × 6 fold |
 
 - 출력: 파일럿 기록(실행 시간, 메모리, 수렴), K와 후보값, 실행량 표, 실행 사양 동결 commit 해시
@@ -1255,6 +1256,7 @@
 | 결정과 코드(11/7 석진 님) | soft BCE 선형은 learning rate와 weight decay의 9개 조합에서 고른다(코드 반영, 시험 116개 통과). 길이와 저수준 기준선은 바깥 fold마다 공통 모델 하나다(O23). GPT 전체 검증은 끝났다는 확인이 없다. 지정 커밋의 Codex 코드 검토 통과와 다른 일이고, 설계 동결은 그 확인 뒤에 한다. 조건 이름 변경은 석진 님 확인 뒤에 한다 | G13, O23, O24, M5 | 2026-11-07 |
 | 조건 이름(11/7 석진 님) | 다섯 조건을 Brain → Emotion, Brain → Emotion [distillation], Brain → Emotion + Vision + Caption, Brain + Decoded Feature → Emotion, Brain + Decoded Feature → Emotion [distillation]로 부른다. 옛 이름은 직접 학습, 출력 distillation, 특징 맞히기 연습, 주 조건, 주 조건 + 출력 distillation이다. 01, 04, CLAUDE_EmoBrain을 바꿨고 02, 03은 동결 때 맞춘다. 코드 이름은 brain_only, brain_only_distill, brain_only_featdec, brain_decoded, brain_decoded_distill이다 | 1-1 | 2026-11-07 |
 | 용어(11/7 석진 님) | Stimulus Model(논문에서는 teacher), Stimulus 예측 평정, 사람 평정, 예측 평정으로 통일한다. 01, 04, CLAUDE_EmoBrain의 특징 모델, T_VS, teacher 점수, teacher 출력을 바꿨다. [distillation] 표시는 유지한다. 시각 특징, 캡션 특징, 정답, 정서 점수의 문서 전체 치환은 뜻을 행마다 봐야 해서 아직 하지 않았다. G16과 뇌를 받는 모델(T_BVS)의 teacher 표기도 남아 있다. S4 코드의 T_VS 이름은 다음 코드 수정 때 바꾼다 | 1-1 | 2026-11-07 |
+| 모델 정리(11/7 석진 님) | GPT가 정리한 모델과 학습 흐름을 01 5-A에 넣었다. 중심 모델은 Brain + Decoded Feature → Emotion이다. 조건 7을 더해 뇌 모델 학습 조건이 일곱이다. 입력이 Brain + Vision + Caption인 teacher를 Multimodal Model로 부른다. 01의 나머지 행에 남은 "다섯 조건"과 G16의 teacher 표기는 행마다 고칠 항목이다 | 5-A, G16, 7-L | 2026-11-07 |
 | 동결 때 02, 03에 맞출 것 | 11/5 갱신 규칙(CLAUDE_EmoBrain 5절)에 따라 미룬 항목이다. 14개 차원(B4, K1a), 8초 종료 규칙(정할 것 11), 정서 층화 분할(정할 것 12), MC 4회 평균의 상태, 03의 419행 5회 평균 문장(Codex 재검토), window 평균의 근거 문헌을 부록 1, 4와 references.bib에 넣는 일(Arnab 외 2021, Wang 외 2016, Korbar 외 2019, Feichtenhofer 외 2019, Wu 외 2019, Du 외 2023 등). 동결 전에 01과 차례로 대조한다 | CLAUDE_EmoBrain 5절 | 2026-11-05 |
 | 보류된 결정 1. 질문 2의 뒷부분 | 정함(11/6 석진 님): (가). 6-2의 Brain + Decoded Feature → Emotion 모델로 그 구역의 시험 영상에서도 바꿔 끼우기를 한다. 탐색 결과로 표시한다. 01의 6-2와 A4를 고쳤다. 짝 규칙과 학습량 대조 모델의 비교도 정했다(11/6). S2에 구역 안 짝 목록을, S9에 계산을 더해야 한다. 구역은 이름표 73개를 하나씩 뺀 것이 아니라 그 73개로 묶은 5개다. 구역 수 5개를 근거를 다시 확인하고 유지했고, 01 4-3의 이유와 논문 문장을 "blockCV 기본값 채택"에서 "영상 수와 학습 비용을 고려한 설계 선택"으로 고쳤다. 문헌 Shirakawa 외(2025)를 01 부록 1, 4에 더했고 references.bib는 동결 때 맞춘다 | 1-3, 6-2, A4 | 2026-11-06 |
 | 보류된 결정 2. 1-1의 주 검정 | 정함(11/6 석진 님): 01의 가설과 6-1을 지금대로 둔다. 정서별 두 경로의 효과와 차이를 보고하고, 정서 사이의 패턴은 결과를 두고 해석한다. 가설 검증과 결과 해석을 구분한다. 03 1.7.2의 문구는 동결 때 01에 맞춘다. Kragel 외(2019) 비교는 보조로 둔다 | 1-3, 6-1, 03 1.7.2 | 2026-11-06 |

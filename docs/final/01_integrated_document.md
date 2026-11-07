@@ -79,7 +79,7 @@
 | 뇌 모델 | brain-only emotion decoder | 시험 입력이 뇌뿐인 모델 | |
 | Stimulus Model(teacher, Vision + Caption → Emotion) | visual-caption emotion predictor | 시각 특징과 캡션 특징으로 정서를 예측하는 모델. Feature Extractor(V-JEPA 2, DeBERTa)와 구별. distillation 분야의 feature-based distillation과 헷갈리지 않게 고른 이름 | Gou 외 2021(지식 분류) |
 | 용어 통일(11/7 석진 님) | | 사람이 매긴 값은 평정(사람 평정), 모델이 낸 값은 예측 평정이다. Stimulus Model은 Vision + Caption → Emotion 모델이고 뇌를 받지 않는다. 이 문서와 04에서는 Stimulus Model이라고 쓰고, 논문에서는 teacher-student로 쓴다(Stimulus Model = teacher, Brain Model = student). 학습 목표는 뇌 모델이 학습 때 맞히려는 값이다. [distillation]은 학습 목표에 Stimulus 예측 평정을 섞는다는 표시다. 채점은 언제나 사람 평정으로 한다. 논문에서 사람 평정은 normative emotion ratings로 쓴다 | Hinton 2015, Lopez-Paz 2016 |
-| 조건 이름의 규칙 | | 11/7 석진 님이 정했다. 화살표 왼쪽은 Emotion 계산에 쓰는 재료이고 오른쪽은 Output이다. [distillation]은 학습 정답에 Stimulus 예측 평정를 섞는다는 표시이고 Input이 아니다. 시험 때 실제 입력은 다섯 조건 모두 Brain뿐이다. Decoded Feature는 뇌에서 계산한 값이고, 그 두 조건도 Vision과 Caption feature를 함께 맞히도록 학습한다 | |
+| 조건 이름의 규칙 | | 5-A가 일곱 조건의 입력, 출력, loss를 정리한다. 11/7 석진 님이 정했다. 화살표 왼쪽은 Emotion 계산에 쓰는 재료이고 오른쪽은 Output이다. [distillation]은 학습 정답에 Stimulus 예측 평정를 섞는다는 표시이고 Input이 아니다. 시험 때 실제 입력은 다섯 조건 모두 Brain뿐이다. Decoded Feature는 뇌에서 계산한 값이고, 그 두 조건도 Vision과 Caption feature를 함께 맞히도록 학습한다 | |
 | Brain → Emotion | Direct training | 정서 정답만으로 학습하는 조건 | |
 | Brain → Emotion [distillation] | Response-based distillation | teacher의 정서 예측 출력을 따라 학습. fMRI 논문에서 response를 뇌 반응으로 읽지 않게 처음에 정의 | Hinton 2015, Lopez-Paz 2016, Gou 외 2021 |
 | Brain → Emotion + Vision + Caption | Auxiliary feature decoding | feature decoding을 보조 목표로 더하는 조건 | Caruana 1997, Horikawa & Kamitani 2017 |
@@ -722,6 +722,258 @@
 
 ## 5단계. 모델 [정함, 11/3]
 
+### 5-A. 모델과 학습 흐름 한눈에 [정함, 11/7 석진 님. GPT 정리를 이 문서의 용어로 옮김]
+
+전체 구성은 핵심 학습 조건 5개와 보조 비교 2개로, 뇌 모델 학습 조건 7개다. 입력이 다른 모델 두 개(Stimulus Model, Multimodal Model)를 별도로 쓴다. 이 7개에는 더하기 head와 상호작용 head의 비교, baseline, 대조군, fold와 seed별 반복 학습을 넣지 않았다.
+
+#### 1부. 모델 설명
+
+**A. 뇌로 Emotion만 예측하는 구조**
+
+```text
+Brain → Encoder → Emotion Head → Emotion
+```
+
+이 구조에는 조건 1과 조건 4가 있다.
+
+**조건 1. Brain → Emotion**
+
+- Input: Brain
+- Output: Emotion
+- 학습 목표: 사람 평정
+
+```text
+L = L_emotion
+```
+
+L_emotion의 backpropagation으로 encoder와 emotion head를 모두 학습한다. 이 조건이 모든 비교의 출발점이다.
+
+**조건 4. Brain → Emotion [distillation]**
+
+구조는 조건 1과 같고 학습 목표가 추가된다. 먼저 Vision feature와 Caption feature로 Emotion을 예측하는 Stimulus Model을 학습한다.
+
+```text
+Vision + Caption → Stimulus Model → Emotion
+```
+
+그다음 Brain Model을 학습한다. 논문에서는 Stimulus Model을 teacher, Brain Model을 student라고 부른다.
+
+```text
+Brain → Encoder → Emotion Head → Emotion
+
+예측 평정 ├→ 사람 평정과 비교
+          └→ Stimulus 예측 평정과 비교
+```
+
+```text
+L = (1 − α) × L_emotion + α × L_distillation
+```
+
+- L_emotion: 예측 평정과 사람 평정 사이의 soft BCE
+- L_distillation: 예측 평정과 Stimulus 예측 평정 사이의 soft BCE
+- α: 두 목표를 얼마나 반영할지 정하는 비중
+
+이 식은 G7의 soft BCE(p, (1 − α) y + α t)와 값이 같다. soft BCE가 정답에 대해 선형이기 때문이다.
+
+Stimulus Model에서 가져오는 것은 Stimulus 예측 평정이다. encoder나 head의 가중치를 가져오지 않는다. Brain Model은 자기 encoder와 head를 학습하고, 시험 때는 Stimulus Model 없이 Brain으로 예측한다.
+
+**B. 뇌로 Emotion과 두 feature를 함께 예측하는 구조**
+
+```text
+                        ┌→ Emotion Head → Emotion
+Brain → 공유 Encoder ───┼→ Vision Head → Decoded Vision
+                        └→ Caption Head → Decoded Caption
+```
+
+**조건 2. Brain → Emotion + Vision + Caption**
+
+- Input: Brain
+- Output: Emotion, Decoded Vision, Decoded Caption
+- 학습 목표: 사람 평정, Vision feature, Caption feature
+
+```text
+L = L_emotion + λ × L_feature
+L_feature = (MSE(Decoded Vision, Vision feature) + MSE(Decoded Caption, Caption feature)) / 2
+```
+
+예측한 두 feature는 Emotion 계산에 넣지 않는다.
+
+```text
+Decoded Vision  → 여기서 끝
+Decoded Caption → 여기서 끝
+```
+
+그래도 feature를 예측시키는 이유는 세 출력을 만드는 앞쪽 encoder를 공유하기 때문이다. L_feature도 공유 encoder를 학습시키므로, Emotion 예측에 쓰는 뇌 표현이 달라질 수 있다. 조건 1과 비교해서 확인하는 것은 "Vision과 Caption을 함께 예측하도록 학습시키는 것만으로 Emotion 예측이 달라지는가"다.
+
+**C. 뇌에서 예측한 feature를 Emotion 계산에도 쓰는 구조**
+
+```text
+Brain → 공유 Encoder ─────────────────────┐
+                    ├→ Decoded Vision ────┼→ Emotion Head → Emotion
+                    └→ Decoded Caption ───┘
+```
+
+**조건 3. Brain + Decoded Feature → Emotion (중심 모델)**
+
+- Input: Brain
+- Emotion 계산에 쓰는 것: encoder에서 바로 오는 뇌 정보, Decoded Vision, Decoded Caption
+- 학습 목표: 사람 평정, Vision feature, Caption feature
+
+```text
+L = L_emotion + λ × L_feature
+```
+
+조건 2와 loss 종류는 같다. 달라지는 것은 예측한 feature를 Emotion 계산에 연결한다는 점이다.
+
+| 비교 | 조건 2 | 조건 3 |
+| --- | --- | --- |
+| Vision과 Caption을 예측하나 | 예 | 예 |
+| 예측한 feature를 Emotion Head가 읽나 | 아니오 | 예 |
+| 학습 후 Decoded Caption 값만 바꾸면 | 예측 평정이 바뀌지 않음 | 예측 평정이 바뀔 수 있음 |
+
+직접 뇌 경로를 남겨 두는 이유는 Emotion 예측 전체가 두 feature의 예측 정확도에만 묶이지 않도록 하기 위해서다. feature를 불완전하게 예측하더라도 뇌에서 Emotion을 직접 예측하는 길을 유지한다. 직접 뇌 경로와 두 feature 경로는 학습, 검증, 시험에서 모두 쓴다.
+
+Emotion Head에 넣는 decoded features에는 stop-gradient를 적용한다(G8). Emotion Head는 그 값을 읽지만, L_emotion이 그 연결을 거슬러 올라가 feature 예측 부분을 고치는 것은 막는다.
+
+**조건 5. Brain + Decoded Feature → Emotion [distillation]**
+
+구조와 stop-gradient는 조건 3 그대로이고, 조건 4와 같은 Stimulus 예측 평정을 학습 목표에 더한다.
+
+```text
+L = (1 − α) × L_emotion + α × L_distillation + λ × L_feature
+```
+
+| 비교 | 조건 4 | 조건 5 |
+| --- | --- | --- |
+| 구조 | 조건 1의 구조 | 중심 모델의 구조 |
+| 사람 평정을 맞히나 | 예 | 예 |
+| Stimulus 예측 평정도 따라 배우나 | 예 | 예 |
+| Vision과 Caption도 예측하고 쓰나 | 아니오 | 예 |
+
+Stimulus Model을 참고하는 방법은 같고 Brain Model의 구조가 다르다.
+
+**D. Multimodal Model의 중간 표현을 배우는 구조 (보조 비교, G16)**
+
+```text
+Brain → Encoder → 중간 표현 → Head → Emotion
+```
+
+공통 준비로 Multimodal Model을 학습한다. 조건 4, 5의 Stimulus Model과 달리 Brain도 입력으로 받는다.
+
+```text
+Brain + Vision + Caption → Multimodal Encoder → 중간 표현 → Emotion Head → Emotion
+```
+
+사람 평정을 맞히도록 L_emotion으로 학습하고, 학습이 끝나면 고정한다. Brain Model은 다음 두 목표로 학습한다. Multimodal Model의 중간 표현과 비슷한 표현을 만들 것, 그 표현으로 사람 평정을 잘 맞힐 것.
+
+```text
+L = L_emotion + λ × L_representation
+```
+
+L_representation은 Multimodal Model과 Brain Model의 중간 표현 사이의 MSE다.
+
+**조건 6. Brain → Emotion [representation, frozen head]**
+
+```text
+Brain → Encoder → 중간 표현 → Multimodal Model에서 가져온 Head → Emotion
+        학습                              고정
+```
+
+encoder를 학습하고 가져온 head의 가중치는 바꾸지 않는다. L_emotion은 고정된 head를 통과해 encoder를 학습시킨다.
+
+**조건 7. Brain → Emotion [representation, trained head]**
+
+```text
+Brain → Encoder → 중간 표현 → Multimodal Model에서 복사한 Head → Emotion
+        학습                              학습
+```
+
+Multimodal Model의 head를 복사해 초기값으로 쓰고 encoder와 head를 함께 학습한다. Multimodal Model 원본은 계속 고정한다. Chen 외(2022)는 head를 고정해 재사용하는 방법이므로, 조건 7은 조건 6과 비교하려고 둔 우리 설계다.
+
+조건 6과 7은 Multimodal Model, 구조, 자료 분할, 학습 목표와 설정 선택 규칙을 맞추고 비교한다. 시험 때는 Brain → 학습된 encoder → 학습이 끝난 head → Emotion으로 예측한다. encoder와 head를 업데이트하지 않고, Multimodal encoder를 실행하거나 Vision과 Caption을 넣을 필요가 없다.
+
+**모델 요약**
+
+| 조건 | 이름 | 학습 목표 | 지위 |
+| --- | --- | --- | --- |
+| 1 | Brain → Emotion | 사람 평정 | 핵심 |
+| 2 | Brain → Emotion + Vision + Caption | 사람 평정, Vision과 Caption feature | 핵심 |
+| 3 | **Brain + Decoded Feature → Emotion** | 사람 평정, Vision과 Caption feature | **중심 모델** |
+| 4 | Brain → Emotion [distillation] | 사람 평정, Stimulus 예측 평정 | 핵심 |
+| 5 | Brain + Decoded Feature → Emotion [distillation] | 사람 평정, Stimulus 예측 평정, Vision과 Caption feature | 핵심 |
+| 6 | Brain → Emotion [representation, frozen head] | 사람 평정, Multimodal Model의 중간 표현 | 보조 |
+| 7 | Brain → Emotion [representation, trained head] | 사람 평정, Multimodal Model의 중간 표현 | 보조 |
+
+조건 6, 7은 기본 분할에서 하는 보조 성능 비교다. 두 결과를 모두 기록하고, 결과를 본 뒤 더하는 분석은 탐색적 분석으로 구분한다.
+
+#### 2부. 학습과 평가 순서
+
+Stimulus Model과 Brain Model의 구분(teacher와 student)과 train, validation, test의 구분은 다르다. Stimulus Model도 학습하고 Brain Model도 학습한다.
+
+Stimulus Model을 쓰는 조건의 진행 순서는 다음과 같다.
+
+```text
+① 학습 자료로 Stimulus Model 학습
+② Stimulus Model을 고정하고 Stimulus 예측 평정을 학습 목표로 제공
+③ 학습 자료로 Brain Model 학습
+④ validation으로 Brain Model의 설정과 학습 시점 선택
+⑤ test에서 선택이 끝난 Brain Model 평가
+```
+
+| 단계 | 하는 일 | 가중치 업데이트 |
+| --- | --- | --- |
+| Stimulus Model 학습 | 사람 평정을 맞히도록 학습 | Stimulus Model |
+| Brain Model 학습 | 사람 평정과 Stimulus 예측 평정을 사용 | Brain Model만. Stimulus Model은 고정 |
+| Brain Model 검증 | 설정과 학습을 멈출 시점 선택 | 없음 |
+| Brain Model 시험 | 최종 성능 평가 | 없음 |
+
+inference는 가중치를 바꾸지 않고 예측을 계산하는 것이고, 검증과 시험에서 모두 한다.
+
+실제 Stimulus Model 학습과 목표 생성에는 기존 자료 경계 규칙을 적용한다. 학습용 Stimulus 예측 평정은 그 영상을 가중치 학습에 쓰지 않은 Stimulus Model의 예측이다(E4). 위 그림은 역할을 설명한 것이고 분할 규칙을 바꾸지 않는다.
+
+입력이 다른 모델은 두 종류다.
+
+| 쓰는 조건 | 모델 | Input | Brain Model이 따라 배우는 것 | head 재사용 |
+| --- | --- | --- | --- | --- |
+| 4, 5 | Stimulus Model | Vision + Caption | Stimulus 예측 평정 | 하지 않음 |
+| 6, 7 | Multimodal Model | Brain + Vision + Caption | Emotion Head 직전의 중간 표현 | 고정해서 쓰거나 복사한 뒤 학습 |
+
+#### 3부. 헷갈리기 쉬운 개념
+
+**Loss, 모델 가중치, 학습 목표는 다르다.**
+
+| 용어 | 무엇인가 |
+| --- | --- |
+| 모델 가중치 | encoder와 head 안에서 학습되는 값 |
+| loss | 예측이 학습 목표와 얼마나 다른지 계산한 값 |
+| loss weight(α, λ) | 여러 loss를 얼마나 반영할지 정하는 비중 |
+| Stimulus 예측 평정, 중간 표현 | Brain Model이 따라 배울 학습 목표 |
+
+조건 4, 5에서는 Stimulus Model의 예측값을 전달한다. Stimulus Model의 loss나 가중치를 Brain Model에 넣는 것이 아니다.
+
+**Stop-gradient와 head 고정은 다르다.**
+
+중심 모델의 각 부분이 받는 학습 신호는 다음과 같다.
+
+| 부분 | 받는 학습 신호 |
+| --- | --- |
+| 공유 encoder | 직접 뇌 경로의 L_emotion, L_feature |
+| Vision Head, Caption Head | L_feature |
+| Emotion Head | L_emotion |
+
+조건 5에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder는 L_emotion도 받으므로 feature 예측이 emotion 학습의 영향을 완전히 받지 않는다는 뜻은 아니다.
+
+| 방식 | 가중치 업데이트 | 앞쪽으로 gradient 전달 |
+| --- | --- | --- |
+| head 고정 | head 가중치를 바꾸지 않음 | head를 통과해 encoder까지 전달 |
+| stop-gradient | 그 연결을 통한 업데이트 차단 | 그 지점에서 전달을 막음 |
+
+**중간 표현은 별도 모델이 아니다.** encoder가 입력을 처리해서 만든, head 직전의 출력값이다. encoder의 가중치는 학습으로 정해지고, 중간 표현은 그 가중치로 입력을 처리할 때마다 계산된다. 입력이 달라지면 중간 표현도 달라진다. Brain Model의 중간 표현도 뇌를 처리해서 만든 값이고, 외부에서 추가로 넣는 자료가 아니다.
+
+**Multimodal encoder나 중간 표현을 그대로 쓸 수 없는 이유.** Multimodal Model은 Brain + Vision + Caption → 중간 표현의 계산을 학습한다. encoder를 복사한다고 해서 Vision과 Caption의 역할이 자동으로 Brain으로 옮겨지지 않는다. 그래서 Brain Model이 그 중간 표현을 맞히도록 학습한다. 결합된 중간 표현에는 Vision과 Caption을 각각 바꿔 끼울 자리가 따로 없다. 따라서 조건 6, 7의 성능이 좋더라도 중심 모델의 Vision 경로와 Caption 경로 분석을 그대로 적용할 수 없다.
+
+**모든 조건에서 시험 입력은 Brain뿐이다.** 시험 때 실제 Vision feature와 Caption feature를 넣지 않고, Stimulus Model이나 Multimodal encoder를 실행하지 않는다. 조건 6, 7은 가져온 head만 쓴다. 실제 feature와 사람 평정을 채점에 쓰는 것과 모델 입력으로 넣는 것은 구분한다.
+
 ### 5-0. 주 설계와 teacher [정함, 11/1. 11/2 보완 후 확정]
 
 | 결정 | 적용 또는 보완 | 선행 연구가 확인한 것 | 우리 질문에 더 필요한 것 | 우리 방법과 확인하는 범위 | 근거 |
@@ -1236,7 +1488,7 @@ teacher는 5-0에서 시각 특징과 캡션 특징만 받는 Stimulus Model(Sti
 | G13 | 최적화 기본값 | AdamW, batch 64, 최대 300 epoch, 안쪽 검증의 정서 soft BCE 기준 patience 30. learning rate는 모든 조건에서 {1e-4, 1e-3, 1e-2}를 후보로 넣어 H2의 검증 fold에서 고른다. weight decay는 입력층 weight는 d와 함께 후보에서 고르고(5-5), 나머지 linear와 attention의 weight, query, ROI embedding은 0.01이며, bias와 LayerNorm에는 적용하지 않는다 [정함, 11/7 석진 님] | weight decay의 범위는 BERT 공식 구현의 제외 목록(LayerNorm, bias)과 Goodfellow 외(2016, 7.1절)를 따른다. 기본 수준과 표현의 크기를 조절하는 값에 불필요한 제약을 주지 않으려는 선택이고, 우리 자료에서 성능이 나아진다는 근거는 아니다. 0.01은 PyTorch AdamW의 기본값이고 우리 자료의 최적값이라는 근거는 없다. Goodfellow 외(2016, 11.4절)가 learning rate를 가장 중요한 hyperparameter로 꼽는다. 조건마다 고르므로 조건 사이 비교에 한쪽 조건의 값을 강요하지 않는다. S7의 실행 시간 측정으로 실행 예산을 넘으면, Brain → Emotion에서 고른 값을 다른 조건이 따르는 판으로 줄이고 본 실행 전에 확정한다. 이 판단에 성능을 쓰지 않는다. 나머지 값은 처음 정하는 값으로 근거가 약하다. 첫 fold의 안쪽 자료는 수렴 확인에만 쓰고 값을 고르지 않는다. 그 자료는 다른 fold의 시험 영상이기 때문이다 | 정함 |
 | G14 | seed | 3개(0, 1, 2). 점수는 seed마다 내고 평균, 표준편차도 보고 | seed 예측을 평균해 점수를 내면(앙상블) 조건별 성능이 부풀려짐. seed의 표준편차는 학습 반복의 변동이고 bootstrap 구간과 따로 보고(6-1). 설정 선택의 seed는 L9 | 정함 |
 | G15 | 배치 구성 | 한 행 = 참가자 한 명의 영상 하나. 5명의 행을 섞어 배치 | 2-0에서 (가)를 고를 때만 해당 | 대체(2-0) |
-| G16 | 멀티모달 teacher의 frozen head를 쓰는 뇌 단독 student 비교(사용자 11/3 제기, GPT 11/3 포함 권고) | 넣는다(11/3 사용자). 보조 성능 비교 하나로, 기본 run 분할에서만. Brain + Decoded Feature → Emotion은 유지. 비교는 Brain → Emotion, Brain + Decoded Feature → Emotion, 이 student 셋이고 시험 입력은 모두 뇌뿐. teacher는 뇌 + 시각 특징 + 캡션 특징을 받아 중간 표현과 emotion head를 정서 정답(soft BCE)으로 학습한 뒤 고정한다. student는 뇌만 받고, 손실 = 정서 정답의 soft BCE + λ × teacher의 head 직전 중간 표현과의 MSE(표현은 학습 자료로 차원마다 표준화). teacher와 재사용하는 head의 가중치는 고정하고 student만 학습한다(같은 d라 연결층 없음, 7-O의 O5). 정서 손실은 고정된 head를 거쳐 student까지 전달된다(Brain + Decoded Feature → Emotion의 stop-gradient와 다름). teacher의 정서 출력을 따라 하는 손실은 넣지 않는다. λ 후보는 {0.1, 1.0}(G9). 자료: teacher와 student 모두 같은 학습 fold 4개로 가중치를 학습하고, 검증 fold는 설정 선택과 조기 종료에만, 시험 fold는 평가에만 쓴다. teacher를 5개 fold 전체로 학습하지 않는다(고정된 head가 검증 영상의 정답을 이미 보게 됨). 각 학습 실행에서 teacher 하나를 고정해 그 표현만 목표로 쓰고, 서로 다른 teacher의 표현을 섞지 않는다. 뇌 표현 복사 대조는 넣지 않고 결과는 학습 방식 전체의 차이로만 쓴다. teacher의 시험 성능은 참고로만 보고하고, 그것으로 뇌 입력의 추가 효과나 실제 사용을 검증했다고 쓰지 않는다. 내용 구역 제외, MC, 네트워크 분석, 대조군으로 넓히지 않는다. 실행은 핵심 분석 다음 순서로 두되, 실행 시간을 측정한 뒤(N34) 우선순위를 정하고, 실행하지 못하면 미실행으로 기록한다. 자동으로 빼는 규칙은 두지 않는다 | 묻는 것: 장면 정보를 쓰는 두 방식(외부 특징을 각각 decoding해 읽게 하기 대 세 입력으로 배운 표현과 head를 옮기기) 가운데 어느 쪽이 뇌 단독 예측에 유리한가. 질문 2와 5-1의 "우회하는 경로가 효과적인가"에 자료로 답한다. Brain + Decoded Feature → Emotion을 둔 이유가 성능이 아니므로(5-1) 결과가 어떻든 Brain + Decoded Feature → Emotion을 바꾸지 않는다. 선례: SimKD(Chen 외 2022, CVPR)는 student가 teacher의 classifier 직전 표현을 ℓ2로 맞히는 손실 하나만 쓰고 classifier를 고정해 재사용한다(§3.2, 11/3 확인). 우리 안은 정서 정답을 직접 지도하도록 손실을 더한 변경이다(GPT 11/3). 11/1에 미룬 이유(0절, 1-3의 관점 B, 5-0): 세 입력을 섞은 표현에서는 어느 입력의 정보를 썼는지 나눌 수 없어 질문 1의 출처별 분석에 쓸 수 없고, 같은 정보가 겹치면 어느 입력에서 가져갈지가 학습에 달려 있으며(Wang 외 2020, Peng 외 2022), teacher가 뇌를 거의 쓰지 않을 수 있다. 이번 안은 질문 1의 해석에 쓰지 않는 성능 비교라 이 이유와 부딪히지 않는다. 그래서 0절, 5-0, 5-2를 11/3에 고쳤고, 프로젝트 지침(뇌까지 받는 teacher는 확인용으로만)은 석진 님이 고친다(N37). 학습: teacher와 student 각각 fold마다 후보 약 3 + seed 2라 약 60회 | 정함 |
+| G16 | Multimodal Model의 중간 표현을 배우는 뇌 단독 student 비교(조건 6, 7. 사용자 11/3 제기, GPT 11/3 포함 권고) | 조건 7(head를 복사해 함께 학습)을 11/7 석진 님이 더했다. 조건 6과 Multimodal Model, 구조, 자료 분할, 학습 목표, 설정 선택 규칙이 같고 head 고정 여부만 다르다. 아래는 조건 6의 설명이고 조건 7은 head를 고정하지 않는다. 넣는다(11/3 사용자). 보조 성능 비교 하나로, 기본 run 분할에서만. Brain + Decoded Feature → Emotion은 유지. 비교는 Brain → Emotion, Brain + Decoded Feature → Emotion, 이 student 셋이고 시험 입력은 모두 뇌뿐. teacher는 뇌 + 시각 특징 + 캡션 특징을 받아 중간 표현과 emotion head를 정서 정답(soft BCE)으로 학습한 뒤 고정한다. student는 뇌만 받고, 손실 = 정서 정답의 soft BCE + λ × teacher의 head 직전 중간 표현과의 MSE(표현은 학습 자료로 차원마다 표준화). teacher와 재사용하는 head의 가중치는 고정하고 student만 학습한다(같은 d라 연결층 없음, 7-O의 O5). 정서 손실은 고정된 head를 거쳐 student까지 전달된다(Brain + Decoded Feature → Emotion의 stop-gradient와 다름). teacher의 정서 출력을 따라 하는 손실은 넣지 않는다. λ 후보는 {0.1, 1.0}(G9). 자료: teacher와 student 모두 같은 학습 fold 4개로 가중치를 학습하고, 검증 fold는 설정 선택과 조기 종료에만, 시험 fold는 평가에만 쓴다. teacher를 5개 fold 전체로 학습하지 않는다(고정된 head가 검증 영상의 정답을 이미 보게 됨). 각 학습 실행에서 teacher 하나를 고정해 그 표현만 목표로 쓰고, 서로 다른 teacher의 표현을 섞지 않는다. 뇌 표현 복사 대조는 넣지 않고 결과는 학습 방식 전체의 차이로만 쓴다. teacher의 시험 성능은 참고로만 보고하고, 그것으로 뇌 입력의 추가 효과나 실제 사용을 검증했다고 쓰지 않는다. 내용 구역 제외, MC, 네트워크 분석, 대조군으로 넓히지 않는다. 실행은 핵심 분석 다음 순서로 두되, 실행 시간을 측정한 뒤(N34) 우선순위를 정하고, 실행하지 못하면 미실행으로 기록한다. 자동으로 빼는 규칙은 두지 않는다 | 묻는 것: 장면 정보를 쓰는 두 방식(외부 특징을 각각 decoding해 읽게 하기 대 세 입력으로 배운 표현과 head를 옮기기) 가운데 어느 쪽이 뇌 단독 예측에 유리한가. 질문 2와 5-1의 "우회하는 경로가 효과적인가"에 자료로 답한다. Brain + Decoded Feature → Emotion을 둔 이유가 성능이 아니므로(5-1) 결과가 어떻든 Brain + Decoded Feature → Emotion을 바꾸지 않는다. 선례: SimKD(Chen 외 2022, CVPR)는 student가 teacher의 classifier 직전 표현을 ℓ2로 맞히는 손실 하나만 쓰고 classifier를 고정해 재사용한다(§3.2, 11/3 확인). 우리 안은 정서 정답을 직접 지도하도록 손실을 더한 변경이다(GPT 11/3). 11/1에 미룬 이유(0절, 1-3의 관점 B, 5-0): 세 입력을 섞은 표현에서는 어느 입력의 정보를 썼는지 나눌 수 없어 질문 1의 출처별 분석에 쓸 수 없고, 같은 정보가 겹치면 어느 입력에서 가져갈지가 학습에 달려 있으며(Wang 외 2020, Peng 외 2022), teacher가 뇌를 거의 쓰지 않을 수 있다. 이번 안은 질문 1의 해석에 쓰지 않는 성능 비교라 이 이유와 부딪히지 않는다. 그래서 0절, 5-0, 5-2를 11/3에 고쳤고, 프로젝트 지침(뇌까지 받는 teacher는 확인용으로만)은 석진 님이 고친다(N37). 학습: teacher와 student 각각 fold마다 후보 약 3 + seed 2라 약 60회 | 정함 |
 
 ### 7-H. 분할과 설정 선택
 분할은 2-0에서, 뇌 모델의 설정 선택은 H2(11/3)에서 정했다. 남은 것은 Stimulus Model과 ridge의 선택 규칙(H3)이다.
@@ -1324,7 +1576,7 @@ teacher는 5-0에서 시각 특징과 캡션 특징만 받는 Stimulus Model(Sti
 | baseline 특징(3-1, 3-3, 보조) | 624 | VideoMAE, TimeSformer, CLIP, MPNet 넷 × Brain + Decoded Feature → Emotion fold마다 26 × 6. Stimulus Model은 뇌 모델이 아니라 빠짐 |
 | 정서어 제거판(3-4, SI) | 156 | Brain + Decoded Feature → Emotion fold마다 26 × 6 |
 | 특징만 학습한 모델(K1, 필수 실행 범위 밖) | 24 | fold마다 후보 2 + seed 2 |
-| 멀티모달 teacher의 frozen head 비교(G16) | 약 60 | teacher와 student 각각 fold마다 후보 약 3 + seed 2. 뇌 표현 복사 대조는 넣지 않음 |
+| Multimodal Model의 중간 표현 비교(G16, 조건 6, 7) | 162 | fold마다 Multimodal Model 11(후보 3 × learning rate 3 + seed 2), 조건 6과 7 각각 8(λ 2 × learning rate 3 + seed 2) × 6 fold. 뇌 표현 복사 대조는 넣지 않음 |
 
 - 가장 큰 묶음은 처음 보는 장면(6-2)이다. 구역마다 설정을 다시 고르기 때문이다(4-3의 규칙: 빠진 구역은 설정 선택에도 쓰지 않음). 시간이 모자라면 L3의 순서로 줄이고, 이 규칙은 바꾸지 않는다.
 - 복셀 압축 비교는 0회다(5-5, 11/3에 뺌). 저장된 모델로 하는 분석(바꿔 끼우기, 쌍 비교, 교란, 경로 평가)은 학습을 더하지 않는다.
