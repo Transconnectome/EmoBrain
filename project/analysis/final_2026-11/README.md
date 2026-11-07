@@ -15,7 +15,7 @@
 | `s1_subcortex_rebuild.py`, `.sh` | S1 | 피질하 10개를 PickAtlas에서 11명 모두 새로 만들어 저자 공개 mask, aseg와 위치로 비교한다(04 정할 것 5, 7). 뇌 반응은 읽지 않는다 (CPU, 3명씩 병렬, 약 12분, 결과 `project/output/final_2026-11/s1_subcortex_rebuild/`) | `manifests/subcortex_rebuild_check.tsv` |
 | `s1_subcortex_size_check.py`, `.sh` | S1 | 저자 피질하 mask가 새 mask보다 큰 이유가 경계 처리인지 선형 보간 문턱별로 잰다. 뇌 반응은 읽지 않는다 (CPU, 약 2분) | `manifests/subcortex_size_check.tsv` |
 | `s1_roi_final_check.py`, `.sh` | S1 | 제안한 ROI 370개를 실제로 묶어 열 번호 연결, 공통 ROI, 겹침, 시상하부와 BA34 위치, 등록 이상을 점검한다 (CPU, 약 1분) | `manifests/roi_final_check.tsv` |
-| `s2_manifest.py`, `.sh` | S2 | 분할(v1 + 1363 이동), 세션 검사, 내용 구역, 학습량 대조 표본, 이름표 짝, ROI별 voxel 열 번호, CAB-NP 13묶음, MC 표, HK 일치도와 반복 신뢰도, 열 순서 점검, 확인 기준 검사 (`--stage split, blocks, pairs, roi, mc, brain, order, check`, CPU, 약 10분) | `manifests/s2/`, `project/output/final_2026-11/s2_manifest/` |
+| `s2_manifest.py`, `.sh` | S2 | 분할(hk_dev_rungroup6_v4), 세션 검사, 내용 구역, 학습량 대조 표본, 이름표 짝, ROI별 voxel 열 번호, CAB-NP 13묶음, MC 표, HK 일치도와 반복 신뢰도, 열 순서 점검, 확인 기준 검사 (`--stage split, blocks, pairs, roi, mc, brain, order, check`, CPU, 약 10분) | `manifests/s2/`, `project/output/final_2026-11/s2_manifest/` |
 
 `manifests/`의 작은 표는 다음 단계(S2 manifest)의 입력이라 git에 넣는다. 큰 산출물은 `project/output/` 아래에 둔다(M3).
 | `s3_common.py`, `s3_vision.py`, `.sh` | S3 | 참가자가 본 영상을 재현해 V-JEPA 2, VideoMAE, TimeSformer, CLIP 특징을 뽑는다 (GPU, 끊기면 이어서) | `project/output/final_2026-11/s3_features/<모델>/` |
