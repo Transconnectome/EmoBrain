@@ -80,8 +80,8 @@ def check_baseline(out, task, name, expected, n_emotion=34, n_dimension=14, n_ro
         check_array(t, "mean_prediction", (n_emotion,), path, 0, 1.000001)
     elif task == "soft_bce":
         t = check_pred(path, expected, dict(pred=n_emotion))
-        if len(pd.read_csv(Path(out) / task / name / "selection.tsv", sep="\t")) != len(d5.SOFT_BCE_DECAYS):
-            raise SystemExit(f"{path}: weight decay 후보 표가 맞지 않다")
+        if len(pd.read_csv(Path(out) / task / name / "selection.tsv", sep="\t")) != len(d5.SOFT_BCE_DECAYS) * len(d5.SOFT_BCE_LRS):
+            raise SystemExit(f"{path}: weight decay와 learning rate 후보 표가 맞지 않다")
     elif task in ("signal", "video", "zone"):
         t = check_pred(path, expected, dict(pred=n_emotion))
         check_array(t, "lambda_index", (n_emotion,), path, 0, n, integer=True)

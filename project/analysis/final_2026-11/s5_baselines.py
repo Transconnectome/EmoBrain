@@ -44,12 +44,12 @@ def make_optimizer(model, lr, wd):
     return torch.optim.AdamW([dict(params=[model.weight], weight_decay=wd), dict(params=[model.bias], weight_decay=0.0)], lr=lr)
 
 
-def soft_bce_train(ztr, ytr, zva, yva, wd, settings, device):
+def soft_bce_train(ztr, ytr, zva, yva, wd, lr, settings, device):
     """조기 종료는 검증 soft BCE, 가장 낮았던 epoch의 가중치로 되돌린다(G13, O6)."""
     torch.manual_seed(settings["seed"])
     g = torch.Generator().manual_seed(settings["seed"])
     model = torch.nn.Linear(ztr.shape[1], ytr.shape[1]).to(device)
-    opt = make_optimizer(model, settings["lr"], wd)
+    opt = make_optimizer(model, lr, wd)
     best, best_state, best_score, best_epoch, wait = float("inf"), None, None, 0, 0
     for epoch in range(1, settings["max_epochs"] + 1):
         model.train()
@@ -79,7 +79,7 @@ def soft_bce_train(ztr, ytr, zva, yva, wd, settings, device):
     return model, best, best_score, best_epoch
 
 
-def soft_bce_task(brain, y_em, k, device, settings=d5.SOFT_BCE, decays=d5.SOFT_BCE_DECAYS):
+def soft_bce_task(brain, y_em, k, device, settings=d5.SOFT_BCE, decays=d5.SOFT_BCE_DECAYS, lrs=d5.SOFT_BCE_LRS):
     tr, va, te, _ = split_idx(brain.fold, k)
     x = d5.as_tensor(brain.X, device)
     z, _, _ = d5.standardize(x, tr)
@@ -87,13 +87,14 @@ def soft_bce_task(brain, y_em, k, device, settings=d5.SOFT_BCE, decays=d5.SOFT_B
     y = torch.as_tensor(np.asarray(y_em, np.float32), device=device)
     rows, chosen = [], None
     for wd in decays:
-        model, loss, score, epoch = soft_bce_train(z[tr], y[tr], z[va], y[va], wd, settings, device)
-        rows.append(dict(weight_decay=wd, val_loss=loss, val_r=score, epoch=epoch))
-        if chosen is None or score > chosen[1]:  # 같으면 작은 weight decay(O6)
-            chosen = (model, score, wd)
+        for lr in lrs:
+            model, loss, score, epoch = soft_bce_train(z[tr], y[tr], z[va], y[va], wd, lr, settings, device)
+            rows.append(dict(weight_decay=wd, lr=lr, val_loss=loss, val_r=score, epoch=epoch))
+            if chosen is None or score > chosen[1]:  # 같으면 작은 weight decay, 작은 learning rate(O6)
+                chosen = (model, score, wd, lr)
     with torch.no_grad():
         p = torch.sigmoid(chosen[0](z[te])).cpu().numpy()
-    return dict(video_id=brain.video_id[te], pred=c.finite(p, "soft BCE 예측")), pd.DataFrame(rows), chosen[2]
+    return dict(video_id=brain.video_id[te], pred=c.finite(p, "soft BCE 예측")), pd.DataFrame(rows), dict(weight_decay=chosen[2], lr=chosen[3])
 
 
 def video_task(x, y, fold, ids, k, device):
@@ -216,7 +217,7 @@ def main():
         inputs[f"raw_response:sub-{s}"] = d5.response_path(s, normalized=False)
     if a.task == "video":
         inputs.update(stimuli=d5.STIMULI, lowlevel=c.FEATURES / f"{c.LOWLEVEL}.npy")
-    run = d5.Run(a.design_freeze, inputs, task=a.task, lambdas=d5.LAMBDAS.tolist(), h2020_lambdas=d5.H2020_LAMBDAS.tolist(), soft_bce=d5.SOFT_BCE, decays=d5.SOFT_BCE_DECAYS)
+    run = d5.Run(a.design_freeze, inputs, task=a.task, lambdas=d5.LAMBDAS.tolist(), h2020_lambdas=d5.H2020_LAMBDAS.tolist(), soft_bce=d5.SOFT_BCE, decays=d5.SOFT_BCE_DECAYS, learning_rates=d5.SOFT_BCE_LRS)
     split = c.load_split()
     y_em, _ = c.load_scores(split, "emotions")
     y_dim, _ = c.load_scores(split, "dimensions")
@@ -259,8 +260,8 @@ def main():
         if a.task == "ridge":
             save(out, run, ridge_task(brain, y, d5.align(y_dim, split, brain.video_id), k, a.device), participant=s, fold=k)
         elif a.task == "soft_bce":
-            arrays, table, wd = soft_bce_task(brain, y, k, a.device)
-            save(out, run, arrays, table, participant=s, fold=k, chosen_weight_decay=wd)
+            arrays, table, chosen = soft_bce_task(brain, y, k, a.device)
+            save(out, run, arrays, table, participant=s, fold=k, chosen=chosen)
         else:
             save(out, run, h2020_task(brain, y, k, a.device), participant=s, fold=k)
 
