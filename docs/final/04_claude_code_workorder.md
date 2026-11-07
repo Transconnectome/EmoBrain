@@ -651,7 +651,7 @@
     - 조건 6(G16, frozen-head distillation). 보조 성능 비교다. 기본 run 분할에서만 한다.
         - Multimodal Model과 Brain Model의 구조, 후보, seed(O5)
             - Multimodal Model: 뇌 모델과 같은 입력층, encoder(F3), emotion query(F4)를 쓴다. 실제 Vision feature와 Caption feature를 각각 선형층으로 d차원 token으로 바꿔 ROI token과 함께 encoder에 넣는다. 중간 표현은 emotion query 34개의 출력(34 × d, O26의 LayerNorm 뒤)이고, head는 정서별 선형층(d → 1)과 sigmoid다.
-            - Multimodal Model 후보: d와 입력층 weight decay는 그 바깥 fold의 Brain → Emotion이 고른 값이다. 두 특징 선형층의 weight decay ∈ {1e-4, 1e-3, 1e-2}만 공통 검증 기준으로 고른다.
+            - Multimodal Model 후보: d와 입력층 weight decay는 그 바깥 fold의 Brain → Emotion이 고른 값이다. 두 특징 선형층의 weight decay ∈ {1e-4, 1e-3, 1e-2}와 learning rate(G13)를 공통 검증 기준으로 고른다.
             - Brain Model: Brain → Emotion과 같은 뇌 모델(같은 d)이다. 연결층은 두지 않는다.
             - seed: Multimodal Model을 seed 0으로 고르고 seed 1, 2를 더 학습한다. Brain Model seed s는 같은 seed s의 Multimodal Model과 짝짓는다.
             - token으로 넣는 결합과 연결층 생략은 이번 비교에서 고른 설계 선택이다. 그래야만 한다는 뜻이 아니다(O5).
@@ -703,12 +703,12 @@
     - 학습 가중치 수(F8): 조건마다 학습 가중치 수를 표로 낸다. 입력층(참가자당 약 d × 사용 voxel 수)을 따로 적는다.
     - 저장(M1)
         - config, git commit, 특징 파일 체크섬, split manifest, 체크포인트
-        - 안쪽 선택 기록: d, 입력층 weight decay, λ, α, r, epoch
+        - 안쪽 선택 기록: d, 입력층 weight decay, 특징 선형층 weight decay, λ, α, r, learning rate, epoch
         - 시험 예측: sigmoid 전 logit과 확률
         - decoded features(시험 fold와 H2 검증 fold 모두. N8의 보정 통계에 검증 fold 값을 쓴다)
         - emotion query와 feature query의 attention 값
         - Brain + Decoded Feature → Emotion과 Brain → Emotion + Vision + Caption은 학습 영상과 검증 영상의 decoding 정확도도 기록한다(5-0의 남는 주의).
-        - 후보별 시험 성능도 저장한다. 민감도 표에만 쓰고 선택에는 쓰지 않는다(N24).
+        - 후보별 시험 예측을 저장하고, 시험 성능은 S10에서 계산해 민감도 표에만 쓴다. 선택에는 쓰지 않는다(N24).
 - 출력: 모델 코드, 조건별 설정 파일, 단위 시험, 학습 가중치 수 표
 - 확인 기준(단위 시험으로 만든다)
     - 더하기 head에서 ROI token을 고정하고 v̂, ĉ만 바꾸면 결합 지표 I가 수치 오차 안에서 0이다.
@@ -1112,7 +1112,7 @@
 - 할 일
     - M1: 실행마다 저장한다.
         - config, git commit, 특징 파일 체크섬, split manifest, 체크포인트
-        - 안쪽 선택 기록: d, 입력층 weight decay, λ, α, r, epoch
+        - 안쪽 선택 기록: d, 입력층 weight decay, 특징 선형층 weight decay, λ, α, r, learning rate, epoch
         - 시험 예측: logit과 확률
         - decoded features(시험 fold와 검증 fold)
         - emotion query와 feature query의 attention 값
@@ -1186,7 +1186,7 @@
 | S3. 추출 manifest의 위치 | project/output/final_2026-11/s3_features/<모델>/manifest.json(git 무시 대상). 8개 판 모두 추출 커밋 fabb336, 코드 변경 없는 상태에서 추출 | M2 | 2026-11-06 |
 | S4. fold별 Stimulus Model의 epoch 수, r, weight decay | | E2, E3, N26, O16 | |
 | S5. ridge 정칙화 선택값, 양 끝이 뽑힌 횟수, 실행 시간 | | H3, 3-2, O18 | |
-| S6. 조건별 학습 가중치 수 | | F8, 5-5 | |
+| S6. 조건별 학습 가중치 수 | d = 64 어림에서 입력층 W 57,226,304개, Brain → Emotion 전체 57,423,266개, Brain + Decoded Feature → Emotion(r = 8) 전체 58,481,526개다. 표는 manifests/s6/weight_counts.tsv이고 d는 S7에서 정한다 | F8, 5-5 | 2026-11-08 |
 | S7. 파일럿 실행 시간과 메모리 | | N34, 5-4 | |
 | S7. G13 수렴 확인 | | G13 | |
 | S7. d와 입력층 weight decay의 후보, K | | 5-5, 7-L | |
@@ -1261,6 +1261,7 @@
 | S4, S5. 점검 항목 반영 | S4: 과제 이름을 stimulus로 바꿨고, 시험 예측에 더하기 head와 상호작용 head의 예측을 함께 저장한다. baseline 특징의 Stimulus Model을 더했다(VideoMAE, TimeSformer, CLIP은 시각 입력만, MPNet은 캡션 입력만 교체, 6 fold, 5,424회). nested OOF와 K1 head는 그 조건에서 쓰지 않아 만들지 않는다. D12, 정서어 제거 ridge, window 변화의 존재와 크기를 수집에서 점검한다. S5: 영상 식별은 모든 영상 A의 평균이다(O19). Horikawa ridge를 돌리지 않으면 --without h2020을 명시하고 collection_status.tsv에 남긴다. S4, S5의 done.json에 실행 시간을 남긴다. 담당을 정했다: 층별 순열 기준은 S10, O21의 이어 붙이기는 S9가 맡는다. 시험 s4 133개, s5 126개 통과 | O19, O21, M1, 3-1 | 2026-11-07 |
 | 정할 것. MPNet의 거의 상수인 차원 | 개발 영상에서 768차원 중 4개(756, 555, 688, 34)의 표준편차가 2e-35~1e-7이고 중앙값은 0.025다. 표준화하면 수치 잡음이 표준편차 1로 커진다. 처리 규칙이 없어 석진 님 결정을 기다린다. MPNet baseline에만 해당한다 | 3-3, D9 | 2026-11-07 |
 | Codex 재검토(S2, S4, S5 코드, 011d7bd) | 보고서 project/output/audits/codex/2026-11-08_s2_s4_s5_recheck_011d7bd.md. 판정: 범위 통과, 반드시 고칠 것 없음. 시험 S4 133개, S5 126개와 독립 검사 60개. 이 커밋에만 적용하고, 코드 검토 통과이지 설계 전체 검증 완료가 아니다. MPNet 네 차원의 실제 값은 Codex가 독립 확인하지 못했고 메인 세션이 계산했다 | M1, O19 | 2026-11-08 |
+| S6. 코드와 합성 자료 시험 | 코드 project/analysis/final_2026-11/s6_model.py, s6_common.py, s6_train.py, s6_tests.py와 .sh. 합성 자료 시험 316개 통과. 일곱 조건, 필수 대조군, 더하기와 상호작용 head, 평균 pooling판을 구현했다. S9가 읽을 저장 형식은 s6_train.py 머리말에 있다. 실제 자료와 GPU로는 돌리지 않았다. **구현하지 않은 것:** 외부 baseline 셋(GED, ML-BVAE, EmoGrowth), 네트워크 단독 학습, MC 입력층 학습(S8 범위). **정할 값:** K와 lr_follows_brain_only(S7), lr 1e-2 등에서 NaN이 날 때 fold 전체를 멈출지, 상수 voxel, W, b, e(r)의 초기값, label smoothing의 평균을 행 단위로 낼지, 두 섞기 대조의 순열, attention 저장 범위(어림 약 75 GB, 전체 약 145 GB), 결과 폴더 이름(코드는 brain_only 등, 04와 01 M3은 1-1의 이름에서 만들게 적음). CPU 측정: d = 64, 65행 batch에서 한 step 약 1.2초. GPU 시간은 재지 않았다 | S6, F8, M1, N34 | 2026-11-08 |
 | 동결 때 02, 03에 맞출 것 | 11/5 갱신 규칙(CLAUDE_EmoBrain 5절)에 따라 미룬 항목이다. 14개 차원(B4, K1a), 8초 종료 규칙(정할 것 11), 정서 층화 분할(정할 것 12), MC 4회 평균의 상태, 03의 419행 5회 평균 문장(Codex 재검토), window 평균의 근거 문헌을 부록 1, 4와 references.bib에 넣는 일(Arnab 외 2021, Wang 외 2016, Korbar 외 2019, Feichtenhofer 외 2019, Wu 외 2019, Du 외 2023 등). 동결 전에 01과 차례로 대조한다 | CLAUDE_EmoBrain 5절 | 2026-11-05 |
 | 보류된 결정 1. 질문 2의 뒷부분 | 정함(11/6 석진 님): (가). 6-2의 Brain + Decoded Feature → Emotion 모델로 그 구역의 시험 영상에서도 바꿔 끼우기를 한다. 탐색 결과로 표시한다. 01의 6-2와 A4를 고쳤다. 짝 규칙과 학습량 대조 모델의 비교도 정했다(11/6). S2에 구역 안 짝 목록을, S9에 계산을 더해야 한다. 구역은 이름표 73개를 하나씩 뺀 것이 아니라 그 73개로 묶은 5개다. 구역 수 5개를 근거를 다시 확인하고 유지했고, 01 4-3의 이유와 논문 문장을 "blockCV 기본값 채택"에서 "영상 수와 학습 비용을 고려한 설계 선택"으로 고쳤다. 문헌 Shirakawa 외(2025)를 01 부록 1, 4에 더했고 references.bib는 동결 때 맞춘다 | 1-3, 6-2, A4 | 2026-11-06 |
 | 보류된 결정 2. 1-1의 주 검정 | 정함(11/6 석진 님): 01의 가설과 6-1을 지금대로 둔다. 정서별 두 경로의 효과와 차이를 보고하고, 정서 사이의 패턴은 결과를 두고 해석한다. 가설 검증과 결과 해석을 구분한다. 03 1.7.2의 문구는 동결 때 01에 맞춘다. Kragel 외(2019) 비교는 보조로 둔다 | 1-3, 6-1, 03 1.7.2 | 2026-11-06 |

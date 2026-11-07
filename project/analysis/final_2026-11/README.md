@@ -33,3 +33,9 @@
 | `s5_baselines.py`, `.sh` | S5 | 정서 ridge 두 판, 14개 차원, soft BCE 선형, 길이, 저수준, 뇌 전체 통계, 내용 구역 제외, Horikawa 2020 복셀 선택 ridge (GPU, 설계 동결 뒤) | 같은 폴더 |
 | `s5_collect.py`, `.sh` | S5 | 시험 영상과 출처 점검, 층별 지표와 λ 표 (가벼움) | `manifests/s5/` |
 | `s5_tests.py`, `.sh` | S5 | 합성 자료 시험. 실제 정답과 뇌 반응을 읽지 않음 (CPU, 수 분) | 없음 |
+| `s6_common.py`, `s6_model.py` | S6 | 조건과 후보(G9, G13), 자료 경계, 선택 규칙(O6), 입력층, encoder, head, weight decay 묶음(G13). `s6_train.py`가 부른다 | 없음 |
+| `s6_train.py`, `.sh` | S6 | 뇌 모델 학습: 핵심 다섯 조건, 더하기 head, 대조군 셋, Multimodal Model, 조건 6, 7, 평균 pooling판 (GPU, 설계 동결과 S7의 설정 뒤, 끝난 학습은 같은 실행 번호일 때만 건너뜀). 저장 형식은 `s6_train.py` 머리말에 있다. 외부 baseline 셋은 아직 없다 | `project/output/final_2026-11/s6_brain/<분할>/<조건>/` |
+| `s6_train.py --weight-counts`, `s6_weight_counts.sh` | S6 | 조건별 학습 가중치 수(F8). ROI 표만 읽는다 (CPU, 수 분) | `manifests/s6/weight_counts.tsv` |
+| `manifests/s6/run_config.template.json` | S6, S7 | 실행 설정의 틀. `k_candidates`가 비어 있으면 실제 실행이 멈춘다. S7에서 값을 정해 `run_config.json`으로 커밋한다 | 없음 |
+| `s6_tests.py`, `.sh` | S6 | 합성 자료 시험. 실제 정답과 뇌 반응을 읽지 않음 (CPU, 약 2분). `--timing`은 실제 voxel 수의 합성 입력으로 학습 한 step을 잰다 | 없음 |
+| `s6_timing_gpu.sh` | S6 | 합성 난수로 뇌 모델 학습 한 step의 GPU 시간과 메모리를 측정 (실제 자료를 읽지 않음) | 로그 |
