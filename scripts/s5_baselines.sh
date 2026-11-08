@@ -2,10 +2,10 @@
 #SBATCH --job-name=s5_baselines
 #SBATCH --account=m5187_g
 #SBATCH --constraint=gpu
-#SBATCH --qos=regular
-#SBATCH --nodes=1
+#SBATCH --qos=shared
+#SBATCH --ntasks=1
 #SBATCH --gpus=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=32
 #SBATCH --time=12:00:00
 # 시간 제한 12시간은 측정값이 아니다. h2020은 CPU 8 thread 상한 추정이 약 22시간이고 GPU 시간은 재지 않았다. S7에서 재서 고친다.
 #SBATCH --output=outputs/logs/s5_baselines_%j.log
