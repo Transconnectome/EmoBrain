@@ -1422,6 +1422,27 @@ Caption loss = Caption 표 칸들의 오차² 평균 (MSE)
 - 정서 loss는 v̂, ĉ를 거쳐 feature 쪽으로 거꾸로 흐르지 못한다. 그래서 v̂, ĉ는 정서를 맞히려고 모양이 바뀌지 않고 계속 "뇌에서 읽은 Vision, Caption feature"로 남는다.
 - 그래야 v̂를 다른 영상의 것으로 바꿔 끼웠을 때 정서 예측이 어떻게 움직이는지 볼 수 있다(바꿔 끼우기, 질문 2-2).
 
+각 손실이 모델의 어느 부분을 학습시키는지는 다음과 같다(조건 3 기준. s6_tests의 기울기 시험으로 확인한다).
+
+```text
+입력층(ROI마다 선형) → encoder(Transformer block) → H ┬ emotion query + 정서별 선형 → g ─┐
+                                                       │                                   ├→ 정서 = g + a(v̂) + b(ĉ) + U[(Av̂) ⊙ (Bĉ)]
+                                                       └ feature query + 선형 → v̂, ĉ ─(stop-gradient)─┘
+```
+
+| 부분 | 정서 loss | Vision, Caption loss |
+| --- | --- | --- |
+| 입력층, encoder (공유) | 학습시킴 (g 경로를 통해) | 학습시킴 |
+| emotion query와 정서별 선형 (g) | 학습시킴 | 닿지 않음 |
+| a, b, A, B, U (v̂, ĉ를 정서로 바꾸는 부분) | 학습시킴 | 닿지 않음 |
+| feature query와 feature 선형 (v̂, ĉ를 내는 부분) | 막힘 (stop-gradient) | 학습시킴 |
+
+- 정서 loss는 head만 학습시키는 것이 아니다. g 경로를 거쳐 encoder와 입력층까지 학습시킨다. 막히는 것은 v̂, ĉ를 거쳐 feature 쪽으로 가는 길 하나다.
+- 그래서 encoder는 두 손실을 함께 받아, 정서를 맞히는 데도 feature를 맞히는 데도 쓸모 있는 표현을 배운다.
+- a, b, U는 정서 loss로 "읽은 장면 정보를 정서로 어떻게 바꿀지"를 배운다. 이 부분이 v̂, ĉ를 쓰는 방법이고, 바꿔 끼우기가 검사하는 것이 바로 이 사용이다.
+- 조건 2(Brain → Emotion + Vision + Caption)는 v̂, ĉ가 정서 계산에 들어가지 않는다. 정서 loss는 g 경로와 encoder를, feature loss는 feature 쪽과 encoder를 학습시킨다. 조건 1은 feature 쪽이 없고 정서 loss가 모델 전체를 학습시킨다.
+- 손실 흐름 허용판(brain_decoded_grad)은 stop-gradient를 빼서 정서 loss가 feature 쪽까지 흐른다. 성능 비교에만 쓴다(5-0).
+
 학습, 조기 종료, 설정 선택은 서로 다른 잣대를 쓴다. 학습은 칸마다 soft BCE(값을 맞히기), 조기 종료는 검증 영상의 soft BCE(값), 설정 선택은 검증 영상의 r_정서 평균(방향)이다(G13, O6).
 
 #### 지표 하나로 판단하지 않는다
