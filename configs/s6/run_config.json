@@ -1,0 +1,36 @@
+{
+  "note": "11/8 본실험 설정(석진 님 확인 대기). K = d {32, 64} × 입력층 weight decay {0.1, 1, 10}. 예비 실행(d 64, 0.01)에서 6 epoch에 과적합해 ridge보다 낮았으므로 입력층 정칙화를 강한 쪽으로 둔다. learning rate {1e-5, 1e-4, 1e-3}, seed 0, 1, 2(G13, L9).",
+  "k_candidates": [
+    [
+      32,
+      0.1
+    ],
+    [
+      32,
+      1.0
+    ],
+    [
+      32,
+      10.0
+    ],
+    [
+      64,
+      0.1
+    ],
+    [
+      64,
+      1.0
+    ],
+    [
+      64,
+      10.0
+    ]
+  ],
+  "learning_rates": [
+    1e-05,
+    0.0001,
+    0.001
+  ],
+  "lr_follows_brain_only": false,
+  "keep_candidate_checkpoints": false
+}
