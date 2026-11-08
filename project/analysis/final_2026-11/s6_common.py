@@ -472,21 +472,50 @@ def prepare_fold(brains, split, y, vision, caption, plan, *, stimulus=None, incl
     train_mean = y_arr[row_bank[row_role == 0]].mean(0)  # G11. 학습 행의 평균
     t_bank = None
     if stimulus is not None:
-        ids = [int(v) for v in stimulus["video_id"]]
-        if sorted(ids) != sorted(plan.train):
-            raise ValueError("Stimulus 예측 평정은 학습 영상에만 붙어야 한다(E4)")
-        values = c.finite(np.asarray(stimulus["p_clipped"], np.float32), "Stimulus 예측 평정")
-        if ((values < 0) | (values > 1)).any():
-            raise ValueError("Stimulus 예측 평정이 0~1을 벗어났다")
-        t = np.full(y_arr.shape, np.nan, np.float32)
-        t[[bank_pos[v] for v in ids]] = values
-        t_bank = torch.as_tensor(t, device=device)  # 학습 영상 밖은 NaN이다. 잘못 쓰면 손실이 NaN이 되어 멈춘다
+        t_bank = torch.as_tensor(stimulus_bank(stimulus, plan.train, bank_pos, y_arr.shape), device=device)  # 학습 영상 밖은 NaN이다. 잘못 쓰면 손실이 NaN이 되어 멈춘다
     fd = FoldData(plan, participants, x, columns, counts, stats, np.concatenate(rp), np.concatenate(rl), row_video, row_role, known, row_bank, as_t(y_arr), as_t((np.asarray(vision)[at] - vm) / vs), as_t((np.asarray(caption)[at] - cm) / cs), dict(visual_mean=vm, visual_std=vs, caption_mean=cm, caption_std=cs), as_t(train_mean), t_bank, device)
     if include_test_features and plan.test:
         te = [pos[v] for v in plan.test]
         fd.test_vision, fd.test_caption = as_t((np.asarray(vision)[te] - vm) / vs), as_t((np.asarray(caption)[te] - cm) / cs)
         fd.test_ids = [int(v) for v in plan.test]
     return fd
+
+
+def stimulus_bank(stimulus, train_ids, bank_pos, shape):
+    """S4의 Stimulus 예측 평정을 학습 영상 자리에 붙인다(E4). 영상 ID와 배열 크기가 정확히 맞아야 한다. 한 열이나 한 행이 여러 정서나 영상으로 복제되지 않게 막는다."""
+    ids = np.asarray(stimulus["video_id"])
+    if ids.ndim != 1 or not np.issubdtype(ids.dtype, np.integer) or len(set(ids.tolist())) != len(ids):
+        raise ValueError("Stimulus 예측 평정의 영상 ID가 1차원 정수가 아니거나 중복이 있다")
+    if sorted(ids.tolist()) != sorted(int(v) for v in train_ids):
+        raise ValueError("Stimulus 예측 평정은 학습 영상에만 붙어야 한다(E4)")
+    values = c.finite(np.asarray(stimulus["p_clipped"], np.float32), "Stimulus 예측 평정")
+    if values.shape != (len(ids), shape[1]):
+        raise ValueError(f"Stimulus 예측 평정의 크기 {values.shape}가 (영상 {len(ids)}, 정서 {shape[1]})와 다르다")
+    if ((values < 0) | (values > 1)).any():
+        raise ValueError("Stimulus 예측 평정이 0~1을 벗어났다")
+    out = np.full(shape, np.nan, np.float32)
+    out[[bank_pos[int(v)] for v in ids]] = values
+    return out
+
+
+def check_stimulus_source(done_path, k, current_hashes):
+    """S4가 이 Stimulus 예측 평정을 지금과 같은 입력으로 만들었는지 본다(E4, M1). S4의 완료 기록이 없거나, 과제와 바깥 fold가 다르거나,
+    S4가 쓴 입력(Vision feature, Caption feature, 사람 평정, S2 표) 가운데 하나라도 지금 내용과 다르면 학습 전에 멈춘다. 돌려주는 값은 S4 실행 번호다."""
+    p = Path(done_path)
+    if not p.exists():
+        raise SystemExit(f"{p}: S4 완료 기록이 없다. 출처를 확인할 수 없는 Stimulus 예측 평정은 쓰지 않는다")
+    d = json.loads(p.read_text())
+    task = d.get("task", {})
+    if task.get("task") != "stimulus" or int(task.get("k", -1)) != int(k):
+        raise SystemExit(f"{p}: S4 과제나 바깥 fold가 다르다({task})")
+    for role, h in d.get("inputs", {}).items():
+        if role not in current_hashes:
+            raise SystemExit(f"{p}: S4 입력 {role}을 지금 실행에서 확인할 수 없다")
+        if current_hashes[role] != h:
+            raise SystemExit(f"{p}: S4 입력 {role}의 내용이 지금과 다르다. S4를 다시 돌려야 한다")
+    if "run_key" not in d:
+        raise SystemExit(f"{p}: S4 실행 번호가 없다")
+    return d["run_key"]
 
 
 def shuffle_plan(split, plan, seed, mc_ids=None):
@@ -518,8 +547,33 @@ def to_k1_head(v_hat, c_hat, feature_stats, coordinates):
     return c.finite(v, "K1 눈금의 v̂"), c.finite(cap, "K1 눈금의 ĉ")
 
 
-def load_brains(split, participants=d5.HK, **kw):
-    """뇌 반응은 d5.load_brain(허용 행)으로만 읽는다. e(r)이 참가자 공통이므로 ROI 순서가 같은지 ROI 표로 확인한다."""
+def load_brain_subset(s, split, keep_ids, raw_path=None, roi_file=None, table=None, crosswalk=None, mc72=None, raw=None):
+    """d5.load_brain과 같지만, 원본 배열을 인덱싱하기 전에 이번 실행에 쓰는 영상(keep_ids)의 행으로 줄인다.
+    파일럿처럼 시험 fold를 쓰지 않는 실행은 시험 영상의 뇌 반응을 아예 읽지 않는다(N34). 허용 행 검사와 MC 검사는 d5의 함수를 그대로 쓴다."""
+    t = d5.allowed_rows(s, table, crosswalk, mc72)  # 표 전체로 MC와 행 번호를 검사한다
+    c.check_dev(t.video_id.to_numpy(), split)
+    keep = set(int(v) for v in keep_ids)
+    t = t[t.video_id.isin(keep)].reset_index(drop=True)
+    if not t.video_id.is_unique:
+        raise ValueError("한 영상의 block이 둘 이상이다")
+    z = np.load(d5.roi_path(s) if roi_file is None else roi_file)
+    columns, offsets = z["columns"], z["offsets"]
+    unique = np.unique(columns)
+    raw = np.load(d5.response_path(s) if raw_path is None else raw_path, mmap_mode="r") if raw is None else raw
+    if raw.shape[1] != int(z["n_columns"]):
+        raise ValueError("반응 배열의 열 수가 ROI 표와 다르다")
+    rows = t.qc_row.to_numpy()
+    X = np.empty((len(rows), len(unique)), np.float32)
+    for i in range(0, len(rows), 64):
+        X[i:i + 64] = d5.read_rows(raw, rows[i:i + 64], rows)[:, unique]
+    c.finite(X, f"sub-{s} 반응")
+    fold_of = dict(zip(split.video_id, split.fold))
+    pos = [np.searchsorted(unique, columns[offsets[i]:offsets[i + 1]]) for i in range(len(offsets) - 1)]
+    return d5.BrainSet(f"sub-{s}", X, t.video_id.to_numpy(), np.array([fold_of[v] for v in t.video_id]), pos, len(columns))
+
+
+def load_brains(split, keep_ids, participants=d5.HK, **kw):
+    """뇌 반응은 허용 행 가운데 이번 실행에 쓰는 영상의 행만 읽는다. e(r)이 참가자 공통이므로 ROI 순서가 같은지 ROI 표로 확인한다."""
     order = None
     out = {}
     for s in participants:
@@ -529,7 +583,7 @@ def load_brains(split, participants=d5.HK, **kw):
         if order is not None and names != order:
             raise ValueError(f"sub-{s}: ROI 순서가 다른 참가자와 다르다")
         order = names
-        b = d5.load_brain(s, split, **kw)
+        b = load_brain_subset(s, split, keep_ids, **kw)
         out[b.participant] = b
     return out
 
@@ -546,6 +600,7 @@ def input_paths(plan, participants=d5.HK):
         paths[f"response:sub-{s}"], paths[f"roi:sub-{s}"] = d5.response_path(s), d5.roi_path(s)
     if plan.name.startswith(("outer_fold", "pilot_fold")):
         paths["stimulus_oof"] = stimulus_path(plan.outer_fold)
+        paths["stimulus_done"] = stimulus_path(plan.outer_fold).parent / "done.json"
     return paths
 
 

@@ -5,6 +5,7 @@
 """
 import inspect
 import json
+import re
 import os
 import resource
 import sys
@@ -967,7 +968,7 @@ def t_guard():
         finally:
             T.load_known, S.load_brains = old[0], old[1]
     src = (c.CODE_DIR / "s6_train.py").read_text() + (c.CODE_DIR / "s6_common.py").read_text()
-    check("뇌 반응 배열을 직접 읽는 코드가 없다(s5_common의 허용 행 경로만)", "np.load(d5.response_path" not in src and "response_path(s), " in src and "d5.load_brain(" in src and "mmap_mode" not in src)
+    check("뇌 반응은 허용 행 검사(d5.allowed_rows)와 행 읽기(d5.read_rows)로만 읽고 배열을 직접 인덱싱하지 않는다", "d5.allowed_rows(" in src and "d5.read_rows(raw" in src and not re.search(r"\braw\[(?![\"'])", src) and src.count("np.load(d5.response_path") == 1)
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
         table = pd.DataFrame(dict(participant="sub-99", video_id=[3001, 3002, 3003], content_id=[1, 2, 3], qc_row=[5, 1, 3]))
@@ -977,9 +978,9 @@ def t_guard():
         roi = ["a", "b"]
         np.savez(td / "roi.npz", columns=np.array([1, 2, 2, 7]), offsets=np.array([0, 3, 4]), n_columns=np.array(10), roi=np.array(roi))
         split = pd.DataFrame(dict(video_id=[3001, 3002, 3003], fold=[1, 2, 3]))
-        out = S.load_brains(split, ["99"], raw_path=td / "raw.npy", roi_file=td / "roi.npz", table=table, crosswalk=cw, mc72=[])
+        out = S.load_brains(split, [3001, 3002, 3003], ["99"], raw_path=td / "raw.npy", roi_file=td / "roi.npz", table=table, crosswalk=cw, mc72=[])
         check("load_brains는 허용 행의 값을 읽는다", out["sub-99"].video_id.tolist() == [3002, 3003, 3001] and np.array_equal(out["sub-99"].X[0], raw[1][[1, 2, 7]]))
-        check("MC 72개와 같은 내용의 행이 있으면 멈춘다", stops(lambda: S.load_brains(split, ["99"], raw_path=td / "raw.npy", roi_file=td / "roi.npz", table=table, crosswalk=cw, mc72=[12])))
+        check("MC 72개와 같은 내용의 행이 있으면 멈춘다", stops(lambda: S.load_brains(split, [3001, 3002, 3003], ["99"], raw_path=td / "raw.npy", roi_file=td / "roi.npz", table=table, crosswalk=cw, mc72=[12])))
         with np.load(d5.roi_path("01")) as z, np.load(d5.roi_path("05")) as y:
             check("실제 ROI 표: 다섯 명 중 두 명의 ROI 순서가 같다", z["roi"].tolist() == y["roi"].tolist() and len(z["roi"]) == 370)
     counts = dict(a=[3, 4, 5], b=[2, 2, 2])
@@ -1057,12 +1058,78 @@ def timing():
         print(f"{r['condition']}: 가중치 {r['param_gb']:.2f} GB, AdamW 상태와 가장 낮은 epoch 사본을 더하면 약 {r['param_gb'] * 4:.2f} GB")
 
 
+def t_read_boundary():
+    """Codex 1. 원본 배열을 인덱싱하기 전에 이번 실행의 영상으로 줄인다. 파일럿은 시험 영상의 반응을 읽지 않는다."""
+    class Recorder:
+        def __init__(self, a):
+            self.a, self.shape, self.read = a, a.shape, []
+        def __getitem__(self, rows):
+            self.read += np.asarray(rows).tolist()
+            return self.a[rows]
+    n = 24
+    split = pd.DataFrame(dict(video_id=np.arange(1, n + 1), fold=np.arange(n) % 6 + 1))
+    table = pd.DataFrame(dict(participant="sub-01", video_id=np.arange(1, n + 1), qc_row=np.arange(n)[::-1].copy()))
+    cw = pd.Series({v: f"c{v}" for v in range(1, n + 1)})
+    with tempfile.TemporaryDirectory() as td:
+        roi = Path(td) / "roi.npz"
+        np.savez(roi, roi=np.array(["a", "b"]), offsets=np.array([0, 3, 5]), columns=np.array([0, 1, 2, 2, 3]), n_columns=np.array(4))
+        rec = Recorder(np.arange(n * 4, dtype=np.float32).reshape(n, 4) + np.random.default_rng(0).normal(size=(n, 4)).astype(np.float32))
+        plan = S.plan_pilot(split, 1)
+        keep = list(plan.train) + list(plan.val) + list(plan.test)
+        b = S.load_brain_subset("01", split, keep, roi_file=roi, table=table, crosswalk=cw, mc72=[], raw=rec)
+        test_ids = set(split.video_id[split.fold == 1].tolist())
+        read_ids = {int(table.video_id[table.qc_row == r].iloc[0]) for r in rec.read}
+        check("파일럿은 바깥 시험 영상의 뇌 반응을 읽지 않는다(Codex 1)", not (read_ids & test_ids) and len(plan.test) == 0 and set(b.video_id.tolist()) == set(keep))
+        check("읽은 행이 영상과 맞게 붙는다", all(np.allclose(b.X[i], rec.a[int(table.qc_row[table.video_id == v].iloc[0])][[0, 1, 2, 3]]) for i, v in enumerate(b.video_id)))
+        rec2 = Recorder(rec.a)
+        outer = S.plan_outer(split, 1) if hasattr(S, "plan_outer") else None
+        if outer is not None:
+            S.load_brain_subset("01", split, list(outer.train) + list(outer.val) + list(outer.test), roi_file=roi, table=table, crosswalk=cw, mc72=[], raw=rec2)
+            check("일반 바깥 평가는 시험 영상의 반응도 읽는다", {int(table.video_id[table.qc_row == r].iloc[0]) for r in rec2.read} >= test_ids)
+        check("MC와 같은 내용이 표에 있으면 읽기 전에 멈춘다", stops(lambda: S.load_brain_subset("01", split, keep, roi_file=roi, table=table, crosswalk=cw, mc72=["c3"], raw=Recorder(rec.a))))
+        bad = table.copy()
+        bad.loc[0, "qc_row"] = -1
+        check("음수 qc_row는 읽기 전에 멈춘다", stops(lambda: S.load_brain_subset("01", split, keep, roi_file=roi, table=bad, crosswalk=cw, mc72=[], raw=Recorder(rec.a))))
+
+
+def t_stimulus_source():
+    """Codex 2. S4 완료 기록과 입력을 대조한다."""
+    with tempfile.TemporaryDirectory() as td:
+        p = Path(td) / "done.json"
+        cur = {"visual_target": "v", "caption_target": "c", "labels": "y", "s2:split_hk_dev.tsv": "s"}
+        check("S4 완료 기록이 없으면 멈춘다(Codex 2)", stops(lambda: S.check_stimulus_source(p, 1, cur)))
+        good = dict(task=dict(task="stimulus", k=1, name="fold1"), inputs=dict(cur), run_key="rk")
+        p.write_text(json.dumps(good))
+        check("입력이 같으면 S4 실행 번호를 돌려준다", S.check_stimulus_source(p, 1, cur) == "rk")
+        p.write_text(json.dumps(dict(good, inputs=dict(cur, labels="old"))))
+        check("S4가 쓴 사람 평정이 지금과 다르면 멈춘다(Codex 2)", stops(lambda: S.check_stimulus_source(p, 1, cur)))
+        p.write_text(json.dumps(dict(good, task=dict(task="stimulus", k=2))))
+        check("바깥 fold가 다르면 멈춘다", stops(lambda: S.check_stimulus_source(p, 1, cur)))
+        p.write_text(json.dumps(dict(good, task=dict(task="noemo", k=1))))
+        check("다른 S4 과제의 출력이면 멈춘다", stops(lambda: S.check_stimulus_source(p, 1, cur)))
+        p.write_text(json.dumps(dict(good, inputs=dict(cur, other="x"))))
+        check("지금 확인할 수 없는 S4 입력이 있으면 멈춘다", stops(lambda: S.check_stimulus_source(p, 1, cur)))
+    check("S6 입력 목록에 S4 완료 기록이 들어간다", "stimulus_done" in S.input_paths(S.plan_pilot(pd.DataFrame(dict(video_id=np.arange(1, 25), fold=np.arange(24) % 6 + 1)), 1), participants=[]))
+
+
+def t_stimulus_shape():
+    """Codex 3. 배열 크기가 다르면 복제하지 않고 멈춘다."""
+    ids = np.arange(1, 17)
+    pos = {int(v): i for i, v in enumerate(ids)}
+    ok = S.stimulus_bank(dict(video_id=ids, p_clipped=np.full((16, 34), 0.3)), ids.tolist(), pos, (16, 34))
+    check("정상 배열은 붙는다", ok.shape == (16, 34) and np.allclose(ok, 0.3))
+    check("한 열만 있으면 멈춘다(Codex 3)", stops(lambda: S.stimulus_bank(dict(video_id=ids, p_clipped=np.full((16, 1), 0.3)), ids.tolist(), pos, (16, 34))))
+    check("한 행만 있으면 멈춘다(Codex 3)", stops(lambda: S.stimulus_bank(dict(video_id=ids, p_clipped=np.full((1, 34), 0.3)), ids.tolist(), pos, (16, 34))))
+    check("영상 ID가 중복이면 멈춘다", stops(lambda: S.stimulus_bank(dict(video_id=np.r_[ids[:-1], ids[:1]], p_clipped=np.full((16, 34), 0.3)), ids.tolist(), pos, (16, 34))))
+    check("영상 ID가 정수가 아니면 멈춘다", stops(lambda: S.stimulus_bank(dict(video_id=ids.astype(float), p_clipped=np.full((16, 34), 0.3)), ids.tolist(), pos, (16, 34))))
+
+
 def main():
     if "--timing" in sys.argv:
         timing()
         return
     started = time.time()
-    for f in (t_audition, t_structure, t_stop_gradient, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
         t0 = time.time()
         try:
             f()

@@ -459,10 +459,14 @@ def main(argv=None):
     wanted = a.conditions.split(",")
     S.check_conditions(plan.name, wanted)
     spec = S.Spec()
-    run = S.Run(a.design_freeze, {**S.input_paths(plan), "config": a.config}, plan=plan.name, config=asdict(config), spec=asdict(spec), torch=torch.__version__, deterministic=torch.are_deterministic_algorithms_enabled(), nondeterministic_ops=[])  # 읽기 전에 해시를 낸다
+    stimulus_run = None
+    if plan.name.startswith(("outer_fold", "pilot_fold")):  # S4 출처를 학습 전에 대조한다. 입력 해시는 이 실행과 같은 방식으로 낸다
+        probe = S.Run(a.design_freeze, {**S.input_paths(plan), "config": a.config})
+        stimulus_run = S.check_stimulus_source(S.stimulus_path(plan.outer_fold).parent / "done.json", plan.outer_fold, probe.hashes)
+    run = S.Run(a.design_freeze, {**S.input_paths(plan), "config": a.config}, stimulus_run_key=stimulus_run, plan=plan.name, config=asdict(config), spec=asdict(spec), torch=torch.__version__, deterministic=torch.are_deterministic_algorithms_enabled(), nondeterministic_ops=[])  # 읽기 전에 해시를 낸다
     include_test = "multimodal" in wanted and bool(plan.test)
     y, v, cap = load_known(split, plan, include_test)
-    brains = S.load_brains(split)
+    brains = S.load_brains(split, list(plan.train) + list(plan.val) + list(plan.test))  # 이번 실행에 쓰는 영상의 행만 읽는다. 파일럿은 시험 영상이 없다
     stimulus = dict(np.load(S.stimulus_path(plan.outer_fold))) if plan.name.startswith(("outer_fold", "pilot_fold")) else None
     fd = S.prepare_fold(brains, split, y, v, cap, plan, stimulus=stimulus, include_test_features=include_test, device=a.device)
     del brains, y, v, cap

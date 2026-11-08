@@ -348,7 +348,8 @@ def save_checkpoint(path, model, **meta):
 
 
 def load_checkpoint(path, device="cpu"):
-    """저장한 모델을 평가 상태로 되살린다. S9는 이 함수로 읽는다."""
+    """저장한 모델을 평가 상태로 되살린다. S9는 이 함수로 읽는다. 추론용이다. requires_grad는 저장되지 않으므로,
+    조건 6의 고정 head 같은 학습 상태는 되살리지 않는다. 학습을 이어 하려면 고정 상태를 따로 복원해야 한다."""
     saved = torch.load(path, map_location="cpu", weights_only=True)
     spec = dict(saved["spec"])
     kind = spec.pop("kind")
