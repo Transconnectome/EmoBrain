@@ -14,7 +14,7 @@ The former root rules, paper_logic_merged, project contracts and September revie
 
 Read the [work order and its record table](docs/final/04_claude_code_workorder.md) before execution. A documentation update is not evidence of implementation or successful validation. Inspect the server's actual commit and uncommitted changes before changing it. Preserve other contributors' work.
 
-`prereg_v2/design_docs/` contains audit-era design snapshots, not a competing current protocol. Preserve those snapshots; audit code, manifests and results in `prereg_v2/` remain evidence to review, not automatically accepted design decisions.
+`archive/prereg_v2/design_docs/` contains audit-era design snapshots, not a competing current protocol. Preserve those snapshots; audit code, manifests and results in `archive/prereg_v2/` remain evidence to review, not automatically accepted design decisions.
 
 ### Coordination and roles
 
@@ -71,7 +71,7 @@ Without these answers, do not add it to the primary design. Novelty, popularity,
 
 실행 전 [작업 지시서와 기록 칸](docs/final/04_claude_code_workorder.md)을 읽는다. 문서 갱신이 구현·검증 완료의 증거는 아니다. 서버를 수정하기 전에 실제 커밋과 미커밋 변경을 확인하고 다른 작업자의 변경을 보존한다.
 
-`prereg_v2/design_docs/`는 감사 당시 설계 사본이며 별도의 최신 프로토콜이 아니다. 사본을 보존한다. `prereg_v2/`의 감사 코드·manifest·결과는 검토할 근거이지 자동 승인된 설계 결정이 아니다.
+`archive/prereg_v2/design_docs/`는 감사 당시 설계 사본이며 별도의 최신 프로토콜이 아니다. 사본을 보존한다. `archive/prereg_v2/`의 감사 코드·manifest·결과는 검토할 근거이지 자동 승인된 설계 결정이 아니다.
 
 ### 협업과 역할
 

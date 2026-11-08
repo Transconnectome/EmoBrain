@@ -200,3 +200,9 @@ archive/v5_direction_split_20260628/dir3_ccn/study1/results/poster_export/CCN_PO
 
 # 공정 비교 baseline 의 외부 코드 (출처·commit 은 README 에 기록)
 project/baseline/*/third_party/
+
+# 서버마다 다른 경로와 실행 환경(예시는 configs/*.example.*)
+configs/paths.yaml
+configs/env.sh
+# 기본 산출물 위치
+outputs
