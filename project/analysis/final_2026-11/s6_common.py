@@ -301,6 +301,43 @@ def parse_plan(name, split):
     raise SystemExit(f"알 수 없는 분할: {name}")
 
 
+SPLITS = c.S2 / "splits"  # s2_split_files.py가 두 분할 표에서 만든 목록. 한 줄에 video_id 하나
+
+
+def split_dir(plan_name):
+    """분할 이름 -> 목록 폴더. 파일럿은 같은 바깥 fold의 train, val을 쓴다. 구역 제외 분할은 아직 목록 파일이 없다."""
+    if plan_name.startswith("pilot_fold"):
+        return SPLITS / ("outer_fold" + plan_name[len("pilot_fold"):])
+    if plan_name.startswith("outer_fold") or plan_name == "final_for_mc":
+        return SPLITS / plan_name
+    return None
+
+
+def load_plan(name, split, splits=None):
+    """실행에 쓰는 분할. 목록 파일이 있는 분할은 파일의 영상만 쓰고, 두 분할 표로 다시 낸 목록과 하나라도 다르면 멈춘다.
+    파일럿은 test.txt를 읽지 않는다(N34)."""
+    from_table = parse_plan(name, split)
+    d = split_dir(name)
+    if d is None:
+        return from_table
+    d = (Path(splits) / d.name) if splits is not None else d
+    read = lambda part: sorted(int(x) for x in (d / f"{part}.txt").read_text().split())
+    plan = Plan(from_table.name, from_table.outer_fold, read("train"), read("val"), [] if name.startswith("pilot_fold") else read("test"))
+    for part in ("train", "val", "test"):
+        if getattr(plan, part) != sorted(getattr(from_table, part)):
+            raise SystemExit(f"{d}/{part}.txt가 분할 표와 다르다. s2_split_files.py로 다시 만든다")
+    return plan
+
+
+def split_files(plan):
+    """Run에 넣어 해시하는 목록 파일."""
+    d = split_dir(plan.name)
+    if d is None:
+        return {}
+    parts = ("train", "val") if plan.name.startswith("pilot_fold") else ("train", "val", "test")
+    return {f"split:{p}": d / f"{p}.txt" for p in parts}
+
+
 def check_plan(plan, split, mc_ids=None):
     sets = [set(plan.train), set(plan.val), set(plan.test)]
     if sets[0] & sets[1] or sets[0] & sets[2] or sets[1] & sets[2]:
@@ -498,6 +535,10 @@ def stimulus_bank(stimulus, train_ids, bank_pos, shape):
     return out
 
 
+# S4 stimulus 과제가 done.json에 반드시 남기는 역할(s4_common.Run). S6의 반응, ROI 파일까지 S4에 요구하지 않는다(Codex 50b4724 재검토)
+STIMULUS_REQUIRED_ROLES = frozenset({"visual_target", "caption_target", "labels", *(f"s2:{p.name}" for p in c.S2_TABLES)})
+
+
 def check_stimulus_source(done_path, k, current_hashes):
     """S4가 이 Stimulus 예측 평정을 지금과 같은 입력으로 만들었는지 본다(E4, M1). S4의 완료 기록이 없거나, 과제와 바깥 fold가 다르거나,
     S4가 쓴 입력(Vision feature, Caption feature, 사람 평정, S2 표) 가운데 하나라도 지금 내용과 다르면 학습 전에 멈춘다. 돌려주는 값은 S4 실행 번호다."""
@@ -508,7 +549,13 @@ def check_stimulus_source(done_path, k, current_hashes):
     task = d.get("task", {})
     if task.get("task") != "stimulus" or int(task.get("k", -1)) != int(k):
         raise SystemExit(f"{p}: S4 과제나 바깥 fold가 다르다({task})")
-    for role, h in d.get("inputs", {}).items():
+    recorded = d.get("inputs")
+    if not isinstance(recorded, dict):
+        raise SystemExit(f"{p}: S4 입력 기록이 없다")
+    missing = sorted(STIMULUS_REQUIRED_ROLES - set(recorded))
+    if missing:
+        raise SystemExit(f"{p}: S4 완료 기록에 필수 입력 해시가 빠졌다({', '.join(missing)}). 기록이 불완전하면 출처를 확인한 것으로 보지 않는다")
+    for role, h in recorded.items():
         if role not in current_hashes:
             raise SystemExit(f"{p}: S4 입력 {role}을 지금 실행에서 확인할 수 없다")
         if current_hashes[role] != h:
@@ -598,6 +645,7 @@ def input_paths(plan, participants=d5.HK):
     paths = {"visual_target": c.FEATURES / f"{c.VISUAL_TARGET}.npy", "caption_target": c.FEATURES / f"{c.CAPTION_TARGET}.npy", "labels": c.LABELS}
     for s in participants:
         paths[f"response:sub-{s}"], paths[f"roi:sub-{s}"] = d5.response_path(s), d5.roi_path(s)
+    paths.update(split_files(plan))
     if plan.name.startswith(("outer_fold", "pilot_fold")):
         paths["stimulus_oof"] = stimulus_path(plan.outer_fold)
         paths["stimulus_done"] = stimulus_path(plan.outer_fold).parent / "done.json"

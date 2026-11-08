@@ -455,7 +455,7 @@ def main(argv=None):
         raise SystemExit("--plan, --conditions, --config를 주어야 한다")
     config = S.load_config(a.config)
     split = c.load_split()
-    plan = S.parse_plan(a.plan, split)
+    plan = S.load_plan(a.plan, split)  # manifests/s2/splits의 목록 파일을 쓰고 분할 표와 대조한다
     wanted = a.conditions.split(",")
     S.check_conditions(plan.name, wanted)
     spec = S.Spec()

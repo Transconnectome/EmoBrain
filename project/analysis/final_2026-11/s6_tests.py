@@ -1096,7 +1096,7 @@ def t_stimulus_source():
     """Codex 2. S4 완료 기록과 입력을 대조한다."""
     with tempfile.TemporaryDirectory() as td:
         p = Path(td) / "done.json"
-        cur = {"visual_target": "v", "caption_target": "c", "labels": "y", "s2:split_hk_dev.tsv": "s"}
+        cur = {r: f"h_{r}" for r in S.STIMULUS_REQUIRED_ROLES}
         check("S4 완료 기록이 없으면 멈춘다(Codex 2)", stops(lambda: S.check_stimulus_source(p, 1, cur)))
         good = dict(task=dict(task="stimulus", k=1, name="fold1"), inputs=dict(cur), run_key="rk")
         p.write_text(json.dumps(good))
@@ -1109,7 +1109,40 @@ def t_stimulus_source():
         check("다른 S4 과제의 출력이면 멈춘다", stops(lambda: S.check_stimulus_source(p, 1, cur)))
         p.write_text(json.dumps(dict(good, inputs=dict(cur, other="x"))))
         check("지금 확인할 수 없는 S4 입력이 있으면 멈춘다", stops(lambda: S.check_stimulus_source(p, 1, cur)))
+        no_labels = {r: h for r, h in cur.items() if r != "labels"}
+        p.write_text(json.dumps(dict(good, inputs=no_labels)))
+        check("S4 기록에 사람 평정 해시가 빠지면 멈춘다(Codex 50b4724)", stops(lambda: S.check_stimulus_source(p, 1, cur)))
+        no_s2 = {r: h for r, h in cur.items() if r != "s2:fold_roles.tsv"}
+        p.write_text(json.dumps(dict(good, inputs=no_s2)))
+        check("S4 기록에 S2 표 해시가 빠지면 멈춘다(Codex 50b4724)", stops(lambda: S.check_stimulus_source(p, 1, cur)))
+        p.write_text(json.dumps({k2: v2 for k2, v2 in good.items() if k2 != "inputs"}))
+        check("S4 기록에 inputs 자체가 없으면 멈춘다(Codex 50b4724)", stops(lambda: S.check_stimulus_source(p, 1, cur)))
+        check("필수 역할은 S4 stimulus 과제가 실제로 기록하는 역할과 같다", S.STIMULUS_REQUIRED_ROLES == {"visual_target", "caption_target", "labels"} | {f"s2:{q.name}" for q in c.S2_TABLES})
     check("S6 입력 목록에 S4 완료 기록이 들어간다", "stimulus_done" in S.input_paths(S.plan_pilot(pd.DataFrame(dict(video_id=np.arange(1, 25), fold=np.arange(24) % 6 + 1)), 1), participants=[]))
+
+
+def t_split_files():
+    """분할 목록 파일. 실제 목록은 두 표에서 다시 낸 것과 같고, 파일이 다르면 멈추고, 파일럿은 test.txt를 쓰지 않는다. video_id만 읽는다."""
+    import s2_split_files as sf
+    sets = sf.expected()
+    check("manifests/s2/splits가 두 분할 표와 같다", sf.check(sets) == [])
+    real = c.load_split()
+    for k in range(1, 7):
+        p, q = S.load_plan(f"outer_fold{k}", real), S.parse_plan(f"outer_fold{k}", real)
+        check(f"outer_fold{k}는 목록 파일과 분할 표가 같다", (p.train, p.val, p.test) == tuple(sorted(x) for x in (q.train, q.val, q.test)))
+    check("final_for_mc는 목록 파일과 분할 표가 같다", S.load_plan("final_for_mc", real).val == sorted(S.parse_plan("final_for_mc", real).val))
+    pilot = S.load_plan("pilot_fold3", real)
+    check("파일럿은 시험 목록이 비어 있다", pilot.test == [] and set(S.split_files(pilot)) == {"split:train", "split:val"})
+    check("바깥 평가의 Run 입력에 목록 파일 세 개가 들어간다", {"split:train", "split:val", "split:test"} <= set(S.input_paths(S.load_plan("outer_fold2", real), participants=[])))
+    with tempfile.TemporaryDirectory() as td:
+        for name, parts in sets.items():
+            (Path(td) / name).mkdir()
+            for part, ids in parts.items():
+                (Path(td) / name / f"{part}.txt").write_text("".join(f"{v}\n" for v in ids))
+        check("복사한 목록으로도 같은 분할을 읽는다", S.load_plan("outer_fold1", real, splits=td).test == sets["outer_fold1"]["test"])
+        moved = sets["outer_fold1"]["test"][0]
+        (Path(td) / "outer_fold1/val.txt").write_text("".join(f"{v}\n" for v in sets["outer_fold1"]["val"] + [moved]))
+        check("목록 파일이 분할 표와 다르면 멈춘다", stops(lambda: S.load_plan("outer_fold1", real, splits=td), (SystemExit,)))
 
 
 def t_stimulus_shape():
@@ -1129,7 +1162,7 @@ def main():
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
         t0 = time.time()
         try:
             f()

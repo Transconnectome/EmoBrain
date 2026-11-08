@@ -17,6 +17,8 @@
 | `s1_roi_final_check.py`, `.sh` | S1 | 제안한 ROI 370개를 실제로 묶어 열 번호 연결, 공통 ROI, 겹침, 시상하부와 BA34 위치, 등록 이상을 점검한다 (CPU, 약 1분) | `manifests/roi_final_check.tsv` |
 | `s2_manifest.py`, `.sh` | S2 | 분할(hk_dev_rungroup6_v4), 세션 검사, 내용 구역, 학습량 대조 표본, 이름표 짝, ROI별 voxel 열 번호, CAB-NP 13묶음, MC 표, HK 일치도와 반복 신뢰도, 열 순서 점검, 확인 기준 검사 (`--stage split, blocks, pairs, pairs_within_block, roi, mc, brain, order, check`, CPU, 약 10분) | `manifests/s2/`, `project/output/final_2026-11/s2_manifest/` |
 
+| `s2_split_files.py`, `.sh` | S2 | 두 분할 표(`split_hk_dev.tsv`, `fold_roles.tsv`)에서 실행 단위별 영상 목록을 만든다. `--check`는 대조만 한다. fold 번호는 1~6 (CPU, 1초) | `manifests/s2/splits/<outer_fold1~6, final_for_mc>/{train,val,test}.txt` |
+
 `manifests/`의 작은 표는 다음 단계(S2 manifest)의 입력이라 git에 넣는다. 큰 산출물은 `project/output/` 아래에 둔다(M3).
 | `s3_common.py`, `s3_vision.py`, `.sh` | S3 | 참가자가 본 영상을 재현해 V-JEPA 2, VideoMAE, TimeSformer, CLIP 특징을 뽑는다 (GPU, 끊기면 이어서) | `project/output/final_2026-11/s3_features/<모델>/` |
 | `s3_text.py`, `.sh` | S3 | DeBERTa, 정서어 제거 DeBERTa, MPNet 캡션 특징 (GPU) | 같은 폴더 |
