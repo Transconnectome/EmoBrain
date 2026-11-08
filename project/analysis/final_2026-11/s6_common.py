@@ -50,6 +50,7 @@ class Condition:
     pooling: bool = False
     multimodal: bool = False
     additive: bool = False
+    stop_gradient: bool = True  # G8. False는 성능 비교용 기울기 허용판뿐이다
 
 
 CONDITIONS = {
@@ -57,6 +58,7 @@ CONDITIONS = {
     "brain_only_featdec": Condition("Auxiliary feature decoding", feature_head=True, features="actual"),  # 조건 2
     "brain_decoded": Condition("Decoded-feature readout", feature_head=True, decoded=True, features="actual"),  # 조건 3, 상호작용 head
     "brain_decoded_additive": Condition("Decoded-feature readout (additive head)", feature_head=True, decoded=True, features="actual", additive=True),  # 조건 3, 더하기 head
+    "brain_decoded_grad": Condition("Decoded-feature readout, gradient allowed", feature_head=True, decoded=True, features="actual", stop_gradient=False),  # G8 허용판. 성능 비교에만 쓴다(바꿔 끼우기, K1에 쓰지 않음)
     "brain_only_distill": Condition("Response-based distillation", target="stimulus"),  # 조건 4
     "brain_decoded_distill": Condition("Decoded-feature readout + response-based distillation", feature_head=True, decoded=True, features="actual", target="stimulus"),  # 조건 5
     "multimodal": Condition("Multimodal Model", multimodal=True),  # 조건 6, 7의 준비
@@ -149,7 +151,7 @@ def candidates(condition, *, k_candidates=None, base=None, decoded=None, learnin
         return [_cand(**shared, alpha=a, lr=lr) for a in ALPHAS for lr in lrs]
     if condition in ("brain_only_featdec", "control_feature_shuffle"):
         return [_cand(**shared, lam=x, lr=lr) for x in LAMBDAS_FEATURE for lr in lrs]
-    if condition == "brain_decoded":
+    if condition in ("brain_decoded", "brain_decoded_grad"):  # 허용판은 조건 3과 후보가 같다(G8)
         return [_cand(**shared, lam=x, rank=r, lr=lr) for x in LAMBDAS_FEATURE for r in RANKS for lr in lrs]
     if condition == "brain_decoded_additive":
         return [_cand(**shared, lam=x, rank=0, lr=lr) for x in LAMBDAS_FEATURE for lr in lrs]
@@ -186,7 +188,7 @@ def check_candidate(condition, cand):
 def planned_runs(k, n_lr=3, n_seeds=3):
     """한 fold의 학습 횟수(7-L의 식). 시험에서 후보 함수의 결과와 대조한다."""
     extra = n_seeds - 1
-    return dict(brain_only=k * n_lr + extra, brain_only_featdec=2 * n_lr + extra, brain_decoded=8 * n_lr + extra, brain_decoded_additive=2 * n_lr + extra, brain_only_distill=2 * n_lr + extra, brain_decoded_distill=2 * n_lr + extra, control_label_smoothing=2 * n_lr + extra, control_stimulus_shuffle=2 * n_lr + extra, control_feature_shuffle=2 * n_lr + extra, multimodal=3 * n_lr + extra, brain_only_repr_frozen=2 * n_lr + extra, brain_only_repr_trained=2 * n_lr + extra, brain_only_pool=n_seeds, brain_decoded_pool=n_seeds)
+    return dict(brain_only=k * n_lr + extra, brain_only_featdec=2 * n_lr + extra, brain_decoded=8 * n_lr + extra, brain_decoded_grad=8 * n_lr + extra, brain_decoded_additive=2 * n_lr + extra, brain_only_distill=2 * n_lr + extra, brain_decoded_distill=2 * n_lr + extra, control_label_smoothing=2 * n_lr + extra, control_stimulus_shuffle=2 * n_lr + extra, control_feature_shuffle=2 * n_lr + extra, multimodal=3 * n_lr + extra, brain_only_repr_frozen=2 * n_lr + extra, brain_only_repr_trained=2 * n_lr + extra, brain_only_pool=n_seeds, brain_decoded_pool=n_seeds)
 
 
 def candidate_id(cand):
@@ -580,7 +582,7 @@ def build_model(condition, cand, voxel_counts):
     cfg = CONDITIONS[condition]
     if cfg.multimodal:
         return M.MultimodalModel(voxel_counts, cand["d"])
-    return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling)
+    return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling, stop_gradient=cfg.stop_gradient)
 
 
 def to_k1_head(v_hat, c_hat, feature_stats, coordinates):

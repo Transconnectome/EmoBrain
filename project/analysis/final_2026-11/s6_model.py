@@ -134,16 +134,18 @@ class Readout(nn.Module):
     """H를 받아 Emotion을 낸다. feature_head: decoded features를 내는가. decoded: 그 값을 Emotion 계산에 쓰는가.
     rank는 decoded일 때만 있고 0이 더하기 head다. pooling: F7. query끼리 self-attention은 없다(F4)."""
 
-    def __init__(self, d, *, feature_head=False, decoded=False, rank=None, pooling=False):
+    def __init__(self, d, *, feature_head=False, decoded=False, rank=None, pooling=False, stop_gradient=True):
         super().__init__()
         _check_d(d)
+        if not stop_gradient and not decoded:
+            raise ValueError("기울기 허용판은 decoded features를 쓰는 조건에만 있다")
         if decoded and not feature_head:
             raise ValueError("decoded features를 쓰려면 feature head가 있어야 한다")
         if decoded and (isinstance(rank, bool) or rank not in (0,) + INTERACTION_RANKS):
             raise ValueError("rank는 0(더하기 head), 1, 2, 4, 8이다")
         if not decoded and rank is not None:
             raise ValueError("decoded features를 쓰지 않는 조건에는 rank가 없다")
-        self.d, self.rank, self.decoded, self.pooling = d, rank, decoded, pooling
+        self.d, self.rank, self.decoded, self.pooling, self.stop_gradient = d, rank, decoded, pooling, stop_gradient
         if pooling:
             self.pool_linear = nn.Linear(d, N_EMOTIONS)
         else:
@@ -163,14 +165,15 @@ class Readout(nn.Module):
         return hasattr(self, "feature_head")
 
     def combine(self, g, v_hat, c_hat):
-        """G8. decoded features가 들어가는 모든 자리에서 기울기를 끊는다. 값은 그대로 전달된다."""
+        """G8. decoded features가 들어가는 모든 자리에서 기울기를 끊는다. 값은 그대로 전달된다.
+        stop_gradient=False는 성능 비교용 기울기 허용판(G8의 허용판, 11/8 석진 님)이다. 정서 손실이 feature head와 encoder로 흐른다."""
         if not self.decoded:
             raise ValueError("이 조건은 decoded features를 Emotion 계산에 쓰지 않는다")
         ac._tensor(g, "g", (None, N_EMOTIONS))
         ac._tensor(v_hat, "v_hat", (g.shape[0], VISUAL_DIM))
         ac._tensor(c_hat, "c_hat", (g.shape[0], CAPTION_DIM))
         ac._same_coordinates(g, v_hat, c_hat)
-        v, c = v_hat.detach(), c_hat.detach()
+        v, c = (v_hat.detach(), c_hat.detach()) if self.stop_gradient else (v_hat, c_hat)
         z = g + self.a(v) + self.b(c)
         if self.rank:
             z = z + self.U(self.A(v) * self.B(c))
@@ -201,12 +204,12 @@ class AuditionReadout(Readout):
 class BrainModel(nn.Module):
     """시험 입력이 Brain뿐인 모델(01 5-A의 조건 1~7, 대조군, 평균 pooling판)."""
 
-    def __init__(self, voxel_counts, d, *, feature_head=False, decoded=False, rank=None, pooling=False):
+    def __init__(self, voxel_counts, d, *, feature_head=False, decoded=False, rank=None, pooling=False, stop_gradient=True):
         super().__init__()
-        self.spec = dict(kind="brain", voxel_counts=voxel_counts, d=d, feature_head=feature_head, decoded=decoded, rank=rank, pooling=pooling)
+        self.spec = dict(kind="brain", voxel_counts=voxel_counts, d=d, feature_head=feature_head, decoded=decoded, rank=rank, pooling=pooling, stop_gradient=stop_gradient)
         self.input_layer = RoiInput(voxel_counts, d)
         self.encoder = Encoder(d)
-        self.readout = Readout(d, feature_head=feature_head, decoded=decoded, rank=rank, pooling=pooling)
+        self.readout = Readout(d, feature_head=feature_head, decoded=decoded, rank=rank, pooling=pooling, stop_gradient=stop_gradient)
 
     def encode(self, brain):
         return self.encoder(self.input_layer(brain))

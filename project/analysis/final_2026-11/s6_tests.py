@@ -195,6 +195,27 @@ def t_stop_gradient():
     check("stop-gradient는 값을 막지 않는다. v̂가 바뀌면 z가 바뀐다", not torch.allclose(m.readout(H).z, before))
 
 
+def t_gradient_allowed():
+    """G8 허용판(11/8 석진 님). 구조와 후보는 조건 3과 같고, 정서 손실의 기울기가 feature head까지 간다는 것만 다르다."""
+    w = World()
+    fd = w.fold()
+    rows = fd.rows("train")[:16]
+    m, cand = small_model(fd, "brain_decoded_grad", rank=2, lam=0.1)
+    m.eval()
+    T.soft_bce(m(fd.batch(rows)).z, fd.train_target(rows, "human", None)).backward()
+    check("brain_decoded_grad: 정서 손실의 기울기가 feature head로 간다", any(p.grad is not None and p.grad.abs().sum() > 0 for p in m.readout.feature_head.parameters()))
+    torch.manual_seed(0)
+    a = S.build_model("brain_decoded", cand, fd.voxel_counts)
+    torch.manual_seed(0)
+    b = S.build_model("brain_decoded_grad", cand, fd.voxel_counts)
+    a.eval(), b.eval()
+    check("허용판과 조건 3은 같은 가중치에서 같은 출력을 낸다(기울기만 다르다)", torch.equal(a(fd.batch(rows)).z, b(fd.batch(rows)).z))
+    check("허용판의 후보는 조건 3과 같다", S.candidates("brain_decoded_grad", base=dict(d=8, input_wd=0.0, lr=1e-3)) == S.candidates("brain_decoded", base=dict(d=8, input_wd=0.0, lr=1e-3)))
+    check("허용판은 내용 구역 제외 분할에서 돌리지 않는다", "brain_decoded_grad" not in S.ZONE_CONDITIONS)
+    check("기울기 허용은 decoded 조건에만 있다", stops(lambda: M.Readout(8, stop_gradient=False)))
+    check("허용판 밖의 모든 조건은 stop-gradient다", all(c.stop_gradient for n, c in S.CONDITIONS.items() if n != "brain_decoded_grad"))
+
+
 def t_featdec_independent():
     w = World()
     fd = w.fold()
@@ -1162,7 +1183,7 @@ def main():
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
         t0 = time.time()
         try:
             f()
