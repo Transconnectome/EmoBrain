@@ -38,7 +38,7 @@ import s4_common as c
 
 RANKS = (0, 1, 2, 4, 8)  # E2
 WEIGHT_DECAYS = (1e-4, 1e-3, 1e-2)  # E3
-LEARNING_RATES = (1e-4, 1e-3, 1e-2)  # O16, 11/6 석진 님
+LEARNING_RATES = (1e-5, 1e-4, 1e-3)  # O16. 11/8 석진 님이 뇌 모델과 같게 1e-2를 빼고 1e-5를 넣었다
 BATCH, MAX_EPOCHS, SEED = 64, c.MAX_EPOCHS, 0  # O16, G13
 CANDIDATES = [(r, wd, lr) for r in RANKS for wd in WEIGHT_DECAYS for lr in LEARNING_RATES]  # 이 순서가 O6의 동점 규칙이다(rank, weight decay, learning rate의 작은 값)
 SELECTED = ("r", "weight_decay", "lr", "epochs", "val_r")

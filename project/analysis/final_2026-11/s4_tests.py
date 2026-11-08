@@ -80,10 +80,10 @@ def t_no_hkfinal():
 
 
 def t_candidates():
-    check("후보는 rank 5, weight decay 3, learning rate 3이고 순서가 O6의 동점 규칙이다", fm.CANDIDATES[0] == (0, 1e-4, 1e-4) and fm.CANDIDATES[1] == (0, 1e-4, 1e-3) and fm.CANDIDATES[-1] == (8, 1e-2, 1e-2) and len(fm.CANDIDATES) == 45)
+    check("후보는 rank 5, weight decay 3, learning rate 3이고 순서가 O6의 동점 규칙이다", fm.CANDIDATES[0] == (0, 1e-4, 1e-5) and fm.CANDIDATES[1] == (0, 1e-4, 1e-4) and fm.CANDIDATES[-1] == (8, 1e-2, 1e-3) and fm.LEARNING_RATES == (1e-5, 1e-4, 1e-3) and len(fm.CANDIDATES) == 45)
     t = pd.DataFrame(fm.CANDIDATES, columns=["r", "weight_decay", "lr"])
     t["epochs"], t["val_r"] = 5, 0.5
-    check("점수가 같으면 가장 작은 rank, weight decay, learning rate를 고른다", fm.choose(t).r == 0 and fm.choose(t).weight_decay == 1e-4 and fm.choose(t).lr == 1e-4)
+    check("점수가 같으면 가장 작은 rank, weight decay, learning rate를 고른다", fm.choose(t).r == 0 and fm.choose(t).weight_decay == 1e-4 and fm.choose(t).lr == 1e-5)
     t.loc[(t.r == 4) & (t.weight_decay == 1e-3), "val_r"] = 0.9
     check("가장 큰 점수를 고른다", fm.choose(t).r == 4)
     check("더하기판은 r = 0 안에서 고른다(O17)", fm.choose(t, [0]).r == 0)
