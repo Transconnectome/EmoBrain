@@ -8,3 +8,5 @@ ffmpeg: /usr/bin/ffmpeg
 ffprobe: /usr/bin/ffprobe
 # pymoten 소스 폴더 (S3 저수준 특징)
 pymoten_dir: /path/to/pymoten
+# 자극 영상 2,196개가 있는 폴더. data/stimuli.tsv의 path가 이 폴더 기준이다
+video_root: /path/to/CowenEmotionVideos

@@ -35,6 +35,9 @@ def stimulus_table():
     s = pd.read_csv(STIMULI, sep="\t", comment="#").set_index("video_number").sort_index()
     if len(s) != N_VIDEOS or not (s.index.to_numpy() == np.arange(1, N_VIDEOS + 1)).all():
         raise ValueError("stimuli.tsv가 영상 2,196개가 아니다")
+    if any(Path(x).is_absolute() for x in s.path):
+        raise ValueError("stimuli.tsv의 path는 video_root 기준 상대 경로여야 한다")
+    s = s.assign(path=[str(P.VIDEO_ROOT / x) for x in s.path])  # configs/paths.yaml의 video_root에 붙인다
     return s[["path", "container_duration_s", "sha256", "n_decoded_frames"]]
 
 

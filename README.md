@@ -36,7 +36,7 @@ external/            외부 레포 (git submodule)
    cp configs/paths.example.yaml configs/paths.yaml   # data_root, output_root 등
    cp configs/env.example.sh configs/env.sh           # 단계별 Python 경로
    ```
-3. `data_root` 아래에 원자료를 둔다: `Horikawa/sub-XX/v3_qc/`(fMRI 반응과 block 표), `MindCaptioning/sub-XX/v2_qc/`, `atlas_sources/`(공개 ROI와 지도). 원자료는 이 레포에 없다.
+3. `video_root`에 자극 영상 2,196개(`data/stimuli.tsv`의 path가 이 폴더 기준), `data_root` 아래에 원자료를 둔다: `Horikawa/sub-XX/v3_qc/`(fMRI 반응과 block 표), `MindCaptioning/sub-XX/v2_qc/`, `atlas_sources/`(공개 ROI와 지도). 원자료는 이 레포에 없다.
 
 ## 분할
 
@@ -53,7 +53,7 @@ external/            외부 레포 (git submodule)
 
 ## 단계별 실행
 
-모든 명령은 레포 최상위에서 실행한다. GPU 단계는 `sbatch scripts/<이름>.sh <인자>`로 내거나, GPU가 있는 노드에서 `bash scripts/<이름>.sh <인자>`로 돌린다. 실제 결과를 내는 단계(S4 이후)는 설계 동결 커밋을 마지막 인자로 받고, 커밋되지 않은 코드로는 돌지 않는다. 끝난 실행은 코드, 입력, 설정이 같을 때만 건너뛰고, 다르면 섞지 않고 멈춘다.
+모든 명령은 레포 최상위에서 실행한다. GPU 단계는 `sbatch scripts/<이름>.sh <인자>`로 낸다. Slurm으로 할당받은 compute node 안(salloc 등)에서는 `bash scripts/<이름>.sh <인자>`로 돌려도 된다. login node에서 학습을 돌리지 않는다(NERSC 정책). 실제 결과를 내는 단계(S4 이후)는 설계 동결 커밋을 마지막 인자로 받고, 커밋되지 않은 코드로는 돌지 않는다. 끝난 실행은 코드, 입력, 설정이 같을 때만 건너뛰고, 다르면 섞지 않고 멈춘다.
 
 | 단계 | 스크립트 | 하는 일 | 출력 |
 |---|---|---|---|

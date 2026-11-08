@@ -16,7 +16,7 @@ S2 = MANIFESTS / "s2"
 DATA = REPO / "data"
 CONFIGS = REPO / "configs"
 REFERENCE = REPO / "docs/final/reference"
-KEYS = ("data_root", "output_root", "ffmpeg", "ffprobe", "pymoten_dir")
+KEYS = ("data_root", "video_root", "output_root", "ffmpeg", "ffprobe", "pymoten_dir")
 
 
 def _read(path):
@@ -52,4 +52,5 @@ def need(key):
 
 
 DATA_ROOT = Path(_CFG.get("data_root", REPO / "external_data"))  # 원자료: Horikawa/, MindCaptioning/, atlas_sources/, Horikawa_embedding/
+VIDEO_ROOT = Path(_CFG.get("video_root", DATA_ROOT / "videos"))  # 자극 영상 2,196개. data/stimuli.tsv의 path는 이 폴더 기준이다
 OUT = Path(_CFG.get("output_root", REPO / "outputs"))  # 큰 산출물과 로그. git 밖

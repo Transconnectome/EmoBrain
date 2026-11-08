@@ -295,7 +295,24 @@ def test_author_check():
     ok("0.1 같은 값의 상수도 상수로 본다", r["n_constant_ours"] == 4 and r["n_r_same"] == 0)
 
 
+def test_video_root():
+    """Codex 9d35ea0 필수 2. 영상 경로는 video_root 기준이고, 레포 표에는 절대 경로가 없다."""
+    import paths as P
+    raw = pd.read_csv(c.STIMULI, sep="\t", comment="#")
+    ok("data/stimuli.tsv의 path는 모두 상대 경로다", not any(Path(x).is_absolute() for x in raw.path))
+    ok("stimuli.tsv에 서버 경로가 없다", "/pscratch" not in c.STIMULI.read_text())
+    t = c.stimulus_table()
+    ok("영상 경로는 video_root에 붙는다", all(str(x).startswith(str(P.VIDEO_ROOT) + "/") for x in t.path))
+    old = P.VIDEO_ROOT
+    try:
+        P.VIDEO_ROOT = Path("/tmp/다른_서버/videos")
+        ok("video_root를 바꾸면 경로가 따라 바뀐다", c.stimulus_table().path.iloc[0] == "/tmp/다른_서버/videos/" + raw.path.iloc[0])
+    finally:
+        P.VIDEO_ROOT = old
+
+
 if __name__ == "__main__":
+    test_video_root()
     test_windows()
     test_screen()
     test_repeat_boundary()
