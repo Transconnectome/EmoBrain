@@ -45,8 +45,17 @@ def make_optimizer(model, lr, wd):
     return torch.optim.AdamW([dict(params=[model.weight], weight_decay=wd), dict(params=[model.bias], weight_decay=0.0)], lr=lr)
 
 
+def check_soft_bce_candidates(decays, lrs):
+    """O24, G13. 후보는 함수 안에서 강제한다(Codex 0a36925 필수 2). 부분 목록은 허용하고 목록 밖 값은 학습 전에 거절한다."""
+    decays, lrs = [float(x) for x in decays], [float(x) for x in lrs]
+    if not decays or not lrs or not set(decays) <= set(d5.SOFT_BCE_DECAYS) or not set(lrs) <= set(d5.SOFT_BCE_LRS):
+        raise ValueError(f"soft BCE 후보는 weight decay {d5.SOFT_BCE_DECAYS}, learning rate {d5.SOFT_BCE_LRS} 안에서만 준다")
+    return decays, lrs
+
+
 def soft_bce_train(ztr, ytr, zva, yva, wd, lr, settings, device):
     """조기 종료는 검증 soft BCE, 가장 낮았던 epoch의 가중치로 되돌린다(G13, O6)."""
+    check_soft_bce_candidates([wd], [lr])
     torch.manual_seed(settings["seed"])
     g = torch.Generator().manual_seed(settings["seed"])
     model = torch.nn.Linear(ztr.shape[1], ytr.shape[1]).to(device)
@@ -81,6 +90,7 @@ def soft_bce_train(ztr, ytr, zva, yva, wd, lr, settings, device):
 
 
 def soft_bce_task(brain, y_em, k, device, settings=d5.SOFT_BCE, decays=d5.SOFT_BCE_DECAYS, lrs=d5.SOFT_BCE_LRS):
+    decays, lrs = check_soft_bce_candidates(decays, lrs)
     tr, va, te, _ = split_idx(brain.fold, k)
     x = d5.as_tensor(brain.X, device)
     z, _, _ = d5.standardize(x, tr)

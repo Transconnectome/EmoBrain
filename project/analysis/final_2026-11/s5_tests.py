@@ -20,6 +20,14 @@ import s5_decoding as dec
 RESULTS = []
 
 
+def stops_any(f):
+    try:
+        f()
+    except ValueError:
+        return True
+    return False
+
+
 def check(name, ok):
     RESULTS.append((name, bool(ok)))
     print("통과" if ok else "실패", name, flush=True)
@@ -188,8 +196,9 @@ def t_soft_bce():
     brain, y = synth(n=120, p=30, q=3)
     p = 1 / (1 + np.exp(-y))
     s = dict(batch=16, max_epochs=30, patience=5, seed=0)
-    a, tab, chosen = b5.soft_bce_task(brain, p, 1, "cpu", settings=s, decays=(1e-3, 1e-2), lrs=(1e-3, 1e-2))
-    b, tab2, _ = b5.soft_bce_task(brain, p, 1, "cpu", settings=s, decays=(1e-3, 1e-2), lrs=(1e-3, 1e-2))
+    a, tab, chosen = b5.soft_bce_task(brain, p, 1, "cpu", settings=s, decays=(1e-3, 1e-2), lrs=(1e-4, 1e-3))
+    check("soft BCE는 폐기한 learning rate 1e-2를 학습 전에 거절한다(Codex 0a36925)", stops_any(lambda: b5.soft_bce_task(brain, p, 1, "cpu", settings=s, decays=(1e-3,), lrs=(1e-2,))))
+    b, tab2, _ = b5.soft_bce_task(brain, p, 1, "cpu", settings=s, decays=(1e-3, 1e-2), lrs=(1e-4, 1e-3))
     check("soft BCE 선형의 후보는 weight decay 3개와 learning rate 3개다(O24, G13)", d5.SOFT_BCE_DECAYS == (1e-4, 1e-3, 1e-2) and d5.SOFT_BCE_LRS == (1e-5, 1e-4, 1e-3) and len(tab) == 4 and {"weight_decay", "lr"} <= set(tab.columns))
     check("고른 값이 후보 중에 있고 점수가 가장 높다", tab.val_r.max() == tab[(tab.weight_decay == chosen["weight_decay"]) & (tab.lr == chosen["lr"])].val_r.iloc[0])
     check("같은 seed면 같은 예측이다", np.array_equal(a["pred"], b["pred"]))
@@ -198,7 +207,7 @@ def t_soft_bce():
     check("G13 값을 쓴다", d5.SOFT_BCE == dict(batch=64, max_epochs=300, patience=30, seed=0))
     p2 = p.copy()
     p2[brain.fold == 1] = 1 - p2[brain.fold == 1]
-    c2, tab3, _ = b5.soft_bce_task(brain, p2, 1, "cpu", settings=s, decays=(1e-3, 1e-2), lrs=(1e-3, 1e-2))
+    c2, tab3, _ = b5.soft_bce_task(brain, p2, 1, "cpu", settings=s, decays=(1e-3, 1e-2), lrs=(1e-4, 1e-3))
     check("시험 fold의 정답을 바꿔도 예측이 같다", np.array_equal(a["pred"], c2["pred"]) and tab.val_r.equals(tab3.val_r))
     m = torch.nn.Linear(4, 2)
     o = b5.make_optimizer(m, 1e-3, 0.5)

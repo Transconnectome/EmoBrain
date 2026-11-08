@@ -130,6 +130,29 @@ class Diverged(ValueError):
     고른 설정의 seed 1, 2에서 나면 seed를 빼지 않고 멈춘다."""
 
 
+NONFINITE = ("must be nonempty and finite", "NaN 또는 Inf")  # 수치 실패를 알리는 검사 문구. shape, 자료 경계 오류와 구별한다
+
+
+def numeric(step, what):
+    """학습 중 계산 하나. 출력이나 중간값이 NaN, Inf가 되어 난 오류만 Diverged로 바꾼다(Codex 0a36925 필수 1). 다른 오류는 그대로 낸다."""
+    try:
+        return step()
+    except Diverged:
+        raise
+    except ValueError as e:
+        if any(m in str(e) for m in NONFINITE):
+            raise Diverged(f"{what}: {e}") from e
+        raise
+
+
+def check_finite_state(model, what):
+    for name, p in model.named_parameters():
+        if not torch.isfinite(p).all():
+            raise Diverged(f"{what}: 가중치 {name}에 NaN 또는 Inf가 있다")
+        if p.grad is not None and not torch.isfinite(p.grad).all():
+            raise Diverged(f"{what}: 기울기 {name}에 NaN 또는 Inf가 있다")
+
+
 def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on_epoch=None):
     """G13, O6. AdamW, batch 64, 최대 300 epoch, patience 30, warmup 없음. 가장 낮은 epoch의 가중치로 되돌린다. 같은 값이면 앞선 epoch다."""
     train, val = fd.rows("train"), fd.rows("val")
@@ -145,14 +168,16 @@ def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on
         for i in range(0, len(order), spec.batch):
             rows = order[i:i + spec.batch]
             optimizer.zero_grad(set_to_none=True)
-            loss = loss_fn(forward(model, rows), rows)
+            loss = numeric(lambda: loss_fn(forward(model, rows), rows), f"epoch {epoch} 학습")
             if not torch.isfinite(loss):
                 raise Diverged(f"epoch {epoch}: 학습 손실이 NaN 또는 Inf다")
             loss.backward()
+            check_finite_state(model, f"epoch {epoch} backward")  # 기울기가 비유한이면 가중치를 바꾸기 전에 멈춘다
             optimizer.step()
+            check_finite_state(model, f"epoch {epoch} update")
             total += loss.item() * len(rows)
         model.eval()
-        z = collect(model, val, forward, spec.batch)["z"]
+        z = numeric(lambda: collect(model, val, forward, spec.batch)["z"], f"epoch {epoch} 검증")
         val_loss = validation_loss(z, y_val)
         if not np.isfinite(val_loss):
             raise Diverged(f"epoch {epoch}: 검증 손실이 NaN 또는 Inf다")

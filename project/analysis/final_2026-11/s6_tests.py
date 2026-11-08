@@ -266,6 +266,39 @@ def t_s6_rules_1108():
             T.fit = real_fit
 
 
+def t_numeric_divergence():
+    """Codex 0a36925 필수 1. 실제 forward, backward에서 생긴 비유한 값도 Diverged가 된다. shape 오류는 그대로 난다."""
+    w = World()
+    fd = w.fold()
+    m, cand = small_model(fd, "brain_decoded", rank=2, lam=0.1)
+    real_step = torch.optim.AdamW.step
+    def poisoned(self, *a, **k):
+        out = real_step(self, *a, **k)
+        with torch.no_grad():
+            m.input_layer.roi_embedding.fill_(float("inf"))
+        return out
+    torch.optim.AdamW.step = poisoned
+    try:
+        loss_fn = T.make_loss("brain_decoded", cand, fd)
+        check("가중치가 Inf가 되면 Diverged다", stops(lambda: T.fit(m, fd, FAST, lr=1e-3, input_wd=1e-3, feature_wd=None, loss_fn=loss_fn, forward=T.brain_forward(fd), seed=0), (T.Diverged,)))
+    finally:
+        torch.optim.AdamW.step = real_step
+    m2, _ = small_model(fd, "brain_decoded", rank=2, lam=0.1)
+    hook = m2.readout.feature_head.register_forward_hook(lambda mod, inp, out: (out[0] * float("nan"), out[1], out[2]))
+    check("forward의 v_hat이 NaN이면 Diverged다", stops(lambda: T.fit(m2, fd, FAST, lr=1e-3, input_wd=1e-3, feature_wd=None, loss_fn=T.make_loss("brain_decoded", cand, fd), forward=T.brain_forward(fd), seed=0), (T.Diverged,)))
+    hook.remove()
+    m3, _ = small_model(fd, "brain_decoded", rank=2, lam=0.1)
+    m3.input_layer.weights["sub-01"].register_hook(lambda g: g * float("inf"))
+    check("기울기가 Inf이면 가중치를 바꾸기 전에 Diverged다", stops(lambda: T.fit(m3, fd, FAST, lr=1e-3, input_wd=1e-3, feature_wd=None, loss_fn=T.make_loss("brain_decoded", cand, fd), forward=T.brain_forward(fd), seed=0), (T.Diverged,)))
+    try:
+        T.numeric(lambda: M.ac._tensor(torch.zeros(2, 3), "x", (2, 4)), "시험")
+        kind = None
+    except Exception as e:  # noqa: BLE001
+        kind = type(e)
+    check("shape 오류는 Diverged로 바꾸지 않는다", kind is ValueError)
+    check("NaN 검사 문구는 Diverged로 바꾼다", stops(lambda: T.numeric(lambda: M.ac._tensor(torch.full((2, 4), float("nan")), "x", (2, 4)), "시험"), (T.Diverged,)))
+
+
 def t_prelim_config():
     with tempfile.TemporaryDirectory() as td:
         f = Path(td) / "c.json"
@@ -1245,7 +1278,7 @@ def main():
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
         t0 = time.time()
         try:
             f()
