@@ -1,0 +1,15 @@
+{
+  "note": "11/8 발표용 예비 실행. 01 G13의 후보를 줄였다: d 64와 입력층 weight decay 0.01 하나, learning rate 1e-4 하나, seed 0 하나. λ, r, α 후보는 G9 그대로. 결과는 S6_OUT=s6_brain_prelim에 따로 둔다. 본 실행은 S7 뒤 run_config.json으로 한다",
+  "k_candidates": [
+    [
+      64,
+      0.01
+    ]
+  ],
+  "learning_rates": [
+    0.0001
+  ],
+  "seeds": [
+    0
+  ]
+}

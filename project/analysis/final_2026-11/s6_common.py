@@ -95,17 +95,21 @@ class Config:
     learning_rates: tuple = LEARNING_RATES
     lr_follows_brain_only: bool = False
     keep_candidate_checkpoints: bool = False
+    seeds: tuple = SEEDS  # L9. 발표용 예비 실행처럼 seed를 줄일 때만 SEEDS의 앞부분으로 준다(11/8)
 
 
 def load_config(path):
     """manifests/s6의 JSON을 읽는다. 알 수 없는 키, S7 전의 빈 후보, G13 밖의 learning rate는 멈춘다."""
     raw = json.loads(Path(path).read_text())
-    extra = set(raw) - {"k_candidates", "learning_rates", "lr_follows_brain_only", "keep_candidate_checkpoints", "note"}
+    extra = set(raw) - {"k_candidates", "learning_rates", "lr_follows_brain_only", "keep_candidate_checkpoints", "seeds", "note"}
     if extra:
         raise ValueError(f"설정에 알 수 없는 키가 있다: {sorted(extra)}")
     if not raw.get("k_candidates"):
         raise ValueError("d와 입력층 weight decay 후보(k_candidates)는 S7에서 정한다(5-5). 값이 없으면 돌리지 않는다")
-    return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)))
+    seeds = tuple(int(x) for x in raw.get("seeds", SEEDS))
+    if not seeds or seeds != SEEDS[:len(seeds)]:
+        raise ValueError("seed는 SEEDS의 앞부분이어야 한다(L9). 후보 고르기는 항상 seed 0이다")
+    return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds)
 
 
 def _cand(**kw):

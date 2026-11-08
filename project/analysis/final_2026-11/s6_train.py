@@ -474,7 +474,7 @@ def main(argv=None):
     plan = S.load_plan(a.plan, split)  # manifests/s2/splits의 목록 파일을 쓰고 분할 표와 대조한다
     wanted = a.conditions.split(",")
     S.check_conditions(plan.name, wanted)
-    spec = S.Spec()
+    spec = S.Spec(seeds=config.seeds)
     stimulus_run = None
     if plan.name.startswith(("outer_fold", "pilot_fold")):  # S4 출처를 학습 전에 대조한다. 입력 해시는 이 실행과 같은 방식으로 낸다
         probe = S.Run(a.design_freeze, {**S.input_paths(plan), "config": a.config})

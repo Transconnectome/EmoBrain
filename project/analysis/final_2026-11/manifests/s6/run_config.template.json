@@ -1,7 +1,11 @@
 {
   "note": "S7에서 k_candidates를 정한 뒤 run_config.json으로 복사해 커밋한다. 비어 있으면 s6_train.py가 멈춘다(5-5, 01 G13).",
   "k_candidates": [],
-  "learning_rates": [0.0001, 0.001, 0.01],
+  "learning_rates": [
+    1e-05,
+    0.0001,
+    0.001
+  ],
   "lr_follows_brain_only": false,
   "keep_candidate_checkpoints": false
 }

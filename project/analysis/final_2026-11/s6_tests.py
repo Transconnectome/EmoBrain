@@ -266,6 +266,17 @@ def t_s6_rules_1108():
             T.fit = real_fit
 
 
+def t_prelim_config():
+    with tempfile.TemporaryDirectory() as td:
+        f = Path(td) / "c.json"
+        f.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], learning_rates=[1e-4], seeds=[0])))
+        cfg = S.load_config(f)
+        check("예비 설정은 seed를 줄일 수 있다", cfg.seeds == (0,) and S.Spec(seeds=cfg.seeds).seeds == (0,))
+        f.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], seeds=[1])))
+        check("seed 0 없이 줄일 수 없다", stops(lambda: S.load_config(f)))
+    check("발표용 예비 설정 파일을 읽는다", S.load_config(S.MANIFEST / "run_config_prelim_20261108.json").seeds == (0,))
+
+
 def t_featdec_independent():
     w = World()
     fd = w.fold()
@@ -1234,7 +1245,7 @@ def main():
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
         t0 = time.time()
         try:
             f()
