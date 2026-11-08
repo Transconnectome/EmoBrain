@@ -125,6 +125,11 @@ class FitResult:
     history: pd.DataFrame
 
 
+class Diverged(ValueError):
+    """학습이 발산했다(손실이 NaN 또는 Inf). G13(11/8): 설정 후보 고르기(seed 0)에서는 그 후보만 기록하고 건너뛴다.
+    고른 설정의 seed 1, 2에서 나면 seed를 빼지 않고 멈춘다."""
+
+
 def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on_epoch=None):
     """G13, O6. AdamW, batch 64, 최대 300 epoch, patience 30, warmup 없음. 가장 낮은 epoch의 가중치로 되돌린다. 같은 값이면 앞선 epoch다."""
     train, val = fd.rows("train"), fd.rows("val")
@@ -142,7 +147,7 @@ def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on
             optimizer.zero_grad(set_to_none=True)
             loss = loss_fn(forward(model, rows), rows)
             if not torch.isfinite(loss):
-                raise ValueError(f"epoch {epoch}: 학습 손실이 NaN 또는 Inf다. 계산 실패이므로 멈춘다")
+                raise Diverged(f"epoch {epoch}: 학습 손실이 NaN 또는 Inf다")
             loss.backward()
             optimizer.step()
             total += loss.item() * len(rows)
@@ -150,7 +155,7 @@ def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on
         z = collect(model, val, forward, spec.batch)["z"]
         val_loss = validation_loss(z, y_val)
         if not np.isfinite(val_loss):
-            raise ValueError(f"epoch {epoch}: 검증 손실이 NaN 또는 Inf다")
+            raise Diverged(f"epoch {epoch}: 검증 손실이 NaN 또는 Inf다")
         history.append(dict(epoch=epoch, train_loss=total / len(order), val_loss=val_loss))
         if on_epoch is not None:
             on_epoch(epoch, model, val_loss)
@@ -210,7 +215,7 @@ class FoldRunner:
         with c.Atomic(path) as tmp:
             _json(asdict(fd.plan), tmp / "plan.json")
             np.savez(tmp / "rows.npz", participant=fd.participant_names(np.arange(len(fd.row_role))), video_id=fd.row_video, role=fd.row_role)
-            np.savez(tmp / "standardization.npz", **fd.feature_stats, **{f"voxel_mean:{p}": s["mean"] for p, s in fd.voxel_stats.items()}, **{f"voxel_std:{p}": s["std"] for p, s in fd.voxel_stats.items()})
+            np.savez(tmp / "standardization.npz", **fd.feature_stats, **{f"voxel_mean:{p}": s["mean"] for p, s in fd.voxel_stats.items()}, **{f"voxel_std:{p}": s["std"] for p, s in fd.voxel_stats.items()}, **{f"voxel_constant:{p}": s["constant"] for p, s in fd.voxel_stats.items()})
             _json(self.run.prov, tmp / "done.json")
 
     def shuffle(self, seed):
@@ -232,8 +237,8 @@ class FoldRunner:
         fd = self.fd
         np.savez(path, participant=fd.participant_names(rows), video_id=fd.row_video[rows], logit=z.numpy(), p=z.sigmoid().numpy())
 
-    def train_one(self, condition, cand, seed):
-        """학습 한 번. 돌려주는 값은 done.json의 내용이다."""
+    def train_one(self, condition, cand, seed, search=False):
+        """학습 한 번. 돌려주는 값은 done.json의 내용이다. search: 설정 후보 고르기(seed 0)이면 발산을 기록하고 넘어간다."""
         S.check_candidate(condition, cand)
         cfg = S.CONDITIONS[condition]
         path = self.run_dir(condition, cand, seed)
@@ -251,7 +256,17 @@ class FoldRunner:
         model = model.to(fd.device)
         shuffle = self.shuffle(seed) if condition in S.NEEDS_SHUFFLE else None
         forward = multimodal_forward(fd) if cfg.multimodal else brain_forward(fd)
-        result = fit(model, fd, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=cand["feature_wd"], loss_fn=make_loss(condition, cand, fd, shuffle, teacher), forward=forward, seed=seed)
+        try:
+            result = fit(model, fd, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=cand["feature_wd"], loss_fn=make_loss(condition, cand, fd, shuffle, teacher), forward=forward, seed=seed)
+        except Diverged as e:
+            if not search:
+                raise
+            with c.Atomic(path) as tmp:  # 발산 기록. 모델은 저장하지 않는다
+                self.run._check_code()
+                done = dict(self.run.prov, plan=fd.plan.name, condition=condition, thesis_name=cfg.thesis, candidate=cand, candidate_id=S.candidate_id(cand), seed=seed, diverged=True, diverged_reason=str(e), best_epoch=None, val_loss=None, val_score=None, **c.timing(started))
+                _json(done, tmp / "done.json")
+            print("발산", path, e, flush=True)
+            return done
         with c.Atomic(path) as tmp:
             M.save_checkpoint(tmp / "model.pt", model, condition=condition, candidate=cand, seed=seed, best_epoch=result.best_epoch)
             _json(M.parameter_assignment(model), tmp / "parameter_groups.json")
@@ -278,7 +293,8 @@ class FoldRunner:
         return done
 
     def _row(self, cand, done):
-        return dict(cand, candidate_id=done["candidate_id"], val_score=done["val_score"], val_loss=done["val_loss"], best_epoch=done["best_epoch"], source_condition=None, source_id=None)
+        diverged = bool(done.get("diverged", False))
+        return dict(cand, candidate_id=done["candidate_id"], val_score=float("nan") if diverged else done["val_score"], val_loss=float("nan") if diverged else done["val_loss"], best_epoch=done["best_epoch"], diverged=diverged, source_condition=None, source_id=None)
 
     def selected(self, condition):
         path = self.root / condition / "selected.json"
@@ -296,7 +312,7 @@ class FoldRunner:
         base = None if condition == "brain_only" else self.selected("brain_only")["candidate"]
         decoded = self.selected("brain_decoded")["candidate"] if condition == "brain_decoded_distill" else None
         cands = S.candidates(condition, k_candidates=config.k_candidates, base=base, decoded=decoded, learning_rates=config.learning_rates, lr_follows_brain_only=config.lr_follows_brain_only)
-        rows = [self._row(cand, self.train_one(condition, cand, self.spec.seeds[0])) for cand in cands]
+        rows = [self._row(cand, self.train_one(condition, cand, self.spec.seeds[0], search=True)) for cand in cands]
         source = None
         if condition in S.ZERO_SOURCE:
             source = self.selected(S.ZERO_SOURCE[condition][0])

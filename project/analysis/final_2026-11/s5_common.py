@@ -38,7 +38,7 @@ H2020_LAMBDAS = np.logspace(1, 4, 20)  # O18, I7. Horikawa 외(2020) 공개 코�
 H2020_VOXELS = 500  # I7
 H2020_ENSEMBLE_THRESHOLD = 0.095  # 공개 코드 summary_decoding_results.m 9행. 안쪽 r이 이 값 이상인 ROI의 예측을 평균한다
 SOFT_BCE_DECAYS = (1e-4, 1e-3, 1e-2)  # O24, E3
-SOFT_BCE_LRS = (1e-4, 1e-3, 1e-2)  # O24, G13. 뇌 모델과 같이 learning rate도 후보로 고른다(11/7)
+SOFT_BCE_LRS = (1e-5, 1e-4, 1e-3)  # O24, G13. 뇌 모델과 같은 후보(11/8 석진 님이 1e-2를 빼고 1e-5를 넣음)
 SOFT_BCE = dict(batch=64, max_epochs=300, patience=30, seed=0)  # O24, G13
 VISUAL_LAYERS = list(range(1, 41))
 CAPTION_LAYERS = list(range(1, 25))

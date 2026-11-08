@@ -216,6 +216,56 @@ def t_gradient_allowed():
     check("허용판 밖의 모든 조건은 stop-gradient다", all(c.stop_gradient for n, c in S.CONDITIONS.items() if n != "brain_decoded_grad"))
 
 
+def t_s6_rules_1108():
+    """11/8 석진 님 결정. learning rate 후보, 발산한 후보 건너뛰기, 값이 변하지 않는 voxel."""
+    check("learning rate 후보는 1e-5, 1e-4, 1e-3이다", S.LEARNING_RATES == (1e-5, 1e-4, 1e-3))
+    check("1e-2는 후보로 줄 수 없다", stops(lambda: S._check_lrs((1e-3, 1e-2))))
+    base = dict(d=8, input_wd=0.0, lr=1e-3, lam=None, alpha=None, rank=None, feature_wd=None)
+    r = lambda **kw: dict(base, candidate_id="x", val_score=0.5, val_loss=0.7, best_epoch=3, source_condition=None, source_id=None, diverged=False) | kw
+    check("발산한 후보는 고르지 않는다", S.select_best([r(lr=1e-3, val_score=float("nan"), diverged=True), r(lr=1e-4, val_score=0.2)])["lr"] == 1e-4)
+    check("모든 후보가 발산하면 멈춘다", stops(lambda: S.select_best([r(val_score=float("nan"), diverged=True)])))
+    check("발산 표시가 없는 NaN 점수는 여전히 멈춘다", stops(lambda: S.select_best([r(val_score=float("nan")), r(lr=1e-4)])))
+    # 값이 변하지 않는 voxel
+    w = World()
+    pid = "sub-01"
+    b = w.brains[pid]
+    X = np.array(b.X, copy=True)
+    plan = w.plan(1)
+    role_train = np.isin(b.video_id, plan.train)
+    X[role_train, 3] = 2.5  # 학습 행에서만 상수
+    w.brains[pid] = d5.BrainSet(pid, X, b.video_id, b.fold, b.roi_positions, b.n_voxels_with_overlap)
+    fd = w.fold()
+    st = fd.voxel_stats[pid]
+    check("학습 행에서 상수인 voxel을 표시한다", bool(st["constant"][3]) and int(st["constant"].sum()) == 1)
+    check("그 voxel은 학습, 검증, 시험 모든 행에서 0이다", bool((fd.x[pid][:, 3] == 0).all()))
+    check("다른 voxel은 그대로 표준화한다", bool((fd.x[pid][:, 4] != 0).any()))
+    # 발산한 후보는 기록하고 다음 후보로 넘어간다
+    with tempfile.TemporaryDirectory() as td:
+        real_fit = T.fit
+        def fake_fit(model, fd_, spec, **kw):
+            if kw["lr"] == 1e-3:
+                raise T.Diverged("epoch 1: 합성 발산")
+            return real_fit(model, fd_, spec, **kw)
+        T.fit = fake_fit
+        try:
+            w2, fd2, run2, runner = pipeline(Path(td), conditions=["brain_only"])
+            sel = runner.selected("brain_only")
+            dirs = list((Path(td) / "outer_fold1" / "brain_only").glob("*_seed0"))
+            div = [json.loads((d / "done.json").read_text()) for d in dirs]
+            check("발산한 후보의 기록이 남는다", any(x.get("diverged") for x in div))
+            check("발산한 후보에는 모델 파일이 없다", all(not (d / "model.pt").exists() for d, x in zip(dirs, div) if x.get("diverged")))
+            check("발산하지 않은 후보에서 고른다", sel["candidate"]["lr"] == 1e-4)
+            check("선택표에 발산 표시가 있다", any(row.get("diverged") for row in sel["rows"]))
+            sel_dir = Path(td) / "outer_fold1" / sel["seeds"]["0"]
+            def always(model, fd_, spec, **kw):
+                raise T.Diverged("합성 발산")
+            T.fit = always
+            cand = sel["candidate"]
+            check("고른 설정의 seed 1이 발산하면 멈춘다", stops(lambda: runner.train_one("brain_only", cand, 7), (ValueError,)))
+        finally:
+            T.fit = real_fit
+
+
 def t_featdec_independent():
     w = World()
     fd = w.fold()
@@ -526,7 +576,8 @@ def t_standardization():
     Xc[:, 0] = 1.0
     bad = dict(w.brains)
     bad["sub-01"] = d5.BrainSet("sub-01", Xc, x.video_id, x.fold, x.roi_positions)
-    check("학습 행에서 상수인 voxel은 조용히 넘기지 않고 멈춘다", stops(lambda: S.prepare_fold(bad, w.split, w.y, w.v, w.cap, plan)))
+    fdc = S.prepare_fold(bad, w.split, w.y, w.v, w.cap, plan)
+    check("상수인 voxel은 멈추지 않고 표시한 뒤 0으로 둔다(11/8 석진 님)", bool(fdc.voxel_stats["sub-01"]["constant"][0]) and bool((fdc.x["sub-01"][:, 0] == 0).all()))
     # K1: 학습 fold 4개의 눈금 -> 원래 척도 -> D_k 눈금
     r = c.roles(1)
     dk = np.isin(w.split.fold, r["dk"])
@@ -742,7 +793,7 @@ def pipeline(root, w=None, config=None, spec=FAST, conditions=None):
     WORLD_SPLIT[0] = w.split
     fd = w.fold(include_test_features=True)
     run = run_for(root, plan="outer_fold1", spec=str(spec))
-    runner = T.FoldRunner(fd, w.split, run, spec, config or S.Config(KS, (1e-3, 1e-2)), Path(root) / "outer_fold1")
+    runner = T.FoldRunner(fd, w.split, run, spec, config or S.Config(KS, (1e-4, 1e-3)), Path(root) / "outer_fold1")
     for name in conditions or S.ORDER:
         runner.run_condition(name)
     return w, fd, run, runner
@@ -760,7 +811,7 @@ def t_pipeline():
             if n in S.POOLED:
                 expect_trained += 3
             else:
-                n_cand = len(S.candidates(n, k_candidates=KS, base=selected["brain_only"]["candidate"], decoded=selected["brain_decoded"]["candidate"], learning_rates=(1e-3, 1e-2)))
+                n_cand = len(S.candidates(n, k_candidates=KS, base=selected["brain_only"]["candidate"], decoded=selected["brain_decoded"]["candidate"], learning_rates=(1e-4, 1e-3)))
                 expect_trained += n_cand + (0 if sel["zero_selected"] else 2)
         check(f"전체 조건의 학습 횟수가 계획과 같다({len(runner.trained)}회)", len(runner.trained) == expect_trained)
         d = selected["brain_only"]["candidate"]["d"]
@@ -865,15 +916,15 @@ def t_pipeline():
         tr, _ = M.load_checkpoint(out / selected["brain_only_repr_trained"]["seeds"]["0"] / "model.pt")
         check("조건 7: 학습 뒤 head가 복사한 값에서 달라졌다", not all(torch.equal(a, b) for a, b in zip(tr.readout.emotion_linears.state_dict().values(), teach.emotion_linears.state_dict().values())))
         # 건너뛰기
-        again = T.FoldRunner(fd, w.split, run, FAST, S.Config(KS, (1e-3, 1e-2)), out)
+        again = T.FoldRunner(fd, w.split, run, FAST, S.Config(KS, (1e-4, 1e-3)), out)
         for n in S.ORDER:
             again.run_condition(n)
         check("같은 실행 번호면 끝난 결과를 건너뛴다", again.trained == [])
         other = run_for(root, plan="outer_fold1", spec="다른 설정")
-        check("실행 번호가 다르면 섞지 않고 멈춘다", stops(lambda: T.FoldRunner(fd, w.split, other, FAST, S.Config(KS, (1e-3, 1e-2)), out)))
-        check("앞 조건의 선택이 없으면 멈춘다", stops(lambda: T.FoldRunner(fd, w.split, run, FAST, S.Config(KS, (1e-3, 1e-2)), root / "빈곳").run_condition("brain_decoded")))
+        check("실행 번호가 다르면 섞지 않고 멈춘다", stops(lambda: T.FoldRunner(fd, w.split, other, FAST, S.Config(KS, (1e-4, 1e-3)), out)))
+        check("앞 조건의 선택이 없으면 멈춘다", stops(lambda: T.FoldRunner(fd, w.split, run, FAST, S.Config(KS, (1e-4, 1e-3)), root / "빈곳").run_condition("brain_decoded")))
         wrong = run_for(root, plan="다른 분할")
-        t2 = T.FoldRunner(fd, w.split, wrong, FAST, S.Config(KS, (1e-3, 1e-2)), root / "다른곳")
+        t2 = T.FoldRunner(fd, w.split, wrong, FAST, S.Config(KS, (1e-4, 1e-3)), root / "다른곳")
         (root / "다른곳/brain_only").mkdir(parents=True)
         (root / "다른곳/brain_only/selected.json").write_text((out / "brain_only/selected.json").read_text())
         check("다른 실행의 선택을 쓰지 않는다", stops(lambda: t2.selected("brain_only")))
@@ -891,7 +942,7 @@ def t_representation_unit():
         w, fd, run, runner = pipeline(root, config=S.Config(((8, 1e-3),), (1e-3,)), conditions=["brain_only", "multimodal"])
         teacher = runner.teacher(0)
         digest = M.state_digest(teacher.model)
-        cand = S._cand(d=8, input_wd=1e-3, lr=1e-2, lam=1.0)
+        cand = S._cand(d=8, input_wd=1e-3, lr=1e-3, lam=1.0)
         rows = fd.rows("train")[:16]
         for name, frozen in (("brain_only_repr_frozen", True), ("brain_only_repr_trained", False)):
             T.seed_everything(0)
@@ -970,7 +1021,7 @@ def t_zero_selected():
                 check(f"{name}: 새 seed를 학습하지 않는다", not any(c0 == name and s != 0 for c0, _, s in runner.trained))
                 table = pd.read_csv(out / name / "selection.tsv", sep="\t")
                 check(f"{name}: 선택표에 0 후보와 그 출처가 있다", (table[key] == 0).sum() >= 1 and set(table.source_condition.dropna()) == {src})
-            check("동점이면 작은 d, 작은 learning rate를 고른다", runner.selected("brain_only")["candidate"]["d"] == 8 and runner.selected("brain_only")["candidate"]["lr"] == 1e-3)
+            check("동점이면 작은 d, 작은 learning rate를 고른다", runner.selected("brain_only")["candidate"]["d"] == 8 and runner.selected("brain_only")["candidate"]["lr"] == 1e-4)
             check("0 후보를 고르면 조건 5의 결과도 조건 3의 r을 유지한다", runner.selected("brain_decoded_distill")["candidate"]["rank"] == runner.selected("brain_decoded")["candidate"]["rank"])
     finally:
         S.validation_score = old
@@ -1183,7 +1234,7 @@ def main():
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
         t0 = time.time()
         try:
             f()

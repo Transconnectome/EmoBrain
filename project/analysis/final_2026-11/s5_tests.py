@@ -190,7 +190,7 @@ def t_soft_bce():
     s = dict(batch=16, max_epochs=30, patience=5, seed=0)
     a, tab, chosen = b5.soft_bce_task(brain, p, 1, "cpu", settings=s, decays=(1e-3, 1e-2), lrs=(1e-3, 1e-2))
     b, tab2, _ = b5.soft_bce_task(brain, p, 1, "cpu", settings=s, decays=(1e-3, 1e-2), lrs=(1e-3, 1e-2))
-    check("soft BCE 선형의 후보는 weight decay 3개와 learning rate 3개다(O24, G13)", d5.SOFT_BCE_DECAYS == (1e-4, 1e-3, 1e-2) and d5.SOFT_BCE_LRS == (1e-4, 1e-3, 1e-2) and len(tab) == 4 and {"weight_decay", "lr"} <= set(tab.columns))
+    check("soft BCE 선형의 후보는 weight decay 3개와 learning rate 3개다(O24, G13)", d5.SOFT_BCE_DECAYS == (1e-4, 1e-3, 1e-2) and d5.SOFT_BCE_LRS == (1e-5, 1e-4, 1e-3) and len(tab) == 4 and {"weight_decay", "lr"} <= set(tab.columns))
     check("고른 값이 후보 중에 있고 점수가 가장 높다", tab.val_r.max() == tab[(tab.weight_decay == chosen["weight_decay"]) & (tab.lr == chosen["lr"])].val_r.iloc[0])
     check("같은 seed면 같은 예측이다", np.array_equal(a["pred"], b["pred"]))
     check("예측은 0~1이다", ((a["pred"] >= 0) & (a["pred"] <= 1)).all())

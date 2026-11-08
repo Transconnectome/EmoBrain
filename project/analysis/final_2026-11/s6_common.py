@@ -26,7 +26,7 @@ import s5_common as d5
 import s6_model as M
 from s6_model import AUDITION_PATH, ac
 
-LEARNING_RATES = (1e-4, 1e-3, 1e-2)  # G13(11/7). 후보 목록은 이 한 곳에서 받는다
+LEARNING_RATES = (1e-5, 1e-4, 1e-3)  # G13. 11/8 석진 님이 1e-2를 빼고 1e-5를 넣었다. 후보 목록은 이 한 곳에서 받는다
 ALPHAS = (0.25, 0.5)  # G9. 0은 앞 조건과 같아 새로 학습하지 않는다
 LAMBDAS_FEATURE = (0.1, 1.0)  # G9
 RANKS = M.INTERACTION_RANKS  # 5-4
@@ -207,6 +207,10 @@ def select_best(rows):
     for row in rows:
         if any(str(k).startswith("test") for k in row):
             raise ValueError("선택에 시험 fold 값을 쓰지 않는다(H5)")
+    rows = [r for r in rows if not r.get("diverged")]  # G13(11/8). 발산한 후보는 기록만 하고 고르지 않는다
+    if not rows:
+        raise ValueError("모든 후보가 발산했다. 이 fold를 멈춘다(G13, 11/8)")
+    for row in rows:
         if not np.isfinite(row["val_score"]):
             raise ValueError("유효한 선택 점수가 없다. 첫 후보로 넘어가지 않고 멈춘다")
     best = max(row["val_score"] for row in rows)
@@ -493,11 +497,13 @@ def prepare_fold(brains, split, y, vision, caption, plan, *, stimulus=None, incl
         if not len(train_rows):
             raise ValueError(f"{pid}: 학습 행이 없다")
         used = np.flatnonzero(role >= 0)  # 시험도 학습도 검증도 아닌 행(빠진 구역 등)은 메모리에 올리지 않는다
-        m, s = c.fit_standardizer(np.asarray(b.X[train_rows]))  # C5, N3. 학습 행만
-        x[pid] = torch.as_tensor(((np.asarray(b.X[used], np.float64) - m) / s).astype(np.float32), device=device)
+        m, s, constant = voxel_standardizer(np.asarray(b.X[train_rows]))  # C5, N3. 학습 행만
+        z = (np.asarray(b.X[used], np.float64) - m) / s
+        z[:, constant] = 0.0  # G13(11/8). 학습 행에서 값이 변하지 않는 voxel은 모든 행에서 0이다
+        x[pid] = torch.as_tensor(z.astype(np.float32), device=device)
         columns[pid] = torch.as_tensor(np.concatenate(b.roi_positions), dtype=torch.long, device=device)
         counts[pid] = [len(p) for p in b.roi_positions]
-        stats[pid] = dict(mean=m, std=s)
+        stats[pid] = dict(mean=m, std=s, constant=constant)
         rp.append(np.full(len(used), i)), rl.append(np.arange(len(used))), rv.append(b.video_id[used]), rr.append(role[used])
     row_video, row_role = np.concatenate(rv), np.concatenate(rr)
     known = list(plan.train) + list(plan.val)
@@ -518,6 +524,14 @@ def prepare_fold(brains, split, y, vision, caption, plan, *, stimulus=None, incl
         fd.test_vision, fd.test_caption = as_t((np.asarray(vision)[te] - vm) / vs), as_t((np.asarray(caption)[te] - cm) / cs)
         fd.test_ids = [int(v) for v in plan.test]
     return fd
+
+
+def voxel_standardizer(x):
+    """학습 행의 voxel별 평균과 표준편차(N3). 표준편차가 0인 voxel은 멈추지 않고 표시한다(11/8 석진 님). 표시한 voxel은 표준편차 1로 두고 값은 0으로 바꾼다."""
+    x = c.finite(np.asarray(x, np.float64), "뇌 반응")
+    m, s = x.mean(0), x.std(0)
+    constant = s <= 0
+    return m, np.where(constant, 1.0, s), constant
 
 
 def stimulus_bank(stimulus, train_ids, bank_pos, shape):
