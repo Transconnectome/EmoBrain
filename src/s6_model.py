@@ -20,6 +20,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
 import torch
 from torch import Tensor, nn
 import paths as P
@@ -179,14 +180,58 @@ class BrainItRoiInput(RoiInput):
             out.append((a * xv) @ uv)
         return self.norm(torch.relu(torch.stack(out, 1) + self.value.bias + self.root(self.cluster_embedding)))
 
-def make_input_layer(voxel_counts, d, tokenizer="linear", voxel_sampling=0.0):
-    """linear는 5-5의 입력층(본 설계), brainit은 11/9 점검용 Brain-IT tokenizer다."""
+class RoiCellInput(RoiInput):
+    """11/9 입력층 점검의 ROI 평균(칸 1개)과 칸 평균(칸 8개). 같은 Horikawa 2020 자료의 선행 모델이 쓴 ROI pooling(01 5-5의 "(가)")이다.
+    ROI r의 칸 c에 든 voxel 값(학습 행으로 표준화한 값)을 평균해 m(r, c)를 내고, token_r = Σ_c m(r, c) w(s, r, c) + b(s, r) + e(r)로 d차원 token을 만든다.
+    w(s, r, c)는 참가자, ROI, 칸마다 d차원이다(지금 입력층의 voxel마다 d차원 대신). voxel이 없는 칸은 평균 0으로 둔다.
+    칸 번호는 s2_roi_cells.py가 만든 파일에서 받고(cells), 체크포인트에서는 buffer로 되살린다."""
+
+    def __init__(self, voxel_counts, d, n_cells, cells=None):
+        super().__init__(voxel_counts, d)
+        self.n_cells = int(n_cells)
+        for pid in self.participants:
+            w = torch.empty(self.n_roi * self.n_cells, d)
+            nn.init.uniform_(w, -self.n_cells ** -0.5, self.n_cells ** -0.5)
+            self.weights[pid] = nn.Parameter(w)
+            given = None if cells is None else torch.as_tensor(np.asarray(cells[pid]), dtype=torch.long)
+            n = sum(self.voxel_counts[pid])
+            if given is not None and (given.shape != (n,) or given.min() < 0 or given.max() >= self.n_cells):
+                raise ValueError(f"{pid}: 칸 번호의 길이나 범위가 입력층과 다르다")
+            if given is None and self.n_cells == 1:
+                given = torch.zeros(n, dtype=torch.long)
+            roi = torch.repeat_interleave(torch.arange(self.n_roi), torch.tensor(self.voxel_counts[pid]))
+            seg = roi * self.n_cells + (given if given is not None else torch.zeros(n, dtype=torch.long))
+            self.register_buffer(self._key(pid), seg)
+
+    @staticmethod
+    def _key(pid):
+        return "segment_" + pid.replace("-", "_")
+
+    def token(self, pid, x):
+        counts = self.voxel_counts[pid]
+        if x.shape[1] != sum(counts):
+            raise ValueError(f"{pid}: 입력 열 수가 입력층과 다르다")
+        seg = getattr(self, self._key(pid))
+        k = self.n_roi * self.n_cells
+        total = torch.zeros(x.shape[0], k, dtype=x.dtype, device=x.device).index_add_(1, seg, x)
+        n = torch.bincount(seg, minlength=k).to(x.dtype).clamp_min(1)
+        m = (total / n).view(x.shape[0], self.n_roi, self.n_cells)
+        w = self.weights[pid].view(self.n_roi, self.n_cells, self.d)
+        return torch.einsum("brc,rcd->brd", m, w) + self.input_bias[pid] + self.roi_embedding
+
+CELL_TOKENIZERS = {"roi_mean": 1, "roi_cells": 8}  # 11/9 입력층 점검. 칸 수
+
+
+def make_input_layer(voxel_counts, d, tokenizer="linear", voxel_sampling=0.0, cells=None):
+    """linear는 5-5의 입력층(본 설계). 11/9 점검용: brainit(Brain-IT tokenizer), roi_mean(ROI 평균), roi_cells(ROI 8칸 평균)."""
+    if voxel_sampling and tokenizer != "brainit":
+        raise ValueError("voxel 뽑기는 brainit tokenizer에만 있다")
     if tokenizer == "linear":
-        if voxel_sampling:
-            raise ValueError("voxel 뽑기는 brainit tokenizer에만 있다")
         return RoiInput(voxel_counts, d)
     if tokenizer == "brainit":
         return BrainItRoiInput(voxel_counts, d, voxel_sampling)
+    if tokenizer in CELL_TOKENIZERS:
+        return RoiCellInput(voxel_counts, d, CELL_TOKENIZERS[tokenizer], cells)
     raise ValueError(f"알 수 없는 tokenizer: {tokenizer}")
 
 
@@ -277,10 +322,10 @@ class AuditionReadout(Readout):
 class BrainModel(nn.Module):
     """시험 입력이 Brain뿐인 모델(01 5-A의 A~C, F 묶음, 대조군, 평균 pooling판)."""
 
-    def __init__(self, voxel_counts, d, *, feature_head=False, decoded=False, rank=None, pooling=False, stop_gradient=True, tokenizer="linear", voxel_sampling=0.0):
+    def __init__(self, voxel_counts, d, *, feature_head=False, decoded=False, rank=None, pooling=False, stop_gradient=True, tokenizer="linear", voxel_sampling=0.0, cells=None):
         super().__init__()
         self.spec = dict(kind="brain", voxel_counts=voxel_counts, d=d, feature_head=feature_head, decoded=decoded, rank=rank, pooling=pooling, stop_gradient=stop_gradient, tokenizer=tokenizer, voxel_sampling=voxel_sampling)
-        self.input_layer = make_input_layer(voxel_counts, d, tokenizer, voxel_sampling)
+        self.input_layer = make_input_layer(voxel_counts, d, tokenizer, voxel_sampling, cells)  # cells는 spec에 넣지 않는다. 체크포인트는 buffer로 되살린다
         self.encoder = Encoder(d)
         self.readout = Readout(d, feature_head=feature_head, decoded=decoded, rank=rank, pooling=pooling, stop_gradient=stop_gradient)
 

@@ -103,6 +103,8 @@ POOLED = {"brain_only_pool": "brain_only", "brain_decoded_pool": "brain_decoded"
 ZERO_SOURCE = {"brain_only_distill": ("brain_only", "alpha"), "brain_only_featdec": ("brain_only", "lam"), "brain_decoded_distill": ("brain_decoded", "alpha"), "brain_decoded_sep_distill": ("brain_decoded_sep", "alpha")}  # G9. 0 후보는 앞 조건의 학습이다
 
 
+TOKENIZERS = ("linear", "brainit", "roi_mean", "roi_cells")  # 입력층. linear만 본 설계, 나머지는 11/9 점검
+
 @dataclass(frozen=True)
 class Spec:
     """학습 규칙. G13의 값이고 시험에서만 줄인다."""
@@ -121,7 +123,7 @@ class Config:
     lr_follows_brain_only: bool = False
     keep_candidate_checkpoints: bool = False
     seeds: tuple = SEEDS  # L9. 발표용 예비 실행처럼 seed를 줄일 때만 SEEDS의 앞부분으로 준다(11/8)
-    tokenizer: str = "linear"  # 입력층. linear가 본 설계(5-5), brainit은 11/9 점검용(s6_model.BrainItRoiInput)
+    tokenizer: str = "linear"  # 입력층. linear가 본 설계(5-5). 11/9 점검용: brainit(s6_model.BrainItRoiInput), roi_mean, roi_cells(s6_model.RoiCellInput)
     voxel_sampling: float = 0.0  # brainit에서 학습 때 예시마다 뽑는 voxel 비율(Brain-IT 부록 D.1은 약 1.5만 / 4만)
 
 
@@ -137,8 +139,8 @@ def load_config(path):
     if not seeds or seeds != SEEDS[:len(seeds)]:
         raise ValueError("seed는 SEEDS의 앞부분이어야 한다(L9). 후보 고르기는 항상 seed 0이다")
     tokenizer, sampling = str(raw.get("tokenizer", "linear")), float(raw.get("voxel_sampling", 0.0))
-    if tokenizer not in ("linear", "brainit") or not 0.0 <= sampling < 1.0 or (tokenizer == "linear" and sampling):
-        raise ValueError("tokenizer는 linear나 brainit이고, voxel 뽑기 비율(0 이상 1 미만)은 brainit에만 준다")
+    if tokenizer not in TOKENIZERS or not 0.0 <= sampling < 1.0 or (tokenizer != "brainit" and sampling):
+        raise ValueError(f"tokenizer는 {TOKENIZERS} 가운데 하나이고, voxel 뽑기 비율(0 이상 1 미만)은 brainit에만 준다")
     return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds, tokenizer, sampling)
 
 
@@ -629,16 +631,18 @@ def shuffle_plan(split, plan, seed, mc_ids=None):
     return s
 
 
-def build_model(condition, cand, voxel_counts, tokenizer="linear", voxel_sampling=0.0):
+def build_model(condition, cand, voxel_counts, tokenizer="linear", voxel_sampling=0.0, cells=None):
     """조건의 구조를 만든다. 구조는 조건 이름으로만 정해지고 부르는 쪽이 바꿀 수 없다. tokenizer는 설정 파일의 입력층(11/9 점검)이다."""
     cfg = CONDITIONS[condition]
     if tokenizer != "linear" and (cfg.multimodal or cfg.head_only or cfg.separate or cfg.feature_only or cfg.representation):
-        raise ValueError("brainit tokenizer 점검은 encoder 하나인 뇌 모델 조건에서만 돌린다")
+        raise ValueError("입력층 점검(brainit, roi_mean, roi_cells)은 encoder 하나인 뇌 모델 조건에서만 돌린다")
+    if tokenizer == "roi_cells" and cells is None:
+        raise ValueError("roi_cells는 칸 번호(s2_roi_cells.py의 파일)가 있어야 한다")
     if cfg.multimodal:
         return M.MultimodalModel(voxel_counts, cand["d"])
     if cfg.head_only:  # E-1. encoder 2 자리는 학습 때 고정한 encoder 2의 가중치로 채운다
         return M.FeatureHeadModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True), cand["rank"])
-    return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling, stop_gradient=cfg.stop_gradient, tokenizer=tokenizer, voxel_sampling=voxel_sampling)
+    return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling, stop_gradient=cfg.stop_gradient, tokenizer=tokenizer, voxel_sampling=voxel_sampling, cells=cells)
 
 
 def to_k1_head(v_hat, c_hat, feature_stats, coordinates):
@@ -703,11 +707,32 @@ def needs_stimulus(conditions):
     return any(CONDITIONS[n].target in ("stimulus", "stimulus_shuffled") for n in conditions)
 
 
-def input_paths(plan, participants=d5.HK, stimulus=True):
-    """역할 -> 파일. 읽기 전에 해시를 낸다. stimulus=False는 Stimulus 예측 평정을 쓰지 않는 실행이다(needs_stimulus)."""
+def roi_cells_path(s):
+    """s2_roi_cells.py의 출력. ROI 칸 번호(roi_cells 입력층 점검)."""
+    return P.OUT / "s2_manifest/roi_cells" / f"hk_sub-{s}.npz"
+
+
+def load_roi_cells(voxel_counts, participants=d5.HK):
+    """참가자 -> 칸 번호. 파일이 지금 ROI 표에서 만든 것이고 길이가 입력층과 같을 때만 쓴다."""
+    out = {}
+    for s in participants:
+        z = np.load(roi_cells_path(s))
+        if str(z["roi_file_sha256"]) != c.sha256(d5.roi_path(s)):
+            raise SystemExit(f"sub-{s}: 칸 번호가 지금 ROI 표로 만든 것이 아니다. s2_roi_cells.sh를 다시 돌린다")
+        cells = np.asarray(z["cells"], np.int64)
+        if len(cells) != sum(voxel_counts[f"sub-{s}"]):
+            raise SystemExit(f"sub-{s}: 칸 번호의 길이가 입력층과 다르다")
+        out[f"sub-{s}"] = cells
+    return out
+
+
+def input_paths(plan, participants=d5.HK, stimulus=True, cells=False):
+    """역할 -> 파일. 읽기 전에 해시를 낸다. stimulus=False는 Stimulus 예측 평정을 쓰지 않는 실행이다(needs_stimulus). cells=True는 roi_cells 점검이다."""
     paths = {"visual_target": c.FEATURES / f"{c.VISUAL_TARGET}.npy", "caption_target": c.FEATURES / f"{c.CAPTION_TARGET}.npy", "labels": c.LABELS}
     for s in participants:
         paths[f"response:sub-{s}"], paths[f"roi:sub-{s}"] = d5.response_path(s), d5.roi_path(s)
+        if cells:
+            paths[f"roi_cells:sub-{s}"] = roi_cells_path(s)
     paths.update(split_files(plan))
     if stimulus and plan.name.startswith(("outer_fold", "pilot_fold")):
         paths["stimulus_oof"] = stimulus_path(plan.outer_fold)

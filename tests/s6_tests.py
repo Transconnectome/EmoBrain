@@ -446,6 +446,58 @@ def t_brainit_tokenizer():
     check("Stimulus 예측 평정은 그것을 쓰는 조건이 있을 때만 읽는다", not S.needs_stimulus(["brain_only", "brain_decoded", "control_feature_shuffle"]) and all(S.needs_stimulus([n]) for n in ("brain_only_distill", "brain_decoded_distill", "brain_decoded_sep_distill", "control_stimulus_shuffle")))
 
 
+def t_roi_cell_input():
+    """11/9 입력층 점검의 ROI 평균(roi_mean)과 8칸 평균(roi_cells). 칸 번호, token 식, ROI 경계, 빈 칸, 저장, 묶음, 설정."""
+    import s2_roi_cells as RC
+    cube = np.array([[i, j, k] for i in (10, 11) for j in (20, 21) for k in (30, 31)])
+    check("칸 번호: 2 × 2 × 2 좌표는 8칸에 하나씩 들어간다", sorted(RC.cell_ids(cube).tolist()) == list(range(8)))
+    flat = np.array([[5, 5, 1], [5, 5, 2], [5, 5, 3], [5, 5, 4]])
+    check("칸 번호: 한 축만 퍼진 ROI는 그 축으로만 두 칸이 된다", RC.cell_ids(flat).tolist() == [0, 0, 1, 1])
+    torch.manual_seed(0)
+    counts = [3, 2, 4]
+    x = torch.randn(5, 9)
+    mean_in = M.RoiCellInput(dict(a=counts), 8, 1)
+    w, b, e = mean_in.weights["a"].view(3, 1, 8), mean_in.input_bias["a"], mean_in.roi_embedding
+    bounds = [0, 3, 5, 9]
+    expect = torch.stack([x[:, bounds[r]:bounds[r + 1]].mean(1, keepdim=True) @ w[r] + b[r] + e[r] for r in range(3)], 1)
+    check("roi_mean token = ROI 평균 × w(s, r) + b(s, r) + e(r)", torch.allclose(mean_in.token("a", x), expect, atol=1e-6))
+    check("roi_mean의 입력층 가중치는 참가자당 ROI 수 × d다", mean_in.weights["a"].numel() == 3 * 8)
+    cells = np.array([0, 1, 1, 7, 7, 0, 3, 3, 5])  # ROI 2: 칸 1, 2, 4, 5, 6이 비어 있음
+    cell_in = M.RoiCellInput(dict(a=counts), 8, 8, dict(a=cells))
+    wc = cell_in.weights["a"].view(3, 8, 8)
+    exp = []
+    for r in range(3):
+        cols = range(bounds[r], bounds[r + 1])
+        m = torch.zeros(5, 8)
+        for cc in range(8):
+            idx = [j for j in cols if cells[j] == cc]
+            if idx:
+                m[:, cc] = x[:, idx].mean(1)
+        exp.append(m @ wc[r] + cell_in.input_bias["a"][r] + cell_in.roi_embedding[r])
+    got = cell_in.token("a", x)
+    check("roi_cells token = Σ 칸 평균 × w(s, r, c) + b + e, 빈 칸은 0", torch.allclose(got, torch.stack(exp, 1), atol=1e-6))
+    x2 = x.clone(); x2[:, 3:5] += 1.0
+    check("roi_cells token은 그 ROI의 voxel만으로 만든다", torch.allclose(cell_in.token("a", x2)[:, 0], got[:, 0]) and torch.allclose(cell_in.token("a", x2)[:, 2], got[:, 2]) and not torch.allclose(cell_in.token("a", x2)[:, 1], got[:, 1]))
+    check("칸 번호의 길이나 범위가 틀리면 멈춘다", stops(lambda: M.RoiCellInput(dict(a=counts), 8, 8, dict(a=cells[:-1]))) and stops(lambda: M.RoiCellInput(dict(a=counts), 8, 8, dict(a=np.full(9, 8)))))
+    w_ = World(); fd = w_.fold(); rows = fd.rows("train")[:6]
+    fake = {p: np.arange(sum(n)) % 8 for p, n in fd.voxel_counts.items()}
+    m = S.build_model("brain_only", dict(d=8, rank=None), fd.voxel_counts, "roi_cells", 0.0, fake)
+    groups = M.parameter_assignment(m)
+    check("칸 평균의 w는 입력층 weight decay 묶음이고 칸 번호는 학습하지 않는다", all(v == "input_weight" for k, v in groups.items() if k.startswith("input_layer.weights.")) and not any("segment_" in k for k in groups))
+    m.eval()
+    with tempfile.TemporaryDirectory() as t:
+        M.save_checkpoint(Path(t) / "m.pt", m)
+        back, _ = M.load_checkpoint(Path(t) / "m.pt")
+        check("roi_cells 체크포인트를 되살리면 칸 번호까지 같아 출력이 같다", torch.allclose(back(fd.batch(rows)).z, m(fd.batch(rows)).z, atol=1e-6))
+    check("roi_cells는 칸 번호 없이 만들지 않는다", stops(lambda: S.build_model("brain_only", dict(d=8, rank=None), fd.voxel_counts, "roi_cells")))
+    check("roi_mean은 칸 번호 없이 만든다", type(S.build_model("brain_only", dict(d=8, rank=None), fd.voxel_counts, "roi_mean").input_layer) is M.RoiCellInput)
+    check("입력층 점검은 encoder 하나인 뇌 모델에만 쓴다", stops(lambda: S.build_model("brain_decoded_sep", dict(d=8, rank=2), fd.voxel_counts, "roi_mean")))
+    with tempfile.TemporaryDirectory() as t:
+        ok = Path(t) / "a.json"; ok.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], tokenizer="roi_cells")))
+        bad = Path(t) / "b.json"; bad.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], tokenizer="roi_mean", voxel_sampling=0.3)))
+        check("설정 파일로 roi_mean, roi_cells를 주고, voxel 뽑기는 brainit에만 준다", S.load_config(ok).tokenizer == "roi_cells" and stops(lambda: S.load_config(bad)))
+
+
 def t_prelim_config():
     with tempfile.TemporaryDirectory() as td:
         f = Path(td) / "c.json"
@@ -1439,7 +1491,7 @@ def main():
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
         t0 = time.time()
         try:
             f()

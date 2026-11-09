@@ -249,6 +249,7 @@ class FoldRunner:
         self.fd, self.split, self.run, self.spec, self.config, self.root = fd, split, run, spec, config, Path(root)
         self.mc_ids = mc_ids
         self.teachers, self.shuffles, self.feature_encoders = {}, {}, {}
+        self.cells = S.load_roi_cells(fd.voxel_counts) if config.tokenizer == "roi_cells" else None  # 11/9 입력층 점검의 칸 번호
         self.trained = []  # 이번 실행에서 실제로 학습한 (조건, 후보, seed). 시험에서 횟수를 대조한다
         self.write_plan()
 
@@ -305,7 +306,7 @@ class FoldRunner:
             torch.cuda.reset_peak_memory_stats()
         teacher = self.teacher(seed) if cfg.representation else None
         seed_everything(seed)
-        model = S.build_model(condition, cand, fd.voxel_counts, self.config.tokenizer, self.config.voxel_sampling)
+        model = S.build_model(condition, cand, fd.voxel_counts, self.config.tokenizer, self.config.voxel_sampling, self.cells)
         if teacher is not None:
             model.load_head_from(teacher.model, frozen=cfg.representation == "frozen")
         fenc = self.feature_encoder(seed) if (cfg.separate or cfg.head_only) else None
@@ -580,7 +581,7 @@ def main(argv=None):
     if use_stimulus:  # S4 출처를 학습 전에 대조한다. 입력 해시는 이 실행과 같은 방식으로 낸다
         probe = S.Run(a.design_freeze, {**S.input_paths(plan), "config": a.config})
         stimulus_run = S.check_stimulus_source(S.stimulus_path(plan.outer_fold).parent / "done.json", plan.outer_fold, probe.hashes)
-    run = S.Run(a.design_freeze, {**S.input_paths(plan, stimulus=use_stimulus), "config": a.config}, stimulus_run_key=stimulus_run, plan=plan.name, config=asdict(config), spec=asdict(spec), torch=torch.__version__, deterministic=torch.are_deterministic_algorithms_enabled(), nondeterministic_ops=[])  # 읽기 전에 해시를 낸다
+    run = S.Run(a.design_freeze, {**S.input_paths(plan, stimulus=use_stimulus, cells=config.tokenizer == "roi_cells"), "config": a.config}, stimulus_run_key=stimulus_run, plan=plan.name, config=asdict(config), spec=asdict(spec), torch=torch.__version__, deterministic=torch.are_deterministic_algorithms_enabled(), nondeterministic_ops=[])  # 읽기 전에 해시를 낸다
     include_test = "multimodal" in wanted and bool(plan.test)
     y, v, cap = load_known(split, plan, include_test)
     brains = S.load_brains(split, list(plan.train) + list(plan.val) + list(plan.test))  # 이번 실행에 쓰는 영상의 행만 읽는다. 파일럿은 시험 영상이 없다

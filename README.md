@@ -60,6 +60,7 @@ external/            외부 레포 (git submodule)
 | S1 | `s1_*.sh` | 라벨 열 대조, MC 최종 시험 72개 목록, 이상 block 기록, 공개 ROI 370개를 우리 격자로 옮기기, 피질하 ROI 다시 만들기와 점검 (CPU) | `manifests/s1/` |
 | S2 | `s2_manifest.sh <stage>` | 분할, 내용 구역, 이름표 짝, ROI별 voxel 열, CAB-NP 13묶음, MC 표, 일치도 (CPU, 약 10분) | `splits/hk_dev_v4/`, `manifests/s2/` |
 | S2 | `s2_split_files.sh [--check]` | 분할 원본에서 실행 단위별 목록 만들기 | `splits/hk_dev_v4/` |
+| S2 | `s2_roi_cells.sh [--check]` | ROI마다 voxel 좌표 범위를 축마다 둘로 나눈 8칸의 칸 번호(입력층 점검의 칸 평균, CPU) | `<output_root>/s2_manifest/roi_cells/` |
 | S3 | `s3_vision.sh`, `s3_text.sh`, `s3_lowlevel.sh`, `s3_collect.sh` | 영상과 캡션의 특징 추출. V-JEPA 2(block 40개), DeBERTa-large(층 24개), 비교용 VideoMAE, TimeSformer, CLIP, MPNet, 저수준 시각 특징 (GPU, 끊기면 이어서) | `<output_root>/s3_features/` |
 | S4 | `s4_feature_model.sh <과제> <커밋>` | 뇌 없는 모델. Stimulus Model(Vision + Caption → Emotion)과 distillation용 fold 밖 예측, 14개 차원판, 정서어 제거판, 구역 제외, 비교용 특징판 (GPU) | `<output_root>/s4_no_brain/` |
 | S4 | `s4_ridge.sh`, `s4_window_change.sh`, `s4_collect.sh` | V-JEPA 2 block별 ridge, 긴 영상의 window 변화, 점검과 요약 | 같은 폴더, `<output_root>/s4_collect/` |
