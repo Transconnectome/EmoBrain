@@ -295,6 +295,37 @@ def t_mlbvae():
     check("왼쪽 180개, 오른쪽 180개 영역의 칸 평균과 그 차이를 보기로 쓰고 피질하는 쓰지 않는다", L.shape == (n, 180 * 8) and R.shape == L.shape and np.allclose(D, L - R))
 
 
+def t_emogrowth():
+    """11/9 외부 baseline EmoGrowth 구조. 학습 영상만의 정서 관계 그래프, 원 논문 λ3 후보 안에서 검증 fold로 선택, seed 3개."""
+    import s5_emogrowth as eg
+    check("EmoGrowth 후보와 설정은 원 논문(부록 B.4)과 공개 코드 값이다", eg.LAMBDA3 == (0.001, 0.01, 0.1, 1.0, 2.0, 5.0, 10.0) and {k: eg.EMOGROWTH[k] for k in ("n_parts", "gin_hidden", "gin_out", "hidden", "latent", "lr", "weight_decay", "batch", "epochs", "label_threshold")} == dict(n_parts=2, gin_hidden=128, gin_out=256, hidden=512, latent=64, lr=1e-4, weight_decay=0.005, batch=128, epochs=40, label_threshold=0.1) and eg.SEEDS == (0, 1, 2))
+    yb = np.array([[0.2, 0.0, 0.5], [0.3, 0.2, 0.0], [0.0, 0.05, 0.4]])
+    A = eg.label_graph(yb, 0.1).numpy()
+    check("정서 관계 그래프: 0.1 이상을 1로 본 조건부 확률을 대칭으로 평균하고 대각은 0", np.allclose(A, A.T) and np.allclose(np.diag(A), 0) and np.isclose(A[0, 1], (0.5 + 1.0) / 2) and np.isclose(A[1, 2], 0.0))
+    m = eg.EmoGrowthNet(20, 3)
+    logits, emb = m(torch.randn(5, 20), torch.as_tensor(A))
+    check("구조: 정서별 logit과 정서 embedding(정서 × 256), 고정한 정서 입력은 학습하지 않는다", logits.shape == (5, 3) and emb.shape == (3, 256) and "label_input" not in dict(m.named_parameters()))
+    g = np.random.default_rng(0)
+    n, nroi = 96, 362
+    pos = [np.arange(3 * i, 3 * i + 3) for i in range(nroi)]
+    X = g.normal(size=(n, 3 * nroi)).astype(np.float32)
+    brain = d5.BrainSet("sub-01", X, np.arange(1, n + 1), np.arange(n) % 6 + 1, pos, 3 * nroi)
+    coords = [g.integers(0, 4, size=(3, 3)) for _ in range(nroi)]
+    y = g.uniform(0, 1, size=(n, 4))
+    small = dict(eg.EMOGROWTH, hidden=16, latent=8, gin_hidden=8, gin_out=8, epochs=2, batch=16)
+    a, tab, chosen = eg.emogrowth_task(brain, y, coords, 1, "cpu", lambdas=(0.1, 1.0), settings=small)
+    te = brain.fold == 1
+    tr = np.isin(brain.fold, c.roles(1)["train"])
+    check("seed 0에서 λ3 후보를 모두 학습하고 검증 r이 가장 높은 것을 고른 뒤 seed 1, 2를 더한다", len(tab[tab.seed == 0]) == 2 and set(tab.seed) == {0, 1, 2} and tab[tab.seed == 0].val_r.max() == tab[(tab.seed == 0) & (tab.lambda3 == chosen["lambda3"])].val_r.iloc[0])
+    check("시험 예측은 seed마다, 0~1이다", a["emotion_seeds"].shape == (3, int(te.sum()), 4) and (a["emotion_seeds"] >= 0).all() and (a["emotion_seeds"] <= 1).all())
+    check("정서 관계 그래프는 학습 영상의 평정으로만 만든다", np.allclose(a["label_graph"], eg.label_graph(y[tr], 0.1).numpy()))
+    y2 = y.copy(); y2[te] = 1 - y2[te]
+    b, tab2, _ = eg.emogrowth_task(brain, y2, coords, 1, "cpu", lambdas=(0.1, 1.0), settings=small)
+    check("시험 영상의 평정을 바꿔도 예측과 선택이 같다", np.allclose(a["emotion_seeds"], b["emotion_seeds"]) and tab.val_r.equals(tab2.val_r))
+    check("λ3 후보 밖 값은 학습 전에 거절한다", stops_any(lambda: eg.emogrowth_task(brain, y, coords, 1, "cpu", lambdas=(0.005,), settings=small)))
+    check("입력은 피질 360개 영역의 8칸 평균(2,880차원)이다", eg.inputs(X, pos, coords, 2).shape == (n, 2880))
+
+
 def t_h2020():
     g = np.random.default_rng(0)
     n, v = 60, 40
@@ -542,7 +573,7 @@ def t_collect():
 
 
 def main():
-    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_identification_mean, t_without_h2020, t_timing, t_layer_metrics, t_qc_rows, t_soft_bce, t_mlp, t_ged, t_mlbvae, t_h2020, t_video_zone, t_boundaries, t_collect):
+    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_identification_mean, t_without_h2020, t_timing, t_layer_metrics, t_qc_rows, t_soft_bce, t_mlp, t_ged, t_mlbvae, t_emogrowth, t_h2020, t_video_zone, t_boundaries, t_collect):
         f()
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)

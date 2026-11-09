@@ -4,6 +4,7 @@
 과제
 - ridge: 참가자, fold마다 voxel 입력의 정서 34개와 14개 차원 ridge. 주 비교판(검증 fold 하나, N15)과 문헌판(안쪽 5겹, H3). 평균 예측의 값도 저장한다(O25).
 - soft_bce: 같은 입력의 선형 sigmoid, soft BCE(N16, O24).
+- emogrowth: 외부 baseline EmoGrowth(Fu 외, 2025)의 모델 구조. 증분 학습과 RKD는 빼고 34개를 한 번에, 바꾼 것은 s5_emogrowth.py 머리말(O27).
 - mlbvae: 외부 baseline ML-BVAE(Fu 외, 2024). 논문과 공개 코드의 계산을 다시 짬, 바꾼 것은 s5_mlbvae.py 머리말(O27, O28).
 - ged: 외부 baseline GED(Huang 외, 2022). 원 코드 설정 그대로, 바꾼 것은 s5_ged.py 머리말(O27).
 - mlp: 같은 full voxel 입력의 MLP(은닉층 1개, MSE, 선형 출력, 11/9 석진 님). 폭, 첫 층 weight decay, learning rate를 검증 fold로 고르고 seed 3개.
@@ -308,7 +309,7 @@ def save(out, run, arrays, started, table=None, **extra):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--task", required=True, choices=["ridge", "soft_bce", "mlp", "ged", "mlbvae", "signal", "video", "zone", "h2020"])
+    ap.add_argument("--task", required=True, choices=["ridge", "soft_bce", "mlp", "ged", "mlbvae", "emogrowth", "signal", "video", "zone", "h2020"])
     ap.add_argument("--participant", default="", choices=[""] + d5.HK)
     ap.add_argument("--design-freeze", default="")
     ap.add_argument("--device", default="cuda")
@@ -319,7 +320,7 @@ def main():
     if a.task != "video" and not s:
         raise SystemExit("--participant가 필요하다")
     inputs = {"labels": c.LABELS}
-    if a.task in ("ridge", "soft_bce", "mlp", "ged", "mlbvae", "zone", "h2020"):
+    if a.task in ("ridge", "soft_bce", "mlp", "ged", "mlbvae", "emogrowth", "zone", "h2020"):
         inputs.update({f"response:sub-{s}": d5.response_path(s), f"roi:sub-{s}": d5.roi_path(s)})
     if a.task == "signal":
         inputs[f"raw_response:sub-{s}"] = d5.response_path(s, normalized=False)
@@ -337,6 +338,12 @@ def main():
         import s5_mlbvae as mlb
         inputs.update({f"mask:sub-{s}": rc.mask_path(s), "s2_roi_cells": P.SRC / "s2_roi_cells.py", "s5_ged": P.SRC / "s5_ged.py"})
         mlp_settings = dict(mlbvae=mlb.MLBVAE, nroif=mlb.NROIF, ratios=mlb.RATIOS, mlbvae_seeds=mlb.SEEDS)
+    if a.task == "emogrowth":
+        import s2_roi_cells as rc
+        import s5_ged as ged
+        import s5_emogrowth as emg
+        inputs.update({f"mask:sub-{s}": rc.mask_path(s), "s2_roi_cells": P.SRC / "s2_roi_cells.py", "s5_ged": P.SRC / "s5_ged.py", "s5_mlbvae": P.SRC / "s5_mlbvae.py"})
+        mlp_settings = dict(emogrowth=emg.EMOGROWTH, lambda3=emg.LAMBDA3, emogrowth_seeds=emg.SEEDS)
     run = d5.Run(a.design_freeze, inputs, task=a.task, lambdas=d5.LAMBDAS.tolist(), h2020_lambdas=d5.H2020_LAMBDAS.tolist(), soft_bce=d5.SOFT_BCE, decays=d5.SOFT_BCE_DECAYS, learning_rates=d5.SOFT_BCE_LRS, **mlp_settings)
     split = c.load_split()
     y_em, _ = c.load_scores(split, "emotions")
@@ -368,7 +375,7 @@ def main():
         return
     brain = d5.load_brain(s, split)
     y = d5.align(y_em, split, brain.video_id)
-    coords = ged.roi_coords(s, brain) if a.task in ("ged", "mlbvae") else None
+    coords = ged.roi_coords(s, brain) if a.task in ("ged", "mlbvae", "emogrowth") else None
     run.check()
     if a.task == "zone":
         for b in range(1, 6):
@@ -397,6 +404,9 @@ def main():
             save(out, run, arrays, started, table, participant=s, fold=k)
         elif a.task == "mlbvae":
             arrays, table, chosen = mlb.mlbvae_task(brain, y, coords, k, a.device)
+            save(out, run, arrays, started, table, participant=s, fold=k, chosen=chosen)
+        elif a.task == "emogrowth":
+            arrays, table, chosen = emg.emogrowth_task(brain, y, coords, k, a.device)
             save(out, run, arrays, started, table, participant=s, fold=k, chosen=chosen)
         else:
             save(out, run, h2020_task(brain, y, k, a.device), started, participant=s, fold=k)
