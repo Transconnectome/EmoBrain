@@ -6,7 +6,7 @@
 - emotion query 34개와 feature query 2개는 docs/final/reference/audition_codex.py의 QueryReadout, FeatureHead를 그대로 쓴다(O26).
 - 중심 모델의 Emotion: z = g(H) + a(v̂) + b(ĉ) + U[(Av̂) ⊙ (Bĉ)]. v̂, ĉ는 들어가기 전에 stop-gradient한다(G8).
 - BrainModel.forward의 입력은 BrainBatch 하나뿐이다. 실제 Vision feature와 Caption feature가 들어갈 자리가 없다.
-- MultimodalModel은 조건 6, 7이 쓰는 별도 모델이다. Brain, Vision, Caption을 받는다(O5). 시험 입력이 Brain뿐인 비교에는 들어가지 않는다.
+- MultimodalModel은 F-고정, F-학습이 쓰는 별도 모델이다. Brain, Vision, Caption을 받는다(O5). 시험 입력이 Brain뿐인 비교에는 들어가지 않는다.
 
 weight decay 묶음(G13)은 parameter_group_name이 이름으로 정한다. 묶음을 정할 수 없는 파라미터가 있으면 멈춘다.
 
@@ -59,13 +59,13 @@ class BrainBatch:
 
 @dataclass
 class ModelOutput(ac.ReadoutOutput):
-    o: Tensor = None  # emotion query의 출력(행 × 34 × d, O26의 LayerNorm 뒤). 조건 6, 7의 중간 표현
+    o: Tensor = None  # emotion query의 출력(행 × 34 × d, O26의 LayerNorm 뒤). F-고정, F-학습의 중간 표현
     H: Tensor = None  # encoder 출력(행 × token × d)
 
 
 @dataclass
 class SeparateOutput(ModelOutput):
-    """조건 8, 9. v_hat, c_hat은 encoder 1의 보조 feature head 출력(v̂₁, ĉ₁, 손실에만 씀)이고,
+    """D-1, D-2. v_hat, c_hat은 encoder 1의 보조 feature head 출력(v̂₁, ĉ₁, 손실에만 씀)이고,
     v_used, c_used가 정서 계산에 들어간 encoder 2의 출력(v̂₂, ĉ₂)이다. 바꿔 끼우기는 v_used, c_used로 한다."""
     v_used: Tensor = None
     c_used: Tensor = None
@@ -210,7 +210,7 @@ class AuditionReadout(Readout):
 
 
 class BrainModel(nn.Module):
-    """시험 입력이 Brain뿐인 모델(01 5-A의 조건 1~7, 대조군, 평균 pooling판)."""
+    """시험 입력이 Brain뿐인 모델(01 5-A의 A~C, F 묶음, 대조군, 평균 pooling판)."""
 
     def __init__(self, voxel_counts, d, *, feature_head=False, decoded=False, rank=None, pooling=False, stop_gradient=True):
         super().__init__()
@@ -226,11 +226,11 @@ class BrainModel(nn.Module):
         return self.readout(self.encode(brain))
 
     def load_head_from(self, source, *, frozen):
-        """조건 6, 7. Multimodal Model의 정서별 선형층만 값으로 복사한다. 원본과 값을 공유하지 않는다.
+        """F-고정, F-학습. Multimodal Model의 정서별 선형층만 값으로 복사한다. 원본과 값을 공유하지 않는다.
         frozen이면 가중치를 고정한다. 기울기는 고정한 head를 통과해 encoder까지 간다(5-A)."""
         r = self.readout
         if r.pooling or r.decoded or r.has_feature_head:
-            raise ValueError("조건 6, 7의 뇌 모델은 Brain → Emotion과 같은 구조여야 한다(O5)")
+            raise ValueError("F-고정, F-학습의 뇌 모델은 Brain → Emotion과 같은 구조여야 한다(O5)")
         if r.d != source.spec["d"]:
             raise ValueError("연결층이 없으므로 d가 같아야 한다(O5)")
         with torch.no_grad():
@@ -243,7 +243,7 @@ class BrainModel(nn.Module):
 
 
 class MultimodalModel(nn.Module):
-    """조건 6, 7의 준비 모델(O5, 논문의 Multimodal Model). 뇌 모델과 같은 입력층, encoder, emotion query에 Vision, Caption token을 더한다.
+    """F-고정, F-학습의 준비 모델(O5, 논문의 Multimodal Model). 뇌 모델과 같은 입력층, encoder, emotion query에 Vision, Caption token을 더한다.
     중간 표현은 emotion query 34개의 출력이고, head는 정서별 선형층이다."""
 
     def __init__(self, voxel_counts, d):
@@ -268,7 +268,7 @@ class MultimodalModel(nn.Module):
 
 
 class SeparateDecodedModel(nn.Module):
-    """조건 8, 9(01 5-A, 11/9). main은 encoder 1(정서와 보조 feature head)과 정서 계산(a, b, A, B, U)을 가진 뇌 모델이다.
+    """D-1, D-2(01 5-A, 11/9). main은 encoder 1(정서와 보조 feature head)과 정서 계산(a, b, A, B, U)을 가진 뇌 모델이다.
     feature_model은 feature 손실로만 따로 학습해 고정한 encoder 2이고 입력층까지 따로 있다. 정서 계산에는 encoder 2의 v̂₂, ĉ₂를 쓴다.
     정서 손실은 encoder 2로 가지 않는다(고정, no_grad). 입력은 뇌 반응뿐이다."""
 
@@ -276,7 +276,7 @@ class SeparateDecodedModel(nn.Module):
         super().__init__()
         r = main.readout
         if not (r.decoded and r.has_feature_head) or r.pooling:
-            raise ValueError("main은 decoded features를 쓰는 조건 3 구조여야 한다")
+            raise ValueError("main은 decoded features를 쓰는 C-1 구조여야 한다")
         fr = feature_model.readout
         if fr.decoded or not fr.has_feature_head:
             raise ValueError("feature_model은 feature head만 쓰는 encoder 2여야 한다")
@@ -304,7 +304,7 @@ class SeparateDecodedModel(nn.Module):
 
 
 class FeatureHeadModel(nn.Module):
-    """조건 10(11/9). 고정한 encoder 2(feature 손실로만 학습, 입력층까지 따로)가 낸 v̂₂, ĉ₂ 위에 정서 head만 학습한다.
+    """E-1(11/9). 고정한 encoder 2(feature 손실로만 학습, 입력층까지 따로)가 낸 v̂₂, ĉ₂ 위에 정서 head만 학습한다.
     정서 = a(v̂₂) + b(ĉ₂) + U[(Av̂₂) ⊙ (Bĉ₂)]. rank 0이면 더하기만 남는다. 뇌에서 바로 정서를 읽는 경로(g)는 없다.
     개념 bottleneck의 sequential 학습과 같은 꼴이다(Koh 외 2020)."""
 
@@ -358,7 +358,7 @@ def state_digest(model):
 
 def parameter_group_name(name, is_layernorm):
     """G13의 묶음. 알 수 없는 이름은 멈춘다. 새 파라미터가 조용히 어느 묶음에 들어가지 않게 한다."""
-    for prefix in ("main.", "feature_model."):  # 조건 8, 9의 두 뇌 모델. 묶음 규칙은 같다
+    for prefix in ("main.", "feature_model."):  # D-1, D-2의 두 뇌 모델. 묶음 규칙은 같다
         if name.startswith(prefix):
             name = name[len(prefix):]
             break
@@ -449,7 +449,7 @@ def build_from_spec(spec):
 
 def load_checkpoint(path, device="cpu"):
     """저장한 모델을 평가 상태로 되살린다. S9는 이 함수로 읽는다. 추론용이다. requires_grad는 저장되지 않으므로,
-    조건 6의 고정 head 같은 학습 상태는 되살리지 않는다. 학습을 이어 하려면 고정 상태를 따로 복원해야 한다."""
+    F-고정의 고정 head 같은 학습 상태는 되살리지 않는다. 학습을 이어 하려면 고정 상태를 따로 복원해야 한다."""
     saved = torch.load(path, map_location="cpu", weights_only=True)
     model = build_from_spec(dict(saved["spec"]))
     model.load_state_dict(saved["state_dict"])

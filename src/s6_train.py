@@ -24,13 +24,13 @@
     val_pred.npz: participant, video_id, logit(sigmoid 전), p. 고른 epoch의 값
     test_pred.npz: 같은 꼴(시험이 있는 분할만). 후보마다 저장한다(N24)
     shuffle.json: 대조군의 순열과 그 seed(O1)
-    representation_stats.npz, teacher.json: 조건 6, 7. 중간 표현의 평균과 표준편차, 짝지은 Multimodal Model의 체크포인트 해시
+    representation_stats.npz, teacher.json: F-고정, F-학습. 중간 표현의 평균과 표준편차, 짝지은 Multimodal Model의 체크포인트 해시
     outputs/ (고른 설정의 seed마다, seed 폴더는 selected.json의 seeds를 따른다)
         done.json
         test_outputs.npz: participant, video_id, logit, p, g(ROI 경로의 점수)
         decoded_test.npz, decoded_val.npz: participant, video_id, v_hat, c_hat. 학습 fold 4개의 D9 눈금. K1은 s6_common.to_k1_head로 옮긴다(N3)
         attention_emotion_test.npy: 시험 행 × head 4 × 정서 34 × token. attention_feature_test.npy: 시험 행 × head 4 × 2(시각, 캡션) × token. 행 순서는 test_outputs와 같다
-        decoding_accuracy.tsv: participant, split(train, val), target(vision, caption), mse, mean_dim_r, n_constant_dims (조건 2, 3 계열, 5-0의 남는 주의)
+        decoding_accuracy.tsv: participant, split(train, val), target(vision, caption), mse, mean_dim_r, n_constant_dims (B, C, D 묶음과 encoder 2, 5-0의 남는 주의)
 
 재현성(O32): Python, NumPy, PyTorch의 seed와 자료 순서를 실행 seed로 고정한다. 결정적 모드에서 지원되지 않는 연산은 오류로 멈추므로 비결정 연산 목록은 비어 있다. GPU에서는 아직 돌려 보지 않았다.
 """
@@ -104,7 +104,7 @@ def make_loss(condition, cand, fd, shuffle=None, teacher=None):
         raise ValueError("대조군에는 O1의 순열이 필요하다")
 
     def loss(out, rows):
-        if cfg.feature_only:  # 조건 8, 9의 encoder 2. 정서를 학습하지 않는다
+        if cfg.feature_only:  # D-1, D-2, E-1의 encoder 2. 정서를 학습하지 않는다
             v, cap = fd.feature_targets(rows)
             return (F.mse_loss(out.v_hat, v) + F.mse_loss(out.c_hat, cap)) / 2
         target = fd.train_target(rows, cfg.target, alpha, shuffle)
@@ -217,7 +217,7 @@ def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on
 
 
 class Teacher:
-    """조건 6, 7의 Multimodal Model 하나(G16). 고정하고, 학습 행의 중간 표현과 그 표준화 통계를 미리 낸다.
+    """F-고정, F-학습의 Multimodal Model 하나(G16). 고정하고, 학습 행의 중간 표현과 그 표준화 통계를 미리 낸다.
     통계는 Multimodal Model이 학습한 4개 fold의 행에서 내고 MSE 계산에만 쓴다(O5)."""
 
     def __init__(self, path, fd, batch):
@@ -276,7 +276,7 @@ class FoldRunner:
         return self.teachers[seed]
 
     def feature_encoder(self, seed):
-        """조건 8, 9의 encoder 2. 같은 seed의 feature_encoder 선택을 읽어 고정한다. 학습 한 번마다 복사해 쓴다."""
+        """D-1, D-2, E-1의 encoder 2. 같은 seed의 feature_encoder 선택을 읽어 고정한다. 학습 한 번마다 복사해 쓴다."""
         if seed not in self.feature_encoders:
             sel = self.selected("feature_encoder")
             path = self.root / sel["seeds"][str(seed)] / "model.pt"
@@ -311,7 +311,7 @@ class FoldRunner:
         fenc = self.feature_encoder(seed) if (cfg.separate or cfg.head_only) else None
         if fenc is not None and cfg.separate:
             model = M.SeparateDecodedModel(model, copy.deepcopy(fenc["model"]))
-        if fenc is not None and cfg.head_only:  # 조건 10. 같은 seed의 encoder 2 가중치를 넣고 고정한다
+        if fenc is not None and cfg.head_only:  # E-1. 같은 seed의 encoder 2 가중치를 넣고 고정한다
             model.feature_model.load_state_dict(fenc["model"].state_dict())
             M.freeze(model.feature_model)
         model = model.to(fd.device)
@@ -341,7 +341,7 @@ class FoldRunner:
             extra = {}
             if fenc is not None:
                 if M.state_digest(model.feature_model) != fenc["digest"]:
-                    raise ValueError("encoder 2가 학습 중에 바뀌었다(조건 8, 9)")
+                    raise ValueError("encoder 2가 학습 중에 바뀌었다(D-1, D-2)")
                 extra["feature_encoder"] = dict(checkpoint_sha256=fenc["sha256"], seed=seed)
             if shuffle is not None:
                 _json(dict(outer_fold=shuffle.outer_fold, seed=shuffle.seed, random_seed=shuffle.random_seed, mapping=shuffle.mapping), tmp / "shuffle.json")
@@ -438,7 +438,7 @@ class FoldRunner:
         cfg = S.CONDITIONS[meta["condition"]]
         forward = multimodal_forward(fd) if cfg.multimodal else brain_forward(fd)
         batch = self.spec.batch
-        if cfg.head_only:  # 조건 10. 정서 출력만 저장한다. 쓴 v̂₂, ĉ₂는 같은 seed의 feature_encoder 출력과 같다
+        if cfg.head_only:  # E-1. 정서 출력만 저장한다. 쓴 v̂₂, ĉ₂는 같은 seed의 feature_encoder 출력과 같다
             with c.Atomic(out) as tmp:
                 if fd.plan.test:
                     test = fd.rows("test")
@@ -460,7 +460,7 @@ class FoldRunner:
                 self.run._check_code()
                 _json(dict(self.run.prov, model_dir=str(path.relative_to(self.root))), tmp / "done.json")
                 return
-            if cfg.separate:  # 조건 8, 9. 정서 계산에 쓴 encoder 2의 v̂₂, ĉ₂를 decoded features로, encoder 1의 보조 출력은 aux로 저장한다
+            if cfg.separate:  # D-1, D-2. 정서 계산에 쓴 encoder 2의 v̂₂, ĉ₂를 decoded features로, encoder 1의 보조 출력은 aux로 저장한다
                 for split_name in (("test", "val") if fd.plan.test else ("val",)):
                     rows = fd.rows(split_name)
                     o = collect(model, rows, forward, batch, ("v_used", "c_used", "v_hat", "c_hat"))

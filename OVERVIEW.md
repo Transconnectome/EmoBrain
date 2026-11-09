@@ -56,16 +56,21 @@ ROI 370개의 voxel → ROI마다 선형 변환 → token 370개
 → (조건에 따라) feature query 2개 → decoded Vision v̂, decoded Caption ĉ
 ```
 
-| 조건 | Input | Output | 학습 목표 |
-|---|---|---|---|
-| 1. Brain → Emotion | Brain | Emotion | 사람 평정 |
-| 2. Brain → Emotion + Vision + Caption | Brain | Emotion, v̂, ĉ | 사람 평정 + Vision, Caption feature 맞히기 |
-| 3. Brain + Decoded Feature → Emotion | Brain | Emotion = g + a(v̂) + b(ĉ) + U[(Av̂) ⊙ (Bĉ)] | 2와 같음. v̂, ĉ에는 stop-gradient |
-| 4. Brain → Emotion [distillation] | Brain | Emotion | 사람 평정과 Stimulus Model 예측을 섞은 값 |
-| 5. Brain + Decoded Feature → Emotion [distillation] | Brain | 3과 같음 | 3 + 4 |
-| 6, 7. Brain → Emotion [representation] | Brain | Emotion | 사람 평정 + Multimodal Model(Brain + Vision + Caption)의 중간 표현 맞히기. head를 고정(6)하거나 함께 학습(7) |
+조건은 장면 정보를 쓰는 정도에 따라 여섯 묶음으로 나눈다. -2는 같은 구조에 distillation(Stimulus Model 예측을 정답에 섞기)을 더한 것이다.
 
-조건 3이 중심 모델이다. v̂, ĉ가 외부 feature에 대응하도록 정서 손실이 decoding 쪽으로 흐르지 않게 막는다. 그래야 v̂를 다른 영상의 것으로 바꿔 끼웠을 때 정서 예측이 따라 움직이는지(질문 2-2) 검사할 수 있다.
+| 묶음 | 조건 | Output과 정서 계산 | 학습 목표 |
+|---|---|---|---|
+| A. 장면 정보를 쓰지 않음 | A-1. Brain → Emotion | 정서 = g | 사람 평정 |
+| | A-2. Brain → Emotion [distillation] | A-1과 같음 | 사람 평정과 Stimulus Model 예측을 섞은 값 |
+| B. 학습 신호로만 | B-1. Brain → Emotion + Vision + Caption | 정서 = g. v̂, ĉ는 손실에만 | 사람 평정 + Vision, Caption feature 맞히기 |
+| C. 뇌 경로 + 장면 경로, 공유 encoder | C-1. Brain + Decoded Feature → Emotion | 정서 = g + a(v̂) + b(ĉ) + U[(Av̂) ⊙ (Bĉ)] | B-1과 같음. v̂, ĉ에는 stop-gradient |
+| | C-2. … [distillation] | C-1과 같음 | C-1 + A-2의 정답 |
+| D. 뇌 경로 + 장면 경로, 분리 encoder | D-1. … [separate feature encoder] | C-1의 식에 feature만 학습한 encoder 2의 v̂₂, ĉ₂를 넣음 | C-1과 같음. encoder 2는 feature 손실만 |
+| | D-2. … [separate feature encoder, distillation] | D-1과 같음 | D-1 + A-2의 정답 |
+| E. 장면 경로만 | E-1. Decoded Feature → Emotion | 정서 = a(v̂₂) + b(ĉ₂) + U[(Av̂₂) ⊙ (Bĉ₂)]. g 없음 | 고정한 encoder 2 위에 정서 head만 사람 평정으로 |
+| F. 중간 표현 전달 | F-고정, F-학습. Brain → Emotion [representation] | 정서 = Multimodal Model에서 가져온 head(중간 표현) | 사람 평정 + Multimodal Model(Brain + Vision + Caption)의 중간 표현 맞히기. head를 고정(F-고정)하거나 함께 학습(F-학습) |
+
+C, D의 v̂, ĉ에는 정서 손실이 decoding 쪽으로 흐르지 않게 막는다. 그래야 v̂를 다른 영상의 것으로 바꿔 끼웠을 때 정서 예측이 따라 움직이는지(질문 2-2) 검사할 수 있다. D는 v̂₂, ĉ₂를 정서 평정을 보지 않은 encoder 2에서 만들어, 공유 encoder를 거쳐 정서 학습의 영향이 섞이는 길도 끊는다. 그래도 뇌 반응 자체의 정서 신호가 섞일 수는 있다.
 
 ## 평가와 분석
 

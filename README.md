@@ -72,22 +72,30 @@ S6의 결과 폴더 구조와 저장 형식은 [src/s6_train.py](src/s6_train.py
 
 ### 뇌 모델 조건 이름
 
-결과 폴더는 코드 이름을 쓴다. 조건의 Input과 Output은 [OVERVIEW.md](OVERVIEW.md)와 01의 5-A에 있다.
+결과 폴더는 코드 이름을 쓰고, 논문과 결과 표는 묶음 이름(A~F)을 쓴다. 대응은 `src/s6_common.py`의 `DISPLAY`에 있다. 조건의 Input, Output, loss는 [OVERVIEW.md](OVERVIEW.md)와 01의 5-A에 있다.
 
-| 코드 이름 | 논문 이름 |
+| 묶음 | 이름 | 코드 이름 | Input → Output |
+|---|---|---|---|
+| A. 장면 정보를 쓰지 않음 | A-1 | `brain_only` | Brain → Emotion |
+| | A-2 | `brain_only_distill` | Brain → Emotion [distillation] |
+| B. feature를 학습 신호로만 | B-1 | `brain_only_featdec` | Brain → Emotion + Vision + Caption |
+| C. decoded feature를 정서 계산에, 공유 encoder | C-1 | `brain_decoded` | Brain + Decoded Feature → Emotion |
+| | C-2 | `brain_decoded_distill` | Brain + Decoded Feature → Emotion [distillation] |
+| D. decoded feature를 정서 계산에, 분리 encoder | D-1 | `brain_decoded_sep` | Brain + Decoded Feature → Emotion [separate feature encoder] |
+| | D-2 | `brain_decoded_sep_distill` | Brain + Decoded Feature → Emotion [separate feature encoder, distillation] |
+| E. decoded feature만 | E-1 | `brain_features_only` | Decoded Feature → Emotion [separate feature encoder, no direct path] |
+| F. 중간 표현 전달 | F-고정 | `brain_only_repr_frozen` | Brain → Emotion [representation, frozen head] |
+| | F-학습 | `brain_only_repr_trained` | Brain → Emotion [representation, trained head] |
+
+-2는 같은 묶음의 -1에 distillation(Stimulus Model 예측)을 더한 조건이다. 변형, 대조군, 준비 모델은 다음과 같다.
+
+| 이름 | 코드 이름 |
 |---|---|
-| `brain_only` | 조건 1. Brain → Emotion |
-| `brain_only_featdec` | 조건 2. Brain → Emotion + Vision + Caption |
-| `brain_decoded` | 조건 3. Brain + Decoded Feature → Emotion (상호작용 head) |
-| `brain_decoded_additive` | 조건 3의 더하기 head |
-| `brain_only_distill` | 조건 4. Brain → Emotion [distillation] |
-| `brain_decoded_distill` | 조건 5. Brain + Decoded Feature → Emotion [distillation] |
-| `multimodal` | Multimodal Model (Brain + Vision + Caption → Emotion, 조건 6, 7의 준비) |
-| `brain_only_repr_frozen` | 조건 6. Brain → Emotion [representation, frozen head] |
-| `brain_only_repr_trained` | 조건 7. Brain → Emotion [representation, trained head] |
-| `brain_decoded_grad` | 조건 3에서 stop-gradient를 뺀 판 (성능 비교에만) |
-| `control_label_smoothing`, `control_stimulus_shuffle`, `control_feature_shuffle` | 대조군 셋 |
-| `brain_only_pool`, `brain_decoded_pool` | 평균 pooling판 |
+| C-1 더하기 head, C-1 손실 흐름 허용판(stop-gradient 없음, 성능 비교에만) | `brain_decoded_additive`, `brain_decoded_grad` |
+| A-1, C-1 평균 pooling판 | `brain_only_pool`, `brain_decoded_pool` |
+| A-2 대조군(label smoothing, Stimulus 예측 섞기), B-1 대조군(feature 짝 섞기) | `control_label_smoothing`, `control_stimulus_shuffle`, `control_feature_shuffle` |
+| encoder 2(feature만 학습. D, E가 같이 씀) | `feature_encoder` |
+| Multimodal Model(Brain + Vision + Caption → Emotion. F의 준비) | `multimodal` |
 
 ## 시험
 

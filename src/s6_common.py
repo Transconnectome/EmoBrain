@@ -53,31 +53,46 @@ class Condition:
     multimodal: bool = False
     additive: bool = False
     stop_gradient: bool = True  # G8. False는 성능 비교용 기울기 허용판뿐이다
-    separate: bool = False  # 조건 8, 9. 정서 계산에 쓰는 v̂, ĉ를 고정된 encoder 2에서 받는다
+    separate: bool = False  # D-1, D-2. 정서 계산에 쓰는 v̂, ĉ를 고정된 encoder 2에서 받는다
     feature_only: bool = False  # encoder 2. feature 손실만 쓰고 정서를 학습하지 않는다
-    head_only: bool = False  # 조건 10. 고정한 encoder 2의 v̂₂, ĉ₂ 위에 정서 head만 학습한다(g 경로 없음)
+    head_only: bool = False  # E-1. 고정한 encoder 2의 v̂₂, ĉ₂ 위에 정서 head만 학습한다(g 경로 없음)
 
 
 CONDITIONS = {
-    "brain_only": Condition("Direct training"),  # 조건 1
-    "brain_only_featdec": Condition("Auxiliary feature decoding", feature_head=True, features="actual"),  # 조건 2
-    "brain_decoded": Condition("Decoded-feature readout", feature_head=True, decoded=True, features="actual"),  # 조건 3, 상호작용 head
-    "brain_decoded_additive": Condition("Decoded-feature readout (additive head)", feature_head=True, decoded=True, features="actual", additive=True),  # 조건 3, 더하기 head
+    "brain_only": Condition("Direct training"),  # A-1
+    "brain_only_featdec": Condition("Auxiliary feature decoding", feature_head=True, features="actual"),  # B-1
+    "brain_decoded": Condition("Decoded-feature readout", feature_head=True, decoded=True, features="actual"),  # C-1, 상호작용 head
+    "brain_decoded_additive": Condition("Decoded-feature readout (additive head)", feature_head=True, decoded=True, features="actual", additive=True),  # C-1, 더하기 head
     "brain_decoded_grad": Condition("Decoded-feature readout, gradient allowed", feature_head=True, decoded=True, features="actual", stop_gradient=False),  # G8 허용판. 성능 비교에만 쓴다(바꿔 끼우기, K1에 쓰지 않음)
-    "brain_only_distill": Condition("Response-based distillation", target="stimulus"),  # 조건 4
-    "brain_decoded_distill": Condition("Decoded-feature readout + response-based distillation", feature_head=True, decoded=True, features="actual", target="stimulus"),  # 조건 5
-    "feature_encoder": Condition("Feature-only encoder (encoder 2 of conditions 8, 9)", feature_head=True, features="actual", feature_only=True),  # 조건 8, 9의 encoder 2
-    "brain_decoded_sep": Condition("Decoded-feature readout, separate feature encoder", feature_head=True, decoded=True, features="actual", separate=True),  # 조건 8
-    "brain_decoded_sep_distill": Condition("Decoded-feature readout, separate feature encoder + response-based distillation", feature_head=True, decoded=True, features="actual", target="stimulus", separate=True),  # 조건 9
-    "brain_features_only": Condition("Emotion head on frozen decoded features only (no direct brain path)", decoded=True, head_only=True),  # 조건 10
-    "multimodal": Condition("Multimodal Model", multimodal=True),  # 조건 6, 7의 준비
-    "brain_only_repr_frozen": Condition("Representation, frozen head", representation="frozen"),  # 조건 6
-    "brain_only_repr_trained": Condition("Representation, trained head", representation="trained"),  # 조건 7
+    "brain_only_distill": Condition("Response-based distillation", target="stimulus"),  # A-2
+    "brain_decoded_distill": Condition("Decoded-feature readout + response-based distillation", feature_head=True, decoded=True, features="actual", target="stimulus"),  # C-2
+    "feature_encoder": Condition("Feature-only encoder (encoder 2 of D-1, D-2, E-1)", feature_head=True, features="actual", feature_only=True),  # D-1, D-2, E-1의 encoder 2
+    "brain_decoded_sep": Condition("Decoded-feature readout, separate feature encoder", feature_head=True, decoded=True, features="actual", separate=True),  # D-1
+    "brain_decoded_sep_distill": Condition("Decoded-feature readout, separate feature encoder + response-based distillation", feature_head=True, decoded=True, features="actual", target="stimulus", separate=True),  # D-2
+    "brain_features_only": Condition("Emotion head on frozen decoded features only (no direct brain path)", decoded=True, head_only=True),  # E-1
+    "multimodal": Condition("Multimodal Model", multimodal=True),  # F-고정, F-학습의 준비
+    "brain_only_repr_frozen": Condition("Representation, frozen head", representation="frozen"),  # F-고정
+    "brain_only_repr_trained": Condition("Representation, trained head", representation="trained"),  # F-학습
     "control_label_smoothing": Condition("Control: label smoothing", target="mean"),  # G11
     "control_stimulus_shuffle": Condition("Control: shuffled Stimulus predictions", target="stimulus_shuffled"),  # G12
     "control_feature_shuffle": Condition("Control: shuffled feature pairs", feature_head=True, features="shuffled"),  # G12
     "brain_only_pool": Condition("Direct training (mean pooling)", pooling=True),  # F7
     "brain_decoded_pool": Condition("Decoded-feature readout (mean pooling)", feature_head=True, decoded=True, features="actual", pooling=True),  # F7
+}
+
+# 01 5-A의 묶음 이름(11/9 석진 님). 결과 표와 그림에 쓴다. 코드 이름과 결과 폴더는 바꾸지 않는다
+DISPLAY = {
+    "brain_only": "A-1", "brain_only_distill": "A-2",
+    "brain_only_featdec": "B-1",
+    "brain_decoded": "C-1", "brain_decoded_distill": "C-2",
+    "brain_decoded_sep": "D-1", "brain_decoded_sep_distill": "D-2",
+    "brain_features_only": "E-1",
+    "brain_only_repr_frozen": "F-고정", "brain_only_repr_trained": "F-학습",
+    "brain_decoded_additive": "C-1 더하기 head", "brain_decoded_grad": "C-1 손실 흐름 허용판",
+    "brain_only_pool": "A-1 평균 pooling판", "brain_decoded_pool": "C-1 평균 pooling판",
+    "control_label_smoothing": "A-2 대조군(label smoothing)", "control_stimulus_shuffle": "A-2 대조군(Stimulus 예측 섞기)",
+    "control_feature_shuffle": "B-1 대조군(feature 짝 섞기)",
+    "feature_encoder": "encoder 2", "multimodal": "Multimodal Model",
 }
 ORDER = list(CONDITIONS)  # 앞 조건의 선택을 뒤 조건이 쓴다(5-5, G9, O5, O31)
 ZONE_CONDITIONS = {"brain_only", "brain_decoded"}  # 6-2(4-3). 다른 조건으로 넓히지 않는다
@@ -165,11 +180,11 @@ def candidates(condition, *, k_candidates=None, base=None, decoded=None, learnin
         return [_cand(**shared, alpha=a, lr=lr) for a in ALPHAS for lr in lrs]
     if condition in ("brain_only_featdec", "control_feature_shuffle"):
         return [_cand(**shared, lam=x, lr=lr) for x in LAMBDAS_FEATURE for lr in lrs]
-    if condition == "feature_encoder":  # 조건 8, 9의 encoder 2. learning rate만 고른다(검증 feature MSE)
+    if condition == "feature_encoder":  # D-1, D-2, E-1의 encoder 2. learning rate만 고른다(검증 feature MSE)
         return [_cand(**shared, lr=lr) for lr in lrs]
-    if condition == "brain_features_only":  # 조건 10. 더하기 head(r = 0)와 상호작용 head(r 1, 2, 4, 8)를 함께 고른다
+    if condition == "brain_features_only":  # E-1. 더하기 head(r = 0)와 상호작용 head(r 1, 2, 4, 8)를 함께 고른다
         return [_cand(**shared, rank=r, lr=lr) for r in (0,) + tuple(RANKS) for lr in lrs]
-    if condition in ("brain_decoded", "brain_decoded_grad", "brain_decoded_sep"):  # 허용판과 조건 8은 조건 3과 후보가 같다(G8)
+    if condition in ("brain_decoded", "brain_decoded_grad", "brain_decoded_sep"):  # 허용판과 D-1은 C-1과 후보가 같다(G8)
         return [_cand(**shared, lam=x, rank=r, lr=lr) for x in LAMBDAS_FEATURE for r in RANKS for lr in lrs]
     if condition == "brain_decoded_additive":
         return [_cand(**shared, lam=x, rank=0, lr=lr) for x in LAMBDAS_FEATURE for lr in lrs]
@@ -236,7 +251,7 @@ def select_best(rows):
 
 
 def zero_rows(condition, source_rows, source_selected):
-    """G9. α = 0, λ = 0 후보를 앞 조건의 학습 결과로 채운다. 같은 d, 입력층 weight decay와 (조건 5는) λ, r인 행만 쓴다."""
+    """G9. α = 0, λ = 0 후보를 앞 조건의 학습 결과로 채운다. 같은 d, 입력층 weight decay와 (C-2는) λ, r인 행만 쓴다."""
     if condition not in ZERO_SOURCE:
         return []
     source, name = ZERO_SOURCE[condition]
@@ -614,7 +629,7 @@ def build_model(condition, cand, voxel_counts):
     cfg = CONDITIONS[condition]
     if cfg.multimodal:
         return M.MultimodalModel(voxel_counts, cand["d"])
-    if cfg.head_only:  # 조건 10. encoder 2 자리는 학습 때 고정한 encoder 2의 가중치로 채운다
+    if cfg.head_only:  # E-1. encoder 2 자리는 학습 때 고정한 encoder 2의 가중치로 채운다
         return M.FeatureHeadModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True), cand["rank"])
     return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling, stop_gradient=cfg.stop_gradient)
 

@@ -10,7 +10,7 @@
 #SBATCH --array=1-6
 #SBATCH --output=outputs/logs/s6_main_fold%a_%A.log
 # S6 본실험의 기본 run 분할(바깥 fold 1~6). fold 하나를 GPU 하나로 돌린다. 설정은 configs/s6/run_config.json.
-# 조건: 핵심 다섯 조건과 더하기 head, 손실 흐름 허용판, 조건 8, 9(encoder 분리판)와 그 encoder 2, Multimodal Model과 조건 6, 7, 대조군 셋, 평균 pooling판(01 5-A, 7-L).
+# 조건: A~F 묶음 10개(A-1, A-2, B-1, C-1, C-2, D-1, D-2, E-1, F-고정, F-학습), C-1의 더하기 head와 손실 흐름 허용판, encoder 2, Multimodal Model, 대조군 셋, 평균 pooling판(01 5-A, 7-L).
 # 시간 상한에 걸리면 같은 명령으로 다시 내면 끝난 학습은 건너뛰고 잇는다. 처음 보는 장면, 네트워크, MC는 따로 낸다.
 # 사용(레포 최상위에서): sbatch scripts/s6_main.sh <동결 커밋>
 set -euo pipefail

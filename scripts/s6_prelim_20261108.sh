@@ -16,7 +16,7 @@ set -euo pipefail
 HERE="${SLURM_SUBMIT_DIR:+$SLURM_SUBMIT_DIR/scripts}"; source "${HERE:-$(dirname "$0")}/_env.sh"
 FREEZE="${1:?동결 커밋}"
 K="${SLURM_ARRAY_TASK_ID:?fold 번호}"
-CONDITIONS="brain_only,brain_only_featdec,brain_decoded,brain_decoded_additive,brain_only_distill,brain_decoded_distill,multimodal,brain_only_repr_frozen,brain_only_repr_trained"  # 조건 1~7과 더하기 head, Multimodal Model(11/8 석진 님이 6, 7을 더함)
+CONDITIONS="brain_only,brain_only_featdec,brain_decoded,brain_decoded_additive,brain_only_distill,brain_decoded_distill,multimodal,brain_only_repr_frozen,brain_only_repr_trained"  # A~C 묶음, F-고정, F-학습과 C-1 더하기 head, Multimodal Model(11/8 석진 님이 F를 더함)
 export OMP_NUM_THREADS=8
 export S6_OUT=$OUT_ROOT/s6_brain_prelim
 "$PY" s6_train.py --plan "outer_fold${K}" --conditions "$CONDITIONS" --config $ROOT/configs/s6/run_config_prelim_20261108.json --design-freeze "$FREEZE" --device cuda
