@@ -55,7 +55,8 @@ class Condition:
     stop_gradient: bool = True  # G8. False는 성능 비교용 기울기 허용판뿐이다
     separate: bool = False  # D-1, D-2. 정서 계산에 쓰는 v̂, ĉ를 고정된 encoder 2에서 받는다
     feature_only: bool = False  # encoder 2. feature 손실만 쓰고 정서를 학습하지 않는다
-    head_only: bool = False  # E-1. 고정한 encoder 2의 v̂₂, ĉ₂ 위에 정서 head만 학습한다(g 경로 없음)
+    head_only: bool = False  # D-3. 고정한 encoder 2의 v̂₂, ĉ₂ 위에 정서 계산만 학습한다(g 경로 없음)
+    frozen_encoder: bool = False  # D-4. 고정한 encoder 2의 token H 위에 A-1과 같은 정서 head만 학습한다
 
 
 CONDITIONS = {
@@ -66,13 +67,14 @@ CONDITIONS = {
     "brain_decoded_grad": Condition("Decoded-feature readout, gradient allowed", feature_head=True, decoded=True, features="actual", stop_gradient=False),  # G8 허용판. 성능 비교에만 쓴다(바꿔 끼우기, K1에 쓰지 않음)
     "brain_only_distill": Condition("Response-based distillation", target="stimulus"),  # A-2
     "brain_decoded_distill": Condition("Decoded-feature readout + response-based distillation", feature_head=True, decoded=True, features="actual", target="stimulus"),  # C-2
-    "feature_encoder": Condition("Feature-only encoder (encoder 2 of D-1, D-2, E-1)", feature_head=True, features="actual", feature_only=True),  # D-1, D-2, E-1의 encoder 2
+    "feature_encoder": Condition("Feature-only encoder (encoder 2 of D-1, D-2, D-3, D-4)", feature_head=True, features="actual", feature_only=True),  # D-1~D-4의 encoder 2
+    "brain_frozen_feature_encoder": Condition("Brain → Emotion [frozen feature encoder]", frozen_encoder=True),  # D-4. feature_encoder 바로 뒤(ORDER)
     "brain_decoded_sep": Condition("Decoded-feature readout, separate feature encoder", feature_head=True, decoded=True, features="actual", separate=True),  # D-1
     "brain_decoded_sep_distill": Condition("Decoded-feature readout, separate feature encoder + response-based distillation", feature_head=True, decoded=True, features="actual", target="stimulus", separate=True),  # D-2
-    "brain_features_only": Condition("Emotion head on frozen decoded features only (no direct brain path)", decoded=True, head_only=True),  # E-1
-    "multimodal": Condition("Multimodal Model", multimodal=True),  # F-고정, F-학습의 준비
-    "brain_only_repr_frozen": Condition("Representation, frozen head", representation="frozen"),  # F-고정
-    "brain_only_repr_trained": Condition("Representation, trained head", representation="trained"),  # F-학습
+    "brain_features_only": Condition("Emotion head on frozen decoded features only (no direct brain path)", decoded=True, head_only=True),  # D-3
+    "multimodal": Condition("Multimodal Model", multimodal=True),  # E-고정, E-학습의 준비
+    "brain_only_repr_frozen": Condition("Representation, frozen head", representation="frozen"),  # E-고정
+    "brain_only_repr_trained": Condition("Representation, trained head", representation="trained"),  # E-학습
     "control_label_smoothing": Condition("Control: label smoothing", target="mean"),  # G11
     "control_stimulus_shuffle": Condition("Control: shuffled Stimulus predictions", target="stimulus_shuffled"),  # G12
     "control_feature_shuffle": Condition("Control: shuffled feature pairs", feature_head=True, features="shuffled"),  # G12
@@ -86,8 +88,8 @@ DISPLAY = {
     "brain_only_featdec": "B-1",
     "brain_decoded": "C-1", "brain_decoded_distill": "C-2",
     "brain_decoded_sep": "D-1", "brain_decoded_sep_distill": "D-2",
-    "brain_features_only": "E-1",
-    "brain_only_repr_frozen": "F-고정", "brain_only_repr_trained": "F-학습",
+    "brain_features_only": "D-3", "brain_frozen_feature_encoder": "D-4",
+    "brain_only_repr_frozen": "E-고정", "brain_only_repr_trained": "E-학습",
     "brain_decoded_additive": "C-1 더하기 head", "brain_decoded_grad": "C-1 손실 흐름 허용판",
     "brain_only_pool": "A-1 평균 pooling판", "brain_decoded_pool": "C-1 평균 pooling판",
     "control_label_smoothing": "A-2 대조군(label smoothing)", "control_stimulus_shuffle": "A-2 대조군(Stimulus 예측 섞기)",
@@ -187,9 +189,11 @@ def candidates(condition, *, k_candidates=None, base=None, decoded=None, learnin
         return [_cand(**shared, alpha=a, lr=lr) for a in ALPHAS for lr in lrs]
     if condition in ("brain_only_featdec", "control_feature_shuffle"):
         return [_cand(**shared, lam=x, lr=lr) for x in LAMBDAS_FEATURE for lr in lrs]
-    if condition == "feature_encoder":  # D-1, D-2, E-1의 encoder 2. learning rate만 고른다(검증 feature MSE)
+    if condition == "feature_encoder":  # D-1~D-4의 encoder 2. learning rate만 고른다(검증 feature MSE)
         return [_cand(**shared, lr=lr) for lr in lrs]
-    if condition == "brain_features_only":  # E-1. 더하기 head(r = 0)와 상호작용 head(r 1, 2, 4, 8)를 함께 고른다
+    if condition == "brain_frozen_feature_encoder":  # D-4. 정서 head의 learning rate만 고른다. d와 입력층 weight decay는 encoder 2와 같은 A-1 값
+        return [_cand(**shared, lr=lr) for lr in lrs]
+    if condition == "brain_features_only":  # D-3. 더하기 head(r = 0)와 상호작용 head(r 1, 2, 4, 8)를 함께 고른다
         return [_cand(**shared, rank=r, lr=lr) for r in (0,) + tuple(RANKS) for lr in lrs]
     if condition in ("brain_decoded", "brain_decoded_grad", "brain_decoded_sep"):  # 허용판과 D-1은 C-1과 후보가 같다(G8)
         return [_cand(**shared, lam=x, rank=r, lr=lr) for x in LAMBDAS_FEATURE for r in RANKS for lr in lrs]
@@ -228,7 +232,7 @@ def check_candidate(condition, cand):
 def planned_runs(k, n_lr=3, n_seeds=3):
     """한 fold의 학습 횟수(7-L의 식). 시험에서 후보 함수의 결과와 대조한다."""
     extra = n_seeds - 1
-    return dict(brain_only=k * n_lr + extra, brain_only_featdec=2 * n_lr + extra, brain_decoded=8 * n_lr + extra, brain_decoded_grad=8 * n_lr + extra, brain_decoded_additive=2 * n_lr + extra, brain_only_distill=2 * n_lr + extra, brain_decoded_distill=2 * n_lr + extra, feature_encoder=n_lr + extra, brain_decoded_sep=8 * n_lr + extra, brain_decoded_sep_distill=2 * n_lr + extra, brain_features_only=5 * n_lr + extra, control_label_smoothing=2 * n_lr + extra, control_stimulus_shuffle=2 * n_lr + extra, control_feature_shuffle=2 * n_lr + extra, multimodal=3 * n_lr + extra, brain_only_repr_frozen=2 * n_lr + extra, brain_only_repr_trained=2 * n_lr + extra, brain_only_pool=n_seeds, brain_decoded_pool=n_seeds)
+    return dict(brain_only=k * n_lr + extra, brain_only_featdec=2 * n_lr + extra, brain_decoded=8 * n_lr + extra, brain_decoded_grad=8 * n_lr + extra, brain_decoded_additive=2 * n_lr + extra, brain_only_distill=2 * n_lr + extra, brain_decoded_distill=2 * n_lr + extra, feature_encoder=n_lr + extra, brain_frozen_feature_encoder=n_lr + extra, brain_decoded_sep=8 * n_lr + extra, brain_decoded_sep_distill=2 * n_lr + extra, brain_features_only=5 * n_lr + extra, control_label_smoothing=2 * n_lr + extra, control_stimulus_shuffle=2 * n_lr + extra, control_feature_shuffle=2 * n_lr + extra, multimodal=3 * n_lr + extra, brain_only_repr_frozen=2 * n_lr + extra, brain_only_repr_trained=2 * n_lr + extra, brain_only_pool=n_seeds, brain_decoded_pool=n_seeds)
 
 
 def candidate_id(cand):
@@ -634,13 +638,15 @@ def shuffle_plan(split, plan, seed, mc_ids=None):
 def build_model(condition, cand, voxel_counts, tokenizer="linear", voxel_sampling=0.0, cells=None):
     """조건의 구조를 만든다. 구조는 조건 이름으로만 정해지고 부르는 쪽이 바꿀 수 없다. tokenizer는 설정 파일의 입력층(11/9 점검)이다."""
     cfg = CONDITIONS[condition]
-    if tokenizer != "linear" and (cfg.multimodal or cfg.head_only or cfg.separate or cfg.feature_only or cfg.representation):
+    if tokenizer != "linear" and (cfg.multimodal or cfg.head_only or cfg.frozen_encoder or cfg.separate or cfg.feature_only or cfg.representation):
         raise ValueError("입력층 점검(brainit, roi_mean, roi_cells)은 encoder 하나인 뇌 모델 조건에서만 돌린다")
     if tokenizer == "roi_cells" and cells is None:
         raise ValueError("roi_cells는 칸 번호(s2_roi_cells.py의 파일)가 있어야 한다")
     if cfg.multimodal:
         return M.MultimodalModel(voxel_counts, cand["d"])
-    if cfg.head_only:  # E-1. encoder 2 자리는 학습 때 고정한 encoder 2의 가중치로 채운다
+    if cfg.frozen_encoder:  # D-4. 입력층과 encoder 자리는 학습 때 고정한 encoder 2의 가중치로 채운다
+        return M.FrozenEncoderModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True))
+    if cfg.head_only:  # D-3. encoder 2 자리는 학습 때 고정한 encoder 2의 가중치로 채운다
         return M.FeatureHeadModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True), cand["rank"])
     return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling, stop_gradient=cfg.stop_gradient, tokenizer=tokenizer, voxel_sampling=voxel_sampling, cells=cells)
 

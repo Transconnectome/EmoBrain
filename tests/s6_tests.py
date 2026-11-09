@@ -354,9 +354,9 @@ def t_separate_encoder():
     check("D-2는 D-1에서 고른 λ와 r을 이어 받고 α를 고른다", {x["lam"] for x in d9} == {0.1} and {x["rank"] for x in d9} == {2} and {x["alpha"] for x in d9} == {0.25, 0.5})
     check("D-2의 α = 0 후보는 D-1이다(G10)", S.ZERO_SOURCE["brain_decoded_sep_distill"] == ("brain_decoded_sep", "alpha"))
     check("D-1, D-2와 encoder 2는 기본 run 분할에서만 돈다", not ({"feature_encoder", "brain_decoded_sep", "brain_decoded_sep_distill"} & S.ZONE_CONDITIONS))
-    # E-1
+    # D-3
     c10 = S.candidates("brain_features_only", base=base)
-    check("E-1은 r 0(더하기), 1, 2, 4, 8과 learning rate를 고르고 λ가 없다", {x["rank"] for x in c10} == {0, 1, 2, 4, 8} and {x["lam"] for x in c10} == {None})
+    check("D-3은 r 0(더하기), 1, 2, 4, 8과 learning rate를 고르고 λ가 없다", {x["rank"] for x in c10} == {0, 1, 2, 4, 8} and {x["lam"] for x in c10} == {None})
     for x in c10:
         S.check_candidate("brain_features_only", x)
     torch.manual_seed(2)
@@ -367,22 +367,22 @@ def t_separate_encoder():
     o10 = m10(fd.batch(rows))
     with torch.no_grad():
         f10 = fe.eval()(fd.batch(rows))
-    check("E-1의 정서는 encoder 2의 v̂₂, ĉ₂만으로 계산한다", torch.equal(o10.v_used, f10.v_hat) and torch.allclose(o10.z, m10.a(f10.v_hat) + m10.b(f10.c_hat) + m10.U(m10.A(f10.v_hat) * m10.B(f10.c_hat))))
+    check("D-3의 정서는 encoder 2의 v̂₂, ĉ₂만으로 계산한다", torch.equal(o10.v_used, f10.v_hat) and torch.allclose(o10.z, m10.a(f10.v_hat) + m10.b(f10.c_hat) + m10.U(m10.A(f10.v_hat) * m10.B(f10.c_hat))))
     T.soft_bce(o10.z, fd.train_target(rows, "human")).backward()
-    check("E-1의 정서 손실은 encoder 2에 닿지 않고 정서 head만 학습시킨다", all(p.grad is None for p in m10.feature_model.parameters()) and m10.a.weight.grad.abs().sum() > 0 and m10.U.weight.grad.abs().sum() > 0)
-    check("E-1에는 뇌에서 바로 정서를 읽는 경로가 없다", not any(n.startswith(("input_layer", "encoder", "readout")) for n, p in m10.named_parameters() if p.requires_grad))
+    check("D-3의 정서 손실은 encoder 2에 닿지 않고 정서 head만 학습시킨다", all(p.grad is None for p in m10.feature_model.parameters()) and m10.a.weight.grad.abs().sum() > 0 and m10.U.weight.grad.abs().sum() > 0)
+    check("D-3에는 뇌에서 바로 정서를 읽는 경로가 없다", not any(n.startswith(("input_layer", "encoder", "readout")) for n, p in m10.named_parameters() if p.requires_grad))
     with tempfile.TemporaryDirectory() as td:
         M.save_checkpoint(Path(td) / "m.pt", m10, condition="brain_features_only")
         back, _ = M.load_checkpoint(Path(td) / "m.pt")
         m10.eval()
-        check("E-1 체크포인트를 되살리면 같은 출력이다", torch.allclose(back(fd.batch(rows)).z, m10(fd.batch(rows)).z, atol=1e-6))
+        check("D-3 체크포인트를 되살리면 같은 출력이다", torch.allclose(back(fd.batch(rows)).z, m10(fd.batch(rows)).z, atol=1e-6))
 
 
 def t_display_names():
     """01 5-A의 묶음 이름(11/9). 모든 코드 이름에 이름이 하나씩 있고 겹치지 않는다."""
     check("묶음 이름이 모든 조건에 하나씩 있다", set(S.DISPLAY) == set(S.CONDITIONS))
     check("묶음 이름이 겹치지 않는다", len(set(S.DISPLAY.values())) == len(S.DISPLAY))
-    check("A~F 묶음 10개가 5-A의 대응과 같다", {k: S.DISPLAY[k] for k in ("brain_only", "brain_only_distill", "brain_only_featdec", "brain_decoded", "brain_decoded_distill", "brain_decoded_sep", "brain_decoded_sep_distill", "brain_features_only", "brain_only_repr_frozen", "brain_only_repr_trained")} == dict(brain_only="A-1", brain_only_distill="A-2", brain_only_featdec="B-1", brain_decoded="C-1", brain_decoded_distill="C-2", brain_decoded_sep="D-1", brain_decoded_sep_distill="D-2", brain_features_only="E-1", brain_only_repr_frozen="F-고정", brain_only_repr_trained="F-학습"))
+    check("A~E 묶음 11개가 5-A의 대응과 같다", {k: S.DISPLAY[k] for k in ("brain_only", "brain_only_distill", "brain_only_featdec", "brain_decoded", "brain_decoded_distill", "brain_decoded_sep", "brain_decoded_sep_distill", "brain_features_only", "brain_frozen_feature_encoder", "brain_only_repr_frozen", "brain_only_repr_trained")} == dict(brain_only="A-1", brain_only_distill="A-2", brain_only_featdec="B-1", brain_decoded="C-1", brain_decoded_distill="C-2", brain_decoded_sep="D-1", brain_decoded_sep_distill="D-2", brain_features_only="D-3", brain_frozen_feature_encoder="D-4", brain_only_repr_frozen="E-고정", brain_only_repr_trained="E-학습"))
 
 
 def t_brainit_tokenizer():
@@ -496,6 +496,65 @@ def t_roi_cell_input():
         ok = Path(t) / "a.json"; ok.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], tokenizer="roi_cells")))
         bad = Path(t) / "b.json"; bad.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], tokenizer="roi_mean", voxel_sampling=0.3)))
         check("설정 파일로 roi_mean, roi_cells를 주고, voxel 뽑기는 brainit에만 준다", S.load_config(ok).tokenizer == "roi_cells" and stops(lambda: S.load_config(bad)))
+
+
+def t_frozen_encoder():
+    """D-4(11/9 석진 님). 고정한 encoder 2의 token H 위에 A-1과 같은 정서 head만 학습한다."""
+    w = World(); fd = w.fold(); rows = fd.rows("train")[:12]
+    base = dict(d=8, input_wd=1e-3, lr=1e-3)
+    cands = S.candidates("brain_frozen_feature_encoder", base=base)
+    check("D-4는 learning rate만 고르고 d와 입력층 weight decay는 A-1 값이다", {x["lr"] for x in cands} == set(S.LEARNING_RATES) and all(x["d"] == 8 and x["input_wd"] == 1e-3 and x["lam"] is None and x["rank"] is None and x["alpha"] is None for x in cands))
+    for x in cands:
+        S.check_candidate("brain_frozen_feature_encoder", x)
+    check("D-4는 ORDER에서 feature_encoder 바로 뒤다", S.ORDER.index("brain_frozen_feature_encoder") == S.ORDER.index("feature_encoder") + 1)
+    check("D-4는 planned_runs에 learning rate 수 + seed 2회가 있다", S.planned_runs(6)["brain_frozen_feature_encoder"] == 3 + 2)
+    torch.manual_seed(0)
+    enc2 = S.build_model("feature_encoder", dict(base, rank=None), fd.voxel_counts)
+    with torch.no_grad():
+        for prm in enc2.parameters():
+            prm.add_(0.01 * torch.randn_like(prm))  # 학습한 encoder 2처럼 초기값과 다르게
+    m = S.build_model("brain_frozen_feature_encoder", dict(base, rank=None), fd.voxel_counts)
+    m.feature_model.load_state_dict(enc2.state_dict()); M.freeze(m.feature_model)
+    before = M.state_digest(m.feature_model)
+    check("(c) D-4 정서 head의 d가 encoder 2와 같다", m.d == enc2.spec["d"] == 8 and m.readout.d == 8)
+    check("D-4 정서 head는 A-1과 같은 정서 query와 정서별 선형층이고 feature head가 없다", not m.readout.has_feature_head and not m.readout.decoded and len(m.readout.emotion_linears) == 34)
+    check("D-4는 encoder 2의 정서 쪽 가중치를 가져오지 않는다", not any(torch.equal(a, b) for a, b in zip(m.readout.emotion_linears.parameters(), enc2.readout.emotion_linears.parameters())) if hasattr(enc2.readout, "emotion_linears") else True)
+    m.train()
+    check("D-4의 encoder 2는 학습 상태에서도 평가 상태다(dropout 끔)", not m.feature_model.training and m.readout.training)
+    out = m(fd.batch(rows))
+    with torch.no_grad():
+        H = enc2.eval().encode(fd.batch(rows))
+    check("D-4 정서는 encoder 2의 token H만 읽는다", torch.allclose(out.H, H, atol=1e-6))
+    opt = torch.optim.AdamW(M.parameter_groups(m, 1e-2, 1e-3))
+    for _ in range(3):
+        opt.zero_grad(); F.binary_cross_entropy_with_logits(m(fd.batch(rows)).z, torch.rand(len(rows), 34)).backward(); opt.step()
+    check("(b) 고정한 encoder 2에는 기울기가 없다", all(p.grad is None for p in m.feature_model.parameters()) and not any(p.requires_grad for p in m.feature_model.parameters()))
+    check("(a) 학습 전후 encoder 2 가중치의 해시가 같다", M.state_digest(m.feature_model) == before)
+    check("D-4 정서 head는 학습된다", any(p.grad is not None and p.grad.abs().sum() > 0 for p in m.readout.parameters()))
+    groups = M.parameter_assignment(m)
+    check("D-4에서 encoder 2는 frozen이고 optimizer에 들어가지 않는다", all(v == "frozen" for k, v in groups.items() if k.startswith("feature_model.")))
+    m.eval()
+    with tempfile.TemporaryDirectory() as t:
+        M.save_checkpoint(Path(t) / "m.pt", m, condition="brain_frozen_feature_encoder")
+        back, _ = M.load_checkpoint(Path(t) / "m.pt")
+        check("D-4 체크포인트를 되살리면 같은 출력이다", torch.allclose(back(fd.batch(rows)).z, m(fd.batch(rows)).z, atol=1e-6))
+    check("D-4는 linear 입력층만 받는다", stops(lambda: S.build_model("brain_frozen_feature_encoder", dict(base, rank=None), fd.voxel_counts, "roi_mean")))
+    check("D-4는 내용 구역 제외에 돌리지 않는다", stops(lambda: S.check_conditions("zone_block1_fold1_excluded", ["brain_frozen_feature_encoder"])))
+    # (d), (e)는 파이프라인에서: 짝지은 encoder 2의 체크포인트 해시, 자료 경계
+    with tempfile.TemporaryDirectory() as td:
+        w2, fd2, run, runner = pipeline(Path(td), conditions=["brain_only", "feature_encoder", "brain_frozen_feature_encoder"])
+        sel = runner.selected("brain_frozen_feature_encoder")
+        fe = runner.selected("feature_encoder")
+        ok_d, ok_e = True, True
+        for seed, rel in sel["seeds"].items():
+            done = json.loads((Path(td) / "outer_fold1" / rel / "done.json").read_text())
+            fe_path = Path(td) / "outer_fold1" / fe["seeds"][seed] / "model.pt"
+            ok_d &= done.get("feature_encoder", {}).get("checkpoint_sha256") == c.sha256(fe_path) and int(done["feature_encoder"]["seed"]) == int(seed)
+            for name, part in (("val_pred.npz", fd2.plan.val), ("test_pred.npz", fd2.plan.test)):
+                ids = set(np.load(Path(td) / "outer_fold1" / rel / name)["video_id"].tolist())
+                ok_e &= ids <= set(part)
+        check("(d) D-4 실행 기록에 같은 seed encoder 2 체크포인트의 해시가 남는다", ok_d)
+        check("(e) D-4는 그 분할의 검증, 시험 영상만 예측하고, 분할 점검은 MC 72개가 들어오면 멈춘다", ok_e and stops(lambda: S.check_plan(fd2.plan, w2.split, mc_ids=[sorted(fd2.plan.train)[0]])))
 
 
 def t_prelim_config():
@@ -703,7 +762,7 @@ def t_boundaries():
     blocks = pd.read_csv(c.S2 / "content_blocks_assignment.tsv", sep="\t")
     in_block = set(blocks.video_id[blocks.block == 1])
     check("실제 표: 빠진 구역은 학습과 검증에 없다(6-2)", not (set(pz.train) | set(pz.val)) & in_block and set(pz.test) <= in_block)
-    check("대조군과 F-고정, F-학습은 구역 제외에 돌리지 않는다", stops(lambda: S.check_conditions("zone_block1_fold1_excluded", ["control_label_smoothing"])) and stops(lambda: S.check_conditions("final_for_mc", ["brain_only_repr_frozen"])))
+    check("대조군과 E-고정, E-학습은 구역 제외에 돌리지 않는다", stops(lambda: S.check_conditions("zone_block1_fold1_excluded", ["control_label_smoothing"])) and stops(lambda: S.check_conditions("final_for_mc", ["brain_only_repr_frozen"])))
     pp = S.plan_pilot(real, 1)
     check("파일럿은 시험 fold를 쓰지 않는다(S7)", pp.test == [] and not set(pp.train + pp.val) & set(real.video_id[real.fold == 1]))
     fdp = S.prepare_fold(w.brains, w.split, w.y, w.v, w.cap, S.plan_pilot(w.split, 1), stimulus=w.stimulus(plan))
@@ -909,8 +968,8 @@ def t_weight_groups():
                     all_ok = False
                     bad.append((name, n, assign[n], expect))
             decays = {g["name"]: g["weight_decay"] for g in groups}
-            all_ok &= decays.get("input_weight", 3e-3) == 3e-3 and decays["other"] == 0.01  # E-1은 입력층이 고정이라 input_weight 묶음이 없다
-            all_ok &= ("input_weight" in decays) != S.CONDITIONS[name].head_only
+            all_ok &= decays.get("input_weight", 3e-3) == 3e-3 and decays["other"] == 0.01  # D-3, D-4는 입력층이 고정이라 input_weight 묶음이 없다
+            all_ok &= ("input_weight" in decays) != (S.CONDITIONS[name].head_only or S.CONDITIONS[name].frozen_encoder)
             all_ok &= decays["other"] == 0.01 and decays["no_decay"] == 0.0 and decays.get("feature_token", 2e-3) == 2e-3
     check(f"weight decay: 모든 조건의 모든 파라미터가 정확히 한 묶음에 든다{bad[:2] if bad else ''}", all_ok)
     m = S.build_model("brain_decoded", dict(d=8, rank=2), fd.voxel_counts)
@@ -956,7 +1015,7 @@ def t_candidates():
     controls = sum(plan[n] for n in ("control_label_smoothing", "control_stimulus_shuffle", "control_feature_shuffle"))
     check("대조군은 6 fold 144회(7-L)", controls * 6 == 144)
     g16 = sum(plan[n] for n in ("multimodal", "brain_only_repr_frozen", "brain_only_repr_trained"))
-    check("F-고정, F-학습은 6 fold 162회(7-L)", g16 * 6 == 162)
+    check("E-고정, E-학습은 6 fold 162회(7-L)", g16 * 6 == 162)
     pool = plan["brain_only_pool"] + plan["brain_decoded_pool"]
     check("평균 pooling판은 6 fold 36회(O31)", pool * 6 == 36)
     check("모든 조건에 learning rate 후보 세 개가 있다(G13)", all({x["lr"] for x in S.candidates(n, k_candidates=Ks, base=base, decoded=decoded)} == set(S.LEARNING_RATES) for n in lens))
@@ -967,7 +1026,7 @@ def t_candidates():
     d5c = S.candidates("brain_decoded_distill", base=base, decoded=decoded)
     check("C-2는 C-1에서 고른 λ와 r을 고정한다", {x["lam"] for x in d5c} == {0.1} and {x["rank"] for x in d5c} == {2} and {x["alpha"] for x in d5c} == {0.25, 0.5})
     check("d와 입력층 weight decay는 brain_only의 선택을 따른다(5-5)", all(x["d"] == 8 and x["input_wd"] == 1e-3 for n in lens if n != "brain_only" for x in S.candidates(n, base=base, decoded=decoded)))
-    check("F-고정, F-학습은 λ 0.1, 1.0이다", {x["lam"] for x in S.candidates("brain_only_repr_frozen", base=base)} == {0.1, 1.0} == {x["lam"] for x in S.candidates("brain_only_repr_trained", base=base)})
+    check("E-고정, E-학습은 λ 0.1, 1.0이다", {x["lam"] for x in S.candidates("brain_only_repr_frozen", base=base)} == {0.1, 1.0} == {x["lam"] for x in S.candidates("brain_only_repr_trained", base=base)})
     check("Multimodal Model은 특징 선형층 weight decay를 고른다(O5)", {x["feature_wd"] for x in S.candidates("multimodal", base=base)} == {1e-4, 1e-3, 1e-2})
     check("K가 없으면 멈춘다(S7)", stops(lambda: S.candidates("brain_only")))
     check("d가 4의 배수가 아니면 멈춘다", stops(lambda: S.candidates("brain_only", k_candidates=[(6, 1e-3)])))
@@ -1154,7 +1213,7 @@ def t_pipeline():
         rows0 = pd.read_csv(out / "control_feature_shuffle/selection.tsv", sep="\t")
         maps = {json.dumps(json.loads((out / "control_feature_shuffle" / f"{i}_seed0" / "shuffle.json").read_text())["mapping"]) for i in rows0.candidate_id}
         check("O1: 같은 fold와 seed에서는 λ가 달라도 같은 순열이다", len(maps) == 1)
-        # F-고정, F-학습
+        # E-고정, E-학습
         mm_sel = selected["multimodal"]
         ok_pair = True
         for n in ("brain_only_repr_frozen", "brain_only_repr_trained"):
@@ -1163,15 +1222,15 @@ def t_pipeline():
                 ok_pair &= tj["seed"] == int(seed) and tj["checkpoint_sha256"] == c.sha256(out / mm_sel["seeds"][seed] / "model.pt")
                 st = np.load(out / rel / "representation_stats.npz")
                 ok_pair &= st["mean"].shape == (34, mm_sel["candidate"]["d"])
-        check("F-고정, F-학습은 같은 seed의 Multimodal Model과 짝짓고 그 해시를 남긴다(O5)", ok_pair)
+        check("E-고정, E-학습은 같은 seed의 Multimodal Model과 짝짓고 그 해시를 남긴다(O5)", ok_pair)
         check("Multimodal Model의 시험 예측은 참고로 남는다(G16)", (out / mm_sel["seeds"]["0"] / "test_pred.npz").exists())
         froz, _ = M.load_checkpoint(out / selected["brain_only_repr_frozen"]["seeds"]["0"] / "model.pt")
         teach, _ = M.load_checkpoint(out / mm_sel["seeds"]["0"] / "model.pt")
-        check("F-고정: 학습 뒤 head가 Multimodal Model의 head와 같다", all(torch.equal(a, b) for a, b in zip(froz.readout.emotion_linears.state_dict().values(), teach.emotion_linears.state_dict().values())))
+        check("E-고정: 학습 뒤 head가 Multimodal Model의 head와 같다", all(torch.equal(a, b) for a, b in zip(froz.readout.emotion_linears.state_dict().values(), teach.emotion_linears.state_dict().values())))
         pg = json.loads((out / selected["brain_only_repr_frozen"]["seeds"]["0"] / "parameter_groups.json").read_text())
-        check("F-고정: 저장한 묶음에서 head는 frozen이다", all(v == "frozen" for k, v in pg.items() if "emotion_linears" in k))
+        check("E-고정: 저장한 묶음에서 head는 frozen이다", all(v == "frozen" for k, v in pg.items() if "emotion_linears" in k))
         tr, _ = M.load_checkpoint(out / selected["brain_only_repr_trained"]["seeds"]["0"] / "model.pt")
-        check("F-학습: 학습 뒤 head가 복사한 값에서 달라졌다", not all(torch.equal(a, b) for a, b in zip(tr.readout.emotion_linears.state_dict().values(), teach.emotion_linears.state_dict().values())))
+        check("E-학습: 학습 뒤 head가 복사한 값에서 달라졌다", not all(torch.equal(a, b) for a, b in zip(tr.readout.emotion_linears.state_dict().values(), teach.emotion_linears.state_dict().values())))
         # 건너뛰기
         again = T.FoldRunner(fd, w.split, run, FAST, S.Config(KS, (1e-4, 1e-3)), out)
         for n in S.ORDER:
@@ -1219,9 +1278,9 @@ def t_representation_unit():
             inp_grad = m.input_layer.weights["sub-01"].grad.abs().sum() > 0
             check(f"{name}: L_emotion의 기울기가 encoder와 입력층까지 간다(5-A)", enc_grad and inp_grad)
             if frozen:
-                check("F-고정: head에는 기울기가 쌓이지 않는다", all(p.grad is None for p in m.readout.emotion_linears.parameters()))
+                check("E-고정: head에는 기울기가 쌓이지 않는다", all(p.grad is None for p in m.readout.emotion_linears.parameters()))
             else:
-                check("F-학습: head에도 기울기가 간다", all(p.grad is not None and p.grad.abs().sum() > 0 for p in m.readout.emotion_linears.parameters()))
+                check("E-학습: head에도 기울기가 간다", all(p.grad is not None and p.grad.abs().sum() > 0 for p in m.readout.emotion_linears.parameters()))
             m.zero_grad(set_to_none=True)
             spec = S.Spec(batch=16, max_epochs=2, patience=30)
             T.fit(m, fd, spec, lr=1e-2, input_wd=1e-3, feature_wd=None, loss_fn=loss_fn, forward=T.brain_forward(fd), seed=0)
@@ -1234,7 +1293,7 @@ def t_representation_unit():
         m.load_head_from(teacher.model, frozen=True)
         names = {n for g in M.parameter_groups(m, 1e-3, 1e-3) for n in [g["name"]]}
         opt_ids = {id(p) for g in M.parameter_groups(m, 1e-3, 1e-3) for p in g["params"]}
-        check("F-고정: 고정한 head는 optimizer에 들어가지 않는다", not any(id(p) in opt_ids for p in m.readout.emotion_linears.parameters()) and "frozen" not in names)
+        check("E-고정: 고정한 head는 optimizer에 들어가지 않는다", not any(id(p) in opt_ids for p in m.readout.emotion_linears.parameters()) and "frozen" not in names)
         # L_representation의 값
         m.eval()
         rows = fd.rows("train")[:8]
@@ -1243,9 +1302,9 @@ def t_representation_unit():
             got = T.make_loss("brain_only_repr_frozen", cand, fd, teacher=teacher)(out, rows)
             pos = torch.as_tensor(teacher.position[rows])
             expect = T.soft_bce(out.z, fd.y(rows)) + 1.0 * ((out.o - teacher.o[pos]) / teacher.std).pow(2).mean()
-        check("F-고정: 손실 = L_emotion + λ × 표준화한 표현의 MSE(O5)", abs((got - expect).item()) < 1e-4)
+        check("E-고정: 손실 = L_emotion + λ × 표준화한 표현의 MSE(O5)", abs((got - expect).item()) < 1e-4)
         z_raw = out.z.detach()
-        check("F-고정: 고정 head에는 학습 좌표 그대로 표현을 넣는다(O5)", torch.allclose(torch.cat([teacher.model.emotion_linears[e](out.o[:, e]) for e in range(34)], 1), z_raw, atol=1e-6))
+        check("E-고정: 고정 head에는 학습 좌표 그대로 표현을 넣는다(O5)", torch.allclose(torch.cat([teacher.model.emotion_linears[e](out.o[:, e]) for e in range(34)], 1), z_raw, atol=1e-6))
         train_rows = fd.rows("train")
         o_all = T.collect(teacher.model, train_rows, T.multimodal_forward(fd), 16, ("o",))["o"].numpy()
         check("표현의 표준화 통계는 Multimodal Model이 학습한 행에서 낸다(O5)", np.allclose(teacher.mean.numpy(), o_all.astype(np.float64).mean(0), atol=1e-5) and np.allclose(teacher.std.numpy(), o_all.astype(np.float64).std(0), atol=1e-5))
@@ -1320,7 +1379,7 @@ def t_guard():
     rank8 = table[(table.condition == "brain_decoded") & (table.d == 8) & (table["rank"] == 8)].iloc[0]
     check("F8: C-1의 r마다 줄이 있고 상호작용 head가 더 크다", rank8.shared - additive.shared == 8 * (5632 + 4096) + 34 * 8 and set(table[table.condition == "brain_decoded"]["rank"].astype(int)) == {1, 2, 4, 8})
     frozen = table[(table.condition == "brain_only_repr_frozen") & (table.d == 8)].iloc[0]
-    check("F8: F-고정은 고정한 head를 학습 수에서 뺀다", frozen.frozen == 34 * 9 and frozen.trainable == row.trainable - 34 * 9)
+    check("F8: E-고정은 고정한 head를 학습 수에서 뺀다", frozen.frozen == 34 * 9 and frozen.trainable == row.trainable - 34 * 9)
 
 
 def timing():
@@ -1491,7 +1550,7 @@ def main():
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
         t0 = time.time()
         try:
             f()

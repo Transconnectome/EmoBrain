@@ -40,7 +40,7 @@
         - MC 최종 시험 영상 72개(다른 참가자 6명)는 끝까지 튜닝과 선택에 쓰지 않는다. 바꾼 설정이 많아도 마지막에 깨끗한 일반화 값 하나가 남는다(B2, 6-3).
         - 근거: 같은 자료로 고르고 평가하면 결과가 부풀려진다(Kriegeskorte 외 2009, Nature Neuroscience). 시험 자료를 반복해 써도 부풀림이 작았다는 ML 결과(Recht 외 2019 ICML, Roelofs 외 2019 NeurIPS)는 시험 표본이 수천 개 이상일 때다. 우리는 fold마다 시험 영상이 300여 개라 검증 fold 비교와 MC 72개를 둔다.
 - 이 연구가 다루는 정서는 "시각 자극이 일으킨 정서(visually evoked emotion)"다(Horikawa 2020 제목의 말). Discussion에서는 시청각 자극으로 넓혀 더 자연스러운 상황의 정서로 확장하는 방향을 쓴다. [정함, 11/1]
-- 옛 Study 1(docs/archive/pre-final-2026-10의 joint latent 해석) 틀은 설계의 근거로 쓰지 않고, 뇌, Vision feature, Caption feature를 함께 받는 모델의 내부 분석은 이번 범위에 넣지 않는다. [정함, 11/1] docs/archive/pre-final-2026-10의 Study 2 틀과 뇌를 받는 모델 T_BVS도 이 문서보다 오래된 틀이다. 둘이 다르면 이 문서를 따른다. 예외로, Multimodal Model의 표현과 head를 Brain Model로 옮기는 성능 비교(F-고정, F-학습)는 보조로 넣는다(G16, 11/3 사용자). 내부 분석이 아니고 질문 1의 해석에 쓰지 않는다. 프로젝트 지침의 "뇌까지 받는 teacher는 확인용으로만 돌린다"도 석진 님이 이에 맞춰 고칠 필요가 있다.
+- 옛 Study 1(docs/archive/pre-final-2026-10의 joint latent 해석) 틀은 설계의 근거로 쓰지 않고, 뇌, Vision feature, Caption feature를 함께 받는 모델의 내부 분석은 이번 범위에 넣지 않는다. [정함, 11/1] docs/archive/pre-final-2026-10의 Study 2 틀과 뇌를 받는 모델 T_BVS도 이 문서보다 오래된 틀이다. 둘이 다르면 이 문서를 따른다. 예외로, Multimodal Model의 표현과 head를 Brain Model로 옮기는 성능 비교(E-고정, E-학습)는 보조로 넣는다(G16, 11/3 사용자). 내부 분석이 아니고 질문 1의 해석에 쓰지 않는다. 프로젝트 지침의 "뇌까지 받는 teacher는 확인용으로만 돌린다"도 석진 님이 이에 맞춰 고칠 필요가 있다.
 - 이 논문은 모델 논문이 아니다. 정서 신경과학 질문을 질문 1로 두고, 모델은 한 칸 떨어진 질문 2로 둔다. [정함, 11/1]
 - EmoBrain(학위논문)과 CCN은 별개 프로젝트다. [고정 사실]
 - 프로젝트 지침은 11/1 결정에 맞춰 새로 고쳤다. 레포 docs/archive/pre-final-2026-10는 아직 옛 설계라서 Claude Code에 넘기기 전에 고쳐야 한다(N37).
@@ -63,7 +63,7 @@
 | 방법 | feature decoding, decoded features | 뇌 반응에서 Feature Extractor의 특징 값을 맞히는 일(feature decoding)과 그 값(decoded features). 한국어로 옮긴 "특징 복원"과 reconstruction은 쓰지 않는다 [정함, 11/3 사용자] | Horikawa & Kamitani 2017, Shen 외 2019, MindCaptioning |
 | 모델 | Stimulus Model | Vision feature와 Caption feature를 입력으로 받아 예측 평정을 내는 모델. 논문에서는 teacher다 | 입력 이름으로 모델을 부르는 방식(위와 같음) |
 | 역할 | teacher, student | distillation에서 목표를 주는 쪽과 배우는 쪽 | Hinton 2015, Lopez-Paz 2016 |
-| 조건 | 묶음 이름(A-1, A-2, B-1, C-1, C-2, D-1, D-2, E-1, F-고정, F-학습)과 Input → Output 이름(Brain → Emotion 등) | 뇌 모델 학습 조건 10개(5-A). 묶음 이름과 Input → Output 이름을 함께 쓰고, 만든 순서의 번호(옛 조건 1~10)는 쓰지 않는다 [정함, 11/2 사용자 지적. 11/9 석진 님 묶음 이름] | 프로젝트 지침의 조건 이름 |
+| 조건 | 묶음 이름(A-1, A-2, B-1, C-1, C-2, D-1, D-2, D-3, D-4, E-고정, E-학습)과 Input → Output 이름(Brain → Emotion 등) | 뇌 모델 학습 조건 11개(5-A). 묶음 이름과 Input → Output 이름을 함께 쓰고, 만든 순서의 번호(옛 조건 1~10)는 쓰지 않는다 [정함, 11/2 사용자 지적. 11/9 석진 님 묶음 이름] | 프로젝트 지침의 조건 이름 |
 
 - 모델 이름과 역할 이름은 다른 개념이다. 모델 이름은 입력으로, 역할 이름은 distillation에서의 관계로 붙인다. 어느 모델이 teacher를 맡을지는 5-0에서 정한다.
 - "맥락"을 공식 용어로 쓰지 않는 이유
@@ -96,7 +96,9 @@
 | 내용 구역 제외 시험 | evaluation on held-out content blocks | | Roberts 외 2017 |
 | 이름표 73개 | 73 semantic labels | 값은 평정자 비율이고 이진 라벨이 아님. caption features와 구별 | Horikawa 2020 |
 | 네트워크 단독 학습, 교란 | network-restricted training, network input perturbation | network는 모델이 아니라 brain network | |
-| F-고정(Brain → Emotion [representation, frozen head]) | frozen-head distillation | Multimodal Model의 중간 표현을 맞히며 고정한 head를 재사용 | Chen 외 2022(SimKD) |
+| E-고정(Brain → Emotion [representation, frozen head]) | frozen-head distillation | Multimodal Model의 중간 표현을 맞히며 고정한 head를 재사용 | Chen 외 2022(SimKD) |
+| D-3(Decoded Feature → Emotion [separate feature encoder, no direct path]) | sequential concept bottleneck | 장면 특징으로만 학습해 고정한 encoder의 decoded features로 정서 계산을 학습 | Koh 외 2020 |
+| D-4(Brain → Emotion [frozen feature encoder]) | Brain → Emotion [frozen feature encoder] | 장면 특징으로만 학습해 고정한 encoder의 token 위에 정서 head만 학습 | Ortega Caro 외 2024 |
 
 ### 1-2. 대전제 [정함, 11/1]
 
@@ -730,9 +732,9 @@
 
 ### 5-A. 모델과 학습 흐름 한눈에 [정함, 11/7 석진 님. GPT 정리를 이 문서의 용어로 옮김. 11/9 묶음 이름으로 다시 정리]
 
-뇌 모델 학습 조건은 여섯 묶음(A~F)의 10개다. 묶음은 장면 정보(Vision feature, Caption feature)를 쓰는 정도로 나눈다. A는 쓰지 않고, B는 학습 신호로만 쓰고, C와 D는 뇌 경로와 함께 정서 계산에 넣고, E는 장면 경로만으로 정서를 낸다. C와 D는 decoded feature를 만드는 encoder를 정서 학습과 같이 쓰느냐(C) 따로 두느냐(D)만 다르다. F는 장면 정보를 Multimodal Model의 중간 표현을 거쳐 전달한다. 묶음 안에서 -1은 사람 평정으로 학습하고, -2는 같은 구조에 distillation(Stimulus 예측 평정)을 더한다. F는 두 조건이 head를 고정하느냐로 갈려 -1, -2 대신 F-고정, F-학습이라 부른다. 주 조건은 따로 정하지 않는다 [정함, 11/9 석진 님].
+뇌 모델 학습 조건은 다섯 묶음(A~E)의 11개다. 묶음은 장면 정보(Vision feature, Caption feature)를 쓰는 정도로 나눈다. A는 쓰지 않고, B는 학습 신호로만 쓰고, C는 뇌 경로와 함께 정서 계산에 넣는다. D는 장면 특징으로만 학습해 고정한 encoder 2를 쓴다. D-1, D-2는 C와 같은 계산에 encoder 2의 v̂₂, ĉ₂를 넣고, D-3은 v̂₂, ĉ₂만으로, D-4는 encoder 2의 token H 전체로 정서를 낸다. E는 장면 정보를 Multimodal Model의 중간 표현을 거쳐 전달한다. 묶음 안에서 -1은 사람 평정으로 학습하고, -2는 같은 구조에 distillation(Stimulus 예측 평정)을 더한다. D-3, D-4는 사람 평정으로만 학습한다. E는 두 조건이 head를 고정하느냐로 갈려 -1, -2 대신 E-고정, E-학습이라 부른다. 주 조건은 따로 정하지 않는다 [정함, 11/9 석진 님]. 11/9에 옛 E-1을 D-3으로 옮기고(encoder 2를 D-1과 같이 씀), D-4를 더하고, 옛 F를 E로 당겼다 [정함, 11/9 석진 님. 예비 실행(11/8) 뒤의 변경이라 04에 기록하고 방법에 밝힌다].
 
-조건과 별도로 학습하는 모델이 셋 있다. Stimulus Model(Vision + Caption → Emotion, 뇌 없음), encoder 2(Brain → Vision + Caption만 학습), Multimodal Model(Brain + Vision + Caption → Emotion)이다. 이 10개에는 더하기 head와 상호작용 head의 비교, baseline, 대조군, fold와 seed별 반복 학습을 넣지 않았다.
+조건과 별도로 학습하는 모델이 셋 있다. Stimulus Model(Vision + Caption → Emotion, 뇌 없음), encoder 2(Brain → Vision + Caption만 학습), Multimodal Model(Brain + Vision + Caption → Emotion)이다. 이 11개에는 더하기 head와 상호작용 head의 비교, baseline, 대조군, fold와 seed별 반복 학습을 넣지 않았다.
 
 조건의 입력, 출력, loss는 이 절을 기준으로 한다. 이 문서의 다른 행과 다르면 이 절을 따른다 [정함, 11/7 석진 님].
 
@@ -745,11 +747,12 @@
 | B. feature 보조 학습 | B-1 | 조건 2 | `brain_only_featdec` | Brain → Emotion + Vision + Caption |
 | C. decoded feature, 공유 encoder | C-1 | 조건 3 | `brain_decoded` | Brain + Decoded Feature → Emotion |
 | | C-2 | 조건 5 | `brain_decoded_distill` | Brain + Decoded Feature → Emotion [distillation] |
-| D. decoded feature, 분리 encoder | D-1 | 조건 8 | `brain_decoded_sep` | Brain + Decoded Feature → Emotion [separate feature encoder] |
+| D. 고정한 encoder 2 | D-1 | 조건 8 | `brain_decoded_sep` | Brain + Decoded Feature → Emotion [separate feature encoder] |
 | | D-2 | 조건 9 | `brain_decoded_sep_distill` | Brain + Decoded Feature → Emotion [separate feature encoder, distillation] |
-| E. decoded feature만 | E-1 | 조건 10 | `brain_features_only` | Decoded Feature → Emotion [separate feature encoder, no direct path] |
-| F. 중간 표현 전달 | F-고정 | 조건 6 | `brain_only_repr_frozen` | Brain → Emotion [representation, frozen head] |
-| | F-학습 | 조건 7 | `brain_only_repr_trained` | Brain → Emotion [representation, trained head] |
+| | D-3 | 조건 10(11/9 전 이름 E-1) | `brain_features_only` | Decoded Feature → Emotion [separate feature encoder, no direct path] |
+| | D-4 | 없음(11/9 새로) | `brain_frozen_feature_encoder` | Brain → Emotion [frozen feature encoder] |
+| E. 중간 표현 전달 | E-고정 | 조건 6(11/9 전 이름 E-고정) | `brain_only_repr_frozen` | Brain → Emotion [representation, frozen head] |
+| | E-학습 | 조건 7(11/9 전 이름 E-학습) | `brain_only_repr_trained` | Brain → Emotion [representation, trained head] |
 
 같은 묶음에 딸린 변형, 대조군, 별도 모델은 다음과 같다.
 
@@ -761,8 +764,8 @@
 | A-2의 대조군 | `control_label_smoothing`, `control_stimulus_shuffle` | 평균 쪽으로만 부드럽게 하기, Stimulus 예측을 다른 영상과 섞기(G6) |
 | B-1의 대조군 | `control_feature_shuffle` | feature 짝을 다른 영상과 섞기(G6) |
 | Stimulus Model | S4 `stimulus` | Vision + Caption → Emotion. A-2, C-2, D-2의 distillation 목표와 경로 평가(K1)의 head |
-| encoder 2 | `feature_encoder` | Brain → Vision + Caption만 학습. D-1, D-2, E-1이 같은 것을 고정해 쓴다 |
-| Multimodal Model | `multimodal` | Brain + Vision + Caption → Emotion. F-고정, F-학습이 맞히는 중간 표현과 head의 출처 |
+| encoder 2 | `feature_encoder` | Brain → Vision + Caption만 학습. D-1~D-4가 같은 것을 고정해 쓴다 |
+| Multimodal Model | `multimodal` | Brain + Vision + Caption → Emotion. E-고정, E-학습이 맞히는 중간 표현과 head의 출처 |
 
 #### 1부. 모델 설명
 
@@ -888,7 +891,7 @@ L = (1 − α) × L_emotion + α × L_distillation + λ × L_feature
 
 Stimulus Model을 참고하는 방법은 같고 Brain Model의 구조가 다르다.
 
-**D. Brain + Decoded Feature → Emotion, 분리 encoder** [정함, 11/9 석진 님. 결과를 본 뒤 더한 묶음이다]
+**D. 장면 특징으로만 학습해 고정한 encoder 2를 쓰는 묶음** [정함, 11/9 석진 님. 결과를 본 뒤 더한 묶음이다]
 
 **D-1. Brain + Decoded Feature → Emotion [separate feature encoder]**
 
@@ -905,7 +908,7 @@ brain ────┤           └ feature head → v̂₁, ĉ₁ → feature l
 - feature가 하는 두 역할을 나눈다. 학습 신호 역할(feature를 맞혀 보게 해서 정서를 읽는 표현을 바꿈)은 encoder 1과 v̂₁, ĉ₁가 맡고, 내용 역할(뇌에서 읽은 장면 정보를 정서 계산에 넣음)은 encoder 2와 v̂₂, ĉ₂가 맡는다.
 - encoder 2는 입력층(참가자, ROI마다 선형)까지 따로 둔다. 입력층을 같이 쓰면 정서 loss가 입력층을 바꾸고 encoder 2가 그 입력층을 읽어 다시 섞인다.
 - 각 loss가 학습시키는 부분: Emotion loss는 encoder 1, emotion head, a, b, A, B, U. encoder 1의 feature loss는 encoder 1과 그 feature head. encoder 2의 feature loss는 encoder 2와 그 feature head. Emotion loss는 v̂₂, ĉ₂에서 막는다.
-- encoder 2의 학습: fold마다 한 번(seed마다) 학습해 고정하고 D-1, D-2, E-1의 모든 후보가 같이 쓴다. d와 입력층 weight decay는 그 fold의 A-1에서 고른 값을 쓰고, learning rate는 검증 영상의 feature MSE로 고른다. 조기 종료도 검증 feature MSE로 한다. 경로 평가(K1)의 "특징만 학습한 모델"과 같은 모델이다.
+- encoder 2의 학습: fold마다 한 번(seed마다) 학습해 고정하고 D-1~D-4의 모든 후보가 같이 쓴다. d와 입력층 weight decay는 그 fold의 A-1에서 고른 값을 쓰고, learning rate는 검증 영상의 feature MSE로 고른다. 조기 종료도 검증 feature MSE로 한다. 경로 평가(K1)의 "특징만 학습한 모델"과 같은 모델이다.
 - 남는 한계: 나눠도 leakage가 없어지지는 않는다. encoder 2는 정서 평정을 보지 않지만 뇌 반응 자체에 정서 신호가 있어, v̂₂가 실제 feature에서 빗나가는 부분에 그 신호가 섞일 수 있다. 개념 예측기를 과제와 따로 학습해도 개념값이 연속값이면 leakage가 생긴다는 보고가 있다(Mahinpei 외 2021). 그래서 D-1에서도 "decoded feature 경로에 정서 정보가 없다"고 쓰지 않는다.
 - 비교: D-1 대 C-1은 공용 encoder를 통한 간접 영향을 끊었을 때 정서 예측과 바꿔 끼우기 결과가 어떻게 달라지는지를 본다. D-1 대 B-1은 정서 학습과 분리한 encoder의 decoded feature를 정서 계산에 더했느냐 하나만 다르다(encoder 2는 정서로 학습하지 않으므로 정서를 맞히려고 새로 학습되는 가중치는 a, b, A, B, U뿐이고 C-1과 같다).
 - 범위: 기본 run 분할의 바깥 fold 6개. 후보는 C-1과 같다(λ 2 × r 4 × learning rate 3, G9).
@@ -914,22 +917,48 @@ brain ────┤           └ feature head → v̂₁, ĉ₁ → feature l
 
 D-1의 구조에 C-2와 같은 distillation을 더한다. 정서 칸의 정답이 (1 − α) × 사람 평정 + α × Stimulus 예측 평정이 된다. encoder 2는 D-1과 같은 것을 쓴다. λ와 r은 그 fold의 D-1에서 고른 값을 쓰고 α 후보 {0.25, 0.5}와 learning rate를 고른다(C-2와 같은 규칙, G9). D-2 대 C-2는 encoder 분리의 효과를, D-2 대 D-1은 distillation의 효과를 본다.
 
-**E. Decoded Feature → Emotion, 분리 encoder (장면 경로만 씀)** [정함, 11/9 석진 님]
+**D-3. Decoded Feature → Emotion [separate feature encoder, no direct path]** [정함, 11/9 석진 님. 11/9 전 이름 E-1]
 
-**E-1. Decoded Feature → Emotion [separate feature encoder, no direct path]**
+D-1에서 encoder 1을 뺀 것이다. 고정한 encoder 2가 낸 v̂₂, ĉ₂만 보고 정서 계산(Stimulus Model과 같은 꼴)을 학습한다.
 
 ```text
-학습 1단계(D-1, D-2와 같은 encoder 2): Brain → encoder 2 → v̂₂, ĉ₂ → feature loss만
-학습 2단계: encoder 2를 고정하고, v̂₂, ĉ₂ → 정서 head(a, b, A, B, U) → 정서 → Emotion loss
+학습 1단계(D-1과 같은 encoder 2): Brain → encoder 2 → v̂₂, ĉ₂ → feature loss만
+학습 2단계: encoder 2를 고정하고, v̂₂, ĉ₂ → 정서 계산(a, b, A, B, U) → 정서 → Emotion loss
 ```
 
 - 정서 = a(v̂₂) + b(ĉ₂) + U[(Av̂₂) ⊙ (Bĉ₂)]. 뇌에서 바로 정서를 읽는 경로(g)와 encoder 1이 없다. 뇌에서 읽은 장면 정보만으로 정서를 배운다. 개념 bottleneck의 sequential 학습과 같은 꼴이다(Koh 외 2020).
-- 정서 loss는 정서 head만 학습시킨다. encoder 2는 정서 평정을 보지 않는다.
-- K1(경로 평가)과 다른 점: K1은 실제 feature로 학습한 Stimulus head를 그대로 붙여 뇌 쪽에서 정서를 전혀 학습하지 않는다(independent). E-1은 정서 head를 뇌에서 읽은 v̂₂, ĉ₂로 새로 학습한다. 그래서 decoded feature가 평균 쪽으로 눌린 척도 문제가 head 학습으로 흡수된다.
-- 정서 loss를 head까지 전혀 쓰지 않는 판은 feature를 정서로 바꾸는 규칙을 학습 없이 정할 방법이 없어 두지 않는다. 그 대신 K1이 정서 평정으로 학습한 규칙을 뇌를 보지 않은 자극 쪽에서 가져온다.
+- 정서 loss는 정서 계산만 학습시킨다. encoder 2는 정서 평정을 보지 않는다.
+- K1(경로 평가)과 다른 점: K1은 실제 feature로 학습한 Stimulus head를 그대로 붙여 뇌 쪽에서 정서를 전혀 학습하지 않는다(independent). D-3은 정서 계산을 뇌에서 읽은 v̂₂, ĉ₂로 새로 학습한다. 그래서 decoded feature가 평균 쪽으로 눌린 척도 문제가 학습으로 흡수된다.
+- 정서 loss를 정서 계산까지 전혀 쓰지 않는 판은 feature를 정서로 바꾸는 규칙을 학습 없이 정할 방법이 없어 두지 않는다. 그 대신 K1이 정서 평정으로 학습한 규칙을 뇌를 보지 않은 자극 쪽에서 가져온다.
 - 후보: r ∈ {0, 1, 2, 4, 8}(0은 더하기 head) × learning rate. 조기 종료와 선택은 다른 정서 조건과 같다(검증 정서 soft BCE, 검증 r_정서). 기본 run 분할의 바깥 fold 6개.
 
-**F. Multimodal Model의 중간 표현 전달 (보조 비교, G16)**
+**D-4. Brain → Emotion [frozen feature encoder]** [정함, 11/9 석진 님. 예비 실행(11/8) 뒤에 더한 조건이다]
+
+장면 특징으로만 학습해 고정한 encoder 2의 token H 위에 A-1과 같은 정서 head만 학습한다.
+
+```text
+학습 1단계(D-1~D-3과 같은 encoder 2): Brain → 입력층 2 → encoder 2 → feature head → v̂₂, ĉ₂ → feature loss만
+학습 2단계: 입력층 2와 encoder 2를 고정하고, token H → 정서 query 34개 → 정서별 선형층 → 정서 → Emotion loss
+```
+
+- 구조: A-1과 같다(입력층, encoder, 정서 query 34개와 정서별 선형층). 입력층과 encoder는 같은 바깥 fold, 같은 seed의 encoder 2 체크포인트에서 불러와 고정한다(기울기 없음, dropout 끈 평가 상태, D-1의 encoder 2 처리와 같음). 정서 head는 새로 초기화하고 encoder 2의 정서 쪽 가중치는 가져오지 않는다. encoder 2의 시각 head, 캡션 head는 쓰지 않고, 정서 head는 token H 전체를 읽는다.
+- 학습: 정서 head만 학습한다. loss는 사람 평정의 soft BCE이고 λ, α, r이 없다. 학습, 검증 영상은 그 바깥 fold의 학습 fold 4개와 검증 fold 1개로 encoder 2를 만들 때와 같다. 조기 종료와 선택은 다른 정서 조건과 같다.
+- 후보: learning rate {1e-5, 1e-4, 1e-3}만 고른다. d와 입력층 weight decay는 A-1 선택값이다(encoder 2가 이미 그 값을 씀). 기본 run 분할의 바깥 fold 6개. 입력층은 본 설계(linear)만 쓴다.
+- 묻는 것: 장면 특징을 맞히도록 미리 학습한 encoder의 표현에서 정서를 읽을 수 있는가. 나중에 다른 자료(ex) HCP movie)로 사전학습한 encoder를 옮겨 쓰는 실험과 같은 꼴이다.
+- 후속(이번에 만들지 않음): encoder 2까지 정서로 다시 학습하는 판.
+
+**D 묶음 안의 비교와 선례** [정함, 11/9 석진 님]
+
+- D-4가 관심 모델이고, D-3은 D-4를 해석하기 위한 짝이다.
+- D-4 대 A-1: 바뀌는 곳은 "encoder를 정서로 직접 학습했나, 장면 특징으로 미리 학습하고 고정했나" 하나다(질문 2).
+- D-3 대 D-4: 바뀌는 곳은 "정서 쪽이 v̂₂, ĉ₂만 읽나, H 전체를 읽나" 하나다. D-4의 효과가 장면 특징에서 오는지 본다(질문 1).
+- Stimulus Model 대 D-3: 같은 꼴의 정서 계산에 실제 feature를 넣었나, 뇌에서 맞힌 feature를 넣었나. 뇌에서 장면 특징을 읽을 때 잃는 정보를 본다.
+- 선례
+    - D-3: sequential concept bottleneck(Koh 외 2020)
+    - D-4: 사전학습한 fMRI 모델을 다른 과제로 옮겨 쓴 예(Ortega Caro 외 2024, BrainLM, ICLR). fMRI 6,700시간으로 masked prediction 사전학습을 한 뒤 fine-tuning으로 나이, 불안, PTSD 같은 임상 변수를 예측했다.
+- 점검 [정함, 11/9 석진 님]: D-1~D-4의 2단계는 encoder 2가 1단계에서 이미 학습한 영상으로 정서 쪽을 학습한다. 그 영상의 v̂₂, ĉ₂(또는 H)는 처음 보는 영상보다 정확할 수 있다. 그래서 encoder 2가 끝나면 바깥 fold마다 학습 영상과 검증 영상에서 v̂₂, ĉ₂의 정확도(차원별 r, MSE, encoder 2의 decoding_accuracy.tsv)를 각각 내서 석진 님에게 보고한다. 차이가 클 때 학습 fold 안을 다시 나눠 encoder 2 출력을 fold 밖 예측으로 낼지는 석진 님이 정한다. 이번에는 설계를 바꾸지 않는다.
+
+**E. Multimodal Model의 중간 표현 전달 (보조 비교, G16)** [11/9 전 이름 F]
 
 ```text
 Brain → Encoder → 중간 표현 → Head → Emotion
@@ -949,7 +978,7 @@ L = L_emotion + λ × L_representation
 
 L_representation은 Multimodal Model과 Brain Model의 중간 표현 사이의 MSE다.
 
-**F-고정. Brain → Emotion [representation, frozen head]**
+**E-고정. Brain → Emotion [representation, frozen head]**
 
 ```text
 Brain → Encoder → 중간 표현 → Multimodal Model에서 가져온 Head → Emotion
@@ -958,16 +987,16 @@ Brain → Encoder → 중간 표현 → Multimodal Model에서 가져온 Head �
 
 encoder를 학습하고 가져온 head의 가중치는 바꾸지 않는다. L_emotion은 고정된 head를 통과해 encoder를 학습시킨다.
 
-**F-학습. Brain → Emotion [representation, trained head]**
+**E-학습. Brain → Emotion [representation, trained head]**
 
 ```text
 Brain → Encoder → 중간 표현 → Multimodal Model에서 복사한 Head → Emotion
         학습                              학습
 ```
 
-Multimodal Model의 head를 복사해 초기값으로 쓰고 encoder와 head를 함께 학습한다. Multimodal Model 원본은 계속 고정한다. Chen 외(2022)는 head를 고정해 재사용하는 방법이므로, F-학습은 F-고정과 비교하려고 둔 우리 설계다.
+Multimodal Model의 head를 복사해 초기값으로 쓰고 encoder와 head를 함께 학습한다. Multimodal Model 원본은 계속 고정한다. Chen 외(2022)는 head를 고정해 재사용하는 방법이므로, E-학습은 E-고정과 비교하려고 둔 우리 설계다.
 
-F-고정과 F-학습은 Multimodal Model, 구조, 자료 분할, 학습 목표와 설정 선택 규칙을 맞추고 비교한다. 시험 때는 Brain → 학습된 encoder → 학습이 끝난 head → Emotion으로 예측한다. encoder와 head를 업데이트하지 않고, Multimodal encoder를 실행하거나 Vision과 Caption을 넣을 필요가 없다. 두 조건은 기본 분할에서 하는 보조 성능 비교다. 두 결과를 모두 기록하고, 결과를 본 뒤 더하는 분석은 탐색적 분석으로 구분한다.
+E-고정과 E-학습은 Multimodal Model, 구조, 자료 분할, 학습 목표와 설정 선택 규칙을 맞추고 비교한다. 시험 때는 Brain → 학습된 encoder → 학습이 끝난 head → Emotion으로 예측한다. encoder와 head를 업데이트하지 않고, Multimodal encoder를 실행하거나 Vision과 Caption을 넣을 필요가 없다. 두 조건은 기본 분할에서 하는 보조 성능 비교다. 두 결과를 모두 기록하고, 결과를 본 뒤 더하는 분석은 탐색적 분석으로 구분한다.
 
 **모델 요약**
 
@@ -980,9 +1009,10 @@ F-고정과 F-학습은 Multimodal Model, 구조, 자료 분할, 학습 목표�
 | C-2 | Brain + Decoded Feature → Emotion [distillation] | 사람 평정, Stimulus 예측 평정, Vision과 Caption feature | g, v̂, ĉ(공유 encoder) | |
 | D-1 | Brain + Decoded Feature → Emotion [separate feature encoder] | 사람 평정, Vision과 Caption feature | g, v̂₂, ĉ₂(encoder 2) | 11/9 더함 |
 | D-2 | Brain + Decoded Feature → Emotion [separate feature encoder, distillation] | 사람 평정, Stimulus 예측 평정, Vision과 Caption feature | g, v̂₂, ĉ₂(encoder 2) | 11/9 더함 |
-| E-1 | Decoded Feature → Emotion [separate feature encoder, no direct path] | 사람 평정(정서 head만), Vision과 Caption feature(encoder 2) | v̂₂, ĉ₂(encoder 2) | 11/9 더함 |
-| F-고정 | Brain → Emotion [representation, frozen head] | 사람 평정, Multimodal Model의 중간 표현 | 중간 표현 → 고정 head | 보조 비교(G16) |
-| F-학습 | Brain → Emotion [representation, trained head] | 사람 평정, Multimodal Model의 중간 표현 | 중간 표현 → 학습 head | 보조 비교(G16) |
+| D-3 | Decoded Feature → Emotion [separate feature encoder, no direct path] | 사람 평정(정서 head만), Vision과 Caption feature(encoder 2) | v̂₂, ĉ₂(encoder 2) | 11/9 더함 |
+| D-4 | Brain → Emotion [frozen feature encoder] | 사람 평정(정서 head만) | token H(고정한 encoder 2) | 11/9 더함 |
+| E-고정 | Brain → Emotion [representation, frozen head] | 사람 평정, Multimodal Model의 중간 표현 | 중간 표현 → 고정 head | 보조 비교(G16) |
+| E-학습 | Brain → Emotion [representation, trained head] | 사람 평정, Multimodal Model의 중간 표현 | 중간 표현 → 학습 head | 보조 비교(G16) |
 
 #### 2부. 학습과 평가 순서
 
@@ -1048,9 +1078,9 @@ C-2에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder�
 
 **중간 표현은 별도 모델이 아니다.** encoder가 입력을 처리해서 만든, head 직전의 출력값이다. encoder의 가중치는 학습으로 정해지고, 중간 표현은 그 가중치로 입력을 처리할 때마다 계산된다. 입력이 달라지면 중간 표현도 달라진다. Brain Model의 중간 표현도 뇌를 처리해서 만든 값이고, 외부에서 추가로 넣는 자료가 아니다.
 
-**Multimodal encoder나 중간 표현을 그대로 쓸 수 없는 이유.** Multimodal Model은 Brain + Vision + Caption → 중간 표현의 계산을 학습한다. encoder를 복사한다고 해서 Vision과 Caption의 역할이 자동으로 Brain으로 옮겨지지 않는다. 그래서 Brain Model이 그 중간 표현을 맞히도록 학습한다. 결합된 중간 표현에는 Vision과 Caption을 각각 바꿔 끼울 자리가 따로 없다. 따라서 F-고정, F-학습의 성능이 좋더라도 C~E 묶음의 Vision 경로와 Caption 경로 분석을 그대로 적용할 수 없다.
+**Multimodal encoder나 중간 표현을 그대로 쓸 수 없는 이유.** Multimodal Model은 Brain + Vision + Caption → 중간 표현의 계산을 학습한다. encoder를 복사한다고 해서 Vision과 Caption의 역할이 자동으로 Brain으로 옮겨지지 않는다. 그래서 Brain Model이 그 중간 표현을 맞히도록 학습한다. 결합된 중간 표현에는 Vision과 Caption을 각각 바꿔 끼울 자리가 따로 없다. 따라서 E-고정, E-학습의 성능이 좋더라도 C, D 묶음의 Vision 경로와 Caption 경로 분석을 그대로 적용할 수 없다.
 
-**모든 조건에서 시험 입력은 Brain뿐이다.** 시험 때 실제 Vision feature와 Caption feature를 넣지 않고, Stimulus Model이나 Multimodal encoder를 실행하지 않는다. F-고정, F-학습은 가져온 head만 쓴다. 실제 feature와 사람 평정을 채점에 쓰는 것과 모델 입력으로 넣는 것은 구분한다.
+**모든 조건에서 시험 입력은 Brain뿐이다.** 시험 때 실제 Vision feature와 Caption feature를 넣지 않고, Stimulus Model이나 Multimodal encoder를 실행하지 않는다. E-고정, E-학습은 가져온 head만 쓴다. 실제 feature와 사람 평정을 채점에 쓰는 것과 모델 입력으로 넣는 것은 구분한다.
 
 ### 5-0. 주 설계와 Stimulus Model [정함, 11/1. 11/2 보완 후 확정]
 
@@ -1131,7 +1161,7 @@ C-2에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder�
 - 조건과 분석의 구분 [정함, 11/2]: 1-3의 질문에 걸리는 것만 본문에 둔다.
     - 본문: Brain → Emotion부터 Brain + Decoded Feature → Emotion까지 네 조건의 비교(Brain → Emotion [distillation] 대 Brain → Emotion, Brain → Emotion + Vision + Caption 대 Brain → Emotion, Brain + Decoded Feature → Emotion 대 Brain → Emotion + Vision + Caption, Brain → Emotion + Vision + Caption 대 Brain → Emotion [distillation], 2-3), decoded features와 실제 Vision feature와 Caption feature의 대응(2-1), 40개 block ridge 층별 분석(2-1), 바꿔 끼우기(시각만, 캡션만, 둘 다)와 같은 크기의 무작위 변경 대조(2-2, 1-1), 더하기 head 대 상호작용 head와 결합 계산의 지표(1-2), 영역 다시 학습(1-3), 영역 교란(2-4), 내용 구역 제외 시험과 MC 시청 전이(1-4, 2-3. 회상은 필수 실행 범위 밖, 6-3)
     - Brain + Decoded Feature → Emotion [distillation] 조건과 그 조건 대 Brain + Decoded Feature → Emotion 비교: 돌리는 것은 핵심 조건이고 해석은 보조다 [정함, 11/7 석진 님]. 이 비교는 6-1 2-3의 (바)로 [사전] 15개와 Holm 보정에 그대로 든다. 보조라고 그 묶음에서 빼지 않는다.
-    - 보조와 SI: 쌍 비교(4-2의 보조 점검), 뇌를 받는 모델의 점검(T_BVS 대 Stimulus Model, 뇌 바꿔 끼우기, T_BVS_SHUF, 프로젝트 규칙상 확인용), emotion query 대 평균 pooling(F7), baseline Stimulus Model(3-1, 3-3), 실제 Vision feature와 Caption feature를 head에 넣는 개입, 출력 distillation-시각과 -캡션(E5, 필수 실행 범위 밖), F-고정, F-학습(G16), 경로 평가의 14개 차원판(K1a)
+    - 보조와 SI: 쌍 비교(4-2의 보조 점검), 뇌를 받는 모델의 점검(T_BVS 대 Stimulus Model, 뇌 바꿔 끼우기, T_BVS_SHUF, 프로젝트 규칙상 확인용), emotion query 대 평균 pooling(F7), baseline Stimulus Model(3-1, 3-3), 실제 Vision feature와 Caption feature를 head에 넣는 개입, 출력 distillation-시각과 -캡션(E5, 필수 실행 범위 밖), E-고정, E-학습(G16), 경로 평가의 14개 차원판(K1a)
     - 하지 않음: CCA 공통 성분 교체(위)
     - 후속: 정서 손실을 막지 않은 Brain + Decoded Feature → Emotion(위)
 - Multimodal Model의 표현 전달 [11/1 후속으로 미룸. 11/3 사용자: 보조 성능 비교 하나로 넣음(G16)]
@@ -1196,7 +1226,7 @@ C-2에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder�
 - 5-2. 왜 distillation인가
     - 역할 [추천, 11/2]: 학습 때만 있는 정보를 쓰는 표준 방법(generalized distillation, Lopez-Paz 외 2016)과의 비교다. Brain → Emotion + Vision + Caption 대 Brain → Emotion [distillation]은 emotion head가 같고 목표만 다르다.
     - Stimulus Model이 Brain Model에게 주는 것 [정함, 11/2]: Brain → Emotion [distillation]과 Brain + Decoded Feature → Emotion [distillation]에서, 학습 영상마다 Stimulus 예측 평정 34개(nested OOF, E4)뿐이다. 학습 목표 = (1 − α) × 사람 평정 + α × Stimulus 예측 평정(G7). ex) 사람 평정 [공포] 0.7, Stimulus 예측 평정 0.5, α = 0.3이면 목표는 0.64. head, 가중치, 특징은 주지 않는다. Brain Model의 feature head, emotion query, emotion head는 모두 Brain Model이 학습한다. 실제 Vision feature와 Caption feature도 학습 때든 시험 때든 emotion head에 들어가지 않는다(학습 목표로만 쓰임). Brain + Decoded Feature → Emotion에는 Stimulus Model이 쓰이지 않는다. Brain + Decoded Feature → Emotion이 학습 때 받는 장면 정보는 Feature Extractor의 특징(학습 목표로 맞힘)이다. 그래서 주 방법을 distillation이라고 부르지 않는다.
-    - frozen head는 어디에 쓰나 [정함, 11/2. 11/3 고침]: A~C 묶음 다섯 조건에는 쓰지 않는다. Stimulus Model의 head는 경로 평가(K1)에서 분석 도구로만 쓴다. Multimodal Model의 head는 보조 비교(F-고정, F-학습, G16)에서 Brain Model 학습에 쓴다(11/3 사용자).
+    - frozen head는 어디에 쓰나 [정함, 11/2. 11/3 고침]: A~C 묶음 다섯 조건에는 쓰지 않는다. Stimulus Model의 head는 경로 평가(K1)에서 분석 도구로만 쓴다. Multimodal Model의 head는 보조 비교(E-고정, E-학습, G16)에서 Brain Model 학습에 쓴다(11/3 사용자).
         - 경로 평가가 묻는 것: Stimulus Model이 실제 Vision feature와 Caption feature에서 배운 "정서를 읽는 규칙"(head)을 얼린 채, 뇌에서 decoding한 특징에 얹으면 정서가 얼마나 맞는가. ex) head가 "캡션 특징이 음식 쪽이면 [갈망]을 올린다"는 규칙을 배웠다면, 뇌에서 decoding한 Caption feature에 그 head를 얹어 [갈망]이 맞는지 본다. 맞으면 "실제 장면 특징으로 학습한 정서 예측 규칙이 뇌에서 decoding한 특징에도 적용되었다"고 쓴다. 실제 Vision feature와 Caption feature 전체를 충실히 decoding했다거나 두 표현이 같은 단서를 담는다는 뜻은 아니다. head가 쓰는 일부 방향만 decoding되어도 맞을 수 있기 때문이다(GPT 11/2 정정).
         - 다시 학습한 head를 함께 두는 이유: decoded features는 평균 쪽으로 줄고 오차가 있어서, 얼린 head로는 정보가 있어도 낮게 나올 수 있다. 바깥 학습 fold 안에서 교차검증으로 만든 fold 밖 decoded features로 head를 다시 학습한 판(K2. 바깥 시험 fold의 decoded features는 쓰지 않음)은 "규칙은 달라도 정서 정보가 남아 있는가"를 본다.
         - 학습 조건에 쓰지 않는 이유: Brain Model은 오차가 있는 decoded features와 ROI token을 함께 읽으므로 읽는 법을 스스로 배워야 한다(GPT 11/2). frozen head를 붙여 학습하면 "뇌 → decoded features → Stimulus Model의 규칙"이라는 다른 설계가 되고, 그 질문은 경로 평가가 이미 답한다.
@@ -1555,7 +1585,7 @@ r, R², MAE를 정서별로 함께 보고, 셋이 같은 방향을 가리킬 때
 - 다중비교
     - 미리 정한 비교(아래 표의 [사전] 15개)는 Holm 보정을 쓴다. Holm은 검정 사이의 독립을 요구하지 않는다(Holm 1979). 5명 평균의 검정과 참가자별 검정에 각각 적용한다.
     - 정서 34개별 분석(1-1, 1-2)은 탐색으로 표시하고 BH-FDR을 쓴다. 보정 묶음은 참가자마다, 비교마다 34개 정서로 둔다.
-    - 보조 비교(대조군의 올바른 대응 대 섞은 대응, G6. F-고정, F-학습 대 Brain + Decoded Feature → Emotion과 Brain → Emotion, G16)는 [사전] 15개의 Holm 묶음에 넣지 않고 따로 보고한다. 방향은 예측하지 않는다. (11/3)
+    - 보조 비교(대조군의 올바른 대응 대 섞은 대응, G6. E-고정, E-학습 대 Brain + Decoded Feature → Emotion과 Brain → Emotion, G16)는 [사전] 15개의 Holm 묶음에 넣지 않고 따로 보고한다. 방향은 예측하지 않는다. (11/3)
 
 | 질문 | 분석과 비교 대상 | 예상 | 나오면 쓰는 문장 | 안 나오면 쓰는 문장 |
 | --- | --- | --- | --- | --- |
@@ -1670,7 +1700,7 @@ r, R², MAE를 정서별로 함께 보고, 셋이 같은 방향을 가리킬 때
 
 ## 7단계. 구현 세부(결정 항목 표) [정함, 11/3. 석진 님 결정 없음]
 
-11/3에 0~6단계의 결정으로 이 표를 다시 채웠다(11/3 사용자: 6단계가 끝나면 Claude가 0~6단계의 결정을 기준으로 이 표를 채우고, 앞 단계의 결정이나 문헌으로 정해지지 않는 행만 모아 석진 님께 묻는다). 앞 단계에서 정한 행은 "정함"이나 "대체(옮긴 곳)"로 바꿨다. "추천" 행은 따로 묻지 않고 그대로 구현하며, 바꾸고 싶은 행만 알려 주시면 된다. 남았던 "석진 님 결정" 일곱 개(A4, C6, E7, G6, G16, N42, N44)와 5단계의 ML-BVAE 칸 수는 11/3에 모두 추천대로 정했고, F-고정(G16)도 넣었다(11/3 사용자, GPT 11/3 검토 반영). 일정은 따로 정하므로 이 표의 범위는 "필수 실행 범위"와 "필수 실행 범위 밖"으로 쓴다. 상태 칸의 뜻: 정함 = 이미 정한 것, 추천 = Claude 추천, 석진 님 결정 = 직접 정해야 하는 것, 대체 = 다른 행이나 단계로 옮김.
+11/3에 0~6단계의 결정으로 이 표를 다시 채웠다(11/3 사용자: 6단계가 끝나면 Claude가 0~6단계의 결정을 기준으로 이 표를 채우고, 앞 단계의 결정이나 문헌으로 정해지지 않는 행만 모아 석진 님께 묻는다). 앞 단계에서 정한 행은 "정함"이나 "대체(옮긴 곳)"로 바꿨다. "추천" 행은 따로 묻지 않고 그대로 구현하며, 바꾸고 싶은 행만 알려 주시면 된다. 남았던 "석진 님 결정" 일곱 개(A4, C6, E7, G6, G16, N42, N44)와 5단계의 ML-BVAE 칸 수는 11/3에 모두 추천대로 정했고, E-고정(G16)도 넣었다(11/3 사용자, GPT 11/3 검토 반영). 일정은 따로 정하므로 이 표의 범위는 "필수 실행 범위"와 "필수 실행 범위 밖"으로 쓴다. 상태 칸의 뜻: 정함 = 이미 정한 것, 추천 = Claude 추천, 석진 님 결정 = 직접 정해야 하는 것, 대체 = 다른 행이나 단계로 옮김.
 
 ### 7-A. 연구 질문과 주장 범위
 질문과 주장 범위는 0절과 1단계에서 정했다. 신규성 문장(A4)은 11/3에 채택했고, 남은 것은 선행 연구 검색으로 주장의 강도를 점검하는 일이다(N39).
@@ -1740,7 +1770,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | D12 | 사전 분석(뇌 없이) | V-JEPA 2의 40개 block 각각이 Caption feature(DeBERTa 네 층)와 저수준 Vision feature를 얼마나 예측하는지 ridge 교차 R²로 낸다. | 3-2(block의 성격을 자료로 확인)와 5-0(겹침 확인의 첫째). 뇌와 정서를 쓰지 않음 | 정함 |
 
 ### 7-E. Stimulus Model(teacher)
-논문의 teacher는 5-0에서 Vision feature와 Caption feature만 받는 Stimulus Model로 정했다. 뇌를 받는 모델은 성능 점검(E7, 보류)과 F-고정, F-학습(G16)에만 쓴다.
+논문의 teacher는 5-0에서 Vision feature와 Caption feature만 받는 Stimulus Model로 정했다. 뇌를 받는 모델은 성능 점검(E7, 보류)과 E-고정, E-학습(G16)에만 쓴다.
 
 | 번호 | 정할 것 | 추천 | 이유와 근거 | 상태 |
 | --- | --- | --- | --- | --- |
@@ -1768,7 +1798,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | F8 | 모델 크기 보고 | 조건마다 학습 가중치 수를 표로 보고 | 조건 사이 차이가 크기 차이 때문이 아님을 보이기 위해 | 추천 |
 
 ### 7-G. 비교 조건과 학습
-조건은 5-0의 A~C 묶음 다섯 조건이고, 손실과 stop-gradient는 5-2, 5-0, 5-6에서 정했다. 대조군 범위(G6)와 F-고정(G16)은 11/3에 정했고, F-학습은 11/7에 더했다.
+조건은 5-0의 A~C 묶음 다섯 조건이고, 손실과 stop-gradient는 5-2, 5-0, 5-6에서 정했다. 대조군 범위(G6)와 E-고정(G16)은 11/3에 정했고, E-학습은 11/7에 더했다.
 
 | 번호 | 정할 것 | 추천 | 이유와 근거 | 상태 |
 | --- | --- | --- | --- | --- |
@@ -1780,14 +1810,14 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | G6 | 대조군 | 필수 실행 범위의 셋: label smoothing(사람 평정을 학습 자료의 정서별 평균 쪽으로 당기는 대조, G11), Stimulus Model 출력 섞기(Brain → Emotion [distillation]에 적용), Vision feature와 Caption feature 짝 섞기(Brain → Emotion + Vision + Caption에 적용). 평균 계산과 섞기는 그 학습 분할 안에서만, 시각과 캡션은 같은 영상의 짝을 유지한 채 함께 섞음(G12). 올바른 대응과 섞은 대응의 차이를 직접 비교한다(보조 비교, 6-1의 [사전] 15개에는 더하지 않음). 필수 실행 범위 밖 SI: Vision feature만 decoding, Caption feature만 decoding, 특징만 학습한 모델. G16에는 대조군을 일괄 복제하지 않음 | 해석(GPT 11/3, Claude 동의): Brain → Emotion [distillation]이 평균 쪽 대조보다 높지 않으면 "이 대조를 넘는 추가 이득을 확인하지 못했다". 섞은 목표로도 Brain → Emotion보다 나아지면 "정확한 영상과 목표의 대응 없이도 일부 이득이 나타났다". 올바른 대응이 섞은 대응보다 높으면 "올바른 대응이 추가로 도움이 되었다". 차이가 없다는 결과를 "정칙화 때문임이 밝혀졌다"로 쓰지 않는다. 근거: distillation 이득의 일부가 학습 목표를 부드럽게 만든 효과일 수 있다(Yuan 외 2020, 분류 설정이라 우리 연속 점수 설정과 다름). label smoothing은 [사전] 비교 (라)에 들어 있고, 두 섞기는 1-3의 2-3 근거 문장이 요구한다. 필수 셋의 학습은 144회(7-L)(L9) | 정함 |
 | G7 | 손실 | 사람 평정: 가중하지 않은 soft BCE. distillation: 목표 = (1 − α) × 사람 평정 + α × Stimulus Model 확률의 soft BCE. 특징: λ × 차원 평균 MSE | 5-2의 학습 목표 꼴. 주 손실과 같은 꼴이라 α를 섞는 비율 하나로 읽음. 평정자 수 가중을 빼는 이유는 2-2와 B8. 특징 손실을 MSE로 두는 이유: 같은 계보의 feature decoding이 제곱 오차를 줄이는 선형 회귀였고(Horikawa & Kamitani 2017, MindCaptioning의 ridge), K1과 N8은 decoded features를 실제 Vision feature와 Caption feature의 좌표계(D9의 표준화 뒤)에서 frozen head에 넣으므로 값 자체가 실제 Vision feature와 Caption feature에 가까워야 한다. Brain-IT(Beliy 외 2026)은 CLIP 특징에 L2를, VGG 특징에 InfoNCE를 썼다. InfoNCE는 영상 사이의 상대적 유사도를 맞추는 손실이라 값의 크기와 위치를 실제 Vision feature와 Caption feature에 맞추도록 요구하지 않는다 | 정함 |
 | G8 | stop-gradient | Brain + Decoded Feature → Emotion과 Brain + Decoded Feature → Emotion [distillation]에서 decoded features가 emotion head의 경로(a(v̂), b(ĉ), 상호작용 항, 5-4)로 들어갈 때 정서 손실의 기울기가 feature head로 흐르지 않게 막음. 흐르게 하는 판(허용판)은 성능 비교에만 쓰는 보조 조건으로 둔다(5-0, 11/8 석진 님) | 5-0의 leakage 처리와 5-6 그림. 기울기를 허용해도 바꿔 끼우기로 경로 의존은 볼 수 있지만, decoded features가 정서 맞히기에 유리한 쪽으로 바뀌면 그 결과를 외부 Vision feature와 Caption feature와 연결해 해석하기 어려워짐(Havasi 2022, Margeloiu 2021. 11/3 GPT 지적으로 "읽을 수 없음"을 고침). 공유 encoder는 정서 손실을 받으므로 "leakage가 없다"고 쓰지 않음. 막지 않은 판은 성능 비교에만 쓰고 바꿔 끼우기에 쓰지 않음(5-0) | 정함 |
-| G9 | 후보값 | α ∈ {0, 0.25, 0.5}. λ: Brain → Emotion + Vision + Caption은 {0, 0.1, 1.0}, Brain + Decoded Feature → Emotion과 Brain + Decoded Feature → Emotion [distillation]은 {0.1, 1.0}, F-고정, F-학습(G16)은 {0.1, 1.0}. λ는 시각과 캡션에 하나로 공유. 상호작용 head의 r ∈ {1, 2, 4, 8}(5-4)은 λ와 함께 고름. Brain + Decoded Feature → Emotion [distillation]은 Brain + Decoded Feature → Emotion에서 고른 λ와 r을 고정하고 α만 고름. 0.1과 1.0은 문헌이 보장한 최적값이 아니라 시험 전에 고정한 탐색 후보다 | λ를 따로 두면 후보가 9개. Brain → Emotion + Vision + Caption은 0을 넣어야 같은 탐색 안에서 효과를 봄(master R31). Brain + Decoded Feature → Emotion에서 0을 빼는 이유: stop-gradient 때문에 λ = 0이면 feature head가 실제 Vision feature와 Caption feature를 맞히도록 학습되지 않아, decoded features를 읽는 조건이 성립하지 않음(공유 encoder가 바뀌어 출력값은 변해도 외부 특징에 대응하도록 학습한 것은 아님). F-고정, F-학습에서 0을 빼는 이유는 다르다: λ = 0이어도 고정된 head를 거친 정서 손실로 Brain Model은 학습되지만, 이 비교를 "teacher의 중간 표현을 따라 배우는 방식"으로 정의했기 때문(GPT 11/3 정정). λ 숫자의 뜻은 특징의 표준화(D9)와 손실 평균 방식(N4)을 고정해야 일정하고, feature decoding과 F-고정, F-학습에서 같은 숫자가 같은 지도 강도를 뜻하지는 않는다. 근거 약함: 값은 관례 | 정함 |
+| G9 | 후보값 | α ∈ {0, 0.25, 0.5}. λ: Brain → Emotion + Vision + Caption은 {0, 0.1, 1.0}, Brain + Decoded Feature → Emotion과 Brain + Decoded Feature → Emotion [distillation]은 {0.1, 1.0}, E-고정, E-학습(G16)은 {0.1, 1.0}. λ는 시각과 캡션에 하나로 공유. 상호작용 head의 r ∈ {1, 2, 4, 8}(5-4)은 λ와 함께 고름. Brain + Decoded Feature → Emotion [distillation]은 Brain + Decoded Feature → Emotion에서 고른 λ와 r을 고정하고 α만 고름. 0.1과 1.0은 문헌이 보장한 최적값이 아니라 시험 전에 고정한 탐색 후보다 | λ를 따로 두면 후보가 9개. Brain → Emotion + Vision + Caption은 0을 넣어야 같은 탐색 안에서 효과를 봄(master R31). Brain + Decoded Feature → Emotion에서 0을 빼는 이유: stop-gradient 때문에 λ = 0이면 feature head가 실제 Vision feature와 Caption feature를 맞히도록 학습되지 않아, decoded features를 읽는 조건이 성립하지 않음(공유 encoder가 바뀌어 출력값은 변해도 외부 특징에 대응하도록 학습한 것은 아님). E-고정, E-학습에서 0을 빼는 이유는 다르다: λ = 0이어도 고정된 head를 거친 정서 손실로 Brain Model은 학습되지만, 이 비교를 "teacher의 중간 표현을 따라 배우는 방식"으로 정의했기 때문(GPT 11/3 정정). λ 숫자의 뜻은 특징의 표준화(D9)와 손실 평균 방식(N4)을 고정해야 일정하고, feature decoding과 E-고정, E-학습에서 같은 숫자가 같은 지도 강도를 뜻하지는 않는다. 근거 약함: 값은 관례 | 정함 |
 | G10 | 0이 뽑힌 fold | Brain → Emotion + Vision + Caption에서 λ = 0, 또는 α가 0으로 뽑힌 fold는 "그 fold에서 이득이 확인되지 않음"으로 보고하고, fold별 선택값을 표로 냄. Brain → Emotion + Vision + Caption에서 λ = 0이 뽑힌 실행을 "특징 학습의 이득"으로 해석하지 않음 | 그 fold에서는 조건이 Brain → Emotion과 같아지므로 fold 평균만으로 차이를 쓰지 않음(GPT 10/30안 170행). Brain + Decoded Feature → Emotion과 G16에는 0 후보가 없음(G9) | 추천 |
 | G11 | label smoothing 정의(평균 쪽으로 당기는 대조) | 목표 = (1 − α) × 사람 평정 + α × 학습 자료의 정서별 평균 비율. α 후보는 {0.25, 0.5}다. 0은 Brain → Emotion과 같아 후보에 넣지 않는다 | 영상 내용 없이 부드럽게만 만든 목표. 파일럿 ridge에서 label smoothing만으로 +0.007 | 추천 |
 | G12 | Stimulus Model 출력 섞기 정의 | 학습 영상 사이에서 Stimulus Model 출력을 무작위로 바꿔 줌(분포는 같고 영상 대응만 없음). Vision feature와 Caption feature 짝 섞기는 시각과 캡션에 같은 순열 | 10/22 계획 331행, GPT 10/30안 182행 | 추천 |
 | G13 | 최적화 기본값 | AdamW, batch 64, 최대 300 epoch, 안쪽 검증의 정서 soft BCE 기준 patience 30. learning rate는 모든 뇌 모델 조건에서 {1e-5, 1e-4, 1e-3}을 후보로 넣어 H2의 검증 fold에서 고른다(11/8 석진 님. 11/7의 {1e-4, 1e-3, 1e-2}에서 1e-2를 빼고 1e-5를 넣었다. Stimulus Model과 K1a의 Stimulus Model도 같은 후보로 바꿔 다시 돌린다, O16). 설정 후보를 고르는 학습(seed 0)에서 손실이 NaN이나 Inf가 되면 그 후보를 발산으로 기록하고 빼며, 모든 후보가 발산하면 그 fold를 멈춘다. 고른 설정의 seed 1, 2가 발산하면 seed를 빼지 않고 멈춘다. 학습 행에서 값이 변하지 않는 voxel은 멈추지 않고 표시해 모든 행에서 0으로 두고 그 수를 standardization.npz에 남긴다. 초기값은 PyTorch 기본값, 두 섞기 대조(G12)는 같은 순열, 고른 모델의 attention은 모두 저장하고, 결과 폴더는 코드 이름을 쓴다(README에 논문 이름 대응표) [정함, 11/8 석진 님]. weight decay는 입력층 weight는 d와 함께 후보에서 고르고(5-5), 나머지 linear와 attention의 weight, query, ROI embedding은 0.01이며, bias와 LayerNorm에는 적용하지 않는다 [정함, 11/7 석진 님] | weight decay의 범위는 BERT 공식 구현의 제외 목록(LayerNorm, bias)과 Goodfellow 외(2016, 7.1절)를 따른다. 기본 수준과 표현의 크기를 조절하는 값에 불필요한 제약을 주지 않으려는 선택이고, 우리 자료에서 성능이 나아진다는 근거는 아니다. 0.01은 PyTorch AdamW의 기본값이고 우리 자료의 최적값이라는 근거는 없다. Goodfellow 외(2016, 11.4절)가 learning rate를 가장 중요한 hyperparameter로 꼽는다. 조건마다 고르므로 조건 사이 비교에 한쪽 조건의 값을 강요하지 않는다. S7의 실행 시간 측정으로 실행 예산을 넘으면, Brain → Emotion에서 고른 값을 다른 조건이 따르는 판으로 줄이고 본 실행 전에 확정한다. 이 판단에 성능을 쓰지 않는다. 나머지 값은 처음 정하는 값으로 근거가 약하다. 첫 fold의 안쪽 자료는 수렴 확인에만 쓰고 값을 고르지 않는다. 그 자료는 다른 fold의 시험 영상이기 때문이다 | 정함 |
 | G14 | seed | 3개(0, 1, 2). 점수는 seed마다 내고 평균, 표준편차도 보고 | seed 예측을 평균해 점수를 내면(앙상블) 조건별 성능이 부풀려짐. seed의 표준편차는 학습 반복의 변동이고 bootstrap 구간과 따로 보고(6-1). 설정 선택의 seed는 L9 | 정함 |
 | G15 | 배치 구성 | 한 행 = 참가자 한 명의 영상 하나. 5명의 행을 섞어 배치 | 2-0에서 (가)를 고를 때만 해당 | 대체(2-0) |
-| G16 | Multimodal Model의 중간 표현을 배우는 Brain Model 비교(F-고정, F-학습. 사용자 11/3 제기, GPT 11/3 포함 권고) | F-학습(head를 복사해 함께 학습)을 11/7 석진 님이 더했다. F-고정과 Multimodal Model, 구조, 자료 분할, 학습 목표, 설정 선택 규칙이 같고 head 고정 여부만 다르다. 아래는 F-고정의 설명이고 F-학습은 head를 고정하지 않는다. 넣는다(11/3 사용자). 보조 성능 비교 하나로, 기본 run 분할에서만. Brain + Decoded Feature → Emotion은 유지. 비교는 Brain → Emotion, Brain + Decoded Feature → Emotion, F-고정, F-학습이고 시험 입력은 모두 뇌뿐. Multimodal Model은 뇌 + Vision feature + Caption feature를 받아 중간 표현과 emotion head를 사람 평정(soft BCE)으로 학습한 뒤 고정한다. Brain Model은 뇌만 받고, 손실 = 사람 평정의 soft BCE + λ × Multimodal Model의 head 직전 중간 표현과의 MSE(표현은 학습 자료로 차원마다 표준화). Multimodal Model과 재사용하는 head의 가중치는 고정하고 Brain Model만 학습한다(같은 d라 연결층 없음, 7-O의 O5). 정서 손실은 고정된 head를 거쳐 Brain Model까지 전달된다(Brain + Decoded Feature → Emotion의 stop-gradient와 다름). Multimodal Model의 정서 출력을 따라 하는 손실은 넣지 않는다. λ 후보는 {0.1, 1.0}(G9). 자료: Multimodal Model과 Brain Model 모두 같은 학습 fold 4개로 가중치를 학습하고, 검증 fold는 설정 선택과 조기 종료에만, 시험 fold는 평가에만 쓴다. Multimodal Model을 5개 fold 전체로 학습하지 않는다(고정된 head가 검증 영상의 사람 평정을 이미 보게 됨). 각 학습 실행에서 Multimodal Model 하나를 고정해 그 표현만 목표로 쓰고, 서로 다른 Multimodal Model의 표현을 섞지 않는다. 뇌 표현 복사 대조는 넣지 않고 결과는 학습 방식 전체의 차이로만 쓴다. Multimodal Model의 시험 성능은 참고로만 보고하고, 그것으로 뇌 입력의 추가 효과나 실제 사용을 검증했다고 쓰지 않는다. 내용 구역 제외, MC, 네트워크 분석, 대조군으로 넓히지 않는다. 실행은 핵심 분석 다음 순서로 두되, 실행 시간을 측정한 뒤(N34) 우선순위를 정하고, 실행하지 못하면 미실행으로 기록한다. 자동으로 빼는 규칙은 두지 않는다 | 묻는 것: 장면 정보를 쓰는 두 방식(외부 특징을 각각 decoding해 읽게 하기 대 세 입력으로 배운 표현과 head를 옮기기) 가운데 어느 쪽이 뇌 단독 예측에 유리한가. 질문 2와 5-1의 "우회하는 경로가 효과적인가"에 자료로 답한다. Brain + Decoded Feature → Emotion을 둔 이유가 성능이 아니므로(5-1) 결과가 어떻든 Brain + Decoded Feature → Emotion을 바꾸지 않는다. 선례: SimKD(Chen 외 2022, CVPR)는 student가 teacher의 classifier 직전 표현을 ℓ2로 맞히는 손실 하나만 쓰고 classifier를 고정해 재사용한다(§3.2, 11/3 확인). 우리 안은 사람 평정을 직접 지도하도록 손실을 더한 변경이다(GPT 11/3). 11/1에 미룬 이유(0절, 1-3의 관점 B, 5-0): 세 입력을 섞은 표현에서는 어느 입력의 정보를 썼는지 나눌 수 없어 질문 1의 출처별 분석에 쓸 수 없고, 같은 정보가 겹치면 어느 입력에서 가져갈지가 학습에 달려 있으며(Wang 외 2020, Peng 외 2022), Multimodal Model이 뇌를 거의 쓰지 않을 수 있다. 이번 안은 질문 1의 해석에 쓰지 않는 성능 비교라 이 이유와 부딪히지 않는다. 그래서 0절, 5-0, 5-2를 11/3에 고쳤고, 프로젝트 지침(뇌까지 받는 teacher는 확인용으로만)은 석진 님이 고친다(N37). 학습: Multimodal Model과 Brain Model 과 F-고정, F-학습을 합쳐 162회(7-L) | 정함 |
+| G16 | Multimodal Model의 중간 표현을 배우는 Brain Model 비교(E-고정, E-학습. 사용자 11/3 제기, GPT 11/3 포함 권고) | E-학습(head를 복사해 함께 학습)을 11/7 석진 님이 더했다. E-고정과 Multimodal Model, 구조, 자료 분할, 학습 목표, 설정 선택 규칙이 같고 head 고정 여부만 다르다. 아래는 E-고정의 설명이고 E-학습은 head를 고정하지 않는다. 넣는다(11/3 사용자). 보조 성능 비교 하나로, 기본 run 분할에서만. Brain + Decoded Feature → Emotion은 유지. 비교는 Brain → Emotion, Brain + Decoded Feature → Emotion, E-고정, E-학습이고 시험 입력은 모두 뇌뿐. Multimodal Model은 뇌 + Vision feature + Caption feature를 받아 중간 표현과 emotion head를 사람 평정(soft BCE)으로 학습한 뒤 고정한다. Brain Model은 뇌만 받고, 손실 = 사람 평정의 soft BCE + λ × Multimodal Model의 head 직전 중간 표현과의 MSE(표현은 학습 자료로 차원마다 표준화). Multimodal Model과 재사용하는 head의 가중치는 고정하고 Brain Model만 학습한다(같은 d라 연결층 없음, 7-O의 O5). 정서 손실은 고정된 head를 거쳐 Brain Model까지 전달된다(Brain + Decoded Feature → Emotion의 stop-gradient와 다름). Multimodal Model의 정서 출력을 따라 하는 손실은 넣지 않는다. λ 후보는 {0.1, 1.0}(G9). 자료: Multimodal Model과 Brain Model 모두 같은 학습 fold 4개로 가중치를 학습하고, 검증 fold는 설정 선택과 조기 종료에만, 시험 fold는 평가에만 쓴다. Multimodal Model을 5개 fold 전체로 학습하지 않는다(고정된 head가 검증 영상의 사람 평정을 이미 보게 됨). 각 학습 실행에서 Multimodal Model 하나를 고정해 그 표현만 목표로 쓰고, 서로 다른 Multimodal Model의 표현을 섞지 않는다. 뇌 표현 복사 대조는 넣지 않고 결과는 학습 방식 전체의 차이로만 쓴다. Multimodal Model의 시험 성능은 참고로만 보고하고, 그것으로 뇌 입력의 추가 효과나 실제 사용을 검증했다고 쓰지 않는다. 내용 구역 제외, MC, 네트워크 분석, 대조군으로 넓히지 않는다. 실행은 핵심 분석 다음 순서로 두되, 실행 시간을 측정한 뒤(N34) 우선순위를 정하고, 실행하지 못하면 미실행으로 기록한다. 자동으로 빼는 규칙은 두지 않는다 | 묻는 것: 장면 정보를 쓰는 두 방식(외부 특징을 각각 decoding해 읽게 하기 대 세 입력으로 배운 표현과 head를 옮기기) 가운데 어느 쪽이 뇌 단독 예측에 유리한가. 질문 2와 5-1의 "우회하는 경로가 효과적인가"에 자료로 답한다. Brain + Decoded Feature → Emotion을 둔 이유가 성능이 아니므로(5-1) 결과가 어떻든 Brain + Decoded Feature → Emotion을 바꾸지 않는다. 선례: SimKD(Chen 외 2022, CVPR)는 student가 teacher의 classifier 직전 표현을 ℓ2로 맞히는 손실 하나만 쓰고 classifier를 고정해 재사용한다(§3.2, 11/3 확인). 우리 안은 사람 평정을 직접 지도하도록 손실을 더한 변경이다(GPT 11/3). 11/1에 미룬 이유(0절, 1-3의 관점 B, 5-0): 세 입력을 섞은 표현에서는 어느 입력의 정보를 썼는지 나눌 수 없어 질문 1의 출처별 분석에 쓸 수 없고, 같은 정보가 겹치면 어느 입력에서 가져갈지가 학습에 달려 있으며(Wang 외 2020, Peng 외 2022), Multimodal Model이 뇌를 거의 쓰지 않을 수 있다. 이번 안은 질문 1의 해석에 쓰지 않는 성능 비교라 이 이유와 부딪히지 않는다. 그래서 0절, 5-0, 5-2를 11/3에 고쳤고, 프로젝트 지침(뇌까지 받는 teacher는 확인용으로만)은 석진 님이 고친다(N37). 학습: Multimodal Model과 Brain Model 과 E-고정, E-학습을 합쳐 162회(7-L) | 정함 |
 
 ### 7-H. 분할과 설정 선택
 분할은 2-0에서, 뇌 모델의 설정 선택은 H2(11/3)에서 정했다. 남은 것은 Stimulus Model과 ridge의 선택 규칙(H3)이다.
@@ -1835,7 +1865,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 
 | 번호 | 정할 것 | 추천 | 이유와 근거 | 상태 |
 | --- | --- | --- | --- | --- |
-| K1 | 경로 평가 | 보조 분석. ridge와 Brain + Decoded Feature → Emotion이 낸 decoded features 두 개만 Stimulus Model(visual-caption emotion predictor)의 고정한 head에 넣어 정서를 예측한다. ROI token 경로는 넣지 않는다. head는 시각과 캡션을 함께 받는 것 하나만 쓰고, 더하기판과 상호작용판 둘 다. 뇌 모델은 더 학습하지 않는다. 보고는 Brain → Emotion과 경로 평가 각각의 절대 성능(정서별 Pearson r)과, 같은 시험 영상에서 계산한 두 성능의 차이와 구간. 비율은 쓰지 않고, 결과를 "정서 정보의 몇 %를 설명했다"로 읽지 않는다. 기존 예측으로 계산하므로 추가 학습은 없다. 다시 학습한 head와 "특징만 학습한 모델"판은 필수 실행 범위 밖 SI(G6) | 묻는 것: 실제 시각, Caption feature로 배운 정서 예측 규칙을 뇌에서 decoding한 두 특징에도 적용할 수 있는가. 이 질문에는 두 특징을 받는 head 하나로 충분하고, 시각만, 캡션만의 head는 이번 보조 질문에 필요하지 않아 넣지 않는다(GPT 11/3). 비율을 쓰지 않는 이유: Brain → Emotion의 성능이 0에 가깝거나 음수이면 비율이 크게 튀거나 정의되지 않는다. 성공해도 "고정된 규칙을 decoded features에 적용할 수 있었다"까지이고, Brain + Decoded Feature → Emotion이 그 특징을 실제로 썼는지는 바꿔 끼우기가 답한다. F-고정(G16)과 다르다: 이 head는 뇌를 보지 않은 Stimulus Model의 것이고 뇌 모델을 새로 학습하지 않는다. 5-2: frozen head는 이 분석에서 분석 도구로 쓴다. 6-1의 사전 비교가 아니다 | 정함 |
+| K1 | 경로 평가 | 보조 분석. ridge와 Brain + Decoded Feature → Emotion이 낸 decoded features 두 개만 Stimulus Model(visual-caption emotion predictor)의 고정한 head에 넣어 정서를 예측한다. ROI token 경로는 넣지 않는다. head는 시각과 캡션을 함께 받는 것 하나만 쓰고, 더하기판과 상호작용판 둘 다. 뇌 모델은 더 학습하지 않는다. 보고는 Brain → Emotion과 경로 평가 각각의 절대 성능(정서별 Pearson r)과, 같은 시험 영상에서 계산한 두 성능의 차이와 구간. 비율은 쓰지 않고, 결과를 "정서 정보의 몇 %를 설명했다"로 읽지 않는다. 기존 예측으로 계산하므로 추가 학습은 없다. 다시 학습한 head와 "특징만 학습한 모델"판은 필수 실행 범위 밖 SI(G6) | 묻는 것: 실제 시각, Caption feature로 배운 정서 예측 규칙을 뇌에서 decoding한 두 특징에도 적용할 수 있는가. 이 질문에는 두 특징을 받는 head 하나로 충분하고, 시각만, 캡션만의 head는 이번 보조 질문에 필요하지 않아 넣지 않는다(GPT 11/3). 비율을 쓰지 않는 이유: Brain → Emotion의 성능이 0에 가깝거나 음수이면 비율이 크게 튀거나 정의되지 않는다. 성공해도 "고정된 규칙을 decoded features에 적용할 수 있었다"까지이고, Brain + Decoded Feature → Emotion이 그 특징을 실제로 썼는지는 바꿔 끼우기가 답한다. E-고정(G16)과 다르다: 이 head는 뇌를 보지 않은 Stimulus Model의 것이고 뇌 모델을 새로 학습하지 않는다. 5-2: frozen head는 이 분석에서 분석 도구로 쓴다. 6-1의 사전 비교가 아니다 | 정함 |
 | K1a | 경로 평가의 14개 차원판 | 보조 분석. Stimulus Model의 입력은 실제 Vision feature(V-JEPA 2, 5,632차원)와 Caption feature(DeBERTa-large, 4,096차원)이고 표준화는 D9를 따른다. head 꼴은 K1의 Stimulus Model과 같고, 더하기판(a(v) + b(c))과 상호작용판(a(v) + b(c) + U[(Av) ⊙ (Bc)])을 둘 다 학습한다. 랭크 후보는 E2이고 판은 O17처럼 나눈다(더하기판 r = 0, 상호작용판 r ∈ {1, 2, 4, 8}). 출력은 14개 차원의 연속값이고 sigmoid를 쓰지 않으며 손실은 MSE다. 사람 평정은 D_k의 평균과 표준편차로 차원마다 표준화한다(N3). 학습 설정과 선택 경로는 범주를 맞히는 K1의 Stimulus Model과 같다(H3, O16, O17, E3. 04 정할 것 10). AdamW, learning rate와 weight decay 후보(E3), batch 64, 최대 300 epoch로, D_k의 run fold 5개를 안쪽 5겹으로 쓴다. 후보마다 안쪽 검증 MSE의 5겹 평균 곡선이 가장 낮은 epoch를 정하고, 그 epoch에서 14개 차원 Pearson r 평균의 5겹 평균으로 후보를 고른 뒤, 고른 후보와 epoch 수로 D_k 전체에서 다시 학습한다. 손실과 출력만 다른 이유는 사람 평정이 비율이 아니라 1~9점 평균이기 때문이다. 평가에는 K1과 같은 decoded features(ridge와 Brain + Decoded Feature → Emotion, 같은 모델, 같은 fold, 같은 seed)를 넣는다. ROI token 경로는 넣지 않고 뇌 모델은 더 학습하지 않는다. N8 보정은 K1과 같게 보정 전 판과 보정판을 함께 내고, 입력 쪽 통계이므로 K1의 통계를 그대로 쓴다(O34, O35). 보고는 차원마다 시험 영상에 걸친 Pearson r로 세 성능을 나란히 둔다. (1) B4 ridge의 뇌 직접 decoding(주 비교판). (2) 실제 Vision feature와 Caption feature를 넣은 Stimulus Model. 참고값이고 상한이 아니다. (3) decoded features를 넣은 Stimulus Model. ridge판과 Brain + Decoded Feature → Emotion판, 더하기판과 상호작용판, 보정 전과 보정판이다. Stimulus Model의 예측은 fold마다 사람 평정 표준화를 되돌린 뒤 6 fold를 모은다(O20과 같은 이유). K1과 같이 (3)의 판마다 (1)과의 차이와 구간을 같은 시험 영상에서 낸다(O4). 비율("몇 %를 설명했다")은 쓰지 않는다. 차원별 검정은 정서별 결과와 같은 규칙(6-1)으로 탐색으로 표시하고 BH-FDR을 쓰며, 보정 묶음은 참가자마다, 비교마다 14개 차원이다. Holm을 적용하는 [사전] 15개에는 넣지 않는다. 차원별 평정 신뢰도는 [미확인]이다. 개별 평정을 구할 수 없어 계산할 수 없고(2-6), Cowen & Keltner(2017) 본문에서 값을 찾지 못했으며 보충자료는 확인하지 못했다. 신뢰도 값을 분석에 넣거나 빼는 조건으로 쓰지 않는다 | 쓸 수 있는 문장은 "뇌에서 decoding한 장면 특징으로 일부 정서 차원도 예측할 수 있었다"이다. "뇌 모델이 정서 차원 예측에 장면 정보 경로를 썼다"는 쓰지 않는다. 경로 사용은 34개 범주의 교체 분석만 답한다. "범주 결과가 valence나 arousal로 설명된다"와 "설명되지 않는다"도 쓰지 않는다. 보조 분석으로 시작했다. 결과를 보고 지위를 바꾸면 0절의 결과를 본 뒤의 변경 규칙대로 처음에 보조 분석이었다고 밝힌다(11/8). 아직 실행하지 않은 분석은 초록과 본문에서 계획으로만 쓴다. Brain + Decoded Feature → Emotion의 decoded features는 정서 손실의 기울기를 직접 받지 않지만(stop-gradient), 공유 encoder는 34개 정서 학습의 영향을 받으므로 34개 학습과 완전히 무관하다고 쓰지 않는다. ridge판은 정서를 보지 않았다. 다만 두 판은 모델 구조와 학습 자료의 양도 달라서, 두 판의 성능 차이를 34개 학습의 영향으로 읽지 않는다. 뇌 모델을 새로 학습하지 않는 이유는 B4에 있다 | 정함, 11/5 석진 님 |
 | K2 | 다시 학습한 head의 학습 자료 | 학습 fold 안에서 만든 fold 밖 decoded features로 학습 | 학습 영상의 decoded features는 과적합되어 시험 때와 분포가 다름 | 추천 |
 | K3 | 바꿔 끼우기 | 4-2와 5-0으로 옮김. 짝은 같은 시험 fold의 이름표 73개 최근접 영상, 네 조건(원래, 시각만, 캡션만, 둘 다), 결합 지표 I, 같은 크기 무작위 변경 대조. 캡션 TF-IDF 0.4 쌍은 쓰지 않음 |  | 대체(4-2) |
@@ -1876,9 +1906,10 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | 정서어 제거판(3-4, SI) | 156 | Brain + Decoded Feature → Emotion fold마다 26 × 6 |
 | 특징만 학습한 모델(K1, 필수 실행 범위 밖) | 24 | fold마다 후보 2 + seed 2 |
 | 손실 흐름 허용판(G8, 5-0, 보조 성능 비교) | 156 | Brain + Decoded Feature → Emotion과 같은 후보. fold마다 26(λ 2 × r 4 × learning rate 3 + seed 2) × 6 fold. 11/8 석진 님 |
-| E-1(장면 경로만) | 102 | fold마다 17(r 5 × learning rate 3 + seed 2) × 6 fold. encoder 2는 D-1, D-2와 같이 쓰고 정서 head만 학습해 1회가 짧다. 11/9 석진 님 |
+| D-3(장면 경로만) | 102 | fold마다 17(r 5 × learning rate 3 + seed 2) × 6 fold. encoder 2는 D-1, D-2, D-4와 같이 쓰고 정서 계산만 학습해 1회가 짧다. 11/9 석진 님 |
+| D-4(고정한 encoder 2 위의 정서 head) | 30 | fold마다 5(learning rate 3 + seed 2) × 6 fold. encoder 2는 D-1~D-3과 같이 쓰고 정서 head만 학습한다. 11/9 석진 님 |
 | D-1, D-2(encoder 분리판) | 234 | fold마다 encoder 2 5(learning rate 3 + seed 2), D-1의 26(λ 2 × r 4 × learning rate 3 + seed 2), D-2의 8(α 2 × learning rate 3 + seed 2) × 6 fold. encoder 2는 두 조건이 같이 쓴다. 11/9 석진 님 |
-| Multimodal Model의 중간 표현 비교(G16, F-고정, F-학습) | 162 | fold마다 Multimodal Model 11(후보 3 × learning rate 3 + seed 2), F-고정과 F-학습 각각 8(λ 2 × learning rate 3 + seed 2) × 6 fold. 뇌 표현 복사 대조는 넣지 않음 |
+| Multimodal Model의 중간 표현 비교(G16, E-고정, E-학습) | 162 | fold마다 Multimodal Model 11(후보 3 × learning rate 3 + seed 2), E-고정과 E-학습 각각 8(λ 2 × learning rate 3 + seed 2) × 6 fold. 뇌 표현 복사 대조는 넣지 않음 |
 
 - 가장 큰 묶음은 처음 보는 장면(6-2)이다. 구역마다 설정을 다시 고르기 때문이다(4-3의 규칙: 빠진 구역은 설정 선택에도 쓰지 않음). 시간이 모자라면 L3의 순서로 줄이고, 이 규칙은 바꾸지 않는다.
 - 복셀 압축 비교는 0회다(5-5, 11/3에 뺌). 저장된 모델로 하는 분석(바꿔 끼우기, 쌍 비교, 교란, 경로 평가)은 학습을 더하지 않는다.
@@ -1886,7 +1917,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 
 | 번호 | 정할 것 | 추천 | 이유와 근거 | 상태 |
 | --- | --- | --- | --- | --- |
-| L1 | 필수 실행 범위 | 6-1 표의 [사전] 분석과 5-0의 본문 분석에 필요한 것: A~C 묶음 다섯 조건 사다리와 더하기 head, 필수 대조군(G6), 기준선(I7), Vision feature와 Caption feature ridge decoding(층별), 바꿔 끼우기, 처음 보는 장면(6-2), 네트워크 분석(6-4a, 6-4b), 뇌 없는 사전 분석(D12). MC 시청 전이(6-3)의 시점은 일정 결정에서. F-고정, F-학습(G16)은 보조로 핵심 분석 다음 순서. 보조 가운데 B4 ridge와 K1의 14개판(K1a)은 필수 범위에 넣는다(11/5 석진 님) | 그 밖의 보조와 SI(5-0)는 L3의 순서에 따라 남는 시간에 한다. B4 ridge와 K1a는 뇌 모델을 더 학습하지 않는다 | 추천. 14개 차원 항목은 정함, 11/5 석진 님 |
+| L1 | 필수 실행 범위 | 6-1 표의 [사전] 분석과 5-0의 본문 분석에 필요한 것: A~C 묶음 다섯 조건 사다리와 더하기 head, 필수 대조군(G6), 기준선(I7), Vision feature와 Caption feature ridge decoding(층별), 바꿔 끼우기, 처음 보는 장면(6-2), 네트워크 분석(6-4a, 6-4b), 뇌 없는 사전 분석(D12). MC 시청 전이(6-3)의 시점은 일정 결정에서. E-고정, E-학습(G16)은 보조로 핵심 분석 다음 순서. 보조 가운데 B4 ridge와 K1의 14개판(K1a)은 필수 범위에 넣는다(11/5 석진 님) | 그 밖의 보조와 SI(5-0)는 L3의 순서에 따라 남는 시간에 한다. B4 ridge와 K1a는 뇌 모델을 더 학습하지 않는다 | 추천. 14개 차원 항목은 정함, 11/5 석진 님 |
 | L2 | 필수 실행 범위 밖 | 뇌를 받는 모델의 성능 점검(E7), encoding(N42), MC 회상(6-3), 14개 차원으로 뇌 모델을 학습하는 분석과 14개 교체 분석(B4), 패턴 발견(N44), 기여도 방법(K8), GLMsingle과 LSS(C1), 출력 distillation-시각과 -캡션(E5), 빼고 다시 학습(6-4), 중간 표현 distillation 가운데 G16 밖의 판(ex) 뇌 표현 복사 대조, 5-0), FiLM, I²MoE, ModDrop | 각 행. B4 ridge와 K1의 14개판(K1a)은 필수 범위의 보조 분석이다(L1) | 추천. 14개 차원 항목은 정함, 11/5 석진 님 |
 | L3 | 시간이 모자랄 때 줄이는 순서 | 다음 순서로 줄인다. (1) baseline 특징(VideoMAE, TimeSformer, CLIP, MPNet)과 정서어 제거판을 필수 실행 범위 밖으로, (2) 6-4a의 Brain + Decoded Feature → Emotion을 seed 1로, (3) 보조 분석 전체의 seed 3 → 2, (4) 본문 조건의 seed 3 → 2. 6-1의 [사전] 비교 15개에 필요한 조건은 끝까지 유지 | 조건은 유지하고 seed부터 줄인다는 10-2 규칙. 1-3의 일차 확인은 Brain → Emotion 모델이라(6-4a) Brain + Decoded Feature → Emotion부터 줄인다. 시간 기준의 순서다. 결과를 보고 순서를 바꾸면 0절 규칙대로 기록한다(11/8) | 추천 |
 | L4 | 예측 1 | 6-1로 옮김(11/3) |  | 대체(6-1) |
@@ -1998,7 +2029,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | O2 | 바꿔 끼우기 효과의 계산 | 예측 변화 Δp = 교체 후 확률 − 원래 확률, 사람 평정 차이 Δy = y_B − y_A. 참가자, 정서, 교체 조건마다 6 fold의 모든 쌍에 걸친 Pearson r(Δp, Δy)을 대응으로 쓴다. Δy가 0인 쌍도 넣고(4-1), Δy가 모든 쌍에서 0인 정서는 빼며, Δp가 상수인 정서는 계산 불가로 따로 센다(2-6). 효과는 실제 교체의 r에서 O3 무작위 대조의 평균 r을 뺀 값. 2-2는 34개 정서 평균, 1-1은 정서마다 시각 효과와 캡션 효과의 차이. 결합 지표 I는 logit으로 계산하고(5-0), 정서별 요약은 쌍에 걸친 평균 |I|이며 무작위 대조에도 같은 계산을 한다 | 확률은 최종 정서 예측이 얼마나 움직였는지 보고, 사람 평정(비율)과 같은 척도다. I는 더하기 구조를 검사하므로 logit을 유지한다(sigmoid 자체가 확률 척도의 상호작용을 만듦, Ai & Norton 2003) | "예측 변화가 짝 영상과의 정서 점수 차이에 대응했다"로 쓴다. 양의 상관만으로 모든 쌍에서 예측이 사람 평정에 가까워졌다고 쓰지 않는다 | 1 | 정함 |
 | O3 | 교란 대조를 만드는 방법 | 바꿔 끼우기: 같은 참가자, 같은 시험 fold에서 A와 B가 아닌 영상 C를 무작위로 골라 (C의 decoded features − A의 decoded features)를 방향으로 쓰고, 길이를 실제 A→B 변경의 길이(D9 좌표의 유클리드 길이)와 같게 맞춘다. 두 경로를 함께 바꿀 때는 같은 C를 쓰고 경로마다 길이를 맞춘다. 채점은 원래 짝 B와의 사람 평정 차이(Δy = y_B − y_A)로 한다. 반복은 100회로 고정하고, 매회 전체 쌍의 통계량을 낸 뒤 그 통계량들을 평균한다(예측값을 먼저 평균하지 않음). 이 100회는 대조 평균을 내는 반복이고, 여기서 직접 p 값을 내지 않는다. 실제 교체와 대조 평균의 차이는 O4의 재표집(10,000회)으로 평가한다. 네트워크 교란(6-4b): 같은 시험 fold에서 무작위로 고른 영상의 입력으로 그 묶음을 바꾸고, 두 모델과 모든 묶음에 같은 영상 배정표를 쓰며, 20회 반복해 매회 성능 하락을 낸 뒤 평균한다 | 실제 decoded features에서 방향을 가져와 학습 분포에서 지나치게 벗어난 교체를 줄인다(Zhang & Nanda 2024). 100회는 계산 부담과 대조 평균의 안정성을 고려한 시험 전 설계 선택이며 문헌이 보장한 숫자가 아니다 | 길이를 맞춘 값이 실제 장면의 표현이라는 보장은 없다. 교란 방식에 따라 결과가 달라질 수 있다는 한계를 유지한다 | 1 | 정함 |
 | O4 | 통계 검정의 남은 절차 | (1) 순열: HK에서는 같은 시험 fold 안에서도 같은 원래 run 안에서만 영상 대응을 섞는다(exchangeability block, Winkler 외 2014). 내용 구역 제외 시험에서는 구역 경계도 넘지 않는다. 34개 정서 벡터와 5명에 같은 순열을 쓰고, 같은 내용 쌍은 한 단위로 다룬다. MC의 72개 반복 평균 자료는 72개 안에서 섞는다. (2) 바꿔 끼우기의 재표집: 최근접 짝으로 이어진 영상 묶음(ex) A→B와 C→B가 있으면 A, B, C) 전체를 단위로 다시 뽑고, 그 안의 쌍과 대조 결과를 함께 가져온다. 묶음 크기 분포를 기록한다. 다른 분석은 기존 영상 단위 재표집. (3) 구간과 p: basic bootstrap 95% 구간과, 중심을 맞춘 양측 bootstrap 검정(재표집한 차이 − 관찰한 차이로 만든 분포를 기준). (4) 전제 검정(6-1 표 0행): Brain → Emotion과 Brain + Decoded Feature → Emotion 각각의 34개 정서 평균 r을 순열 기준과 비교하는 두 검정을 따로 Holm 2개 묶음으로 보정한다. (5) MC 전이(6-3)는 보정 없이 따로 보고한다. (6) 순열 검정은 10,000회, 6-1의 예상 방향으로 한쪽 검정이고 p = (1 + 귀무 값이 관찰 값 이상인 횟수) / (순열 수 + 1)이다. (7) 쌍 비교(4-2의 분석 1)는 순서 없는 쌍으로 센다. 서로 최근접인 쌍은 한 번만 쓰고 영상 번호가 작은 쪽을 A로 두며, 재표집은 (2)의 이어진 묶음 단위다. 영상 단위 주 재표집, 10,000회, Holm 15개, BH-FDR은 그대로 | 같은 fold라는 사실만으로 교환 가능성이 보장되지 않는다. run 안으로 제한하는 것은 run 차이를 유지하기 위해서이고, 검정력 때문에 범위를 넓히지 않는다. 바꿔 끼우기 쌍은 영상을 공유하므로 이어진 묶음 단위로 뽑아야 반복 구조가 보존된다(4-2). 귀무가설에 맞춰 중심을 맞추는 것은 bootstrap 검정의 기본 원칙이다(Hall & Wilson 1991) | 구간은 학습된 모델과 정해진 교체 조건에 대한 조건부 구간이며, 다시 학습할 때의 변동은 담지 않는다(seed 표준편차는 따로, G14) | 1 | 정함 |
-| O5 | 명세가 없던 모델 구조 | (1) Brain + Decoded Feature → Emotion의 a(v̂), b(ĉ)는 편향이 있는 선형층(5,632 → 34, 4,096 → 34). 더하기 head와 상호작용 head에서 같다. 상호작용 항의 A, B, U는 편향 없는 선형. (2) F-고정, F-학습의 Multimodal Model: 뇌 모델과 같은 입력층, encoder(F3), emotion query(F4)에, 실제 Vision feature와 Caption feature를 각각 선형층으로 d차원 token으로 바꿔 ROI token과 함께 encoder에 넣는다. 중간 표현은 emotion query 34개의 출력(34 × d), head는 정서별 선형층과 sigmoid. (3) Multimodal Model의 d와 입력층 weight decay는 그 바깥 fold의 Brain → Emotion이 고른 값, 두 특징 선형층의 weight decay({1e-4, 1e-3, 1e-2})와 learning rate(G13)를 공통 기준으로 고름. (4) Brain Model은 Brain → Emotion과 같은 뇌 모델(같은 d, 연결층 없음)이고 같은 seed의 Multimodal Model과 짝짓는다. 중간 표현의 표준화는 MSE 계산에만 쓰고, 고정 head에는 Multimodal Model이 학습할 때의 좌표 그대로 Brain Model 표현을 넣는다 | a, b를 선형으로 두면 Stimulus Model(E2)의 a, b와 꼴이 같다. Multimodal Model은 성능 비교용이라 세 입력을 섞어도 된다. token으로 넣는 결합과 연결층 생략은 이번 비교에서 고른 설계 선택이며, 그래야만 한다는 뜻이나 SimKD가 연결층을 금지한다는 뜻이 아니다(Chen 외 2022) | Multimodal Model의 섞는 구조는 Brain + Decoded Feature → Emotion의 분리된 경로와 더하기 구조에 적용하지 않는다. 새 구조 후보를 탐색하지 않는다 | 2 | 정함 |
+| O5 | 명세가 없던 모델 구조 | (1) Brain + Decoded Feature → Emotion의 a(v̂), b(ĉ)는 편향이 있는 선형층(5,632 → 34, 4,096 → 34). 더하기 head와 상호작용 head에서 같다. 상호작용 항의 A, B, U는 편향 없는 선형. (2) E-고정, E-학습의 Multimodal Model: 뇌 모델과 같은 입력층, encoder(F3), emotion query(F4)에, 실제 Vision feature와 Caption feature를 각각 선형층으로 d차원 token으로 바꿔 ROI token과 함께 encoder에 넣는다. 중간 표현은 emotion query 34개의 출력(34 × d), head는 정서별 선형층과 sigmoid. (3) Multimodal Model의 d와 입력층 weight decay는 그 바깥 fold의 Brain → Emotion이 고른 값, 두 특징 선형층의 weight decay({1e-4, 1e-3, 1e-2})와 learning rate(G13)를 공통 기준으로 고름. (4) Brain Model은 Brain → Emotion과 같은 뇌 모델(같은 d, 연결층 없음)이고 같은 seed의 Multimodal Model과 짝짓는다. 중간 표현의 표준화는 MSE 계산에만 쓰고, 고정 head에는 Multimodal Model이 학습할 때의 좌표 그대로 Brain Model 표현을 넣는다 | a, b를 선형으로 두면 Stimulus Model(E2)의 a, b와 꼴이 같다. Multimodal Model은 성능 비교용이라 세 입력을 섞어도 된다. token으로 넣는 결합과 연결층 생략은 이번 비교에서 고른 설계 선택이며, 그래야만 한다는 뜻이나 SimKD가 연결층을 금지한다는 뜻이 아니다(Chen 외 2022) | Multimodal Model의 섞는 구조는 Brain + Decoded Feature → Emotion의 분리된 경로와 더하기 구조에 적용하지 않는다. 새 구조 후보를 탐색하지 않는다 | 2 | 정함 |
 
 #### 2. 나머지 고정 항목
 
@@ -2039,7 +2070,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 
 | 항목 | 정한 내용 | 통합문서 행 | 상태 |
 | --- | --- | --- | --- |
-| λ 후보 | Brain → Emotion + Vision + Caption {0, 0.1, 1.0}, Brain + Decoded Feature → Emotion과 Brain + Decoded Feature → Emotion [distillation] {0.1, 1.0}, F-고정, F-학습 {0.1, 1.0}. 이유가 서로 다르다 | G9, G10 | 정함 |
+| λ 후보 | Brain → Emotion + Vision + Caption {0, 0.1, 1.0}, Brain + Decoded Feature → Emotion과 Brain + Decoded Feature → Emotion [distillation] {0.1, 1.0}, E-고정, E-학습 {0.1, 1.0}. 이유가 서로 다르다 | G9, G10 | 정함 |
 | 경로 평가의 범위와 보고 | 두 decoded features만 Stimulus Model의 고정 head(두 특징을 함께 받는 것 하나)에 넣는다. 더하기판과 상호작용판. Brain → Emotion과 경로 평가의 절대 성능과 그 차이(구간)를 보고하고 비율은 쓰지 않는다 | K1, N6 | 정함 |
 | 검증 fold 보정 | 보정 통계는 H2 검증 fold에서 내고, 보정 전과 보정판을 둘 다 보고한다 | N8, H2 | 정함 |
 | 영어 용어 | thesis 영어 이름 | 1-1 | 정함 |
@@ -2090,6 +2121,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | Bennett, Bradley & Demiriz 2000, Microsoft Research MSR-TR-2000-65 | 4-3 | constrained k-means. 군집마다 최소 개수를 강제해 아주 작은 군집을 막음 |
 | Koh 외 2021, WILDS, ICML | 4-3 | 학습과 시험의 분포가 달라지는 상황에서의 일반화를 묻는 평가 묶음 |
 | Koh 외 2020, Concept Bottleneck Models, ICML | 1-3, 5-0 | 입력에서 개념을 맞히고 맞힌 개념으로 답을 냄. head를 실제 개념으로 학습하는 independent 방식은 CUB에서 맞힌 개념으로 함께 학습하는 joint 방식보다 오류가 컸고, test-time intervention은 independent 방식에서 가장 잘 들었음 |
+| Ortega Caro 외 2024, BrainLM, ICLR | 5-A(D-4) | fMRI 6,700시간으로 masked prediction 사전학습한 모델을 fine-tuning해 나이, 불안, PTSD 같은 임상 변수를 예측함(초록, 11/9 OpenReview 확인). 사전학습한 fMRI 모델을 다른 과제로 옮겨 쓴 선례로만 쓴다 |
 | Wang, Tran & Feiszli 2020, CVPR | 1-3, 5-0 | 멀티모달 분류망 학습에서 입력별 일반화와 과적합 차이. 한 입력에 치우칠 수 있음 |
 | Peng 외 2022, CVPR | 1-3 | 멀티모달 학습의 입력별 불균형과 gradient modulation |
 | Havasi, Parbhoo & Doshi-Velez 2022, NeurIPS | 5-0 | concept bottleneck에서 예측한 개념값에 개념 밖의 정보가 실리는 leakage 문제 |
@@ -2294,6 +2326,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 - [NIST/SEMATECH, n.d.] NIST/SEMATECH (n.d.). 7.1.6. What are outliers in the data?. *NIST/SEMATECH e-Handbook of Statistical Methods. National Institute of Standards and Technology*. https://itl.nist.gov/div898/handbook/prc/section1/prc16.htm
 - [Nosek 외, 2018] Nosek, B. A., Ebersole, C. R., DeHaven, A. C., & Mellor, D. T. (2018). The preregistration revolution. *Proceedings of the National Academy of Sciences of the United States of America*, 115(11), 2600–2606. https://doi.org/10.1073/pnas.1708274114
 - [Nunez-Elizalde 외, 2021] Nunez-Elizalde, A. O., Deniz, F., Dupré la Tour, T., Visconti di Oleggio Castello, M., & Gallant, J. L. (2021). pymoten: Scientific python package for computing motion energy features from video [Computer software]. *Zenodo*. https://doi.org/10.5281/zenodo.6349625
+- [Ortega Caro 외, 2024] Ortega Caro, J., de Oliveira Fonseca, A. H., Rizvi, S. A., Rosati, M., Averill, C., Cross, J. L., Mittal, P., Zappala, E., Dhodapkar, R. M., Abdallah, C., & van Dijk, D. (2024). BrainLM: A foundation model for brain activity recordings. *International Conference on Learning Representations (ICLR 2024)*. https://openreview.net/forum?id=RwI7ZEfR27
 - [Ozcelik & VanRullen, 2023] Ozcelik, F., & VanRullen, R. (2023). Natural scene reconstruction from fMRI signals using generative latent diffusion. *Scientific Reports*, 13(1), 15666. https://doi.org/10.1038/s41598-023-42891-8
 - [Palatucci 외, 2009] Palatucci, M., Pomerleau, D., Hinton, G. E., & Mitchell, T. M. (2009). Zero-shot learning with semantic output codes. *Advances in Neural Information Processing Systems 22 (NIPS 2009)*. https://proceedings.neurips.cc/paper_files/paper/2009/hash/1543843a4723ed2ab08e18053ae6dc5b-Abstract.html
 - [Parisini 외, 2026] Parisini, E., Chakraborti, T., Harbron, C., MacArthur, B. D., & Banerji, C. R. S. (2026). Leakage and interpretability in concept-based models. *Journal of Machine Learning Research*, 27(174), 1–40. https://jmlr.org/papers/v27/25-1121.html

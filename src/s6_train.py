@@ -24,7 +24,7 @@
     val_pred.npz: participant, video_id, logit(sigmoid 전), p. 고른 epoch의 값
     test_pred.npz: 같은 꼴(시험이 있는 분할만). 후보마다 저장한다(N24)
     shuffle.json: 대조군의 순열과 그 seed(O1)
-    representation_stats.npz, teacher.json: F-고정, F-학습. 중간 표현의 평균과 표준편차, 짝지은 Multimodal Model의 체크포인트 해시
+    representation_stats.npz, teacher.json: E-고정, E-학습. 중간 표현의 평균과 표준편차, 짝지은 Multimodal Model의 체크포인트 해시
     outputs/ (고른 설정의 seed마다, seed 폴더는 selected.json의 seeds를 따른다)
         done.json
         test_outputs.npz: participant, video_id, logit, p, g(ROI 경로의 점수)
@@ -104,7 +104,7 @@ def make_loss(condition, cand, fd, shuffle=None, teacher=None):
         raise ValueError("대조군에는 O1의 순열이 필요하다")
 
     def loss(out, rows):
-        if cfg.feature_only:  # D-1, D-2, E-1의 encoder 2. 정서를 학습하지 않는다
+        if cfg.feature_only:  # D-1~D-4의 encoder 2. 정서를 학습하지 않는다
             v, cap = fd.feature_targets(rows)
             return (F.mse_loss(out.v_hat, v) + F.mse_loss(out.c_hat, cap)) / 2
         target = fd.train_target(rows, cfg.target, alpha, shuffle)
@@ -217,7 +217,7 @@ def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on
 
 
 class Teacher:
-    """F-고정, F-학습의 Multimodal Model 하나(G16). 고정하고, 학습 행의 중간 표현과 그 표준화 통계를 미리 낸다.
+    """E-고정, E-학습의 Multimodal Model 하나(G16). 고정하고, 학습 행의 중간 표현과 그 표준화 통계를 미리 낸다.
     통계는 Multimodal Model이 학습한 4개 fold의 행에서 내고 MSE 계산에만 쓴다(O5)."""
 
     def __init__(self, path, fd, batch):
@@ -277,7 +277,7 @@ class FoldRunner:
         return self.teachers[seed]
 
     def feature_encoder(self, seed):
-        """D-1, D-2, E-1의 encoder 2. 같은 seed의 feature_encoder 선택을 읽어 고정한다. 학습 한 번마다 복사해 쓴다."""
+        """D-1~D-4의 encoder 2. 같은 seed의 feature_encoder 선택을 읽어 고정한다. 학습 한 번마다 복사해 쓴다."""
         if seed not in self.feature_encoders:
             sel = self.selected("feature_encoder")
             path = self.root / sel["seeds"][str(seed)] / "model.pt"
@@ -309,10 +309,10 @@ class FoldRunner:
         model = S.build_model(condition, cand, fd.voxel_counts, self.config.tokenizer, self.config.voxel_sampling, self.cells)
         if teacher is not None:
             model.load_head_from(teacher.model, frozen=cfg.representation == "frozen")
-        fenc = self.feature_encoder(seed) if (cfg.separate or cfg.head_only) else None
+        fenc = self.feature_encoder(seed) if (cfg.separate or cfg.head_only or cfg.frozen_encoder) else None
         if fenc is not None and cfg.separate:
             model = M.SeparateDecodedModel(model, copy.deepcopy(fenc["model"]))
-        if fenc is not None and cfg.head_only:  # E-1. 같은 seed의 encoder 2 가중치를 넣고 고정한다
+        if fenc is not None and (cfg.head_only or cfg.frozen_encoder):  # D-3, D-4. 같은 seed의 encoder 2 가중치를 넣고 고정한다
             model.feature_model.load_state_dict(fenc["model"].state_dict())
             M.freeze(model.feature_model)
         model = model.to(fd.device)
@@ -342,7 +342,7 @@ class FoldRunner:
             extra = {}
             if fenc is not None:
                 if M.state_digest(model.feature_model) != fenc["digest"]:
-                    raise ValueError("encoder 2가 학습 중에 바뀌었다(D-1, D-2)")
+                    raise ValueError("encoder 2가 학습 중에 바뀌었다(D-1~D-4)")
                 extra["feature_encoder"] = dict(checkpoint_sha256=fenc["sha256"], seed=seed)
             if shuffle is not None:
                 _json(dict(outer_fold=shuffle.outer_fold, seed=shuffle.seed, random_seed=shuffle.random_seed, mapping=shuffle.mapping), tmp / "shuffle.json")
@@ -439,7 +439,7 @@ class FoldRunner:
         cfg = S.CONDITIONS[meta["condition"]]
         forward = multimodal_forward(fd) if cfg.multimodal else brain_forward(fd)
         batch = self.spec.batch
-        if cfg.head_only:  # E-1. 정서 출력만 저장한다. 쓴 v̂₂, ĉ₂는 같은 seed의 feature_encoder 출력과 같다
+        if cfg.head_only:  # D-3. 정서 출력만 저장한다. 쓴 v̂₂, ĉ₂는 같은 seed의 feature_encoder 출력과 같다
             with c.Atomic(out) as tmp:
                 if fd.plan.test:
                     test = fd.rows("test")
