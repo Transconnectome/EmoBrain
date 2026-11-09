@@ -399,14 +399,17 @@ def t_brainit_tokenizer():
         k, v = inp.key(m), inp.value(m)
         q = inp.query(inp.cluster_embedding[r])
         a = torch.softmax((k @ q) / 8 ** 0.5, 1)
-        expect.append((a[..., None] * v).sum(1) + inp.root(inp.cluster_embedding[r]))
-    check("brainit token이 원문 식(modulated key, value, ROI query, root 항)과 같다", torch.allclose(got, torch.stack(expect, 1), atol=1e-5))
+        expect.append(inp.norm(torch.relu((a[..., None] * v).sum(1) + inp.root(inp.cluster_embedding[r]))))
+    check("brainit token이 원문 식(modulated key, value, ROI query, root 항, ReLU, LayerNorm)과 같다", torch.allclose(got, torch.stack(expect, 1), atol=1e-5))
+    check("brainit 초기값은 저자 코드와 같은 0.1 / (2√d) 크기다", abs(M.BrainItRoiInput(dict(a=[4000]), 64).weights["a"].std().item() - 0.1 / 16) < 0.001)
     x2 = x.clone(); x2[:, 3:5] += 1.0
     t2 = inp.token("a", x2)
     check("brainit token은 그 ROI의 voxel만으로 만든다", torch.equal(t2[:, 0], got[:, 0]) and torch.equal(t2[:, 2], got[:, 2]) and not torch.allclose(t2[:, 1], got[:, 1]))
     check("brainit에는 RoiInput의 편향과 ROI embedding이 없고 ROI query가 있다", not hasattr(inp, "input_bias") and not hasattr(inp, "roi_embedding") and inp.cluster_embedding.shape == (3, 8))
     # voxel 뽑기: 학습 때만, 평가 때는 모든 voxel
     smp = M.BrainItRoiInput(dict(a=[30, 20, 40]), 8, voxel_sampling=0.375)
+    with torch.no_grad():
+        smp.weights["a"].normal_()  # 저자 초기값은 매우 작아 뽑기의 차이가 허용 오차 안에 묻힌다. 뽑기 동작만 보려고 키운다
     xs = torch.randn(6, 90)
     smp.eval()
     check("voxel 뽑기는 평가 때 쓰지 않는다", torch.equal(smp.token("a", xs), smp.token("a", xs)))
@@ -425,7 +428,7 @@ def t_brainit_tokenizer():
     w = World(); fd = w.fold(); rows = fd.rows("train")[:6]
     m = S.build_model("brain_only", dict(d=8, rank=None), fd.voxel_counts, "brainit", 0.375)
     groups = M.parameter_assignment(m)
-    check("brainit의 voxel embedding은 입력층 weight decay 묶음이고 ROI query는 other다", all(v == "input_weight" for k, v in groups.items() if k.startswith("input_layer.weights.")) and groups["input_layer.cluster_embedding"] == "other")
+    check("brainit의 voxel embedding은 입력층 weight decay 묶음이고 ROI query는 other, LayerNorm은 decay 없음이다", all(v == "input_weight" for k, v in groups.items() if k.startswith("input_layer.weights.")) and groups["input_layer.cluster_embedding"] == "other" and groups["input_layer.norm.weight"] == "no_decay")
     m.eval()
     with tempfile.TemporaryDirectory() as t:
         M.save_checkpoint(Path(t) / "m.pt", m)

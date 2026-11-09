@@ -134,7 +134,9 @@ class BrainItRoiInput(RoiInput):
     - 학습 때 예시마다 voxel을 복원 추출로 뽑는다(원문은 약 4만 개 중 1.5만 개). 평가 때는 모든 voxel을 쓴다.
     계산: key가 x_v W_K e_v라 점수는 x_v s_v(s_v = (W_Q q_r)·(W_K e_v) / √d, voxel마다 숫자 하나)가 되고, key 편향은 ROI 안에서 상수라 softmax에서 빠진다.
     token_r = W_root q_r + Σ_v α_v (x_v W_V e_v) + b_V, α = softmax_v∈r(x_v s_v). 지금 RoiInput(token_r = Σ x_v w_v)에 입력마다 달라지는 비중 α를 곱한 꼴이다.
-    가중치 이름 input_layer.weights.<참가자>는 RoiInput의 W와 같은 자리(e_v)라 같은 weight decay 묶음(input_weight)에 든다."""
+    가중치 이름 input_layer.weights.<참가자>는 RoiInput의 W와 같은 자리(e_v)라 같은 weight decay 묶음(input_weight)에 든다.
+    저자 공개 코드(github.com/WeizmannVision/brainit-fmri, models/decoder_models.py의 Decoder, 11/9 대조)와 맞춘 것: 모은 token에 ReLU와 LayerNorm을 거치고,
+    voxel embedding과 군집 embedding의 초기값은 0.1 / (2√d) × N(0, 1)이다. 계산은 PyG TransformerConv(head 1개, root 항, 편향 있음)와 같다."""
 
     def __init__(self, voxel_counts, d, voxel_sampling=0.0):
         super().__init__(voxel_counts, d)
@@ -142,11 +144,13 @@ class BrainItRoiInput(RoiInput):
             raise ValueError("voxel 뽑기 비율은 0 이상 1 미만이다(0이면 뽑지 않는다)")
         self.voxel_sampling = float(voxel_sampling)
         del self.input_bias, self.roi_embedding  # Brain-IT에는 없다. ROI의 구분은 query q_r과 root 항이 맡는다
+        scale = 0.1 / (2 * d ** 0.5)  # 저자 코드의 초기값
         for pid in self.participants:
-            nn.init.normal_(self.weights[pid])  # nn.Embedding의 기본 초기값(N(0, 1))
+            nn.init.normal_(self.weights[pid], std=scale)
         self.cluster_embedding = nn.Parameter(torch.empty(self.n_roi, d))
-        nn.init.normal_(self.cluster_embedding)
+        nn.init.normal_(self.cluster_embedding, std=scale)
         self.query, self.key, self.value, self.root = (nn.Linear(d, d) for _ in range(4))
+        self.norm = nn.LayerNorm(d)  # 저자 코드: ReLU 뒤 LayerNorm
         self.roi_index = {pid: torch.repeat_interleave(torch.arange(self.n_roi), torch.tensor(self.voxel_counts[pid])) for pid in self.participants}
 
     def token(self, pid, x):
@@ -173,7 +177,7 @@ class BrainItRoiInput(RoiInput):
             seen = (hv > 0).any(1, keepdim=True)  # 한 ROI의 voxel이 하나도 뽑히지 않은 예시는 root 항만 남는다
             a = torch.softmax(torch.where(seen, lg, torch.zeros_like(lg)), 1) * seen
             out.append((a * xv) @ uv)
-        return torch.stack(out, 1) + self.value.bias + self.root(self.cluster_embedding)
+        return self.norm(torch.relu(torch.stack(out, 1) + self.value.bias + self.root(self.cluster_embedding)))
 
 def make_input_layer(voxel_counts, d, tokenizer="linear", voxel_sampling=0.0):
     """linear는 5-5의 입력층(본 설계), brainit은 11/9 점검용 Brain-IT tokenizer다."""
