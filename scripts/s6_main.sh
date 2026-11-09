@@ -17,6 +17,6 @@ set -euo pipefail
 HERE="${SLURM_SUBMIT_DIR:+$SLURM_SUBMIT_DIR/scripts}"; source "${HERE:-$(dirname "$0")}/_env.sh"
 FREEZE="${1:?동결 커밋}"
 K="${SLURM_ARRAY_TASK_ID:?fold 번호}"
-CONDITIONS="brain_only,brain_only_featdec,brain_decoded,brain_decoded_additive,brain_decoded_grad,brain_only_distill,brain_decoded_distill,feature_encoder,brain_decoded_sep,brain_decoded_sep_distill,multimodal,brain_only_repr_frozen,brain_only_repr_trained,control_label_smoothing,control_stimulus_shuffle,control_feature_shuffle,brain_only_pool,brain_decoded_pool"
+CONDITIONS="brain_only,brain_only_featdec,brain_decoded,brain_decoded_additive,brain_decoded_grad,brain_only_distill,brain_decoded_distill,feature_encoder,brain_decoded_sep,brain_decoded_sep_distill,brain_features_only,multimodal,brain_only_repr_frozen,brain_only_repr_trained,control_label_smoothing,control_stimulus_shuffle,control_feature_shuffle,brain_only_pool,brain_decoded_pool"
 export OMP_NUM_THREADS=8
 "$PY" s6_train.py --plan "outer_fold${K}" --conditions "$CONDITIONS" --config "$ROOT/configs/s6/run_config.json" --design-freeze "$FREEZE" --device cuda

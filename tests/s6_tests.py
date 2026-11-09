@@ -354,6 +354,28 @@ def t_separate_encoder():
     check("조건 9는 조건 8에서 고른 λ와 r을 이어 받고 α를 고른다", {x["lam"] for x in d9} == {0.1} and {x["rank"] for x in d9} == {2} and {x["alpha"] for x in d9} == {0.25, 0.5})
     check("조건 9의 α = 0 후보는 조건 8이다(G10)", S.ZERO_SOURCE["brain_decoded_sep_distill"] == ("brain_decoded_sep", "alpha"))
     check("조건 8, 9와 encoder 2는 기본 run 분할에서만 돈다", not ({"feature_encoder", "brain_decoded_sep", "brain_decoded_sep_distill"} & S.ZONE_CONDITIONS))
+    # 조건 10
+    c10 = S.candidates("brain_features_only", base=base)
+    check("조건 10은 r 0(더하기), 1, 2, 4, 8과 learning rate를 고르고 λ가 없다", {x["rank"] for x in c10} == {0, 1, 2, 4, 8} and {x["lam"] for x in c10} == {None})
+    for x in c10:
+        S.check_candidate("brain_features_only", x)
+    torch.manual_seed(2)
+    m10 = S.build_model("brain_features_only", dict(base, rank=2), fd.voxel_counts)
+    m10.feature_model.load_state_dict(fe.state_dict())
+    M.freeze(m10.feature_model)
+    m10.train()
+    o10 = m10(fd.batch(rows))
+    with torch.no_grad():
+        f10 = fe.eval()(fd.batch(rows))
+    check("조건 10의 정서는 encoder 2의 v̂₂, ĉ₂만으로 계산한다", torch.equal(o10.v_used, f10.v_hat) and torch.allclose(o10.z, m10.a(f10.v_hat) + m10.b(f10.c_hat) + m10.U(m10.A(f10.v_hat) * m10.B(f10.c_hat))))
+    T.soft_bce(o10.z, fd.train_target(rows, "human")).backward()
+    check("조건 10의 정서 손실은 encoder 2에 닿지 않고 정서 head만 학습시킨다", all(p.grad is None for p in m10.feature_model.parameters()) and m10.a.weight.grad.abs().sum() > 0 and m10.U.weight.grad.abs().sum() > 0)
+    check("조건 10에는 뇌에서 바로 정서를 읽는 경로가 없다", not any(n.startswith(("input_layer", "encoder", "readout")) for n, p in m10.named_parameters() if p.requires_grad))
+    with tempfile.TemporaryDirectory() as td:
+        M.save_checkpoint(Path(td) / "m.pt", m10, condition="brain_features_only")
+        back, _ = M.load_checkpoint(Path(td) / "m.pt")
+        m10.eval()
+        check("조건 10 체크포인트를 되살리면 같은 출력이다", torch.allclose(back(fd.batch(rows)).z, m10(fd.batch(rows)).z, atol=1e-6))
 
 
 def t_prelim_config():
@@ -767,7 +789,9 @@ def t_weight_groups():
                     all_ok = False
                     bad.append((name, n, assign[n], expect))
             decays = {g["name"]: g["weight_decay"] for g in groups}
-            all_ok &= decays["input_weight"] == 3e-3 and decays["other"] == 0.01 and decays["no_decay"] == 0.0 and decays.get("feature_token", 2e-3) == 2e-3
+            all_ok &= decays.get("input_weight", 3e-3) == 3e-3 and decays["other"] == 0.01  # 조건 10은 입력층이 고정이라 input_weight 묶음이 없다
+            all_ok &= ("input_weight" in decays) != S.CONDITIONS[name].head_only
+            all_ok &= decays["other"] == 0.01 and decays["no_decay"] == 0.0 and decays.get("feature_token", 2e-3) == 2e-3
     check(f"weight decay: 모든 조건의 모든 파라미터가 정확히 한 묶음에 든다{bad[:2] if bad else ''}", all_ok)
     m = S.build_model("brain_decoded", dict(d=8, rank=2), fd.voxel_counts)
     assign = M.parameter_assignment(m)

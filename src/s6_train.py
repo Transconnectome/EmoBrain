@@ -308,9 +308,12 @@ class FoldRunner:
         model = S.build_model(condition, cand, fd.voxel_counts)
         if teacher is not None:
             model.load_head_from(teacher.model, frozen=cfg.representation == "frozen")
-        fenc = self.feature_encoder(seed) if cfg.separate else None
-        if fenc is not None:
+        fenc = self.feature_encoder(seed) if (cfg.separate or cfg.head_only) else None
+        if fenc is not None and cfg.separate:
             model = M.SeparateDecodedModel(model, copy.deepcopy(fenc["model"]))
+        if fenc is not None and cfg.head_only:  # 조건 10. 같은 seed의 encoder 2 가중치를 넣고 고정한다
+            model.feature_model.load_state_dict(fenc["model"].state_dict())
+            M.freeze(model.feature_model)
         model = model.to(fd.device)
         shuffle = self.shuffle(seed) if condition in S.NEEDS_SHUFFLE else None
         forward = multimodal_forward(fd) if cfg.multimodal else brain_forward(fd)
@@ -435,6 +438,15 @@ class FoldRunner:
         cfg = S.CONDITIONS[meta["condition"]]
         forward = multimodal_forward(fd) if cfg.multimodal else brain_forward(fd)
         batch = self.spec.batch
+        if cfg.head_only:  # 조건 10. 정서 출력만 저장한다. 쓴 v̂₂, ĉ₂는 같은 seed의 feature_encoder 출력과 같다
+            with c.Atomic(out) as tmp:
+                if fd.plan.test:
+                    test = fd.rows("test")
+                    o = collect(model, test, forward, batch, ("z",))
+                    np.savez(tmp / "test_outputs.npz", participant=fd.participant_names(test), video_id=fd.row_video[test], logit=o["z"].numpy(), p=o["z"].sigmoid().numpy())
+                self.run._check_code()
+                _json(dict(self.run.prov, model_dir=str(path.relative_to(self.root))), tmp / "done.json")
+            return
         inner = model.main if cfg.separate else model
         has_feature = not cfg.multimodal and inner.readout.has_feature_head
         has_query = not cfg.pooling

@@ -303,6 +303,43 @@ class SeparateDecodedModel(nn.Module):
         return SeparateOutput(z, z.sigmoid(), g, v1, c1, emotion_attention, feature_attention, o, H, f.v_hat, f.c_hat)
 
 
+class FeatureHeadModel(nn.Module):
+    """조건 10(11/9). 고정한 encoder 2(feature 손실로만 학습, 입력층까지 따로)가 낸 v̂₂, ĉ₂ 위에 정서 head만 학습한다.
+    정서 = a(v̂₂) + b(ĉ₂) + U[(Av̂₂) ⊙ (Bĉ₂)]. rank 0이면 더하기만 남는다. 뇌에서 바로 정서를 읽는 경로(g)는 없다.
+    개념 bottleneck의 sequential 학습과 같은 꼴이다(Koh 외 2020)."""
+
+    def __init__(self, feature_model, rank):
+        super().__init__()
+        fr = feature_model.readout
+        if fr.decoded or not fr.has_feature_head:
+            raise ValueError("feature_model은 feature head만 쓰는 encoder 2여야 한다")
+        if isinstance(rank, bool) or rank not in (0,) + INTERACTION_RANKS:
+            raise ValueError("rank는 0, 1, 2, 4, 8이다")
+        self.rank = rank
+        self.feature_model = freeze(feature_model)
+        self.a = nn.Linear(VISUAL_DIM, N_EMOTIONS, bias=True)
+        self.b = nn.Linear(CAPTION_DIM, N_EMOTIONS, bias=True)
+        if rank:
+            self.A = nn.Linear(VISUAL_DIM, rank, bias=False)
+            self.B = nn.Linear(CAPTION_DIM, rank, bias=False)
+            self.U = nn.Linear(rank, N_EMOTIONS, bias=False)
+        self.spec = dict(kind="features_only", rank=rank, feature_model=dict(feature_model.spec))
+
+    def train(self, mode=True):
+        super().train(mode)
+        self.feature_model.eval()
+        return self
+
+    def forward(self, brain):
+        with torch.no_grad():
+            f = self.feature_model(brain)
+        v, c = f.v_hat, f.c_hat
+        z = self.a(v) + self.b(c)
+        if self.rank:
+            z = z + self.U(self.A(v) * self.B(c))
+        return SeparateOutput(z, z.sigmoid(), z, v, c, None, None, None, None, v, c)
+
+
 def freeze(model):
     """Multimodal 원본을 고정한다(G16). 가중치를 바꿀 수 없고 dropout도 꺼진다."""
     for p in model.parameters():
@@ -404,6 +441,8 @@ def build_from_spec(spec):
     kind = spec.pop("kind")
     if kind == "separate":
         return SeparateDecodedModel(build_from_spec(spec["main"]), build_from_spec(spec["feature_model"]))
+    if kind == "features_only":
+        return FeatureHeadModel(build_from_spec(spec["feature_model"]), spec["rank"])
     voxel_counts, d = spec.pop("voxel_counts"), spec.pop("d")
     return MultimodalModel(voxel_counts, d) if kind == "multimodal" else BrainModel(voxel_counts, d, **spec)
 

@@ -913,6 +913,7 @@ Multimodal Model의 head를 복사해 초기값으로 쓰고 encoder와 head를 
 | 7 | Brain → Emotion [representation, trained head] | 사람 평정, Multimodal Model의 중간 표현 | 보조 |
 | 8 | Brain + Decoded Feature → Emotion [separate feature encoder] | 사람 평정, Vision과 Caption feature | 조건 3의 encoder 분리판(11/9) |
 | 9 | Brain + Decoded Feature → Emotion [separate feature encoder, distillation] | 사람 평정, Stimulus 예측 평정, Vision과 Caption feature | 조건 5의 encoder 분리판(11/9) |
+| 10 | Decoded Feature → Emotion [separate feature encoder, no direct path] | 사람 평정(정서 head만), Vision과 Caption feature(encoder 2) | 장면 경로만 쓰는 판(11/9) |
 
 조건 6, 7은 기본 분할에서 하는 보조 성능 비교다. 두 결과를 모두 기록하고, 결과를 본 뒤 더하는 분석은 탐색적 분석으로 구분한다.
 
@@ -939,6 +940,19 @@ brain ────┤           └ feature head → v̂₁, ĉ₁ → feature l
 **조건 9. Brain + Decoded Feature → Emotion [separate feature encoder, distillation]** [정함, 11/9 석진 님]
 
 조건 8의 구조에 조건 5와 같은 distillation을 더한다. 정서 칸의 정답이 (1 − α) × 사람 평정 + α × Stimulus 예측 평정이 된다. encoder 2는 조건 8과 같은 것을 쓴다. λ와 r은 그 fold의 조건 8에서 고른 값을 쓰고 α 후보 {0.25, 0.5}와 learning rate를 고른다(조건 5와 같은 규칙, G9). 조건 9 대 5는 encoder 분리의 효과를, 조건 9 대 8은 distillation의 효과를 본다.
+
+**조건 10. Decoded Feature → Emotion [separate feature encoder, no direct path]** [정함, 11/9 석진 님]
+
+```text
+학습 1단계(조건 8, 9와 같은 encoder 2): Brain → encoder 2 → v̂₂, ĉ₂ → feature loss만
+학습 2단계: encoder 2를 고정하고, v̂₂, ĉ₂ → 정서 head(a, b, A, B, U) → 정서 → Emotion loss
+```
+
+- 정서 = a(v̂₂) + b(ĉ₂) + U[(Av̂₂) ⊙ (Bĉ₂)]. 뇌에서 바로 정서를 읽는 경로(g)와 encoder 1이 없다. 뇌에서 읽은 장면 정보만으로 정서를 배운다. 개념 bottleneck의 sequential 학습과 같은 꼴이다(Koh 외 2020).
+- 정서 loss는 정서 head만 학습시킨다. encoder 2는 정서 평정을 보지 않는다.
+- K1(경로 평가)과 다른 점: K1은 실제 feature로 학습한 Stimulus head를 그대로 붙여 뇌 쪽에서 정서를 전혀 학습하지 않는다(independent). 조건 10은 정서 head를 뇌에서 읽은 v̂₂, ĉ₂로 새로 학습한다. 그래서 decoded feature가 평균 쪽으로 눌린 척도 문제가 head 학습으로 흡수된다.
+- 정서 loss를 head까지 전혀 쓰지 않는 판은 feature를 정서로 바꾸는 규칙을 학습 없이 정할 방법이 없어 두지 않는다. 그 대신 K1이 정서 평정으로 학습한 규칙을 뇌를 보지 않은 자극 쪽에서 가져온다.
+- 후보: r ∈ {0, 1, 2, 4, 8}(0은 더하기 head) × learning rate. 조기 종료와 선택은 다른 정서 조건과 같다(검증 정서 soft BCE, 검증 r_정서). 기본 run 분할의 바깥 fold 6개.
 
 #### 2부. 학습과 평가 순서
 
@@ -1832,6 +1846,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | 정서어 제거판(3-4, SI) | 156 | Brain + Decoded Feature → Emotion fold마다 26 × 6 |
 | 특징만 학습한 모델(K1, 필수 실행 범위 밖) | 24 | fold마다 후보 2 + seed 2 |
 | 손실 흐름 허용판(G8, 5-0, 보조 성능 비교) | 156 | Brain + Decoded Feature → Emotion과 같은 후보. fold마다 26(λ 2 × r 4 × learning rate 3 + seed 2) × 6 fold. 11/8 석진 님 |
+| 조건 10(장면 경로만) | 102 | fold마다 17(r 5 × learning rate 3 + seed 2) × 6 fold. encoder 2는 조건 8, 9와 같이 쓰고 정서 head만 학습해 1회가 짧다. 11/9 석진 님 |
 | 조건 8, 9(encoder 분리판) | 234 | fold마다 encoder 2 5(learning rate 3 + seed 2), 조건 8의 26(λ 2 × r 4 × learning rate 3 + seed 2), 조건 9의 8(α 2 × learning rate 3 + seed 2) × 6 fold. encoder 2는 두 조건이 같이 쓴다. 11/9 석진 님 |
 | Multimodal Model의 중간 표현 비교(G16, 조건 6, 7) | 162 | fold마다 Multimodal Model 11(후보 3 × learning rate 3 + seed 2), 조건 6과 7 각각 8(λ 2 × learning rate 3 + seed 2) × 6 fold. 뇌 표현 복사 대조는 넣지 않음 |
 
