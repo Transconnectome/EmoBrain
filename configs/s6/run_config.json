@@ -1,5 +1,5 @@
 {
-  "note": "11/8 본실험 설정(석진 님 확인 대기). K = d {32, 64} × 입력층 weight decay {0.1, 1, 10}. 예비 실행(d 64, 0.01)에서 6 epoch에 과적합해 ridge보다 낮았으므로 입력층 정칙화를 강한 쪽으로 둔다. learning rate {1e-5, 1e-4, 1e-3}, seed 0, 1, 2(G13, L9).",
+  "note": "11/8 본실험 설정. K = d {32, 64} × 입력층 weight decay {0.1, 1, 10}. 예비 실행(d 64, 입력층 weight decay 0.01, learning rate 1e-4)의 검증 손실이 모든 조건에서 4~8 epoch에 가장 낮았다가 나빠져(검증 곡선 기준) 입력층 정칙화를 강한 쪽으로 넓혔다. AdamW에서 step마다 줄이는 비율은 learning rate × weight decay라 예비 실행은 1e-6이었고, 이 격자는 1e-6~1e-2를 덮는다. learning rate {1e-5, 1e-4, 1e-3}, seed 0, 1, 2(G13, L9).",
   "k_candidates": [
     [
       32,

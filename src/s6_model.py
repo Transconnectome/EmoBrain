@@ -63,6 +63,14 @@ class ModelOutput(ac.ReadoutOutput):
     H: Tensor = None  # encoder 출력(행 × token × d)
 
 
+@dataclass
+class SeparateOutput(ModelOutput):
+    """조건 8, 9. v_hat, c_hat은 encoder 1의 보조 feature head 출력(v̂₁, ĉ₁, 손실에만 씀)이고,
+    v_used, c_used가 정서 계산에 들어간 encoder 2의 출력(v̂₂, ĉ₂)이다. 바꿔 끼우기는 v_used, c_used로 한다."""
+    v_used: Tensor = None
+    c_used: Tensor = None
+
+
 class RoiInput(nn.Module):
     """C4. W는 참가자마다 ROI 순서로 이어 붙여 하나의 Parameter로 둔다. bounds가 ROI 경계이고, 곱은 ROI마다 따로 한다."""
 
@@ -259,6 +267,42 @@ class MultimodalModel(nn.Module):
         return ModelOutput(g, g.sigmoid(), g, None, None, attention, None, o, H)
 
 
+class SeparateDecodedModel(nn.Module):
+    """조건 8, 9(01 5-A, 11/9). main은 encoder 1(정서와 보조 feature head)과 정서 계산(a, b, A, B, U)을 가진 뇌 모델이다.
+    feature_model은 feature 손실로만 따로 학습해 고정한 encoder 2이고 입력층까지 따로 있다. 정서 계산에는 encoder 2의 v̂₂, ĉ₂를 쓴다.
+    정서 손실은 encoder 2로 가지 않는다(고정, no_grad). 입력은 뇌 반응뿐이다."""
+
+    def __init__(self, main, feature_model):
+        super().__init__()
+        r = main.readout
+        if not (r.decoded and r.has_feature_head) or r.pooling:
+            raise ValueError("main은 decoded features를 쓰는 조건 3 구조여야 한다")
+        fr = feature_model.readout
+        if fr.decoded or not fr.has_feature_head:
+            raise ValueError("feature_model은 feature head만 쓰는 encoder 2여야 한다")
+        if main.input_layer is feature_model.input_layer:
+            raise ValueError("encoder 2는 입력층을 따로 가져야 한다")
+        self.main = main
+        self.feature_model = freeze(feature_model)
+        self.spec = dict(kind="separate", main=dict(main.spec), feature_model=dict(feature_model.spec))
+
+    def train(self, mode=True):
+        super().train(mode)
+        self.feature_model.eval()  # 고정한 encoder 2는 늘 평가 상태다(dropout 끔)
+        return self
+
+    def forward(self, brain):
+        H = self.main.encode(brain)
+        r = self.main.readout
+        o, emotion_attention = r.emotion_query(H)
+        g = torch.cat([layer(o[:, e]) for e, layer in enumerate(r.emotion_linears)], dim=-1)
+        v1, c1, feature_attention = r.feature_head(H)
+        with torch.no_grad():
+            f = self.feature_model(brain)
+        z = r.combine(g, f.v_hat, f.c_hat)  # combine도 기울기를 끊는다(G8)
+        return SeparateOutput(z, z.sigmoid(), g, v1, c1, emotion_attention, feature_attention, o, H, f.v_hat, f.c_hat)
+
+
 def freeze(model):
     """Multimodal 원본을 고정한다(G16). 가중치를 바꿀 수 없고 dropout도 꺼진다."""
     for p in model.parameters():
@@ -277,6 +321,10 @@ def state_digest(model):
 
 def parameter_group_name(name, is_layernorm):
     """G13의 묶음. 알 수 없는 이름은 멈춘다. 새 파라미터가 조용히 어느 묶음에 들어가지 않게 한다."""
+    for prefix in ("main.", "feature_model."):  # 조건 8, 9의 두 뇌 모델. 묶음 규칙은 같다
+        if name.startswith(prefix):
+            name = name[len(prefix):]
+            break
     last = name.split(".")[-1]
     if is_layernorm:
         return "no_decay"  # LayerNorm
@@ -332,6 +380,7 @@ def count_parameters(model):
     """F8. 학습 가중치 수. 입력층을 따로 적는다. frozen은 학습하지 않는 수다."""
     rows = dict(input_weight=0, input_bias=0, roi_embedding=0, shared=0, frozen=0)
     for name, p in model.named_parameters():
+        name = name.split("main.", 1)[1] if name.startswith("main.") else name
         if not p.requires_grad:
             rows["frozen"] += p.numel()
         elif name.startswith("input_layer.weights."):
@@ -350,14 +399,20 @@ def save_checkpoint(path, model, **meta):
     torch.save(dict(spec=model.spec, state_dict={k: v.cpu() for k, v in model.state_dict().items()}, meta=meta), path)
 
 
+def build_from_spec(spec):
+    spec = dict(spec)
+    kind = spec.pop("kind")
+    if kind == "separate":
+        return SeparateDecodedModel(build_from_spec(spec["main"]), build_from_spec(spec["feature_model"]))
+    voxel_counts, d = spec.pop("voxel_counts"), spec.pop("d")
+    return MultimodalModel(voxel_counts, d) if kind == "multimodal" else BrainModel(voxel_counts, d, **spec)
+
+
 def load_checkpoint(path, device="cpu"):
     """저장한 모델을 평가 상태로 되살린다. S9는 이 함수로 읽는다. 추론용이다. requires_grad는 저장되지 않으므로,
     조건 6의 고정 head 같은 학습 상태는 되살리지 않는다. 학습을 이어 하려면 고정 상태를 따로 복원해야 한다."""
     saved = torch.load(path, map_location="cpu", weights_only=True)
-    spec = dict(saved["spec"])
-    kind = spec.pop("kind")
-    voxel_counts, d = spec.pop("voxel_counts"), spec.pop("d")
-    model = MultimodalModel(voxel_counts, d) if kind == "multimodal" else BrainModel(voxel_counts, d, **spec)
+    model = build_from_spec(dict(saved["spec"]))
     model.load_state_dict(saved["state_dict"])
     return model.to(device).eval(), saved["meta"]
 

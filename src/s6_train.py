@@ -35,6 +35,7 @@
 재현성(O32): Python, NumPy, PyTorch의 seed와 자료 순서를 실행 seed로 고정한다. 결정적 모드에서 지원되지 않는 연산은 오류로 멈추므로 비결정 연산 목록은 비어 있다. GPU에서는 아직 돌려 보지 않았다.
 """
 import argparse
+import copy
 import json
 import os
 import random
@@ -103,6 +104,9 @@ def make_loss(condition, cand, fd, shuffle=None, teacher=None):
         raise ValueError("대조군에는 O1의 순열이 필요하다")
 
     def loss(out, rows):
+        if cfg.feature_only:  # 조건 8, 9의 encoder 2. 정서를 학습하지 않는다
+            v, cap = fd.feature_targets(rows)
+            return (F.mse_loss(out.v_hat, v) + F.mse_loss(out.c_hat, cap)) / 2
         target = fd.train_target(rows, cfg.target, alpha, shuffle)
         if cfg.representation:
             o_t = teacher.o[torch.as_tensor(teacher.position[rows], device=teacher.o.device)]
@@ -153,7 +157,18 @@ def check_finite_state(model, what):
             raise Diverged(f"{what}: 기울기 {name}에 NaN 또는 Inf가 있다")
 
 
-def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on_epoch=None):
+def feature_val_loss(fd, batch):
+    """encoder 2의 조기 종료와 선택 기준. 검증 영상의 feature MSE((Vision MSE + Caption MSE) / 2)다."""
+    val = fd.rows("val")
+    v, cap = (t.cpu() for t in fd.feature_targets(val))
+
+    def score(model):
+        o = collect(model, val, brain_forward(fd), batch, ("v_hat", "c_hat"))
+        return float(((o["v_hat"] - v) ** 2).mean() + ((o["c_hat"] - cap) ** 2).mean()) / 2
+    return score
+
+
+def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on_epoch=None, val_fn=None):
     """G13, O6. AdamW, batch 64, 최대 300 epoch, patience 30, warmup 없음. 가장 낮은 epoch의 가중치로 되돌린다. 같은 값이면 앞선 epoch다."""
     train, val = fd.rows("train"), fd.rows("val")
     y_val = fd.y(val).cpu()
@@ -177,8 +192,11 @@ def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on
             check_finite_state(model, f"epoch {epoch} update")
             total += loss.item() * len(rows)
         model.eval()
-        z = numeric(lambda: collect(model, val, forward, spec.batch)["z"], f"epoch {epoch} 검증")
-        val_loss = validation_loss(z, y_val)
+        if val_fn is not None:  # encoder 2는 feature MSE로 멈춘다
+            val_loss = numeric(lambda: val_fn(model), f"epoch {epoch} 검증")
+        else:
+            z = numeric(lambda: collect(model, val, forward, spec.batch)["z"], f"epoch {epoch} 검증")
+            val_loss = validation_loss(z, y_val)
         if not np.isfinite(val_loss):
             raise Diverged(f"epoch {epoch}: 검증 손실이 NaN 또는 Inf다")
         history.append(dict(epoch=epoch, train_loss=total / len(order), val_loss=val_loss))
@@ -191,6 +209,8 @@ def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on
             break
     model.load_state_dict(best_state)
     model.eval()
+    if val_fn is not None:  # 점수가 클수록 좋도록 MSE의 부호를 바꾼다(select_best)
+        return FitResult(best_epoch, best_loss, -best_loss, len(history), pd.DataFrame(history))
     z = collect(model, val, forward, spec.batch)["z"]
     score = S.validation_score(z.sigmoid().numpy(), y_val.numpy(), fd.participant_names(val))
     return FitResult(best_epoch, best_loss, score, len(history), pd.DataFrame(history))
@@ -228,7 +248,7 @@ class FoldRunner:
             raise ValueError("후보는 seed 0으로 고른다(L9)")
         self.fd, self.split, self.run, self.spec, self.config, self.root = fd, split, run, spec, config, Path(root)
         self.mc_ids = mc_ids
-        self.teachers, self.shuffles = {}, {}
+        self.teachers, self.shuffles, self.feature_encoders = {}, {}, {}
         self.trained = []  # 이번 실행에서 실제로 학습한 (조건, 후보, seed). 시험에서 횟수를 대조한다
         self.write_plan()
 
@@ -255,6 +275,16 @@ class FoldRunner:
             self.teachers[seed] = Teacher(self.root / sel["seeds"][str(seed)] / "model.pt", self.fd, self.spec.batch)
         return self.teachers[seed]
 
+    def feature_encoder(self, seed):
+        """조건 8, 9의 encoder 2. 같은 seed의 feature_encoder 선택을 읽어 고정한다. 학습 한 번마다 복사해 쓴다."""
+        if seed not in self.feature_encoders:
+            sel = self.selected("feature_encoder")
+            path = self.root / sel["seeds"][str(seed)] / "model.pt"
+            model, _ = M.load_checkpoint(path, self.fd.device)
+            M.freeze(model)
+            self.feature_encoders[seed] = dict(model=model, sha256=c.sha256(path), digest=M.state_digest(model))
+        return self.feature_encoders[seed]
+
     def run_dir(self, condition, cand, seed):
         return self.root / condition / f"{S.candidate_id(cand)}_seed{seed}"
 
@@ -278,11 +308,14 @@ class FoldRunner:
         model = S.build_model(condition, cand, fd.voxel_counts)
         if teacher is not None:
             model.load_head_from(teacher.model, frozen=cfg.representation == "frozen")
+        fenc = self.feature_encoder(seed) if cfg.separate else None
+        if fenc is not None:
+            model = M.SeparateDecodedModel(model, copy.deepcopy(fenc["model"]))
         model = model.to(fd.device)
         shuffle = self.shuffle(seed) if condition in S.NEEDS_SHUFFLE else None
         forward = multimodal_forward(fd) if cfg.multimodal else brain_forward(fd)
         try:
-            result = fit(model, fd, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=cand["feature_wd"], loss_fn=make_loss(condition, cand, fd, shuffle, teacher), forward=forward, seed=seed)
+            result = fit(model, fd, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=cand["feature_wd"], loss_fn=make_loss(condition, cand, fd, shuffle, teacher), forward=forward, seed=seed, val_fn=feature_val_loss(fd, self.spec.batch) if cfg.feature_only else None)
         except Diverged as e:
             if not search:
                 raise
@@ -297,11 +330,16 @@ class FoldRunner:
             _json(M.parameter_assignment(model), tmp / "parameter_groups.json")
             result.history.to_csv(tmp / "history.tsv", sep="\t", index=False)
             val = fd.rows("val")
-            self._save_pred(tmp / "val_pred.npz", val, collect(model, val, forward, self.spec.batch)["z"])
-            if fd.plan.test:
-                test = fd.rows("test")
-                self._save_pred(tmp / "test_pred.npz", test, collect(model, test, forward, self.spec.batch)["z"])
+            if not cfg.feature_only:  # encoder 2는 정서를 내지 않는다
+                self._save_pred(tmp / "val_pred.npz", val, collect(model, val, forward, self.spec.batch)["z"])
+                if fd.plan.test:
+                    test = fd.rows("test")
+                    self._save_pred(tmp / "test_pred.npz", test, collect(model, test, forward, self.spec.batch)["z"])
             extra = {}
+            if fenc is not None:
+                if M.state_digest(model.feature_model) != fenc["digest"]:
+                    raise ValueError("encoder 2가 학습 중에 바뀌었다(조건 8, 9)")
+                extra["feature_encoder"] = dict(checkpoint_sha256=fenc["sha256"], seed=seed)
             if shuffle is not None:
                 _json(dict(outer_fold=shuffle.outer_fold, seed=shuffle.seed, random_seed=shuffle.random_seed, mapping=shuffle.mapping), tmp / "shuffle.json")
             if teacher is not None:
@@ -335,7 +373,7 @@ class FoldRunner:
             return self._run_pooled(condition)
         cfg, config = S.CONDITIONS[condition], self.config
         base = None if condition == "brain_only" else self.selected("brain_only")["candidate"]
-        decoded = self.selected("brain_decoded")["candidate"] if condition == "brain_decoded_distill" else None
+        decoded = self.selected(S.DECODED_SOURCE[condition])["candidate"] if condition in S.DECODED_SOURCE else None
         cands = S.candidates(condition, k_candidates=config.k_candidates, base=base, decoded=decoded, learning_rates=config.learning_rates, lr_follows_brain_only=config.lr_follows_brain_only)
         rows = [self._row(cand, self.train_one(condition, cand, self.spec.seeds[0], search=True)) for cand in cands]
         source = None
@@ -397,9 +435,34 @@ class FoldRunner:
         cfg = S.CONDITIONS[meta["condition"]]
         forward = multimodal_forward(fd) if cfg.multimodal else brain_forward(fd)
         batch = self.spec.batch
-        has_feature = not cfg.multimodal and model.readout.has_feature_head
+        inner = model.main if cfg.separate else model
+        has_feature = not cfg.multimodal and inner.readout.has_feature_head
         has_query = not cfg.pooling
         with c.Atomic(out) as tmp:
+            if cfg.feature_only:  # encoder 2. decoded features와 그 정확도만 저장한다(K1의 "특징만 학습한 모델")
+                for split_name in (("test", "val") if fd.plan.test else ("val",)):
+                    rows = fd.rows(split_name)
+                    o = collect(model, rows, forward, batch, ("v_hat", "c_hat"))
+                    np.savez(tmp / f"decoded_{split_name}.npz", participant=fd.participant_names(rows), video_id=fd.row_video[rows], v_hat=o["v_hat"].numpy(), c_hat=o["c_hat"].numpy())
+                decoding_accuracy(model, fd, batch).to_csv(tmp / "decoding_accuracy.tsv", sep="\t", index=False)
+                self.run._check_code()
+                _json(dict(self.run.prov, model_dir=str(path.relative_to(self.root))), tmp / "done.json")
+                return
+            if cfg.separate:  # 조건 8, 9. 정서 계산에 쓴 encoder 2의 v̂₂, ĉ₂를 decoded features로, encoder 1의 보조 출력은 aux로 저장한다
+                for split_name in (("test", "val") if fd.plan.test else ("val",)):
+                    rows = fd.rows(split_name)
+                    o = collect(model, rows, forward, batch, ("v_used", "c_used", "v_hat", "c_hat"))
+                    np.savez(tmp / f"decoded_{split_name}.npz", participant=fd.participant_names(rows), video_id=fd.row_video[rows], v_hat=o["v_used"].numpy(), c_hat=o["c_used"].numpy())
+                    np.savez(tmp / f"aux_decoded_{split_name}.npz", participant=fd.participant_names(rows), video_id=fd.row_video[rows], v_hat=o["v_hat"].numpy(), c_hat=o["c_hat"].numpy())
+                if fd.plan.test:
+                    test = fd.rows("test")
+                    o = collect(model, test, forward, batch, ("z", "g", "emotion_attention"))
+                    np.savez(tmp / "test_outputs.npz", participant=fd.participant_names(test), video_id=fd.row_video[test], logit=o["z"].numpy(), p=o["z"].sigmoid().numpy(), g=o["g"].numpy())
+                    np.save(tmp / "attention_emotion_test.npy", o["emotion_attention"].numpy())
+                decoding_accuracy(model, fd, batch).to_csv(tmp / "decoding_accuracy_aux.tsv", sep="\t", index=False)
+                self.run._check_code()
+                _json(dict(self.run.prov, model_dir=str(path.relative_to(self.root))), tmp / "done.json")
+                return
             if fd.plan.test:
                 test = fd.rows("test")
                 names = ("z", "g") + (("emotion_attention",) if has_query else ()) + (("v_hat", "c_hat", "feature_attention") if has_feature else ())

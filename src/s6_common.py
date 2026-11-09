@@ -53,6 +53,8 @@ class Condition:
     multimodal: bool = False
     additive: bool = False
     stop_gradient: bool = True  # G8. False는 성능 비교용 기울기 허용판뿐이다
+    separate: bool = False  # 조건 8, 9. 정서 계산에 쓰는 v̂, ĉ를 고정된 encoder 2에서 받는다
+    feature_only: bool = False  # encoder 2. feature 손실만 쓰고 정서를 학습하지 않는다
 
 
 CONDITIONS = {
@@ -63,6 +65,9 @@ CONDITIONS = {
     "brain_decoded_grad": Condition("Decoded-feature readout, gradient allowed", feature_head=True, decoded=True, features="actual", stop_gradient=False),  # G8 허용판. 성능 비교에만 쓴다(바꿔 끼우기, K1에 쓰지 않음)
     "brain_only_distill": Condition("Response-based distillation", target="stimulus"),  # 조건 4
     "brain_decoded_distill": Condition("Decoded-feature readout + response-based distillation", feature_head=True, decoded=True, features="actual", target="stimulus"),  # 조건 5
+    "feature_encoder": Condition("Feature-only encoder (encoder 2 of conditions 8, 9)", feature_head=True, features="actual", feature_only=True),  # 조건 8, 9의 encoder 2
+    "brain_decoded_sep": Condition("Decoded-feature readout, separate feature encoder", feature_head=True, decoded=True, features="actual", separate=True),  # 조건 8
+    "brain_decoded_sep_distill": Condition("Decoded-feature readout, separate feature encoder + response-based distillation", feature_head=True, decoded=True, features="actual", target="stimulus", separate=True),  # 조건 9
     "multimodal": Condition("Multimodal Model", multimodal=True),  # 조건 6, 7의 준비
     "brain_only_repr_frozen": Condition("Representation, frozen head", representation="frozen"),  # 조건 6
     "brain_only_repr_trained": Condition("Representation, trained head", representation="trained"),  # 조건 7
@@ -74,10 +79,11 @@ CONDITIONS = {
 }
 ORDER = list(CONDITIONS)  # 앞 조건의 선택을 뒤 조건이 쓴다(5-5, G9, O5, O31)
 ZONE_CONDITIONS = {"brain_only", "brain_decoded"}  # 6-2(4-3). 다른 조건으로 넓히지 않는다
-NEEDS_STIMULUS = {"brain_only_distill", "brain_decoded_distill", "control_stimulus_shuffle"}
+NEEDS_STIMULUS = {"brain_only_distill", "brain_decoded_distill", "brain_decoded_sep_distill", "control_stimulus_shuffle"}
+DECODED_SOURCE = {"brain_decoded_distill": "brain_decoded", "brain_decoded_sep_distill": "brain_decoded_sep"}  # λ와 r을 이어 받는 조건(G9)
 NEEDS_SHUFFLE = {"control_stimulus_shuffle", "control_feature_shuffle"}
 POOLED = {"brain_only_pool": "brain_only", "brain_decoded_pool": "brain_decoded"}  # O31. 표준 실행의 설정을 그대로 쓴다
-ZERO_SOURCE = {"brain_only_distill": ("brain_only", "alpha"), "brain_only_featdec": ("brain_only", "lam"), "brain_decoded_distill": ("brain_decoded", "alpha")}  # G9. 0 후보는 앞 조건의 학습이다
+ZERO_SOURCE = {"brain_only_distill": ("brain_only", "alpha"), "brain_only_featdec": ("brain_only", "lam"), "brain_decoded_distill": ("brain_decoded", "alpha"), "brain_decoded_sep_distill": ("brain_decoded_sep", "alpha")}  # G9. 0 후보는 앞 조건의 학습이다
 
 
 @dataclass(frozen=True)
@@ -157,13 +163,15 @@ def candidates(condition, *, k_candidates=None, base=None, decoded=None, learnin
         return [_cand(**shared, alpha=a, lr=lr) for a in ALPHAS for lr in lrs]
     if condition in ("brain_only_featdec", "control_feature_shuffle"):
         return [_cand(**shared, lam=x, lr=lr) for x in LAMBDAS_FEATURE for lr in lrs]
-    if condition in ("brain_decoded", "brain_decoded_grad"):  # 허용판은 조건 3과 후보가 같다(G8)
+    if condition == "feature_encoder":  # 조건 8, 9의 encoder 2. learning rate만 고른다(검증 feature MSE)
+        return [_cand(**shared, lr=lr) for lr in lrs]
+    if condition in ("brain_decoded", "brain_decoded_grad", "brain_decoded_sep"):  # 허용판과 조건 8은 조건 3과 후보가 같다(G8)
         return [_cand(**shared, lam=x, rank=r, lr=lr) for x in LAMBDAS_FEATURE for r in RANKS for lr in lrs]
     if condition == "brain_decoded_additive":
         return [_cand(**shared, lam=x, rank=0, lr=lr) for x in LAMBDAS_FEATURE for lr in lrs]
-    if condition == "brain_decoded_distill":
+    if condition in DECODED_SOURCE:
         if decoded is None:
-            raise ValueError("brain_decoded의 선택이 먼저 있어야 한다(G9)")
+            raise ValueError(f"{DECODED_SOURCE[condition]}의 선택이 먼저 있어야 한다(G9)")
         return [_cand(**shared, lam=decoded["lam"], rank=decoded["rank"], alpha=a, lr=lr) for a in ALPHAS for lr in lrs]
     if condition in ("brain_only_repr_frozen", "brain_only_repr_trained"):
         return [_cand(**shared, lam=x, lr=lr) for x in LAMBDAS_FEATURE for lr in lrs]
@@ -180,7 +188,7 @@ def check_candidate(condition, cand):
     wants_alpha = cfg.target != "human"
     if wants_alpha != (cand["alpha"] is not None) or (wants_alpha and cand["alpha"] not in ALPHAS):
         raise ValueError(f"{condition}: α가 G9와 다르다")
-    wants_lam = cfg.features != "none" or bool(cfg.representation)
+    wants_lam = (cfg.features != "none" or bool(cfg.representation)) and not cfg.feature_only
     if wants_lam != (cand["lam"] is not None) or (wants_lam and cand["lam"] not in LAMBDAS_FEATURE):
         raise ValueError(f"{condition}: λ가 G9와 다르다")
     if cfg.decoded != (cand["rank"] is not None):
@@ -194,7 +202,7 @@ def check_candidate(condition, cand):
 def planned_runs(k, n_lr=3, n_seeds=3):
     """한 fold의 학습 횟수(7-L의 식). 시험에서 후보 함수의 결과와 대조한다."""
     extra = n_seeds - 1
-    return dict(brain_only=k * n_lr + extra, brain_only_featdec=2 * n_lr + extra, brain_decoded=8 * n_lr + extra, brain_decoded_grad=8 * n_lr + extra, brain_decoded_additive=2 * n_lr + extra, brain_only_distill=2 * n_lr + extra, brain_decoded_distill=2 * n_lr + extra, control_label_smoothing=2 * n_lr + extra, control_stimulus_shuffle=2 * n_lr + extra, control_feature_shuffle=2 * n_lr + extra, multimodal=3 * n_lr + extra, brain_only_repr_frozen=2 * n_lr + extra, brain_only_repr_trained=2 * n_lr + extra, brain_only_pool=n_seeds, brain_decoded_pool=n_seeds)
+    return dict(brain_only=k * n_lr + extra, brain_only_featdec=2 * n_lr + extra, brain_decoded=8 * n_lr + extra, brain_decoded_grad=8 * n_lr + extra, brain_decoded_additive=2 * n_lr + extra, brain_only_distill=2 * n_lr + extra, brain_decoded_distill=2 * n_lr + extra, feature_encoder=n_lr + extra, brain_decoded_sep=8 * n_lr + extra, brain_decoded_sep_distill=2 * n_lr + extra, control_label_smoothing=2 * n_lr + extra, control_stimulus_shuffle=2 * n_lr + extra, control_feature_shuffle=2 * n_lr + extra, multimodal=3 * n_lr + extra, brain_only_repr_frozen=2 * n_lr + extra, brain_only_repr_trained=2 * n_lr + extra, brain_only_pool=n_seeds, brain_decoded_pool=n_seeds)
 
 
 def candidate_id(cand):
@@ -228,7 +236,7 @@ def zero_rows(condition, source_rows, source_selected):
     if condition not in ZERO_SOURCE:
         return []
     source, name = ZERO_SOURCE[condition]
-    fixed = ("d", "input_wd", "lam", "rank") if condition == "brain_decoded_distill" else ("d", "input_wd")
+    fixed = ("d", "input_wd", "lam", "rank") if condition in DECODED_SOURCE else ("d", "input_wd")
     out = []
     for row in source_rows:
         if all(row[k] == source_selected[k] for k in fixed):

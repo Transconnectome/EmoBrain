@@ -6,6 +6,7 @@
 import sys as _sys
 from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "src"))  # 코드는 src에 있다
+import copy
 import inspect
 import json
 import re
@@ -300,6 +301,59 @@ def t_numeric_divergence():
         kind = type(e)
     check("shape 오류는 Diverged로 바꾸지 않는다", kind is ValueError)
     check("NaN 검사 문구는 Diverged로 바꾼다", stops(lambda: T.numeric(lambda: M.ac._tensor(torch.full((2, 4), float("nan")), "x", (2, 4)), "시험"), (T.Diverged,)))
+
+
+def t_separate_encoder():
+    """조건 8, 9(11/9). encoder 2는 feature 손실만 받고, 조건 8의 정서 계산은 고정된 encoder 2의 v̂₂, ĉ₂를 쓴다."""
+    w = World()
+    fd = w.fold()
+    rows = fd.rows("train")[:16]
+    base = dict(d=8, input_wd=1e-3, lr=1e-3, lam=None, alpha=None, rank=None, feature_wd=None)
+    # encoder 2
+    torch.manual_seed(0)
+    fe = S.build_model("feature_encoder", base, fd.voxel_counts)
+    fe.train()
+    T.make_loss("feature_encoder", base, fd)(fe(fd.batch(rows)), rows).backward()
+    check("encoder 2의 손실은 정서 쪽(emotion query, 정서별 선형)에 닿지 않는다", all(p.grad is None or not p.grad.any() for n, p in fe.named_parameters() if "emotion" in n))
+    check("encoder 2의 손실은 feature head와 encoder를 학습시킨다", all(p.grad is not None for p in fe.readout.feature_head.parameters()) and all(p.grad is not None for p in fe.encoder.parameters()))
+    check("encoder 2의 후보는 learning rate만 고른다", {(x["lam"], x["rank"], x["alpha"]) for x in S.candidates("feature_encoder", base=base)} == {(None, None, None)} and {x["lr"] for x in S.candidates("feature_encoder", base=base)} == set(S.LEARNING_RATES))
+    fe.zero_grad(set_to_none=True)
+    res = T.fit(fe, fd, FAST, lr=1e-3, input_wd=1e-3, feature_wd=None, loss_fn=T.make_loss("feature_encoder", base, fd), forward=T.brain_forward(fd), seed=0, val_fn=T.feature_val_loss(fd, FAST.batch))
+    check("encoder 2는 검증 feature MSE로 멈추고 점수는 그 부호를 바꾼 값이다", res.val_score == -res.val_loss and res.val_loss > 0)
+    # 조건 8
+    cand = dict(base, lam=0.1, rank=2)
+    torch.manual_seed(1)
+    main = S.build_model("brain_decoded_sep", cand, fd.voxel_counts)
+    sep = M.SeparateDecodedModel(main, copy.deepcopy(fe))
+    sep.train()
+    check("조건 8에서 encoder 2는 고정이고 학습 상태에서도 평가 상태다", not any(p.requires_grad for p in sep.feature_model.parameters()) and not sep.feature_model.training)
+    out = sep(fd.batch(rows))
+    with torch.no_grad():
+        f = sep.feature_model(fd.batch(rows))
+    check("정서 계산에는 encoder 2의 v̂₂, ĉ₂가 들어간다", torch.allclose(out.z, main.readout.combine(out.g, f.v_hat, f.c_hat)) and torch.equal(out.v_used, f.v_hat))
+    check("v_hat, c_hat은 encoder 1의 보조 출력이다", not torch.equal(out.v_hat, out.v_used))
+    T.soft_bce(out.z, fd.train_target(rows, "human")).backward()
+    check("정서 손실은 encoder 2에 닿지 않는다", all(p.grad is None for p in sep.feature_model.parameters()))
+    check("정서 손실은 encoder 1의 보조 feature head에 닿지 않는다", all(p.grad is None or not p.grad.any() for p in main.readout.feature_head.parameters()))
+    check("정서 손실은 encoder 1과 a, b를 학습시킨다", all(p.grad is not None for p in main.encoder.parameters()) and main.readout.a.weight.grad.abs().sum() > 0)
+    sep.zero_grad(set_to_none=True)
+    T.make_loss("brain_decoded_sep", cand, fd)(sep(fd.batch(rows)), rows).backward()
+    check("조건 8의 feature 손실은 encoder 1의 보조 feature head를 학습시킨다", all(p.grad is not None and p.grad.abs().sum() > 0 for p in main.readout.feature_head.parameters()))
+    groups = M.parameter_groups(sep, 1e-3, 1e-3)
+    check("encoder 2의 가중치는 optimizer에 들어가지 않는다", not ({id(p) for p in sep.feature_model.parameters()} & {id(p) for g in groups for p in g["params"]}))
+    check("encoder 2의 가중치 수는 고정으로 센다", M.count_parameters(sep)["frozen"] == sum(p.numel() for p in sep.feature_model.parameters()))
+    check("encoder 2와 입력층을 같이 쓰면 멈춘다", stops(lambda: M.SeparateDecodedModel(main, main)))
+    check("encoder 2 자리에 정서 계산을 하는 모델을 주면 멈춘다", stops(lambda: M.SeparateDecodedModel(main, S.build_model("brain_decoded", cand, fd.voxel_counts))))
+    with tempfile.TemporaryDirectory() as td:
+        M.save_checkpoint(Path(td) / "m.pt", sep, condition="brain_decoded_sep")
+        back, _ = M.load_checkpoint(Path(td) / "m.pt")
+        sep.eval()
+        check("조건 8 체크포인트를 되살리면 같은 출력이다", torch.allclose(back(fd.batch(rows)).z, sep(fd.batch(rows)).z, atol=1e-6))
+    decoded = dict(cand)
+    d9 = S.candidates("brain_decoded_sep_distill", base=base, decoded=decoded)
+    check("조건 9는 조건 8에서 고른 λ와 r을 이어 받고 α를 고른다", {x["lam"] for x in d9} == {0.1} and {x["rank"] for x in d9} == {2} and {x["alpha"] for x in d9} == {0.25, 0.5})
+    check("조건 9의 α = 0 후보는 조건 8이다(G10)", S.ZERO_SOURCE["brain_decoded_sep_distill"] == ("brain_decoded_sep", "alpha"))
+    check("조건 8, 9와 encoder 2는 기본 run 분할에서만 돈다", not ({"feature_encoder", "brain_decoded_sep", "brain_decoded_sep_distill"} & S.ZONE_CONDITIONS))
 
 
 def t_prelim_config():
@@ -871,7 +925,10 @@ def t_pipeline():
             for rel in selected[n]["seeds"].values():
                 path = out / rel
                 done = json.loads((path / "done.json").read_text())
-                ok_m1 &= all((path / f).exists() for f in ("model.pt", "history.tsv", "val_pred.npz", "test_pred.npz", "parameter_groups.json", "outputs/done.json", "outputs/test_outputs.npz"))
+                need = ("model.pt", "history.tsv", "parameter_groups.json", "outputs/done.json", "outputs/decoded_test.npz", "outputs/decoded_val.npz") if S.CONDITIONS[n].feature_only else ("model.pt", "history.tsv", "val_pred.npz", "test_pred.npz", "parameter_groups.json", "outputs/done.json", "outputs/test_outputs.npz")
+                ok_m1 &= all((path / f).exists() for f in need)
+                if S.CONDITIONS[n].separate:  # 조건 8, 9는 정서 계산에 쓴 encoder 2의 출력과 encoder 1의 보조 출력을 따로 남긴다
+                    ok_m1 &= all((path / f).exists() for f in ("outputs/decoded_test.npz", "outputs/aux_decoded_test.npz")) and "feature_encoder" in done
                 ok_m1 &= all(k in done for k in ("run_key", "code_commit", "inputs", "settings", "candidate", "best_epoch", "val_score", "val_loss", "elapsed_seconds", "parameter_counts")) and "s2:split_hk_dev.tsv" in done["inputs"]
         check("M1: 고른 모델의 config, 커밋, 입력 해시, 체크포인트, 예측이 남는다", ok_m1)
         check("M1: 분할 기록과 표준화 통계가 남는다", all((out / "plan" / f).exists() for f in ("plan.json", "rows.npz", "standardization.npz", "done.json")))
@@ -909,29 +966,38 @@ def t_pipeline():
         fd.y_bank.fill_(float("nan")), fd.vision_bank.fill_(float("nan")), fd.caption_bank.fill_(float("nan")), fd.t_bank.fill_(float("nan"))
         same_all = True
         for n in S.ORDER:
-            if n == "multimodal":
+            if n == "multimodal" or S.CONDITIONS[n].feature_only:  # encoder 2는 정서를 내지 않는다
                 continue
             path = out / selected[n]["seeds"]["0"]
             mm, _ = M.load_checkpoint(path / "model.pt")
             same_all &= np.allclose(T.collect(mm, test, T.brain_forward(fd), 16)["z"].numpy(), np.load(path / "test_pred.npz")["logit"], atol=1e-6)
-        check("시험 입력은 Brain뿐이다: 정답과 feature를 모두 NaN으로 지워도 13개 조건의 시험 예측이 같다", same_all)
+        check("시험 입력은 Brain뿐이다: 정답과 feature를 모두 NaN으로 지워도 정서를 내는 모든 조건(조건 8, 9 포함)의 시험 예측이 같다", same_all)
         for k, v in hidden.items():
             getattr(fd, k).copy_(v)
         fd.t_bank.copy_(hidden_t)
         # 모든 조건에서 조기 종료와 선택은 실제 y다
         y_val = fd.y(val).numpy()
         ok_loss, ok_score, ok_hist = True, True, True
+        ok_fe = True
         for n in S.ORDER:
             for rel in selected[n]["seeds"].values():
                 path = out / rel
                 done = json.loads((path / "done.json").read_text())
+                if S.CONDITIONS[n].feature_only:  # encoder 2는 검증 feature MSE로 멈추고 고른다
+                    hist = pd.read_csv(path / "history.tsv", sep="\t")
+                    dv = np.load(path / "outputs/decoded_val.npz")
+                    v, cap = (x.cpu().numpy() for x in fd.feature_targets(val))
+                    mse = (((dv["v_hat"] - v) ** 2).mean() + ((dv["c_hat"] - cap) ** 2).mean()) / 2
+                    ok_fe &= abs(mse - done["val_loss"]) < 1e-5 and abs(done["val_score"] + done["val_loss"]) < 1e-12 and hist.val_loss.argmin() + 1 == done["best_epoch"]
+                    continue
                 vp = np.load(path / "val_pred.npz")
                 loss = F.binary_cross_entropy_with_logits(torch.as_tensor(vp["logit"]), torch.as_tensor(y_val)).item()
                 hist = pd.read_csv(path / "history.tsv", sep="\t")
                 ok_loss &= abs(loss - done["val_loss"]) < 1e-5
                 ok_hist &= abs(hist.val_loss.min() - done["val_loss"]) < 1e-9 and hist.val_loss.argmin() + 1 == done["best_epoch"]
                 ok_score &= abs(S.validation_score(vp["p"], y_val, vp["participant"]) - done["val_score"]) < 1e-5
-        check("조기 종료 값이 모든 조건에서 실제 y의 정서 soft BCE다", ok_loss)
+        check("조기 종료 값이 정서를 내는 모든 조건에서 실제 y의 정서 soft BCE다", ok_loss)
+        check("encoder 2는 검증 feature MSE로 멈추고 그 값으로 고른다", ok_fe)
         check("고른 epoch는 그 값이 가장 낮은 epoch다", ok_hist)
         check("선택 점수가 모든 조건에서 실제 y의 r 평균이다", ok_score)
         # 대조군의 순열 저장
@@ -1281,7 +1347,7 @@ def main():
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
         t0 = time.time()
         try:
             f()
