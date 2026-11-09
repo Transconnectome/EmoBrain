@@ -911,8 +911,29 @@ Multimodal Model의 head를 복사해 초기값으로 쓰고 encoder와 head를 
 | 5 | Brain + Decoded Feature → Emotion [distillation] | 사람 평정, Stimulus 예측 평정, Vision과 Caption feature | 핵심(돌리는 것은 핵심 조건, 해석은 보조) |
 | 6 | Brain → Emotion [representation, frozen head] | 사람 평정, Multimodal Model의 중간 표현 | 보조 |
 | 7 | Brain → Emotion [representation, trained head] | 사람 평정, Multimodal Model의 중간 표현 | 보조 |
+| 8 | Brain + Decoded Feature → Emotion [separate feature encoder] | 사람 평정, Vision과 Caption feature | 조건 3의 encoder 분리판(11/9) |
 
 조건 6, 7은 기본 분할에서 하는 보조 성능 비교다. 두 결과를 모두 기록하고, 결과를 본 뒤 더하는 분석은 탐색적 분석으로 구분한다.
+
+**조건 8. Brain + Decoded Feature → Emotion [separate feature encoder]** [정함, 11/9 석진 님. 결과를 본 뒤 더한 조건이다]
+
+조건 3과 같은 계산(정서 = g + a(v̂) + b(ĉ) + U[(Av̂) ⊙ (Bĉ)])이되, 정서 계산에 들어가는 decoded feature를 정서 학습과 분리한 encoder에서 만든다. 조건 3은 그대로 두고 따로 더한다.
+
+```text
+          ┌ encoder 1 ┬ emotion head → g ─────────────────┐
+brain ────┤           └ feature head → v̂₁, ĉ₁ → feature loss │  (encoder 1을 학습시키는 보조 과제. 정서 계산에 쓰지 않음)
+          │                                                ├→ 정서 = g + a(v̂₂) + b(ĉ₂) + U[(Av̂₂) ⊙ (Bĉ₂)] → Emotion loss
+          └ encoder 2 → feature head → v̂₂, ĉ₂ → feature loss ┘  (encoder 2는 feature loss만 받음)
+```
+
+- 왜 더하나: 조건 3은 g와 v̂, ĉ가 공용 encoder 하나에서 나온다. stop-gradient(G8)가 정서 loss의 직접 경로는 막지만, 정서 loss가 공용 encoder를 바꾸고 feature head가 그 encoder를 읽으므로 v̂, ĉ에 정서 학습의 영향이 간접적으로 섞일 수 있다. 개념을 중간에 두는 모델에서 개념과 과제를 함께 학습하면 개념 자리에 과제 정보가 샌다는 보고가 있다(Margeloiu 외 2021, Havasi 외 2022). 조건 8은 정서 계산에 들어가는 v̂₂, ĉ₂를 정서 평정을 한 번도 보지 않은 encoder 2에서 만들어 이 경로를 구조로 끊는다.
+- feature가 하는 두 역할을 나눈다. 학습 신호 역할(feature를 맞혀 보게 해서 정서를 읽는 표현을 바꿈)은 encoder 1과 v̂₁, ĉ₁가 맡고, 내용 역할(뇌에서 읽은 장면 정보를 정서 계산에 넣음)은 encoder 2와 v̂₂, ĉ₂가 맡는다.
+- encoder 2는 입력층(참가자, ROI마다 선형)까지 따로 둔다. 입력층을 같이 쓰면 정서 loss가 입력층을 바꾸고 encoder 2가 그 입력층을 읽어 다시 섞인다.
+- 각 loss가 학습시키는 부분: Emotion loss는 encoder 1, emotion head, a, b, A, B, U. encoder 1의 feature loss는 encoder 1과 그 feature head. encoder 2의 feature loss는 encoder 2와 그 feature head. Emotion loss는 v̂₂, ĉ₂에서 막는다.
+- encoder 2의 학습: fold마다 한 번(seed마다) 학습해 고정하고 조건 8의 모든 후보가 같이 쓴다. d와 입력층 weight decay는 그 fold의 Brain → Emotion에서 고른 값을 쓰고, learning rate는 검증 영상의 feature MSE로 고른다. 경로 평가(K1)의 "특징만 학습한 모델"과 같은 모델이다.
+- 남는 한계: 나눠도 leakage가 없어지지는 않는다. encoder 2는 정서 평정을 보지 않지만 뇌 반응 자체에 정서 신호가 있어, v̂₂가 실제 feature에서 빗나가는 부분에 그 신호가 섞일 수 있다. 개념 예측기를 과제와 따로 학습해도 개념값이 연속값이면 leakage가 생긴다는 보고가 있다(Mahinpei 외 2021). 그래서 조건 8에서도 "decoded feature 경로에 정서 정보가 없다"고 쓰지 않는다.
+- 비교: 조건 8 대 3은 공용 encoder를 통한 간접 영향을 끊었을 때 정서 예측과 바꿔 끼우기 결과가 어떻게 달라지는지를 본다. 조건 8 대 2는 정서 학습과 분리한 encoder의 decoded feature를 정서 계산에 더했느냐 하나만 다르다(encoder 2는 정서로 학습하지 않으므로 정서를 맞히려고 새로 학습되는 가중치는 a, b, A, B, U뿐이고 조건 3과 같다).
+- 범위: 기본 run 분할의 바깥 fold 6개. 후보는 조건 3과 같다(λ 2 × r 4 × learning rate 3, G9).
 
 #### 2부. 학습과 평가 순서
 
@@ -1806,6 +1827,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | 정서어 제거판(3-4, SI) | 156 | Brain + Decoded Feature → Emotion fold마다 26 × 6 |
 | 특징만 학습한 모델(K1, 필수 실행 범위 밖) | 24 | fold마다 후보 2 + seed 2 |
 | 손실 흐름 허용판(G8, 5-0, 보조 성능 비교) | 156 | Brain + Decoded Feature → Emotion과 같은 후보. fold마다 26(λ 2 × r 4 × learning rate 3 + seed 2) × 6 fold. 11/8 석진 님 |
+| 조건 8(encoder 분리판) | 186 | fold마다 encoder 2 5(learning rate 3 + seed 2)와 조건 8의 26(λ 2 × r 4 × learning rate 3 + seed 2) × 6 fold. 11/9 석진 님 |
 | Multimodal Model의 중간 표현 비교(G16, 조건 6, 7) | 162 | fold마다 Multimodal Model 11(후보 3 × learning rate 3 + seed 2), 조건 6과 7 각각 8(λ 2 × learning rate 3 + seed 2) × 6 fold. 뇌 표현 복사 대조는 넣지 않음 |
 
 - 가장 큰 묶음은 처음 보는 장면(6-2)이다. 구역마다 설정을 다시 고르기 때문이다(4-3의 규칙: 빠진 구역은 설정 선택에도 쓰지 않음). 시간이 모자라면 L3의 순서로 줄이고, 이 규칙은 바꾸지 않는다.
