@@ -41,6 +41,12 @@ H2020_ENSEMBLE_THRESHOLD = 0.095  # 공개 코드 summary_decoding_results.m 9�
 SOFT_BCE_DECAYS = (1e-4, 1e-3, 1e-2)  # O24, E3
 SOFT_BCE_LRS = (1e-5, 1e-4, 1e-3)  # O24, G13. 뇌 모델과 같은 후보(11/8 석진 님이 1e-2를 빼고 1e-5를 넣음)
 SOFT_BCE = dict(batch=64, max_epochs=300, patience=30, seed=0)  # O24, G13
+MLP_WIDTHS = (32, 64)  # 11/9 석진 님. A-1의 d와 같게 두어 첫 층 가중치가 A-1 입력층과 같은 규모가 되게 한다
+MLP_FIRST_DECAYS = (0.1, 1.0, 10.0)  # 첫 층 weight decay. A-1 입력층의 본실험 범위와 같다
+MLP_OTHER_DECAY = 0.01  # 나머지 층(출력층) weight decay. 편향은 0
+MLP_LRS = (1e-5, 1e-4, 1e-3)  # G13
+MLP_SEEDS = (0, 1, 2)  # 0으로 고르고 1, 2를 더한다(L9)
+MLP = dict(batch=64, max_epochs=300, patience=30, dropout=0.1)  # G13. 조기 종료는 검증 MSE
 VISUAL_LAYERS = list(range(1, 41))
 CAPTION_LAYERS = list(range(1, 25))
 LAYERS = [("vjepa2", b) for b in VISUAL_LAYERS] + [("deberta", l) for l in CAPTION_LAYERS]

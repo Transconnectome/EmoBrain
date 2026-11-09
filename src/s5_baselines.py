@@ -4,6 +4,7 @@
 과제
 - ridge: 참가자, fold마다 voxel 입력의 정서 34개와 14개 차원 ridge. 주 비교판(검증 fold 하나, N15)과 문헌판(안쪽 5겹, H3). 평균 예측의 값도 저장한다(O25).
 - soft_bce: 같은 입력의 선형 sigmoid, soft BCE(N16, O24).
+- mlp: 같은 full voxel 입력의 MLP(은닉층 1개, MSE, 선형 출력, 11/9 석진 님). 폭, 첫 층 weight decay, learning rate를 검증 fold로 고르고 seed 3개.
 - signal: 뇌 전체 평균과 block 신호 크기(I7). 주 비교판의 규칙이다.
 - video: 영상 길이의 자연로그(O23)와 저수준 시각 특징(3-6). 뇌를 쓰지 않아 fold마다 하나이고, 시험은 개발 영상 전체다. 주 비교판의 규칙이다.
 - zone: 내용 구역 제외와 학습량 대조의 정서 ridge 주 비교판(6-2, I10).
@@ -106,6 +107,98 @@ def soft_bce_task(brain, y_em, k, device, settings=d5.SOFT_BCE, decays=d5.SOFT_B
     with torch.no_grad():
         p = torch.sigmoid(chosen[0](z[te])).cpu().numpy()
     return dict(video_id=brain.video_id[te], pred=c.finite(p, "soft BCE 예측")), pd.DataFrame(rows), dict(weight_decay=chosen[2], lr=chosen[3])
+
+
+class VoxelMLP(torch.nn.Module):
+    """11/9 석진 님. full voxel → 선형층 → GELU → dropout 0.1 → 선형 출력층(정서 34개). 은닉층 1개."""
+
+    def __init__(self, n_in, width, n_out, dropout):
+        super().__init__()
+        self.first = torch.nn.Linear(n_in, width)
+        self.drop = torch.nn.Dropout(dropout)
+        self.out = torch.nn.Linear(width, n_out)
+
+    def forward(self, x):
+        return self.out(self.drop(torch.nn.functional.gelu(self.first(x))))
+
+
+def check_mlp_candidates(widths, decays, lrs):
+    """후보는 함수 안에서 강제한다. 부분 목록은 허용하고 목록 밖 값은 학습 전에 거절한다."""
+    widths, decays, lrs = [int(x) for x in widths], [float(x) for x in decays], [float(x) for x in lrs]
+    if not widths or not decays or not lrs or not set(widths) <= set(d5.MLP_WIDTHS) or not set(decays) <= set(d5.MLP_FIRST_DECAYS) or not set(lrs) <= set(d5.MLP_LRS):
+        raise ValueError(f"MLP 후보는 폭 {d5.MLP_WIDTHS}, 첫 층 weight decay {d5.MLP_FIRST_DECAYS}, learning rate {d5.MLP_LRS} 안에서만 준다")
+    return widths, decays, lrs
+
+
+def mlp_train(ztr, ytr, zva, yva, width, wd, lr, seed, settings, device):
+    """MSE, AdamW(첫 층 weight wd, 출력층 weight 0.01, 편향 0), 검증 MSE로 조기 종료, 가장 낮았던 epoch의 가중치로 되돌린다(G13)."""
+    check_mlp_candidates([width], [wd], [lr])
+    torch.manual_seed(seed)
+    g = torch.Generator().manual_seed(seed)
+    model = VoxelMLP(ztr.shape[1], width, ytr.shape[1], settings["dropout"]).to(device)
+    opt = torch.optim.AdamW([dict(params=[model.first.weight], weight_decay=wd), dict(params=[model.out.weight], weight_decay=d5.MLP_OTHER_DECAY), dict(params=[model.first.bias, model.out.bias], weight_decay=0.0)], lr=lr)
+    best, best_state, best_epoch, wait, n_epochs = float("inf"), None, 0, 0, 0
+    for epoch in range(1, settings["max_epochs"] + 1):
+        model.train()
+        order = torch.randperm(len(ztr), generator=g).to(device)
+        for i in range(0, len(order), settings["batch"]):
+            b = order[i:i + settings["batch"]]
+            opt.zero_grad(set_to_none=True)
+            torch.nn.functional.mse_loss(model(ztr[b]), ytr[b]).backward()
+            opt.step()
+        model.eval()
+        with torch.no_grad():
+            out = model(zva)
+            if not torch.isfinite(out).all():
+                raise ValueError("MLP 검증 출력에 NaN 또는 Inf가 있다")
+            loss = torch.nn.functional.mse_loss(out, yva).item()
+        n_epochs = epoch
+        if loss < best:
+            best, best_epoch, wait = loss, epoch, 0
+            best_state = {k: v.clone() for k, v in model.state_dict().items()}
+        else:
+            wait += 1
+            if wait >= settings["patience"]:
+                break
+    model.load_state_dict(best_state)
+    model.eval()
+    with torch.no_grad():
+        score = d5.r_selection(yva, model(zva)).nanmean().item()  # 공통 기준: 검증 fold의 정서별 r 평균
+    if not np.isfinite(score):
+        raise ValueError("선택 점수를 낼 수 없다")
+    return model, best, score, best_epoch, n_epochs
+
+
+def mlp_task(brain, y_em, k, device, settings=d5.MLP, widths=d5.MLP_WIDTHS, decays=d5.MLP_FIRST_DECAYS, lrs=d5.MLP_LRS, seeds=d5.MLP_SEEDS):
+    """11/9 석진 님. ridge 주 비교판(N15)과 같은 voxel 배열, 같은 표준화(학습 행), 같은 학습, 검증, 시험 영상. 정답은 값 그대로(B3).
+    seed 0으로 폭, 첫 층 weight decay, learning rate를 고르고(같으면 작은 폭, 작은 weight decay, 작은 learning rate, O6) 그 설정으로 seed 1, 2를 더한다.
+    시험 예측은 seed마다 따로 저장한다(평균하지 않는다)."""
+    widths, decays, lrs = check_mlp_candidates(widths, decays, lrs)
+    if not seeds or seeds[0] != 0:
+        raise ValueError("후보는 seed 0으로 고른다(L9)")
+    tr, va, te, _ = split_idx(brain.fold, k)
+    x = d5.as_tensor(brain.X, device)
+    z, _, _ = d5.standardize(x, tr)
+    z = z.float()
+    y = torch.as_tensor(np.asarray(y_em, np.float32), device=device)
+    rows, chosen = [], None
+    for width in sorted(widths):
+        for wd in sorted(decays):
+            for lr in sorted(lrs):
+                model, loss, score, epoch, n = mlp_train(z[tr], y[tr], z[va], y[va], width, wd, lr, seeds[0], settings, device)
+                rows.append(dict(width=width, first_weight_decay=wd, lr=lr, seed=seeds[0], val_mse=loss, val_r=score, best_epoch=epoch, n_epochs=n))
+                if chosen is None or score > chosen[1]:
+                    chosen = (model, score, width, wd, lr)
+    preds = []
+    with torch.no_grad():
+        preds.append(chosen[0](z[te]).cpu().numpy())
+    for sd in seeds[1:]:
+        model, loss, score, epoch, n = mlp_train(z[tr], y[tr], z[va], y[va], chosen[2], chosen[3], chosen[4], sd, settings, device)
+        rows.append(dict(width=chosen[2], first_weight_decay=chosen[3], lr=chosen[4], seed=sd, val_mse=loss, val_r=score, best_epoch=epoch, n_epochs=n))
+        with torch.no_grad():
+            preds.append(model(z[te]).cpu().numpy())
+    pred = c.finite(np.stack(preds), "MLP 예측")
+    return dict(video_id=brain.video_id[te], emotion_seeds=pred, seeds=np.array(seeds)), pd.DataFrame(rows), dict(width=chosen[2], first_weight_decay=chosen[3], lr=chosen[4])
 
 
 def video_task(x, y, fold, ids, k, device):
@@ -212,7 +305,7 @@ def save(out, run, arrays, started, table=None, **extra):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--task", required=True, choices=["ridge", "soft_bce", "signal", "video", "zone", "h2020"])
+    ap.add_argument("--task", required=True, choices=["ridge", "soft_bce", "mlp", "signal", "video", "zone", "h2020"])
     ap.add_argument("--participant", default="", choices=[""] + d5.HK)
     ap.add_argument("--design-freeze", default="")
     ap.add_argument("--device", default="cuda")
@@ -222,13 +315,14 @@ def main():
     if a.task != "video" and not s:
         raise SystemExit("--participant가 필요하다")
     inputs = {"labels": c.LABELS}
-    if a.task in ("ridge", "soft_bce", "zone", "h2020"):
+    if a.task in ("ridge", "soft_bce", "mlp", "zone", "h2020"):
         inputs.update({f"response:sub-{s}": d5.response_path(s), f"roi:sub-{s}": d5.roi_path(s)})
     if a.task == "signal":
         inputs[f"raw_response:sub-{s}"] = d5.response_path(s, normalized=False)
     if a.task == "video":
         inputs.update(stimuli=d5.STIMULI, lowlevel=c.FEATURES / f"{c.LOWLEVEL}.npy")
-    run = d5.Run(a.design_freeze, inputs, task=a.task, lambdas=d5.LAMBDAS.tolist(), h2020_lambdas=d5.H2020_LAMBDAS.tolist(), soft_bce=d5.SOFT_BCE, decays=d5.SOFT_BCE_DECAYS, learning_rates=d5.SOFT_BCE_LRS)
+    mlp_settings = dict(mlp=d5.MLP, mlp_widths=d5.MLP_WIDTHS, mlp_first_decays=d5.MLP_FIRST_DECAYS, mlp_other_decay=d5.MLP_OTHER_DECAY, mlp_lrs=d5.MLP_LRS, mlp_seeds=d5.MLP_SEEDS) if a.task == "mlp" else {}
+    run = d5.Run(a.design_freeze, inputs, task=a.task, lambdas=d5.LAMBDAS.tolist(), h2020_lambdas=d5.H2020_LAMBDAS.tolist(), soft_bce=d5.SOFT_BCE, decays=d5.SOFT_BCE_DECAYS, learning_rates=d5.SOFT_BCE_LRS, **mlp_settings)
     split = c.load_split()
     y_em, _ = c.load_scores(split, "emotions")
     y_dim, _ = c.load_scores(split, "dimensions")
@@ -276,6 +370,9 @@ def main():
             save(out, run, ridge_task(brain, y, d5.align(y_dim, split, brain.video_id), k, a.device), started, participant=s, fold=k)
         elif a.task == "soft_bce":
             arrays, table, chosen = soft_bce_task(brain, y, k, a.device)
+            save(out, run, arrays, started, table, participant=s, fold=k, chosen=chosen)
+        elif a.task == "mlp":
+            arrays, table, chosen = mlp_task(brain, y, k, a.device)
             save(out, run, arrays, started, table, participant=s, fold=k, chosen=chosen)
         else:
             save(out, run, h2020_task(brain, y, k, a.device), started, participant=s, fold=k)

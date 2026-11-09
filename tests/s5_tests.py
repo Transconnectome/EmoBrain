@@ -217,6 +217,25 @@ def t_soft_bce():
     check("weight decay는 weight에만 적용한다", o.param_groups[0]["weight_decay"] == 0.5 and o.param_groups[1]["weight_decay"] == 0.0)
 
 
+def t_mlp():
+    """11/9 MLP 기준선. 후보 강제, 선택은 검증 fold, 시험 정답과 무관, seed 3개, 출력 크기."""
+    brain, y = synth(n=120, p=30, q=3)
+    s = dict(batch=16, max_epochs=20, patience=4, dropout=0.1)
+    a, tab, chosen = b5.mlp_task(brain, y, 1, "cpu", settings=s, widths=(32,), decays=(0.1, 1.0), lrs=(1e-4, 1e-3), seeds=(0, 1, 2))
+    check("MLP 후보는 폭 32, 64, 첫 층 weight decay 0.1, 1, 10, learning rate 1e-5~1e-3, seed 0, 1, 2다", d5.MLP_WIDTHS == (32, 64) and d5.MLP_FIRST_DECAYS == (0.1, 1.0, 10.0) and d5.MLP_LRS == (1e-5, 1e-4, 1e-3) and d5.MLP_SEEDS == (0, 1, 2) and d5.MLP == dict(batch=64, max_epochs=300, patience=30, dropout=0.1))
+    check("후보 밖 값은 학습 전에 거절한다", stops_any(lambda: b5.mlp_task(brain, y, 1, "cpu", settings=s, widths=(128,), decays=(0.1,), lrs=(1e-3,))) and stops_any(lambda: b5.mlp_task(brain, y, 1, "cpu", settings=s, widths=(32,), decays=(0.01,), lrs=(1e-3,))) and stops_any(lambda: b5.mlp_task(brain, y, 1, "cpu", settings=s, widths=(32,), decays=(0.1,), lrs=(1e-2,))))
+    seed0 = tab[tab.seed == 0]
+    check("seed 0의 후보 4개를 모두 학습하고 검증 r이 가장 높은 것을 고른다", len(seed0) == 4 and seed0.val_r.max() == seed0[(seed0.first_weight_decay == chosen["first_weight_decay"]) & (seed0.lr == chosen["lr"])].val_r.iloc[0])
+    check("고른 설정으로 seed 1, 2를 더 학습한다", set(tab[tab.seed > 0].seed) == {1, 2} and (tab[tab.seed > 0].lr == chosen["lr"]).all())
+    te = brain.fold == 1
+    check("시험 예측은 seed마다 따로 남고 크기가 맞다", a["emotion_seeds"].shape == (3, int(te.sum()), y.shape[1]) and list(a["seeds"]) == [0, 1, 2])
+    y2 = y.copy(); y2[te] = -y2[te]
+    b, tab2, _ = b5.mlp_task(brain, y2, 1, "cpu", settings=s, widths=(32,), decays=(0.1, 1.0), lrs=(1e-4, 1e-3), seeds=(0, 1, 2))
+    check("시험 fold의 정답을 바꿔도 예측과 선택이 같다", np.array_equal(a["emotion_seeds"], b["emotion_seeds"]) and tab.val_r.equals(tab2.val_r))
+    m = b5.VoxelMLP(30, 32, 3, 0.1)
+    check("구조: 선형층 → GELU → dropout 0.1 → 선형 출력층", isinstance(m.first, torch.nn.Linear) and m.first.out_features == 32 and m.drop.p == 0.1 and m.out.out_features == 3)
+
+
 def t_h2020():
     g = np.random.default_rng(0)
     n, v = 60, 40
@@ -464,7 +483,7 @@ def t_collect():
 
 
 def main():
-    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_identification_mean, t_without_h2020, t_timing, t_layer_metrics, t_qc_rows, t_soft_bce, t_h2020, t_video_zone, t_boundaries, t_collect):
+    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_identification_mean, t_without_h2020, t_timing, t_layer_metrics, t_qc_rows, t_soft_bce, t_mlp, t_h2020, t_video_zone, t_boundaries, t_collect):
         f()
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)

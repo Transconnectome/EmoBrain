@@ -959,6 +959,7 @@ D-1에서 encoder 1을 뺀 것이다. 고정한 encoder 2가 낸 v̂₂, ĉ₂�
 - 2단계를 학습하는 영상 [정함, 11/9 석진 님. 예비 실행(11/8) 뒤의 변경]
     - 문제: 2단계는 encoder 2가 1단계에서 이미 학습한 영상으로 정서 쪽을 학습한다. 예비 실행(fold 2, 3, 5, 참가자 5명 평균)에서 encoder 2의 차원별 r은 학습 영상에서 Vision 0.67~0.69, Caption 0.65~0.68이었고 검증 영상에서 Vision 0.16~0.21, Caption 0.34였다. 정서 쪽이 학습 때는 정확한 v̂₂, ĉ₂로 배우고 시험 때는 훨씬 부정확한 값을 받게 된다.
     - D-1, D-2, D-3: 2단계를 fold 밖(OOF) v̂₂, ĉ₂로 학습한다. 예비 실행과 본실험 모두. 바깥 fold마다 학습 fold 4개를 넷으로 나눠, 하나씩 빼고 학습한 encoder 2 네 개가 뺀 영상의 v̂₂, ĉ₂를 낸다. encoder 2마다 표준화가 다르므로 원래 단위로 되돌린 뒤 바깥 fold의 통계로 다시 표준화해서 모은다. 검증과 시험 영상에는 지금처럼 학습 fold 4개 전체로 학습한 encoder 2의 출력을 쓴다. Stimulus Model의 nested OOF(E4, O16)와 같은 구조다.
+    - 세부 [정함, 11/9 석진 님. Claude 추천대로]: 넷으로 나누는 단위는 학습 fold 4개 그대로다(run 묶음 단위, Stimulus Model의 nested OOF와 같음). fold 밖 encoder 2 넷의 learning rate는 전체 encoder 2가 고른 값을 쓰고 조기 종료는 검증 feature MSE로 한다. D-4와 D-3 짝의 learning rate는 네 짝에 같은 값을 쓰고 네 짝의 검증 점수 평균으로 고른다. 시험 때는 네 짝의 예측 평정(0~1)을 평균한다. 네 짝을 평균하면 그것만으로 성능이 오를 수 있으므로(앙상블 효과), D-4 대 A-1은 짝 하나씩의 성능을 평균한 값으로도 비교한다(추가 학습 없음). 짝 head j의 입력은 encoder j와 같은 기준(encoder j의 학습 영상)으로 표준화한다.
     - D-4: token H는 encoder마다 좌표가 달라 여러 encoder의 H를 섞을 수 없다. 그래서 짝지어 학습한다. 위의 encoder 2 네 개를 그대로 쓰고(encoder를 더 학습하지 않음), encoder j마다 정서 head j를 따로 둔다. head j는 encoder j가 보지 않은 j번째 영상의 H로만 학습하고, 조기 종료는 검증 fold로 한다. 시험 때는 네 짝(encoder j + head j)의 예측을 평균한다. 나중에 다른 자료로 사전학습한 encoder를 옮겨 쓰는 상황과 같은 꼴이다. 한계: head 하나가 약 350개 영상만 본다(A-1은 약 1,390개).
     - D-3 대 D-4를 같은 조건에서 비교하려고 D-3도 같은 짝 방식으로 한 번 더 낸다. D-3의 주 결과는 OOF 방식이고 짝 방식은 비교용이다.
     - 11/9 이전 방식(이미 본 영상으로 2단계를 학습한 판)의 예비 결과는 버리지 않고 "이미 본 영상판"으로 이름 붙여 SI의 학습과 시험 차이 자료로 쓴다.
@@ -1250,6 +1251,16 @@ C-2에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder�
             - 첫 비교는 GED다. 34개 정서 점수를 한 모델에서 함께 예측하고 370개 영역을 입력으로 쓰므로 바꿀 것이 가장 적다. 공개 코드의 점수 정규화는 학습 fold로만 한다(아래 (나)).
             - ML-BVAE와 EmoGrowth는 계획대로 비교하고, 목표 형식(27개 → 34개, 이진 라벨 → 평정 비율), 손실, 칸 수 선택에서 바꾼 것을 밝힌다(아래 (가)~(라)). ML-BVAE의 칸 수 후보를 줄여야 하면 시험 성능을 보기 전에 범위를 고정하고 기록한다.
             - 일반 신경망 기준선으로 MLP를 둔다. fMRI decoding에 쓰이고(Scotti 외 2024, MindEye2), 같은 자료에서 ML-BVAE 논문이 비교에 썼다. voxel 전체를 그대로 받으면 첫 층이 우리 입력층처럼 커지므로, 입력층 점검과 같은 입력(전체 voxel, ROI 평균, ROI 8칸 평균)으로 돌린다.
+                - 첫 실험(full voxel MLP 대 ridge) [정함, 11/9 석진 님]
+                    - Question: 같은 뇌 반응으로 정서를 예측할 때 MLP가 ridge보다 잘 맞히는가.
+                    - Why: 우리 모델의 성능만으로 딥러닝의 가능성을 판단하지 않고, ROI token을 거치지 않는 일반 신경망을 비교 상대로 확보한다.
+                    - Input: ridge 주 비교판(N15)과 같은 voxel 배열, 같은 voxel 선택, 학습 행 표준화, 참가자별 학습, 같은 학습, 검증, 시험 영상(run 6 fold, MC 72개 제외). ROI 평균이나 ROI token 변환은 넣지 않는다.
+                    - 구조: full voxel → 선형층 → GELU → dropout 0.1 → 선형 출력층(정서 34개). 은닉층 1개. 2개 이상은 이 결과를 본 뒤 정한다.
+                    - 학습: 사람 평정만, ridge와 맞춰 MSE와 선형 출력층. AdamW, batch 64, 최대 300 epoch, 검증 MSE로 patience 30(G13).
+                    - 후보(결과를 보기 전에 고정): 은닉층 폭 {32, 64}(A-1의 d와 같음), 첫 층 weight decay {0.1, 1, 10}(A-1 입력층의 본실험 범위), 나머지 층 0.01, learning rate {1e-5, 1e-4, 1e-3}. 선택은 검증 fold의 정서별 r 평균, seed 0으로 고르고 1, 2를 더한다. 시험 예측은 seed마다 따로 남긴다.
+                    - Figure: ridge와 MLP의 정서별 Pearson r을 나란히, 정서별 r의 중앙값과 평균을 함께. 학습 곡선은 학습 점검용.
+                    - 해석: MLP가 ridge보다 높으면 이 자료에서 다른 딥러닝 구조가 유리할 가능성을 확인한 것이다. 다만 우리 모델의 문제를 ROI token 탓이라고 확정할 수는 없다(입력 처리, 구조, 학습 방식이 함께 다름). MLP가 ridge보다 낮으면 같은 입력에서도 voxel 전체를 받는 첫 층이 과적합한다는 뜻이고, 이어서 ROI 평균, 8칸 평균 입력으로 MLP를 돌린다. 어느 쪽이든 ridge는 정서마다 λ를 따로 고르고 MLP는 34개 정서가 은닉층을 함께 쓴다는 차이가 남는다.
+                    - 코드: s5_baselines.py의 mlp 과제(04).
             - CNN은 입력층 점검과 위 기준선 결과를 본 뒤에 정한다. "딥러닝 기준선이 필요하다"와 "CNN, RNN을 모두 돌려야 한다"는 별개이고, 기존 정서 decoding 모델이 먼저 그 역할을 맡는다.
             - 평가 규칙은 우리 모델과 같다(O27): 참가자마다, 우리 run 6 fold, 검증 fold로 설정과 조기 종료, MC 72개 제외, 사람 평정에 대한 정서별 r. 원 논문에서 바꾼 항목은 모두 SI에 기록한다.
             - 결과에 따라 말할 수 있는 것
@@ -1922,7 +1933,9 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | 특징만 학습한 모델(K1, 필수 실행 범위 밖) | 24 | fold마다 후보 2 + seed 2 |
 | 손실 흐름 허용판(G8, 5-0, 보조 성능 비교) | 156 | Brain + Decoded Feature → Emotion과 같은 후보. fold마다 26(λ 2 × r 4 × learning rate 3 + seed 2) × 6 fold. 11/8 석진 님 |
 | D-3(장면 경로만) | 102 | fold마다 17(r 5 × learning rate 3 + seed 2) × 6 fold. encoder 2는 D-1, D-2, D-4와 같이 쓰고 정서 계산만 학습해 1회가 짧다. 11/9 석진 님 |
-| D-4(고정한 encoder 2 위의 정서 head) | 30 | fold마다 5(learning rate 3 + seed 2) × 6 fold. encoder 2는 D-1~D-3과 같이 쓰고 정서 head만 학습한다. 11/9 석진 님 |
+| D-4(고정한 encoder 2 위의 정서 head, 짝 학습) | 120 | fold마다 짝 4 × 5(learning rate 3 + seed 2) × 6 fold. 정서 head만 학습한다. 11/9 석진 님 |
+| D-3 짝(D-4와 같은 짝 방식, 비교용) | 408 | fold마다 짝 4 × 17(r 5 × learning rate 3 + seed 2) × 6 fold. 정서 계산만 학습해 1회가 짧다. 11/9 석진 님 |
+| fold 밖 encoder 2 | 72 | fold마다 학습 fold 하나씩 뺀 4개 × seed 3 × 6 fold. D-1, D-2, D-3의 학습 행 입력과 D-4, D-3 짝의 encoder. 11/9 석진 님 |
 | D-1, D-2(encoder 분리판) | 234 | fold마다 encoder 2 5(learning rate 3 + seed 2), D-1의 26(λ 2 × r 4 × learning rate 3 + seed 2), D-2의 8(α 2 × learning rate 3 + seed 2) × 6 fold. encoder 2는 두 조건이 같이 쓴다. 11/9 석진 님 |
 | Multimodal Model의 중간 표현 비교(G16, E-고정, E-학습) | 162 | fold마다 Multimodal Model 11(후보 3 × learning rate 3 + seed 2), E-고정과 E-학습 각각 8(λ 2 × learning rate 3 + seed 2) × 6 fold. 뇌 표현 복사 대조는 넣지 않음 |
 

@@ -57,6 +57,7 @@ class Condition:
     feature_only: bool = False  # encoder 2. feature 손실만 쓰고 정서를 학습하지 않는다
     head_only: bool = False  # D-3. 고정한 encoder 2의 v̂₂, ĉ₂ 위에 정서 계산만 학습한다(g 경로 없음)
     frozen_encoder: bool = False  # D-4. 고정한 encoder 2의 token H 위에 A-1과 같은 정서 head만 학습한다
+    paired: bool = False  # 11/9. fold 밖 encoder 2 네 개마다 head를 따로 두고 그 encoder가 보지 않은 영상으로만 학습, 시험은 네 짝의 평균(D-4, D-3 짝)
 
 
 CONDITIONS = {
@@ -68,10 +69,11 @@ CONDITIONS = {
     "brain_only_distill": Condition("Response-based distillation", target="stimulus"),  # A-2
     "brain_decoded_distill": Condition("Decoded-feature readout + response-based distillation", feature_head=True, decoded=True, features="actual", target="stimulus"),  # C-2
     "feature_encoder": Condition("Feature-only encoder (encoder 2 of D-1, D-2, D-3, D-4)", feature_head=True, features="actual", feature_only=True),  # D-1~D-4의 encoder 2
-    "brain_frozen_feature_encoder": Condition("Brain → Emotion [frozen feature encoder]", frozen_encoder=True),  # D-4. feature_encoder 바로 뒤(ORDER)
+    "brain_frozen_feature_encoder": Condition("Brain → Emotion [frozen feature encoder]", frozen_encoder=True, paired=True),  # D-4. feature_encoder 바로 뒤(ORDER). 짝 학습(11/9)
     "brain_decoded_sep": Condition("Decoded-feature readout, separate feature encoder", feature_head=True, decoded=True, features="actual", separate=True),  # D-1
     "brain_decoded_sep_distill": Condition("Decoded-feature readout, separate feature encoder + response-based distillation", feature_head=True, decoded=True, features="actual", target="stimulus", separate=True),  # D-2
-    "brain_features_only": Condition("Emotion head on frozen decoded features only (no direct brain path)", decoded=True, head_only=True),  # D-3
+    "brain_features_only": Condition("Emotion head on frozen decoded features only (no direct brain path)", decoded=True, head_only=True),  # D-3. 학습 행은 OOF v̂₂, ĉ₂(11/9)
+    "brain_features_only_paired": Condition("Emotion head on frozen decoded features, paired with held-out encoders (D-3 paired)", decoded=True, head_only=True, paired=True),  # D-3 짝. D-4와 같은 조건의 비교용(11/9)
     "multimodal": Condition("Multimodal Model", multimodal=True),  # E-고정, E-학습의 준비
     "brain_only_repr_frozen": Condition("Representation, frozen head", representation="frozen"),  # E-고정
     "brain_only_repr_trained": Condition("Representation, trained head", representation="trained"),  # E-학습
@@ -88,7 +90,7 @@ DISPLAY = {
     "brain_only_featdec": "B-1",
     "brain_decoded": "C-1", "brain_decoded_distill": "C-2",
     "brain_decoded_sep": "D-1", "brain_decoded_sep_distill": "D-2",
-    "brain_features_only": "D-3", "brain_frozen_feature_encoder": "D-4",
+    "brain_features_only": "D-3", "brain_features_only_paired": "D-3 짝", "brain_frozen_feature_encoder": "D-4",
     "brain_only_repr_frozen": "E-고정", "brain_only_repr_trained": "E-학습",
     "brain_decoded_additive": "C-1 더하기 head", "brain_decoded_grad": "C-1 손실 흐름 허용판",
     "brain_only_pool": "A-1 평균 pooling판", "brain_decoded_pool": "C-1 평균 pooling판",
@@ -193,7 +195,7 @@ def candidates(condition, *, k_candidates=None, base=None, decoded=None, learnin
         return [_cand(**shared, lr=lr) for lr in lrs]
     if condition == "brain_frozen_feature_encoder":  # D-4. 정서 head의 learning rate만 고른다. d와 입력층 weight decay는 encoder 2와 같은 A-1 값
         return [_cand(**shared, lr=lr) for lr in lrs]
-    if condition == "brain_features_only":  # D-3. 더하기 head(r = 0)와 상호작용 head(r 1, 2, 4, 8)를 함께 고른다
+    if condition in ("brain_features_only", "brain_features_only_paired"):  # D-3, D-3 짝. 더하기 head(r = 0)와 상호작용 head(r 1, 2, 4, 8)를 함께 고른다
         return [_cand(**shared, rank=r, lr=lr) for r in (0,) + tuple(RANKS) for lr in lrs]
     if condition in ("brain_decoded", "brain_decoded_grad", "brain_decoded_sep"):  # 허용판과 D-1은 C-1과 후보가 같다(G8)
         return [_cand(**shared, lam=x, rank=r, lr=lr) for x in LAMBDAS_FEATURE for r in RANKS for lr in lrs]
@@ -229,10 +231,30 @@ def check_candidate(condition, cand):
         raise ValueError(f"{condition}: 특징 선형층 weight decay가 O5와 다르다")
 
 
+N_PAIRS = 4  # 학습 fold 4개를 하나씩 뺀 encoder 2의 수(11/9). 짝 조건은 짝마다 학습한다
+
+
+def inner_plans(plan, split):
+    """11/9. 바깥 fold의 학습 fold 4개를 하나씩 뺀다. j번째: encoder 2 학습 = 나머지 3개 fold, 검증 = 바깥 검증 fold, held = j번째 fold.
+    돌려주는 값: [(fold 번호, encoder 2용 Plan(test = held), head용 Plan(train = held, test = 바깥 시험), encoder 2 학습 영상)]."""
+    fold_of = dict(zip(split.video_id.tolist(), split.fold.tolist()))
+    train_folds = c.roles(plan.outer_fold)["train"]
+    if len(train_folds) != N_PAIRS or {fold_of[v] for v in plan.train} != set(train_folds):
+        raise ValueError("바깥 fold의 학습 fold 4개로만 나눈다")
+    out = []
+    for j in train_folds:
+        held = [v for v in plan.train if fold_of[v] == j]
+        rest = [v for v in plan.train if fold_of[v] != j]
+        enc = Plan(f"{plan.name}_inner{j}", plan.outer_fold, rest, list(plan.val), held)
+        head = Plan(f"{plan.name}_pair{j}", plan.outer_fold, held, list(plan.val), list(plan.test))
+        out.append((j, enc, head, rest))
+    return out
+
+
 def planned_runs(k, n_lr=3, n_seeds=3):
     """한 fold의 학습 횟수(7-L의 식). 시험에서 후보 함수의 결과와 대조한다."""
     extra = n_seeds - 1
-    return dict(brain_only=k * n_lr + extra, brain_only_featdec=2 * n_lr + extra, brain_decoded=8 * n_lr + extra, brain_decoded_grad=8 * n_lr + extra, brain_decoded_additive=2 * n_lr + extra, brain_only_distill=2 * n_lr + extra, brain_decoded_distill=2 * n_lr + extra, feature_encoder=n_lr + extra, brain_frozen_feature_encoder=n_lr + extra, brain_decoded_sep=8 * n_lr + extra, brain_decoded_sep_distill=2 * n_lr + extra, brain_features_only=5 * n_lr + extra, control_label_smoothing=2 * n_lr + extra, control_stimulus_shuffle=2 * n_lr + extra, control_feature_shuffle=2 * n_lr + extra, multimodal=3 * n_lr + extra, brain_only_repr_frozen=2 * n_lr + extra, brain_only_repr_trained=2 * n_lr + extra, brain_only_pool=n_seeds, brain_decoded_pool=n_seeds)
+    return dict(brain_only=k * n_lr + extra, brain_only_featdec=2 * n_lr + extra, brain_decoded=8 * n_lr + extra, brain_decoded_grad=8 * n_lr + extra, brain_decoded_additive=2 * n_lr + extra, brain_only_distill=2 * n_lr + extra, brain_decoded_distill=2 * n_lr + extra, feature_encoder=n_lr + extra, brain_frozen_feature_encoder=N_PAIRS * (n_lr + extra), brain_features_only_paired=N_PAIRS * (5 * n_lr + extra), brain_decoded_sep=8 * n_lr + extra, brain_decoded_sep_distill=2 * n_lr + extra, brain_features_only=5 * n_lr + extra, control_label_smoothing=2 * n_lr + extra, control_stimulus_shuffle=2 * n_lr + extra, control_feature_shuffle=2 * n_lr + extra, multimodal=3 * n_lr + extra, brain_only_repr_frozen=2 * n_lr + extra, brain_only_repr_trained=2 * n_lr + extra, brain_only_pool=n_seeds, brain_decoded_pool=n_seeds)
 
 
 def candidate_id(cand):
@@ -522,10 +544,13 @@ class FoldData:
         return self.test_vision[at], self.test_caption[at]
 
 
-def prepare_fold(brains, split, y, vision, caption, plan, *, stimulus=None, include_test_features=False, device="cpu", mc_ids=None):
+def prepare_fold(brains, split, y, vision, caption, plan, *, stimulus=None, include_test_features=False, device="cpu", mc_ids=None, stats_videos=None):
     """brains: 참가자 -> s5_common.BrainSet. y, vision, caption은 split 순서이고 원래 값이다. 실제 실행은 시험 행을 읽지 않고 NaN으로 넘긴다(s6_train.load_known).
-    표준화는 학습 자료로만 한다(N3). 돌려주는 자료에는 시험 영상의 정답과(기본값에서) feature가 없다."""
+    표준화는 학습 자료로만 한다(N3). 돌려주는 자료에는 시험 영상의 정답과(기본값에서) feature가 없다.
+    stats_videos: 짝 학습(11/9)에서 head j의 입력을 encoder j와 같은 기준으로 표준화한다. encoder j의 학습 영상이어야 하고 시험, 검증 영상이 들어 있으면 멈춘다."""
     check_plan(plan, split, mc_ids)
+    if stats_videos is not None and set(stats_videos) & (set(plan.val) | set(plan.test)):
+        raise ValueError("표준화 영상에 검증이나 시험 영상이 들어 있다(N3)")
     pos = {v: i for i, v in enumerate(split.video_id.tolist())}
     roles = {**{v: 0 for v in plan.train}, **{v: 1 for v in plan.val}, **{v: 2 for v in plan.test}}
     participants = sorted(brains)
@@ -537,7 +562,7 @@ def prepare_fold(brains, split, y, vision, caption, plan, *, stimulus=None, incl
             raise ValueError(f"{pid}: 한 영상의 행이 둘 이상이다")
         c.check_dev(b.video_id, split)
         role = np.array([roles.get(int(v), -1) for v in b.video_id])
-        train_rows = np.flatnonzero(role == 0)
+        train_rows = np.flatnonzero(role == 0) if stats_videos is None else np.flatnonzero(np.isin(b.video_id, list(stats_videos)))
         if not len(train_rows):
             raise ValueError(f"{pid}: 학습 행이 없다")
         used = np.flatnonzero(role >= 0)  # 시험도 학습도 검증도 아닌 행(빠진 구역 등)은 메모리에 올리지 않는다
@@ -551,7 +576,7 @@ def prepare_fold(brains, split, y, vision, caption, plan, *, stimulus=None, incl
         rp.append(np.full(len(used), i)), rl.append(np.arange(len(used))), rv.append(b.video_id[used]), rr.append(role[used])
     row_video, row_role = np.concatenate(rv), np.concatenate(rr)
     known = list(plan.train) + list(plan.val)
-    at, train_at = [pos[v] for v in known], [pos[v] for v in plan.train]
+    at, train_at = [pos[v] for v in known], [pos[v] for v in (plan.train if stats_videos is None else stats_videos)]
     vm, vs = c.fit_standardizer(np.asarray(vision)[train_at])  # D9, N3. 학습 영상만
     cm, cs = c.fit_standardizer(np.asarray(caption)[train_at])
     as_t = lambda a: torch.as_tensor(c.finite(np.asarray(a, np.float32), "학습 또는 검증 자료"), device=device)

@@ -401,16 +401,21 @@ class SeparateDecodedModel(nn.Module):
         self.feature_model.eval()  # 고정한 encoder 2는 늘 평가 상태다(dropout 끔)
         return self
 
-    def forward(self, brain):
+    def forward(self, brain, fixed=None):
+        """fixed: (v̂₂, ĉ₂). 학습 행에서는 fold 밖(OOF) encoder 2가 낸 값을 받는다(11/9). 없으면 고정한 encoder 2를 돌린다(검증, 시험)."""
         H = self.main.encode(brain)
         r = self.main.readout
         o, emotion_attention = r.emotion_query(H)
         g = torch.cat([layer(o[:, e]) for e, layer in enumerate(r.emotion_linears)], dim=-1)
         v1, c1, feature_attention = r.feature_head(H)
-        with torch.no_grad():
-            f = self.feature_model(brain)
-        z = r.combine(g, f.v_hat, f.c_hat)  # combine도 기울기를 끊는다(G8)
-        return SeparateOutput(z, z.sigmoid(), g, v1, c1, emotion_attention, feature_attention, o, H, f.v_hat, f.c_hat)
+        if fixed is None:
+            with torch.no_grad():
+                f = self.feature_model(brain)
+            v2, c2 = f.v_hat, f.c_hat
+        else:
+            v2, c2 = fixed
+        z = r.combine(g, v2, c2)  # combine도 기울기를 끊는다(G8)
+        return SeparateOutput(z, z.sigmoid(), g, v1, c1, emotion_attention, feature_attention, o, H, v2, c2)
 
 
 class FeatureHeadModel(nn.Module):
@@ -440,10 +445,14 @@ class FeatureHeadModel(nn.Module):
         self.feature_model.eval()
         return self
 
-    def forward(self, brain):
-        with torch.no_grad():
-            f = self.feature_model(brain)
-        v, c = f.v_hat, f.c_hat
+    def forward(self, brain, fixed=None):
+        """fixed: (v̂₂, ĉ₂). 학습 행에서는 fold 밖(OOF) encoder 2가 낸 값을 받는다(11/9). 없으면 고정한 encoder 2를 돌린다."""
+        if fixed is None:
+            with torch.no_grad():
+                f = self.feature_model(brain)
+            v, c = f.v_hat, f.c_hat
+        else:
+            v, c = fixed
         z = self.a(v) + self.b(c)
         if self.rank:
             z = z + self.U(self.A(v) * self.B(c))

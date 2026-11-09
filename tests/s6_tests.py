@@ -507,7 +507,7 @@ def t_frozen_encoder():
     for x in cands:
         S.check_candidate("brain_frozen_feature_encoder", x)
     check("D-4는 ORDER에서 feature_encoder 바로 뒤다", S.ORDER.index("brain_frozen_feature_encoder") == S.ORDER.index("feature_encoder") + 1)
-    check("D-4는 planned_runs에 learning rate 수 + seed 2회가 있다", S.planned_runs(6)["brain_frozen_feature_encoder"] == 3 + 2)
+    check("D-4는 planned_runs에 짝 4개 × (learning rate 수 + seed 2)회가 있다", S.planned_runs(6)["brain_frozen_feature_encoder"] == 4 * (3 + 2) and S.planned_runs(6)["brain_features_only_paired"] == 4 * (15 + 2))
     torch.manual_seed(0)
     enc2 = S.build_model("feature_encoder", dict(base, rank=None), fd.voxel_counts)
     with torch.no_grad():
@@ -540,21 +540,71 @@ def t_frozen_encoder():
         check("D-4 체크포인트를 되살리면 같은 출력이다", torch.allclose(back(fd.batch(rows)).z, m(fd.batch(rows)).z, atol=1e-6))
     check("D-4는 linear 입력층만 받는다", stops(lambda: S.build_model("brain_frozen_feature_encoder", dict(base, rank=None), fd.voxel_counts, "roi_mean")))
     check("D-4는 내용 구역 제외에 돌리지 않는다", stops(lambda: S.check_conditions("zone_block1_fold1_excluded", ["brain_frozen_feature_encoder"])))
-    # (d), (e)는 파이프라인에서: 짝지은 encoder 2의 체크포인트 해시, 자료 경계
+    # (d), (e)는 파이프라인에서: 짝지은 encoder 2의 체크포인트 해시, 자료 경계, 짝 학습(11/9)
     with tempfile.TemporaryDirectory() as td:
         w2, fd2, run, runner = pipeline(Path(td), conditions=["brain_only", "feature_encoder", "brain_frozen_feature_encoder"])
+        root = Path(td) / "outer_fold1"
         sel = runner.selected("brain_frozen_feature_encoder")
-        fe = runner.selected("feature_encoder")
-        ok_d, ok_e = True, True
+        ok_d, ok_e, ok_pair, ok_lr = True, True, True, True
         for seed, rel in sel["seeds"].items():
-            done = json.loads((Path(td) / "outer_fold1" / rel / "done.json").read_text())
-            fe_path = Path(td) / "outer_fold1" / fe["seeds"][seed] / "model.pt"
-            ok_d &= done.get("feature_encoder", {}).get("checkpoint_sha256") == c.sha256(fe_path) and int(done["feature_encoder"]["seed"]) == int(seed)
-            for name, part in (("val_pred.npz", fd2.plan.val), ("test_pred.npz", fd2.plan.test)):
-                ids = set(np.load(Path(td) / "outer_fold1" / rel / name)["video_id"].tolist())
-                ok_e &= ids <= set(part)
-        check("(d) D-4 실행 기록에 같은 seed encoder 2 체크포인트의 해시가 남는다", ok_d)
-        check("(e) D-4는 그 분할의 검증, 시험 영상만 예측하고, 분할 점검은 MC 72개가 들어오면 멈춘다", ok_e and stops(lambda: S.check_plan(fd2.plan, w2.split, mc_ids=[sorted(fd2.plan.train)[0]])))
+            folder = root / rel
+            pairs = sorted(folder.glob("pair*"))
+            ok_pair &= len(pairs) == S.N_PAIRS
+            for pdir in pairs:
+                done = json.loads((pdir / "done.json").read_text())
+                j = done["held_fold"]
+                inner = root / "feature_encoder_oof" / f"seed{seed}" / f"inner{j}" / "model.pt"
+                ok_d &= done["feature_encoder_oof"]["checkpoint_sha256"] == c.sha256(inner) and int(done["feature_encoder_oof"]["seed"]) == int(seed)
+                ok_lr &= done["candidate"]["lr"] == sel["candidate"]["lr"]
+                vids = set(np.load(pdir / "test_pred.npz")["video_id"].tolist())
+                ok_e &= vids <= set(fd2.plan.test) and done["n_head_rows"] == sum(int((b.fold == j).sum()) for b in w2.brains.values())
+            ens = np.load(folder / "ensemble/test_pred.npz")
+            ok_pair &= np.allclose(ens["p"], ens["p_pairs"].mean(0)) and ens["p_pairs"].shape[0] == S.N_PAIRS
+        check("(d) D-4의 짝마다 그 짝 encoder 2(fold 밖, 같은 seed) 체크포인트의 해시가 남는다", ok_d)
+        check("(e) D-4 head j는 j번째 fold 영상으로만 학습하고 시험 영상만 예측한다. 분할 점검은 MC 72개가 들어오면 멈춘다", ok_e and stops(lambda: S.check_plan(fd2.plan, w2.split, mc_ids=[sorted(fd2.plan.train)[0]])))
+        check("D-4는 네 짝이고 시험 예측은 네 짝 예측 평정의 평균이다(짝마다의 예측도 남는다)", ok_pair)
+        check("D-4의 learning rate는 네 짝에 같은 값이고 네 짝의 검증 점수 평균으로 고른다", ok_lr and all(abs(r["val_score"] - np.mean([json.loads((root / "brain_frozen_feature_encoder" / f"{r['candidate_id']}_seed0" / f"pair{j}" / "done.json").read_text())["val_score"] for j in c.roles(1)["train"]])) < 1e-9 for r in sel["rows"]))
+
+
+def t_oof():
+    """11/9 석진 님. D-1, D-2, D-3의 학습 행은 fold 밖(OOF) encoder 2의 v̂₂, ĉ₂로 학습한다."""
+    w = World()
+    plan = w.plan(1)
+    ins = S.inner_plans(plan, w.split)
+    fold_of = dict(zip(w.split.video_id.tolist(), w.split.fold.tolist()))
+    check("학습 fold 4개를 하나씩 뺀 encoder 2 넷이다", [j for j, *_ in ins] == c.roles(1)["train"] and all(set(e.test) == {v for v in plan.train if fold_of[v] == j} and not set(e.train) & set(e.test) and set(e.train) | set(e.test) == set(plan.train) and e.val == plan.val for j, e, h, r in ins))
+    check("짝 head j는 j번째 fold로 학습하고 바깥 검증, 시험을 그대로 쓴다", all(set(h.train) == set(e.test) and h.val == plan.val and h.test == plan.test and set(r) == set(e.train) for j, e, h, r in ins))
+    j, e, h, rest = ins[0]
+    fe = S.prepare_fold(w.brains, w.split, w.y, w.v, w.cap, e)
+    fh = S.prepare_fold(w.brains, w.split, w.y, w.v, w.cap, h, stats_videos=rest)
+    check("짝 head의 입력은 encoder j와 같은 기준으로 표준화한다", all(np.allclose(fe.voxel_stats[q]["mean"], fh.voxel_stats[q]["mean"]) and np.allclose(fe.voxel_stats[q]["std"], fh.voxel_stats[q]["std"]) for q in fe.voxel_stats) and np.allclose(fe.feature_stats["visual_mean"], fh.feature_stats["visual_mean"]))
+    check("표준화 영상에 검증이나 시험 영상이 있으면 멈춘다", stops(lambda: S.prepare_fold(w.brains, w.split, w.y, w.v, w.cap, h, stats_videos=list(rest) + [plan.val[0]])))
+    with tempfile.TemporaryDirectory() as td:
+        w2, fd, run, runner = pipeline(Path(td), w=w, conditions=["brain_only", "feature_encoder", "brain_features_only"])
+        root = Path(td) / "outer_fold1"
+        oof = runner.oof(0)
+        tr = fd.rows("train")
+        check("모든 학습 행에 fold 밖 v̂₂, ĉ₂가 있고 다른 행에는 없다", bool(torch.isfinite(oof["v"][tr]).all()) and bool(torch.isnan(oof["v"][fd.rows("val")]).all()) and int(oof["is_train"].sum()) == len(tr))
+        enc = oof["encoders"][0]
+        fdj = S.prepare_fold(w.brains, w.split, w.y, w.v, w.cap, S.inner_plans(fd.plan, w.split)[0][1])
+        held = fdj.rows("test")
+        o = T.collect(enc["model"], held, T.brain_forward(fdj), 8, ("v_hat",))
+        back = M.to_head_scale(o["v_hat"].numpy().astype(np.float64), fdj.feature_stats["visual_mean"], fdj.feature_stats["visual_std"], fd.feature_stats["visual_mean"], fd.feature_stats["visual_std"])
+        key = {k: i for i, k in enumerate(zip(fd.participant_names(np.arange(len(fd.row_video))), fd.row_video.tolist()))}
+        idx = [key[(str(n), int(v))] for n, v in zip(fdj.participant_names(held), fdj.row_video[held])]
+        check("fold 밖 v̂₂는 그 영상을 학습하지 않은 encoder 2의 출력을 원래 단위로 되돌려 바깥 fold 통계로 다시 표준화한 값이다", np.allclose(oof["v"][idx].cpu().numpy(), back, atol=1e-4))
+        done = json.loads((root / runner.selected("brain_features_only")["seeds"]["0"] / "done.json").read_text())
+        check("D-3 실행 기록에 fold 밖 encoder 2 넷의 체크포인트 해시가 남는다", done["feature_encoder_oof"]["checkpoint_sha256"] == oof["shas"] and len(oof["shas"]) == S.N_PAIRS)
+        m = M.load_checkpoint(root / runner.selected("brain_features_only")["seeds"]["0"] / "model.pt")[0]
+        fenc = runner.feature_encoder(0)
+        m.feature_model.load_state_dict(fenc["model"].state_dict())
+        f = T.oof_forward(fd, oof)
+        rows_tr, rows_va = tr[:4], fd.rows("val")[:4]
+        check("학습 행에서는 fold 밖 값을 정서 계산에 넣는다", torch.allclose(f(m, rows_tr).v_used, oof["v"][torch.as_tensor(rows_tr)]))
+        with torch.no_grad():
+            live = fenc["model"](fd.batch(rows_va))
+        check("검증과 시험 행에서는 학습 fold 4개 전체로 학습한 encoder 2를 돌린다", torch.allclose(f(m, rows_va).v_used, live.v_hat))
+        check("학습 행과 다른 행이 한 묶음에 섞이면 멈춘다", stops(lambda: f(m, np.concatenate([rows_tr, rows_va]))))
 
 
 def t_prelim_config():
@@ -1008,8 +1058,9 @@ def t_candidates():
     plan = S.planned_runs(6)
     total = 0
     for n, count in lens.items():
-        check(f"후보 수 + seed 2가 7-L과 같다: {n} = {count + 2}", count + 2 == plan[n])
-        total += count + 2
+        pairs = S.N_PAIRS if S.CONDITIONS[n].paired else 1  # 11/9. 짝 조건은 짝 4개마다 학습한다
+        check(f"후보 수 + seed 2가 7-L과 같다: {n} = {pairs} × {count + 2}", pairs * (count + 2) == plan[n])
+        total += pairs * (count + 2)
     ladder = sum(plan[n] for n in ("brain_only", "brain_only_featdec", "brain_decoded", "brain_decoded_additive", "brain_only_distill", "brain_decoded_distill"))
     check(f"사다리는 K = 6에서 fold마다 {ladder}회, 6 fold 468회(7-L)", ladder * 6 == 468)
     controls = sum(plan[n] for n in ("control_label_smoothing", "control_stimulus_shuffle", "control_feature_shuffle"))
@@ -1098,6 +1149,7 @@ def pipeline(root, w=None, config=None, spec=FAST, conditions=None):
     fd = w.fold(include_test_features=True)
     run = run_for(root, plan="outer_fold1", spec=str(spec))
     runner = T.FoldRunner(fd, w.split, run, spec, config or S.Config(KS, (1e-4, 1e-3)), Path(root) / "outer_fold1")
+    runner.raw = (w.brains, w.y, w.v, w.cap)
     for name in conditions or S.ORDER:
         runner.run_condition(name)
     return w, fd, run, runner
@@ -1116,7 +1168,9 @@ def t_pipeline():
                 expect_trained += 3
             else:
                 n_cand = len(S.candidates(n, k_candidates=KS, base=selected["brain_only"]["candidate"], decoded=selected["brain_decoded"]["candidate"], learning_rates=(1e-4, 1e-3)))
-                expect_trained += n_cand + (0 if sel["zero_selected"] else 2)
+                pairs = S.N_PAIRS if S.CONDITIONS[n].paired else 1
+                expect_trained += pairs * (n_cand + (0 if sel["zero_selected"] else 2))
+        expect_trained += S.N_PAIRS * len(runner.spec.seeds)  # 11/9. fold 밖 encoder 2(seed마다 넷)
         check(f"전체 조건의 학습 횟수가 계획과 같다({len(runner.trained)}회)", len(runner.trained) == expect_trained)
         d = selected["brain_only"]["candidate"]["d"]
         check("고른 d가 후보 안에 있고 다른 조건도 같은 d, 입력층 weight decay를 쓴다(5-5)", (d, selected["brain_only"]["candidate"]["input_wd"]) in KS and all(selected[n]["candidate"]["d"] == d and selected[n]["candidate"]["input_wd"] == selected["brain_only"]["candidate"]["input_wd"] for n in S.ORDER))
@@ -1127,6 +1181,9 @@ def t_pipeline():
         for n in S.ORDER:
             for rel in selected[n]["seeds"].values():
                 path = out / rel
+                if S.CONDITIONS[n].paired:  # 11/9. 짝 조건은 짝마다 체크포인트와 예측, 평균은 ensemble에 남는다
+                    ok_m1 &= all((path / "ensemble" / f).exists() for f in ("val_pred.npz", "test_pred.npz", "done.json")) and len(list(path.glob("pair*/model.pt"))) == S.N_PAIRS
+                    continue
                 done = json.loads((path / "done.json").read_text())
                 need = ("model.pt", "history.tsv", "parameter_groups.json", "outputs/done.json", "outputs/decoded_test.npz", "outputs/decoded_val.npz") if S.CONDITIONS[n].feature_only else ("model.pt", "history.tsv", "val_pred.npz", "test_pred.npz", "parameter_groups.json", "outputs/done.json", "outputs/test_outputs.npz")
                 ok_m1 &= all((path / f).exists() for f in need)
@@ -1169,7 +1226,7 @@ def t_pipeline():
         fd.y_bank.fill_(float("nan")), fd.vision_bank.fill_(float("nan")), fd.caption_bank.fill_(float("nan")), fd.t_bank.fill_(float("nan"))
         same_all = True
         for n in S.ORDER:
-            if n == "multimodal" or S.CONDITIONS[n].feature_only:  # encoder 2는 정서를 내지 않는다
+            if n == "multimodal" or S.CONDITIONS[n].feature_only or S.CONDITIONS[n].paired:  # encoder 2는 정서를 내지 않는다. 짝 조건은 짝마다 자기 encoder의 자료로 낸다(t_frozen_encoder)
                 continue
             path = out / selected[n]["seeds"]["0"]
             mm, _ = M.load_checkpoint(path / "model.pt")
@@ -1183,6 +1240,8 @@ def t_pipeline():
         ok_loss, ok_score, ok_hist = True, True, True
         ok_fe = True
         for n in S.ORDER:
+            if S.CONDITIONS[n].paired:  # 짝 조건의 검증은 짝마다 그 encoder의 자료로 한다(t_frozen_encoder)
+                continue
             for rel in selected[n]["seeds"].values():
                 path = out / rel
                 done = json.loads((path / "done.json").read_text())
@@ -1550,7 +1609,7 @@ def main():
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
         t0 = time.time()
         try:
             f()

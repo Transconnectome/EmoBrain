@@ -86,6 +86,7 @@ S6의 결과 폴더 구조와 저장 형식은 [src/s6_train.py](src/s6_train.py
 | | D-2 | `brain_decoded_sep_distill` | Brain + Decoded Feature → Emotion [separate feature encoder, distillation] |
 | | D-3 | `brain_features_only` | Decoded Feature → Emotion [separate feature encoder, no direct path] |
 | | D-4 | `brain_frozen_feature_encoder` | Brain → Emotion [frozen feature encoder] |
+| | D-3 짝(비교용) | `brain_features_only_paired` | D-3을 D-4와 같은 짝 방식으로 학습한 판 |
 | E. 중간 표현 전달 | E-고정 | `brain_only_repr_frozen` | Brain → Emotion [representation, frozen head] |
 | | E-학습 | `brain_only_repr_trained` | Brain → Emotion [representation, trained head] |
 
@@ -96,7 +97,7 @@ S6의 결과 폴더 구조와 저장 형식은 [src/s6_train.py](src/s6_train.py
 | C-1 더하기 head, C-1 손실 흐름 허용판(stop-gradient 없음, 성능 비교에만) | `brain_decoded_additive`, `brain_decoded_grad` |
 | A-1, C-1 평균 pooling판 | `brain_only_pool`, `brain_decoded_pool` |
 | A-2 대조군(label smoothing, Stimulus 예측 섞기), B-1 대조군(feature 짝 섞기) | `control_label_smoothing`, `control_stimulus_shuffle`, `control_feature_shuffle` |
-| encoder 2(feature만 학습. D 묶음이 같이 씀) | `feature_encoder` |
+| encoder 2(feature만 학습. D 묶음이 같이 씀). 학습 fold 하나씩 뺀 fold 밖 encoder 2 넷은 `feature_encoder_oof/`에 저장 | `feature_encoder` |
 | Multimodal Model(Brain + Vision + Caption → Emotion. E의 준비) | `multimodal` |
 
 ## 시험

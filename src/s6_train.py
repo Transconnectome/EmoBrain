@@ -79,6 +79,21 @@ def brain_forward(fd):
     return lambda model, rows: model(fd.batch(rows))
 
 
+def oof_forward(fd, oof):
+    """11/9. 학습 행에는 fold 밖(OOF) encoder 2의 v̂₂, ĉ₂를 넣고, 검증과 시험 행은 고정한 encoder 2를 그대로 돌린다. 한 묶음에 둘이 섞이면 멈춘다."""
+    v_all, c_all, is_train = oof["v"], oof["c"], oof["is_train"]
+
+    def f(model, rows):
+        idx = torch.as_tensor(np.asarray(rows), dtype=torch.long)
+        t = is_train[idx]
+        if bool(t.all()):
+            return model(fd.batch(rows), fixed=(v_all[idx.to(v_all.device)], c_all[idx.to(c_all.device)]))
+        if not bool(t.any()):
+            return model(fd.batch(rows))
+        raise ValueError("학습 행과 다른 행이 한 묶음에 섞였다")
+    return f
+
+
 def multimodal_forward(fd):
     return lambda model, rows: model(fd.batch(rows), *fd.multimodal_inputs(rows))
 
@@ -250,6 +265,8 @@ class FoldRunner:
         self.mc_ids = mc_ids
         self.teachers, self.shuffles, self.feature_encoders = {}, {}, {}
         self.cells = S.load_roi_cells(fd.voxel_counts) if config.tokenizer == "roi_cells" else None  # 11/9 입력층 점검의 칸 번호
+        self.raw = None  # 11/9. (brains, y, vision, caption). fold 밖 encoder 2와 짝 학습의 자료를 다시 준비할 때 쓴다. main이 채운다
+        self.oofs = {}  # seed -> fold 밖 encoder 2의 출력과 체크포인트
         self.trained = []  # 이번 실행에서 실제로 학습한 (조건, 후보, seed). 시험에서 횟수를 대조한다
         self.write_plan()
 
@@ -286,6 +303,59 @@ class FoldRunner:
             self.feature_encoders[seed] = dict(model=model, sha256=c.sha256(path), digest=M.state_digest(model))
         return self.feature_encoders[seed]
 
+    def _inner_fold(self, plan):
+        if self.raw is None:
+            raise ValueError("fold 밖 encoder 2를 만들 원자료가 없다(FoldRunner.raw)")
+        brains, y, v, cap = self.raw
+        return S.prepare_fold(brains, self.split, y, v, cap, plan, device=self.fd.device, mc_ids=self.mc_ids)
+
+    def oof(self, seed):
+        """11/9 석진 님. 학습 fold 4개를 하나씩 뺀 encoder 2 네 개(같은 seed, 전체 encoder 2가 고른 learning rate, 검증 feature MSE로 조기 종료).
+        j번째가 뺀 fold의 v̂₂, ĉ₂를 원래 단위로 되돌린 뒤 바깥 fold의 통계로 다시 표준화해 학습 행 순서로 모은다(Stimulus Model의 nested OOF와 같은 구조)."""
+        if seed in self.oofs:
+            return self.oofs[seed]
+        fd = self.fd
+        cand = self.selected("feature_encoder")["candidate"]
+        key = {k: i for i, k in enumerate(zip(fd.participant_names(np.arange(len(fd.row_video))), fd.row_video.tolist()))}
+        train_rows = fd.rows("train")
+        V = torch.full((len(fd.row_video), M.VISUAL_DIM), float("nan"))
+        C = torch.full((len(fd.row_video), M.CAPTION_DIM), float("nan"))
+        encoders = []
+        for j, enc_plan, head_plan, rest in S.inner_plans(fd.plan, self.split):
+            path = self.root / "feature_encoder_oof" / f"seed{seed}" / f"inner{j}"
+            if not c.done_or_new(path, self.run.key):
+                fdj = self._inner_fold(enc_plan)
+                started = time.time()
+                seed_everything(seed)
+                model = S.build_model("feature_encoder", cand, fdj.voxel_counts).to(fd.device)
+                result = fit(model, fdj, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=None, loss_fn=make_loss("feature_encoder", cand, fdj), forward=brain_forward(fdj), seed=seed, val_fn=feature_val_loss(fdj, self.spec.batch))
+                held = fdj.rows("test")
+                o = collect(model, held, brain_forward(fdj), self.spec.batch, ("v_hat", "c_hat"))
+                st, ft = fdj.feature_stats, fd.feature_stats
+                v = M.to_head_scale(o["v_hat"].numpy().astype(np.float64), st["visual_mean"], st["visual_std"], ft["visual_mean"], ft["visual_std"])
+                cc = M.to_head_scale(o["c_hat"].numpy().astype(np.float64), st["caption_mean"], st["caption_std"], ft["caption_mean"], ft["caption_std"])
+                with c.Atomic(path) as tmp:
+                    M.save_checkpoint(tmp / "model.pt", model, condition="feature_encoder", candidate=cand, seed=seed, best_epoch=result.best_epoch, held_fold=int(j))
+                    np.savez(tmp / "held.npz", participant=fdj.participant_names(held), video_id=fdj.row_video[held], v_hat=v.astype(np.float32), c_hat=cc.astype(np.float32))
+                    result.history.to_csv(tmp / "history.tsv", sep="\t", index=False)
+                    self.run._check_code()
+                    _json(dict(self.run.prov, condition="feature_encoder_oof", candidate=cand, seed=seed, held_fold=int(j), n_train_videos=len(rest), n_held_videos=len(head_plan.train), best_epoch=result.best_epoch, val_loss=result.val_loss, **c.timing(started)), tmp / "done.json")
+                self.trained.append(("feature_encoder_oof", f"inner{j}", seed))
+                print("저장", path, f"epoch {result.best_epoch}/{result.n_epochs}", flush=True)
+                del fdj, model
+            z = np.load(path / "held.npz")
+            for name, vid, vv, cv in zip(z["participant"], z["video_id"], z["v_hat"], z["c_hat"]):
+                i = key[(str(name), int(vid))]
+                V[i], C[i] = torch.as_tensor(vv), torch.as_tensor(cv)
+            model, _ = M.load_checkpoint(path / "model.pt", fd.device)
+            encoders.append(dict(fold=int(j), model=M.freeze(model), sha256=c.sha256(path / "model.pt"), digest=M.state_digest(model), head_plan=head_plan, stats_videos=rest))
+        is_train = torch.zeros(len(fd.row_video), dtype=torch.bool)
+        is_train[torch.as_tensor(train_rows)] = True
+        if torch.isnan(V[is_train]).any() or torch.isnan(C[is_train]).any():
+            raise ValueError("fold 밖 v̂₂, ĉ₂가 없는 학습 행이 있다")
+        self.oofs[seed] = dict(v=V.to(fd.device), c=C.to(fd.device), is_train=is_train, encoders=encoders, shas=[e["sha256"] for e in encoders])
+        return self.oofs[seed]
+
     def run_dir(self, condition, cand, seed):
         return self.root / condition / f"{S.candidate_id(cand)}_seed{seed}"
 
@@ -318,6 +388,9 @@ class FoldRunner:
         model = model.to(fd.device)
         shuffle = self.shuffle(seed) if condition in S.NEEDS_SHUFFLE else None
         forward = multimodal_forward(fd) if cfg.multimodal else brain_forward(fd)
+        oof = self.oof(seed) if (cfg.separate or cfg.head_only) and not cfg.paired else None  # 11/9. D-1, D-2, D-3의 학습 행은 fold 밖 v̂₂, ĉ₂
+        if oof is not None:
+            forward = oof_forward(fd, oof)
         try:
             result = fit(model, fd, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=cand["feature_wd"], loss_fn=make_loss(condition, cand, fd, shuffle, teacher), forward=forward, seed=seed, val_fn=feature_val_loss(fd, self.spec.batch) if cfg.feature_only else None)
         except Diverged as e:
@@ -344,6 +417,8 @@ class FoldRunner:
                 if M.state_digest(model.feature_model) != fenc["digest"]:
                     raise ValueError("encoder 2가 학습 중에 바뀌었다(D-1~D-4)")
                 extra["feature_encoder"] = dict(checkpoint_sha256=fenc["sha256"], seed=seed)
+            if oof is not None:
+                extra["feature_encoder_oof"] = dict(checkpoint_sha256=oof["shas"], seed=seed)
             if shuffle is not None:
                 _json(dict(outer_fold=shuffle.outer_fold, seed=shuffle.seed, random_seed=shuffle.random_seed, mapping=shuffle.mapping), tmp / "shuffle.json")
             if teacher is not None:
@@ -375,6 +450,8 @@ class FoldRunner:
     def run_condition(self, condition):
         if condition in S.POOLED:
             return self._run_pooled(condition)
+        if S.CONDITIONS[condition].paired:
+            return self._run_paired(condition)
         cfg, config = S.CONDITIONS[condition], self.config
         base = None if condition == "brain_only" else self.selected("brain_only")["candidate"]
         decoded = self.selected(S.DECODED_SOURCE[condition])["candidate"] if condition in S.DECODED_SOURCE else None
@@ -400,6 +477,100 @@ class FoldRunner:
             self._prune(condition, seeds)
         for rel in seeds.values():
             self.save_outputs(self.root / rel)
+        self.run.check()
+
+    def train_pair(self, condition, cand, seed, enc, fdj):
+        """짝 하나(11/9). encoder j를 고정하고 그 encoder가 보지 않은 j번째 fold 영상으로만 head를 학습한다. 입력은 encoder j와 같은 기준으로 표준화한 자료(fdj)다."""
+        S.check_candidate(condition, cand)
+        path = self.run_dir(condition, cand, seed) / f"pair{enc['fold']}"
+        if c.done_or_new(path, self.run.key):
+            return json.loads((path / "done.json").read_text())
+        started = time.time()
+        seed_everything(seed)
+        model = S.build_model(condition, cand, fdj.voxel_counts)
+        model.feature_model.load_state_dict(enc["model"].state_dict())
+        M.freeze(model.feature_model)
+        model = model.to(fdj.device)
+        forward = brain_forward(fdj)
+        result = fit(model, fdj, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=None, loss_fn=make_loss(condition, cand, fdj), forward=forward, seed=seed)
+        if M.state_digest(model.feature_model) != enc["digest"]:
+            raise ValueError("짝의 encoder 2가 학습 중에 바뀌었다")
+        with c.Atomic(path) as tmp:
+            M.save_checkpoint(tmp / "model.pt", model, condition=condition, candidate=cand, seed=seed, best_epoch=result.best_epoch, held_fold=enc["fold"])
+            result.history.to_csv(tmp / "history.tsv", sep="\t", index=False)
+            for name, rows in (("val_pred.npz", fdj.rows("val")), ("test_pred.npz", fdj.rows("test") if fdj.plan.test else None)):
+                if rows is not None:
+                    z = collect(model, rows, forward, self.spec.batch)["z"]
+                    np.savez(tmp / name, participant=fdj.participant_names(rows), video_id=fdj.row_video[rows], logit=z.numpy(), p=z.sigmoid().numpy())
+            self.run._check_code()
+            done = dict(self.run.prov, plan=fdj.plan.name, condition=condition, candidate=cand, candidate_id=S.candidate_id(cand), seed=seed, held_fold=enc["fold"], n_head_rows=len(fdj.rows("train")), feature_encoder_oof=dict(checkpoint_sha256=enc["sha256"], seed=seed), best_epoch=result.best_epoch, val_loss=result.val_loss, val_score=result.val_score, n_epochs=result.n_epochs, **c.timing(started))
+            _json(done, tmp / "done.json")
+        self.trained.append((condition, S.candidate_id(cand) + f"_pair{enc['fold']}", seed))
+        print("저장", path, f"epoch {result.best_epoch}/{result.n_epochs}", flush=True)
+        return done
+
+    def _pairs(self, condition, cands, seed):
+        """seed 하나에서 후보마다 네 짝을 학습한다. 짝 j의 자료(fdj)는 한 번만 준비한다."""
+        oof = self.oof(seed)
+        done = {S.candidate_id(x): [] for x in cands}
+        for enc in oof["encoders"]:
+            paths = [self.run_dir(condition, cand, seed) / f"pair{enc['fold']}" for cand in cands]
+            fdj = None if all(c.done_or_new(x, self.run.key) for x in paths) else self._inner_fold_head(enc)  # 끝난 짝은 자료를 다시 준비하지 않는다
+            for cand in cands:
+                done[S.candidate_id(cand)].append(self.train_pair(condition, cand, seed, enc, fdj))
+            del fdj
+        return done
+
+    def _inner_fold_head(self, enc):
+        if self.raw is None:
+            raise ValueError("짝 학습의 자료를 만들 원자료가 없다(FoldRunner.raw)")
+        brains, y, v, cap = self.raw
+        return S.prepare_fold(brains, self.split, y, v, cap, enc["head_plan"], device=self.fd.device, mc_ids=self.mc_ids, stats_videos=enc["stats_videos"])
+
+    def _ensemble(self, condition, cand, seed, pairs):
+        """시험(과 검증) 예측은 네 짝의 예측 평정을 평균한다. 짝마다의 예측도 남겨 짝 하나의 성능을 따로 낼 수 있게 한다(11/9)."""
+        folder = self.run_dir(condition, cand, seed)
+        out = folder / "ensemble"
+        if c.done_or_new(out, self.run.key):
+            return
+        with c.Atomic(out) as tmp:
+            for name in ("val_pred.npz", "test_pred.npz"):
+                parts = [np.load(folder / f"pair{d['held_fold']}" / name) for d in pairs if (folder / f"pair{d['held_fold']}" / name).exists()]
+                if not parts:
+                    continue
+                keys = [list(zip(z["participant"].tolist(), z["video_id"].tolist())) for z in parts]
+                if any(k != keys[0] for k in keys):
+                    raise ValueError("짝마다 예측한 행이 다르다")
+                pp = np.stack([z["p"] for z in parts])
+                pm = pp.mean(0)
+                np.savez(tmp / name, participant=parts[0]["participant"], video_id=parts[0]["video_id"], p=pm, logit=np.log(pm) - np.log1p(-pm), p_pairs=pp, held_folds=np.array([d["held_fold"] for d in pairs]))
+            self.run._check_code()
+            _json(dict(self.run.prov, condition=condition, candidate=cand, seed=seed, pairs=[dict(held_fold=d["held_fold"], val_score=d["val_score"], feature_encoder_oof=d["feature_encoder_oof"]) for d in pairs]), tmp / "done.json")
+
+    def _run_paired(self, condition):
+        """11/9 석진 님. D-4와 D-3 짝. 후보마다 네 짝을 학습하고, 네 짝의 검증 점수 평균으로 고른다(learning rate는 네 짝에 같은 값). 시험은 네 짝의 평균."""
+        config = self.config
+        base = self.selected("brain_only")["candidate"]
+        cands = S.candidates(condition, k_candidates=config.k_candidates, base=base, learning_rates=config.learning_rates, lr_follows_brain_only=config.lr_follows_brain_only)
+        s0 = self.spec.seeds[0]
+        done = self._pairs(condition, cands, s0)
+        rows = []
+        for cand in cands:
+            ds = done[S.candidate_id(cand)]
+            rows.append(dict(cand, candidate_id=S.candidate_id(cand), val_score=float(np.mean([d["val_score"] for d in ds])), val_loss=float(np.mean([d["val_loss"] for d in ds])), best_epoch=[d["best_epoch"] for d in ds], diverged=False, source_condition=None, source_id=None))
+        best = S.select_best(rows)
+        cand = {k: best[k] for k in ("d", "input_wd", "lr", "lam", "alpha", "rank", "feature_wd")}
+        seeds = {}
+        for s in self.spec.seeds:
+            ds = done[S.candidate_id(cand)] if s == s0 else self._pairs(condition, [cand], s)[S.candidate_id(cand)]
+            self._ensemble(condition, cand, s, ds)
+            seeds[str(s)] = str(self.run_dir(condition, cand, s).relative_to(self.root))
+        self._write_selection(condition, rows, cand, None, seeds)
+        if not config.keep_candidate_checkpoints:
+            keep = {self.root / rel for rel in seeds.values()}
+            for path in (self.root / condition).glob("*_seed*/pair*/model.pt"):
+                if path.parent.parent not in keep:
+                    path.unlink()
         self.run.check()
 
     def _run_pooled(self, condition):
@@ -587,9 +758,12 @@ def main(argv=None):
     brains = S.load_brains(split, list(plan.train) + list(plan.val) + list(plan.test))  # 이번 실행에 쓰는 영상의 행만 읽는다. 파일럿은 시험 영상이 없다
     stimulus = dict(np.load(S.stimulus_path(plan.outer_fold))) if use_stimulus else None
     fd = S.prepare_fold(brains, split, y, v, cap, plan, stimulus=stimulus, include_test_features=include_test, device=a.device)
+    needs_inner = any(S.CONDITIONS[n].separate or S.CONDITIONS[n].head_only or S.CONDITIONS[n].paired for n in wanted)  # 11/9. fold 밖 encoder 2와 짝 학습은 원자료로 자료를 다시 준비한다
+    raw = (brains, y, v, cap) if needs_inner else None
     del brains, y, v, cap
     run.check()  # 읽은 내용이 기록한 해시와 같음을 확인한다
     runner = FoldRunner(fd, split, run, spec, config, S.OUT / plan.name)
+    runner.raw = raw
     for name in S.ORDER:
         if name in wanted:
             runner.run_condition(name)
