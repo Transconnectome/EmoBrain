@@ -293,6 +293,16 @@ def t_mlbvae():
     check("후보 밖 값은 학습 전에 거절한다", stops_any(lambda: mb.mlbvae_task(brain, y, coords, 1, "cpu", nroif=(1000,), ratios=(0.1,), settings=small)) and stops_any(lambda: mb.mlbvae_task(brain, y, coords, 1, "cpu", nroif=(8,), ratios=(3.0,), settings=small)))
     L, R, D = mb.views(X, pos, coords, 2)
     check("왼쪽 180개, 오른쪽 180개 영역의 칸 평균과 그 차이를 보기로 쓰고 피질하는 쓰지 않는다", L.shape == (n, 180 * 8) and R.shape == L.shape and np.allclose(D, L - R))
+    seen, orig = [], mb.nn.functional.binary_cross_entropy_with_logits
+    def spy(*args, **kw):
+        seen.append(kw.get("reduction", "mean"))
+        return orig(*args, **kw)
+    mb.nn.functional.binary_cross_entropy_with_logits = spy
+    try:
+        mb.train_one((L, R, D), y, np.flatnonzero(tr), np.flatnonzero(brain.fold == c.roles(1)["val"]), mb.cooccurrence(y[tr], 0.1), 1.0, 0, small, "cpu")
+    finally:
+        mb.nn.functional.binary_cross_entropy_with_logits = orig
+    check("분류 손실은 공개 코드처럼 batch와 정서 전체의 합이다(평균이면 weight decay 0.1이 이겨 예측이 상수가 됨, 11/10)", seen and set(seen) == {"sum"})
 
 
 def t_emogrowth():

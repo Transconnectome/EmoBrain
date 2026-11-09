@@ -159,7 +159,7 @@ def train_one(V, y, tr, va, mask, ratio, seed, settings, device):
             for inputs in ((l, r, d), (l, None, None), (None, r, None), (None, None, d)):
                 recons, mu, logvar, logit = model(*inputs)
                 loss_elbo = loss_elbo + elbo(recons, full, mu, logvar, beta)
-                loss_cls = loss_cls + bce(logit, t)  # 01 (가): asymmetric focal loss 대신 soft BCE
+                loss_cls = loss_cls + bce(logit, t, reduction="sum")  # 01 (가): asymmetric focal loss 대신 soft BCE. 공개 코드의 손실처럼 batch와 정서 전체의 합(평균이면 weight decay 0.1이 이겨 가중치가 0으로 감, 11/10)
             loss = lam1 * loss_elbo + lam2 * loss_cls
             opt.zero_grad()
             loss.backward()
