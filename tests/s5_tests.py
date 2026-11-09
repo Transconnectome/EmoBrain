@@ -266,6 +266,35 @@ def t_ged():
     check("학습 영상에서 값이 변하지 않는 정서가 있으면 멈춘다", stops_any(lambda: ged.ged_task(brain, np.where(tr[:, None], 0.5, y), coords, 1, "cpu", settings=small, seeds=(0,))))
 
 
+def t_mlbvae():
+    """11/9 외부 baseline ML-BVAE. 좌우 반구 보기, 학습 영상만의 정서 공존 mask, 원 논문 후보 안에서 검증 fold로 선택, seed 3개."""
+    import s5_mlbvae as mb
+    check("ML-BVAE 후보와 설정은 원 논문과 공개 코드 값이다", mb.NROIF == (8, 27, 64, 125, 216, 343) and mb.RATIOS == (0.001, 0.01, 0.1, 1.0, 2.0, 5.0, 10.0, 15.0, 20.0) and {k: mb.MLBVAE[k] for k in ("latent", "hidden", "lr", "weight_decay", "batch", "epochs", "annealing_epochs", "lambda2", "label_threshold")} == dict(latent=64, hidden=512, lr=1e-4, weight_decay=0.1, batch=100, epochs=30, annealing_epochs=100, lambda2=0.1, label_threshold=0.1) and mb.SEEDS == (0, 1, 2))
+    yb = np.array([[0.2, 0.0, 0.5], [0.3, 0.2, 0.0], [0.0, 0.05, 0.4]])
+    H = mb.cooccurrence(yb, 0.1)
+    check("정서 공존 mask: 0.1 이상을 1로 보고 j가 나온 영상 가운데 k도 나온 비율", np.allclose(H[0], [1.0, 0.5, 0.5]) and np.allclose(H[1], [1.0, 1.0, 0.0]) and np.allclose(H[2], [0.5, 0.0, 1.0]))
+    g = np.random.default_rng(0)
+    n, nroi = 96, 362
+    pos = [np.arange(3 * i, 3 * i + 3) for i in range(nroi)]
+    X = g.normal(size=(n, 3 * nroi)).astype(np.float32)
+    brain = d5.BrainSet("sub-01", X, np.arange(1, n + 1), np.arange(n) % 6 + 1, pos, 3 * nroi)
+    coords = [g.integers(0, 4, size=(3, 3)) for _ in range(nroi)]
+    y = g.uniform(0, 1, size=(n, 4))
+    small = dict(mb.MLBVAE, latent=4, hidden=8, epochs=2, batch=16)
+    a, tab, chosen = mb.mlbvae_task(brain, y, coords, 1, "cpu", nroif=(8,), ratios=(0.1, 1.0), settings=small)
+    te = brain.fold == 1
+    tr = np.isin(brain.fold, c.roles(1)["train"])
+    check("seed 0에서 후보를 모두 학습하고 검증 r이 가장 높은 것을 고른 뒤 seed 1, 2를 더한다", len(tab[tab.seed == 0]) == 2 and set(tab.seed) == {0, 1, 2} and tab[tab.seed == 0].val_r.max() == tab[(tab.seed == 0) & (tab.ratio == chosen["ratio"])].val_r.iloc[0])
+    check("시험 예측은 seed마다, 0~1이다", a["emotion_seeds"].shape == (3, int(te.sum()), 4) and (a["emotion_seeds"] >= 0).all() and (a["emotion_seeds"] <= 1).all())
+    check("정서 공존 mask는 학습 영상의 평정으로만 만든다", np.allclose(a["cooccurrence"], mb.cooccurrence(y[tr], 0.1)))
+    y2 = y.copy(); y2[te] = 1 - y2[te]
+    b, tab2, _ = mb.mlbvae_task(brain, y2, coords, 1, "cpu", nroif=(8,), ratios=(0.1, 1.0), settings=small)
+    check("시험 영상의 평정을 바꿔도 예측과 선택이 같다", np.allclose(a["emotion_seeds"], b["emotion_seeds"]) and tab.val_r.equals(tab2.val_r))
+    check("후보 밖 값은 학습 전에 거절한다", stops_any(lambda: mb.mlbvae_task(brain, y, coords, 1, "cpu", nroif=(1000,), ratios=(0.1,), settings=small)) and stops_any(lambda: mb.mlbvae_task(brain, y, coords, 1, "cpu", nroif=(8,), ratios=(3.0,), settings=small)))
+    L, R, D = mb.views(X, pos, coords, 2)
+    check("왼쪽 180개, 오른쪽 180개 영역의 칸 평균과 그 차이를 보기로 쓰고 피질하는 쓰지 않는다", L.shape == (n, 180 * 8) and R.shape == L.shape and np.allclose(D, L - R))
+
+
 def t_h2020():
     g = np.random.default_rng(0)
     n, v = 60, 40
@@ -513,7 +542,7 @@ def t_collect():
 
 
 def main():
-    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_identification_mean, t_without_h2020, t_timing, t_layer_metrics, t_qc_rows, t_soft_bce, t_mlp, t_ged, t_h2020, t_video_zone, t_boundaries, t_collect):
+    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_identification_mean, t_without_h2020, t_timing, t_layer_metrics, t_qc_rows, t_soft_bce, t_mlp, t_ged, t_mlbvae, t_h2020, t_video_zone, t_boundaries, t_collect):
         f()
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)
