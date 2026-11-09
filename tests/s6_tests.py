@@ -385,6 +385,64 @@ def t_display_names():
     check("A~F 묶음 10개가 5-A의 대응과 같다", {k: S.DISPLAY[k] for k in ("brain_only", "brain_only_distill", "brain_only_featdec", "brain_decoded", "brain_decoded_distill", "brain_decoded_sep", "brain_decoded_sep_distill", "brain_features_only", "brain_only_repr_frozen", "brain_only_repr_trained")} == dict(brain_only="A-1", brain_only_distill="A-2", brain_only_featdec="B-1", brain_decoded="C-1", brain_decoded_distill="C-2", brain_decoded_sep="D-1", brain_decoded_sep_distill="D-2", brain_features_only="E-1", brain_only_repr_frozen="F-고정", brain_only_repr_trained="F-학습"))
 
 
+def t_brainit_tokenizer():
+    """11/9 점검용 Brain-IT tokenizer(s6_model.BrainItRoiInput). 원문 식과 같은 값, ROI 경계, voxel 뽑기, 묶음, 설정, 저장."""
+    torch.manual_seed(0)
+    inp = M.BrainItRoiInput(dict(a=[3, 2, 4]), 8)
+    inp.eval()
+    x = torch.randn(5, 9)
+    got = inp.token("a", x)
+    # 원문 식 그대로: m_v = x_v e_v, key = W_K m_v, value = W_V m_v, query = W_Q q_r, root 항 W_root q_r
+    e, bounds, expect = inp.weights["a"], [0, 3, 5, 9], []
+    for r in range(3):
+        m = x[:, bounds[r]:bounds[r + 1], None] * e[None, bounds[r]:bounds[r + 1]]
+        k, v = inp.key(m), inp.value(m)
+        q = inp.query(inp.cluster_embedding[r])
+        a = torch.softmax((k @ q) / 8 ** 0.5, 1)
+        expect.append((a[..., None] * v).sum(1) + inp.root(inp.cluster_embedding[r]))
+    check("brainit token이 원문 식(modulated key, value, ROI query, root 항)과 같다", torch.allclose(got, torch.stack(expect, 1), atol=1e-5))
+    x2 = x.clone(); x2[:, 3:5] += 1.0
+    t2 = inp.token("a", x2)
+    check("brainit token은 그 ROI의 voxel만으로 만든다", torch.equal(t2[:, 0], got[:, 0]) and torch.equal(t2[:, 2], got[:, 2]) and not torch.allclose(t2[:, 1], got[:, 1]))
+    check("brainit에는 RoiInput의 편향과 ROI embedding이 없고 ROI query가 있다", not hasattr(inp, "input_bias") and not hasattr(inp, "roi_embedding") and inp.cluster_embedding.shape == (3, 8))
+    # voxel 뽑기: 학습 때만, 평가 때는 모든 voxel
+    smp = M.BrainItRoiInput(dict(a=[30, 20, 40]), 8, voxel_sampling=0.375)
+    xs = torch.randn(6, 90)
+    smp.eval()
+    check("voxel 뽑기는 평가 때 쓰지 않는다", torch.equal(smp.token("a", xs), smp.token("a", xs)))
+    smp.train()
+    t_a, t_b = smp.token("a", xs), smp.token("a", xs)
+    check("voxel 뽑기는 학습 때 예시마다 다르다", not torch.allclose(t_a, t_b) and torch.isfinite(t_a).all())
+    t_a.sum().backward()
+    check("뽑힌 voxel의 embedding에 기울기가 가고 값이 유한하다", smp.weights["a"].grad is not None and torch.isfinite(smp.weights["a"].grad).all() and smp.weights["a"].grad.abs().sum() > 0)
+    tiny = M.BrainItRoiInput(dict(a=[1, 1]), 8, voxel_sampling=0.01)
+    tiny.train()
+    tt = tiny.token("a", torch.randn(50, 2))
+    check("한 ROI의 voxel이 하나도 뽑히지 않아도 값이 유한하다(root 항만 남음)", torch.isfinite(tt).all())
+    check("voxel 뽑기 비율이 1 이상이면 멈춘다", stops(lambda: M.BrainItRoiInput(dict(a=[2]), 8, voxel_sampling=1.0)))
+    check("linear tokenizer에 voxel 뽑기를 주면 멈춘다", stops(lambda: M.make_input_layer(dict(a=[2]), 8, "linear", 0.5)))
+    # 모델, 묶음, 저장
+    w = World(); fd = w.fold(); rows = fd.rows("train")[:6]
+    m = S.build_model("brain_only", dict(d=8, rank=None), fd.voxel_counts, "brainit", 0.375)
+    groups = M.parameter_assignment(m)
+    check("brainit의 voxel embedding은 입력층 weight decay 묶음이고 ROI query는 other다", all(v == "input_weight" for k, v in groups.items() if k.startswith("input_layer.weights.")) and groups["input_layer.cluster_embedding"] == "other")
+    m.eval()
+    with tempfile.TemporaryDirectory() as t:
+        M.save_checkpoint(Path(t) / "m.pt", m)
+        back, _ = M.load_checkpoint(Path(t) / "m.pt")
+        check("brainit 체크포인트를 되살리면 같은 출력이다", torch.allclose(back(fd.batch(rows)).z, m(fd.batch(rows)).z, atol=1e-6) and back.spec["tokenizer"] == "brainit")
+    check("brainit은 encoder 하나인 뇌 모델에만 쓴다", stops(lambda: S.build_model("multimodal", dict(d=8, rank=None), fd.voxel_counts, "brainit")) and stops(lambda: S.build_model("brain_decoded_sep", dict(d=8, rank=2), fd.voxel_counts, "brainit")))
+    check("기본 tokenizer는 지금 입력층(RoiInput)이다", type(S.build_model("brain_only", dict(d=8, rank=None), fd.voxel_counts).input_layer) is M.RoiInput)
+    with tempfile.TemporaryDirectory() as t:
+        good = Path(t) / "a.json"; good.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], learning_rates=[1e-4], seeds=[0], tokenizer="brainit", voxel_sampling=0.375)))
+        bad = Path(t) / "b.json"; bad.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], tokenizer="voxel_mlp")))
+        bad2 = Path(t) / "c.json"; bad2.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], voxel_sampling=0.3)))
+        cfg = S.load_config(good)
+        check("설정 파일로 brainit과 voxel 뽑기 비율을 준다", cfg.tokenizer == "brainit" and cfg.voxel_sampling == 0.375)
+        check("알 수 없는 tokenizer와 linear의 voxel 뽑기는 멈춘다", stops(lambda: S.load_config(bad)) and stops(lambda: S.load_config(bad2)))
+    check("Stimulus 예측 평정은 그것을 쓰는 조건이 있을 때만 읽는다", not S.needs_stimulus(["brain_only", "brain_decoded", "control_feature_shuffle"]) and all(S.needs_stimulus([n]) for n in ("brain_only_distill", "brain_decoded_distill", "brain_decoded_sep_distill", "control_stimulus_shuffle")))
+
+
 def t_prelim_config():
     with tempfile.TemporaryDirectory() as td:
         f = Path(td) / "c.json"
@@ -1378,7 +1436,7 @@ def main():
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
         t0 = time.time()
         try:
             f()

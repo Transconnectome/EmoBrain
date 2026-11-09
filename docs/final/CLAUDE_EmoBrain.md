@@ -144,6 +144,6 @@
     - "맥락"을 공식 용어로 쓰지 않는다.
     - 이 연구의 정서는 "시각 자극이 일으킨 정서(visually evoked emotion)"다.
     - 모델 이름(뇌 모델, Stimulus Model, Feature Extractor)과 역할 이름(teacher, student)을 섞지 않는다.
-    - 다섯 학습 조건: Brain → Emotion, Brain → Emotion [distillation], Brain → Emotion + Vision + Caption, Brain + Decoded Feature → Emotion, Brain + Decoded Feature → Emotion [distillation]. thesis의 영어 이름은 01의 1-1을 따른다.
+    - 학습 조건: 01 5-A의 묶음 이름(A-1, A-2, B-1, C-1, C-2, D-1, D-2, E-1, F-고정, F-학습)과 Input → Output 이름(ex) C-1. Brain + Decoded Feature → Emotion)을 함께 쓴다. 만든 순서의 옛 번호(조건 1~10)는 쓰지 않고, 주 조건을 정하지 않는다(11/9 석진 님). 코드 이름과의 대응은 src/s6_common.py의 DISPLAY다. thesis의 영어 이름은 01의 1-1을 따른다.
     - Horikawa 외(2020)의 의미 이름표는 "이름표 73개"라고 부른다.
 - 문서 소제목은 관례적인 학술 절 이름을 쓴다. 은유적인 제목이나 새로 만든 줄임말을 쓰지 않는다.

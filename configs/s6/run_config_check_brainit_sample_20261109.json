@@ -1,0 +1,8 @@
+{
+  "note": "11/9 입력층 점검. A-1(brain_only)만, 예비 실행(run_config_prelim_20261108.json)과 같은 d 64, 입력층 weight decay 0.01, learning rate 1e-4, seed 0. 입력층만 Brain-IT tokenizer(s6_model.BrainItRoiInput, 군집은 ROI 370개)로 바꾼다. voxel_sampling은 학습 때 예시마다 뽑는 voxel 비율(Brain-IT 부록 D.1의 1.5만 / 4만 = 0.375, 0이면 뽑지 않음). 결과는 S6_OUT=s6_check_brainit_sample에 따로 둔다",
+  "k_candidates": [[64, 0.01]],
+  "learning_rates": [0.0001],
+  "seeds": [0],
+  "tokenizer": "brainit",
+  "voxel_sampling": 0.375
+}

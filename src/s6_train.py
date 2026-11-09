@@ -305,7 +305,7 @@ class FoldRunner:
             torch.cuda.reset_peak_memory_stats()
         teacher = self.teacher(seed) if cfg.representation else None
         seed_everything(seed)
-        model = S.build_model(condition, cand, fd.voxel_counts)
+        model = S.build_model(condition, cand, fd.voxel_counts, self.config.tokenizer, self.config.voxel_sampling)
         if teacher is not None:
             model.load_head_from(teacher.model, frozen=cfg.representation == "frozen")
         fenc = self.feature_encoder(seed) if (cfg.separate or cfg.head_only) else None
@@ -576,14 +576,15 @@ def main(argv=None):
     S.check_conditions(plan.name, wanted)
     spec = S.Spec(seeds=config.seeds)
     stimulus_run = None
-    if plan.name.startswith(("outer_fold", "pilot_fold")):  # S4 출처를 학습 전에 대조한다. 입력 해시는 이 실행과 같은 방식으로 낸다
+    use_stimulus = plan.name.startswith(("outer_fold", "pilot_fold")) and S.needs_stimulus(wanted)  # Stimulus 예측 평정을 쓰는 조건이 없으면 읽지 않는다(11/9)
+    if use_stimulus:  # S4 출처를 학습 전에 대조한다. 입력 해시는 이 실행과 같은 방식으로 낸다
         probe = S.Run(a.design_freeze, {**S.input_paths(plan), "config": a.config})
         stimulus_run = S.check_stimulus_source(S.stimulus_path(plan.outer_fold).parent / "done.json", plan.outer_fold, probe.hashes)
-    run = S.Run(a.design_freeze, {**S.input_paths(plan), "config": a.config}, stimulus_run_key=stimulus_run, plan=plan.name, config=asdict(config), spec=asdict(spec), torch=torch.__version__, deterministic=torch.are_deterministic_algorithms_enabled(), nondeterministic_ops=[])  # 읽기 전에 해시를 낸다
+    run = S.Run(a.design_freeze, {**S.input_paths(plan, stimulus=use_stimulus), "config": a.config}, stimulus_run_key=stimulus_run, plan=plan.name, config=asdict(config), spec=asdict(spec), torch=torch.__version__, deterministic=torch.are_deterministic_algorithms_enabled(), nondeterministic_ops=[])  # 읽기 전에 해시를 낸다
     include_test = "multimodal" in wanted and bool(plan.test)
     y, v, cap = load_known(split, plan, include_test)
     brains = S.load_brains(split, list(plan.train) + list(plan.val) + list(plan.test))  # 이번 실행에 쓰는 영상의 행만 읽는다. 파일럿은 시험 영상이 없다
-    stimulus = dict(np.load(S.stimulus_path(plan.outer_fold))) if plan.name.startswith(("outer_fold", "pilot_fold")) else None
+    stimulus = dict(np.load(S.stimulus_path(plan.outer_fold))) if use_stimulus else None
     fd = S.prepare_fold(brains, split, y, v, cap, plan, stimulus=stimulus, include_test_features=include_test, device=a.device)
     del brains, y, v, cap
     run.check()  # 읽은 내용이 기록한 해시와 같음을 확인한다

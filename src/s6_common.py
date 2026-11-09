@@ -121,12 +121,14 @@ class Config:
     lr_follows_brain_only: bool = False
     keep_candidate_checkpoints: bool = False
     seeds: tuple = SEEDS  # L9. 발표용 예비 실행처럼 seed를 줄일 때만 SEEDS의 앞부분으로 준다(11/8)
+    tokenizer: str = "linear"  # 입력층. linear가 본 설계(5-5), brainit은 11/9 점검용(s6_model.BrainItRoiInput)
+    voxel_sampling: float = 0.0  # brainit에서 학습 때 예시마다 뽑는 voxel 비율(Brain-IT 부록 D.1은 약 1.5만 / 4만)
 
 
 def load_config(path):
     """configs/s6의 JSON을 읽는다. 알 수 없는 키, S7 전의 빈 후보, G13 밖의 learning rate는 멈춘다."""
     raw = json.loads(Path(path).read_text())
-    extra = set(raw) - {"k_candidates", "learning_rates", "lr_follows_brain_only", "keep_candidate_checkpoints", "seeds", "note"}
+    extra = set(raw) - {"k_candidates", "learning_rates", "lr_follows_brain_only", "keep_candidate_checkpoints", "seeds", "tokenizer", "voxel_sampling", "note"}
     if extra:
         raise ValueError(f"설정에 알 수 없는 키가 있다: {sorted(extra)}")
     if not raw.get("k_candidates"):
@@ -134,7 +136,10 @@ def load_config(path):
     seeds = tuple(int(x) for x in raw.get("seeds", SEEDS))
     if not seeds or seeds != SEEDS[:len(seeds)]:
         raise ValueError("seed는 SEEDS의 앞부분이어야 한다(L9). 후보 고르기는 항상 seed 0이다")
-    return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds)
+    tokenizer, sampling = str(raw.get("tokenizer", "linear")), float(raw.get("voxel_sampling", 0.0))
+    if tokenizer not in ("linear", "brainit") or not 0.0 <= sampling < 1.0 or (tokenizer == "linear" and sampling):
+        raise ValueError("tokenizer는 linear나 brainit이고, voxel 뽑기 비율(0 이상 1 미만)은 brainit에만 준다")
+    return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds, tokenizer, sampling)
 
 
 def _cand(**kw):
@@ -624,14 +629,16 @@ def shuffle_plan(split, plan, seed, mc_ids=None):
     return s
 
 
-def build_model(condition, cand, voxel_counts):
-    """조건의 구조를 만든다. 구조는 조건 이름으로만 정해지고 부르는 쪽이 바꿀 수 없다."""
+def build_model(condition, cand, voxel_counts, tokenizer="linear", voxel_sampling=0.0):
+    """조건의 구조를 만든다. 구조는 조건 이름으로만 정해지고 부르는 쪽이 바꿀 수 없다. tokenizer는 설정 파일의 입력층(11/9 점검)이다."""
     cfg = CONDITIONS[condition]
+    if tokenizer != "linear" and (cfg.multimodal or cfg.head_only or cfg.separate or cfg.feature_only or cfg.representation):
+        raise ValueError("brainit tokenizer 점검은 encoder 하나인 뇌 모델 조건에서만 돌린다")
     if cfg.multimodal:
         return M.MultimodalModel(voxel_counts, cand["d"])
     if cfg.head_only:  # E-1. encoder 2 자리는 학습 때 고정한 encoder 2의 가중치로 채운다
         return M.FeatureHeadModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True), cand["rank"])
-    return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling, stop_gradient=cfg.stop_gradient)
+    return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling, stop_gradient=cfg.stop_gradient, tokenizer=tokenizer, voxel_sampling=voxel_sampling)
 
 
 def to_k1_head(v_hat, c_hat, feature_stats, coordinates):
@@ -691,13 +698,18 @@ def stimulus_path(k):
     return c.OUT / "stimulus" / f"fold{k}" / "oof.npz"
 
 
-def input_paths(plan, participants=d5.HK):
-    """역할 -> 파일. 읽기 전에 해시를 낸다."""
+def needs_stimulus(conditions):
+    """S4의 Stimulus 예측 평정을 학습 목표로 쓰는 조건이 있는가(A-2, C-2, D-2, Stimulus 예측 섞기 대조군). 없으면 그 파일을 읽지 않는다(11/9)."""
+    return any(CONDITIONS[n].target in ("stimulus", "stimulus_shuffled") for n in conditions)
+
+
+def input_paths(plan, participants=d5.HK, stimulus=True):
+    """역할 -> 파일. 읽기 전에 해시를 낸다. stimulus=False는 Stimulus 예측 평정을 쓰지 않는 실행이다(needs_stimulus)."""
     paths = {"visual_target": c.FEATURES / f"{c.VISUAL_TARGET}.npy", "caption_target": c.FEATURES / f"{c.CAPTION_TARGET}.npy", "labels": c.LABELS}
     for s in participants:
         paths[f"response:sub-{s}"], paths[f"roi:sub-{s}"] = d5.response_path(s), d5.roi_path(s)
     paths.update(split_files(plan))
-    if plan.name.startswith(("outer_fold", "pilot_fold")):
+    if stimulus and plan.name.startswith(("outer_fold", "pilot_fold")):
         paths["stimulus_oof"] = stimulus_path(plan.outer_fold)
         paths["stimulus_done"] = stimulus_path(plan.outer_fold).parent / "done.json"
     return paths
