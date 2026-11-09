@@ -2,10 +2,10 @@
 #SBATCH --job-name=s4_feature_model
 #SBATCH --account=m5187_g
 #SBATCH --constraint=gpu
-#SBATCH --qos=regular
-#SBATCH --nodes=1
+#SBATCH --qos=shared
+#SBATCH --ntasks=1
 #SBATCH --gpus=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=32
 #SBATCH --time=12:00:00
 #SBATCH --output=outputs/logs/s4_feature_model_%j.log
 # S4 Stimulus Model. GPU 작업이다. 설계 동결 뒤에만 돈다. 끝난 과제는 건너뛰므로 끊기면 같은 명령으로 잇는다.

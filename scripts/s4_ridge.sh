@@ -2,10 +2,10 @@
 #SBATCH --job-name=s4_ridge
 #SBATCH --account=m5187_g
 #SBATCH --constraint=gpu
-#SBATCH --qos=regular
-#SBATCH --nodes=1
+#SBATCH --qos=shared
+#SBATCH --ntasks=1
 #SBATCH --gpus=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=32
 #SBATCH --time=04:00:00
 #SBATCH --output=outputs/logs/s4_ridge_%j.log
 # S4 뇌 없는 ridge. D12와 정서어 제거판. 설계 동결 뒤에만 돈다. 사용: bash s4_ridge.sh <d12|noemo> <동결 커밋>

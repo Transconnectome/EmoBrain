@@ -2,10 +2,10 @@
 #SBATCH --job-name=s6_train
 #SBATCH --account=m5187_g
 #SBATCH --constraint=gpu
-#SBATCH --qos=regular
-#SBATCH --nodes=1
+#SBATCH --qos=shared
+#SBATCH --ntasks=1
 #SBATCH --gpus=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=32
 #SBATCH --time=24:00:00
 #SBATCH --output=outputs/logs/s6_train_%j.log
 # S6 뇌 모델 학습. GPU 작업이다. 설계 동결 커밋과 S7에서 정한 설정이 없으면 멈춘다. 끝난 학습은 같은 실행 번호일 때만 건너뛰므로 끊기면 같은 명령으로 잇는다.
