@@ -236,6 +236,36 @@ def t_mlp():
     check("구조: 선형층 → GELU → dropout 0.1 → 선형 출력층", isinstance(m.first, torch.nn.Linear) and m.first.out_features == 32 and m.drop.p == 0.1 and m.out.out_features == 3)
 
 
+def t_ged():
+    """11/9 외부 baseline GED. 원 코드의 칸 평균, 학습 영상만으로 정규화와 그래프, 검증 fold로 epoch, seed 3개, 원래 비율의 예측."""
+    import s5_ged as ged
+    cube = np.array([[x, y, z] for x in range(4) for y in range(4) for z in range(4)]).T  # 3 × 64
+    vals = np.arange(64, dtype=float)[None, :] * np.ones((2, 1))
+    pooled = ged.area_pooling(4, cube, vals)
+    check("GED 칸 평균: 4 × 4 × 4 좌표는 칸 64개에 하나씩 들어가 값이 그대로다", pooled.shape == (2, 64) and np.allclose(pooled[0], np.arange(64)))
+    check("GED 설정은 원 코드 기본값이다(칸 4, l 150, m 50, 층 5, MLP 층 2, 은닉 64, dropout 0.5, lr 0.01, StepLR 50 × 0.5, batch 16, 최대 300 epoch)", {k: ged.GED[k] for k in ("num_parts", "num_activations", "num_interactions", "num_layers", "num_mlp_layers", "hidden_dim", "final_dropout", "lr", "step", "gamma", "batch", "max_epochs")} == dict(num_parts=4, num_activations=150, num_interactions=50, num_layers=5, num_mlp_layers=2, hidden_dim=64, final_dropout=0.5, lr=0.01, step=50, gamma=0.5, batch=16, max_epochs=300) and ged.GED_SEEDS == (0, 1, 2))
+    g = np.random.default_rng(0)
+    brain, _ = synth(n=96, p=30, q=3)
+    y = g.uniform(0, 1, size=(96, 5))
+    coords = [g.integers(0, 6, size=(3, len(pz))) for pz in brain.roi_positions]
+    small = dict(ged.GED, num_activations=2, num_interactions=1, num_layers=2, hidden_dim=8, max_epochs=6, patience=2, batch=8, num_parts=2)
+    a, hist = ged.ged_task(brain, y, coords, 1, "cpu", settings=small, seeds=(0, 1, 2))
+    te = brain.fold == 1
+    check("시험 예측은 seed마다 따로, 크기가 맞다", a["emotion_seeds"].shape == (3, int(te.sum()), 5) and set(hist.seed) == {0, 1, 2})
+    r = c.roles(1)
+    tr = np.isin(brain.fold, r["train"])
+    check("정규화의 최소, 최대는 학습 영상에서만 낸다", np.allclose(a["train_min"], y[tr].min(0)) and np.allclose(a["train_max"], y[tr].max(0)))
+    y2 = y.copy(); y2[te] = 1 - y2[te]
+    b, _ = ged.ged_task(brain, y2, coords, 1, "cpu", settings=small, seeds=(0, 1, 2))
+    check("시험 영상의 평정을 바꿔도 예측이 같다", np.allclose(a["emotion_seeds"], b["emotion_seeds"]))
+    va = brain.fold == r["val"]
+    y3 = y.copy(); y3[va] = 1 - y3[va]
+    d, h3 = ged.ged_task(brain, y3, coords, 1, "cpu", settings=small, seeds=(0,))
+    check("검증 영상의 평정은 정규화와 그래프에 쓰지 않는다(epoch 고르기에만 쓴다)", np.allclose(d["train_min"], a["train_min"]) and int(d["n_edges"]) == int(a["n_edges"]))
+    check("epoch는 검증 손실로 고르고 기록한다", {"epoch", "train_loss", "val_loss"} <= set(hist.columns) and hist.groupby("seed").epoch.max().max() <= 6)
+    check("학습 영상에서 값이 변하지 않는 정서가 있으면 멈춘다", stops_any(lambda: ged.ged_task(brain, np.where(tr[:, None], 0.5, y), coords, 1, "cpu", settings=small, seeds=(0,))))
+
+
 def t_h2020():
     g = np.random.default_rng(0)
     n, v = 60, 40
@@ -483,7 +513,7 @@ def t_collect():
 
 
 def main():
-    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_identification_mean, t_without_h2020, t_timing, t_layer_metrics, t_qc_rows, t_soft_bce, t_mlp, t_h2020, t_video_zone, t_boundaries, t_collect):
+    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_identification_mean, t_without_h2020, t_timing, t_layer_metrics, t_qc_rows, t_soft_bce, t_mlp, t_ged, t_h2020, t_video_zone, t_boundaries, t_collect):
         f()
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)

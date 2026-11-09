@@ -4,6 +4,7 @@
 과제
 - ridge: 참가자, fold마다 voxel 입력의 정서 34개와 14개 차원 ridge. 주 비교판(검증 fold 하나, N15)과 문헌판(안쪽 5겹, H3). 평균 예측의 값도 저장한다(O25).
 - soft_bce: 같은 입력의 선형 sigmoid, soft BCE(N16, O24).
+- ged: 외부 baseline GED(Huang 외, 2022). 원 코드 설정 그대로, 바꾼 것은 s5_ged.py 머리말(O27).
 - mlp: 같은 full voxel 입력의 MLP(은닉층 1개, MSE, 선형 출력, 11/9 석진 님). 폭, 첫 층 weight decay, learning rate를 검증 fold로 고르고 seed 3개.
 - signal: 뇌 전체 평균과 block 신호 크기(I7). 주 비교판의 규칙이다.
 - video: 영상 길이의 자연로그(O23)와 저수준 시각 특징(3-6). 뇌를 쓰지 않아 fold마다 하나이고, 시험은 개발 영상 전체다. 주 비교판의 규칙이다.
@@ -20,6 +21,7 @@ import numpy as np
 import pandas as pd
 import torch
 
+import paths as P
 import s4_common as c
 import s5_common as d5
 
@@ -305,28 +307,36 @@ def save(out, run, arrays, started, table=None, **extra):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--task", required=True, choices=["ridge", "soft_bce", "mlp", "signal", "video", "zone", "h2020"])
+    ap.add_argument("--task", required=True, choices=["ridge", "soft_bce", "mlp", "ged", "signal", "video", "zone", "h2020"])
     ap.add_argument("--participant", default="", choices=[""] + d5.HK)
     ap.add_argument("--design-freeze", default="")
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--folds", default="", help="바깥 fold 일부만(ex) 1,2). 비우면 6개 모두. job을 나눠 낼 때 쓴다")
     a = ap.parse_args()
     c.guard(a.design_freeze)
     s = a.participant
     if a.task != "video" and not s:
         raise SystemExit("--participant가 필요하다")
     inputs = {"labels": c.LABELS}
-    if a.task in ("ridge", "soft_bce", "mlp", "zone", "h2020"):
+    if a.task in ("ridge", "soft_bce", "mlp", "ged", "zone", "h2020"):
         inputs.update({f"response:sub-{s}": d5.response_path(s), f"roi:sub-{s}": d5.roi_path(s)})
     if a.task == "signal":
         inputs[f"raw_response:sub-{s}"] = d5.response_path(s, normalized=False)
     if a.task == "video":
         inputs.update(stimuli=d5.STIMULI, lowlevel=c.FEATURES / f"{c.LOWLEVEL}.npy")
     mlp_settings = dict(mlp=d5.MLP, mlp_widths=d5.MLP_WIDTHS, mlp_first_decays=d5.MLP_FIRST_DECAYS, mlp_other_decay=d5.MLP_OTHER_DECAY, mlp_lrs=d5.MLP_LRS, mlp_seeds=d5.MLP_SEEDS) if a.task == "mlp" else {}
+    if a.task == "ged":
+        import s2_roi_cells as rc
+        import s5_ged as ged
+        inputs.update({f"mask:sub-{s}": rc.mask_path(s), "ged_graphcnn": P.REPO / "third_party/ged/graphcnn.py", "ged_mlp": P.REPO / "third_party/ged/mlp.py", "s2_roi_cells": P.SRC / "s2_roi_cells.py"})
+        mlp_settings = dict(ged=ged.GED, ged_seeds=ged.GED_SEEDS)
     run = d5.Run(a.design_freeze, inputs, task=a.task, lambdas=d5.LAMBDAS.tolist(), h2020_lambdas=d5.H2020_LAMBDAS.tolist(), soft_bce=d5.SOFT_BCE, decays=d5.SOFT_BCE_DECAYS, learning_rates=d5.SOFT_BCE_LRS, **mlp_settings)
     split = c.load_split()
     y_em, _ = c.load_scores(split, "emotions")
     y_dim, _ = c.load_scores(split, "dimensions")
-    folds = range(1, c.N_FOLDS + 1)
+    folds = [int(x) for x in a.folds.split(",")] if a.folds else list(range(1, c.N_FOLDS + 1))
+    if not set(folds) <= set(range(1, c.N_FOLDS + 1)):
+        raise SystemExit("바깥 fold는 1~6이다")
     if a.task == "video":
         ids, fold = split.video_id.to_numpy(), split.fold.to_numpy()
         inputs_video = dict(length=log_length(split), lowlevel=c.load_rows(c.LOWLEVEL, ids, split))
@@ -351,6 +361,7 @@ def main():
         return
     brain = d5.load_brain(s, split)
     y = d5.align(y_em, split, brain.video_id)
+    coords = ged.roi_coords(s, brain) if a.task == "ged" else None
     run.check()
     if a.task == "zone":
         for b in range(1, 6):
@@ -374,6 +385,9 @@ def main():
         elif a.task == "mlp":
             arrays, table, chosen = mlp_task(brain, y, k, a.device)
             save(out, run, arrays, started, table, participant=s, fold=k, chosen=chosen)
+        elif a.task == "ged":
+            arrays, table = ged.ged_task(brain, y, coords, k, a.device)
+            save(out, run, arrays, started, table, participant=s, fold=k)
         else:
             save(out, run, h2020_task(brain, y, k, a.device), started, participant=s, fold=k)
 
