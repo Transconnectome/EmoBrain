@@ -311,6 +311,7 @@ def t_emogrowth():
     check("EmoGrowth 후보와 설정은 원 논문(부록 B.4)과 공개 코드 값이다", eg.LAMBDA3 == (0.001, 0.01, 0.1, 1.0, 2.0, 5.0, 10.0) and {k: eg.EMOGROWTH[k] for k in ("n_parts", "gin_hidden", "gin_out", "hidden", "latent", "lr", "weight_decay", "batch", "epochs", "label_threshold")} == dict(n_parts=2, gin_hidden=128, gin_out=256, hidden=512, latent=64, lr=1e-4, weight_decay=0.005, batch=128, epochs=40, label_threshold=0.1) and eg.SEEDS == (0, 1, 2))
     yb = np.array([[0.2, 0.0, 0.5], [0.3, 0.2, 0.0], [0.0, 0.05, 0.4]])
     A = eg.label_graph(yb, 0.1).numpy()
+    check("학습 라벨은 평정 비율을 0.1에서 이진화한 값이다(11/10)", np.array_equal(eg.train_targets(np.array([[0.05, 0.1, 0.5]]), 0.1), np.array([[0.0, 1.0, 1.0]], np.float32)))
     check("정서 관계 그래프: 0.1 이상을 1로 본 조건부 확률을 대칭으로 평균하고 대각은 0", np.allclose(A, A.T) and np.allclose(np.diag(A), 0) and np.isclose(A[0, 1], (0.5 + 1.0) / 2) and np.isclose(A[1, 2], 0.0))
     m = eg.EmoGrowthNet(20, 3)
     logits, emb = m(torch.randn(5, 20), torch.as_tensor(A))

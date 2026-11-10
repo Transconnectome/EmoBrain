@@ -13,7 +13,7 @@ convs/layers.py, utils/inc_net_ml.py, models/clif_ml.py의 첫 단계 학습)의
 - 손실: MultiLabelSoftMarginLoss(원문 식 14의 BCE) + λ3 × 그래프 복원 손실(cosine, 정답은 그래프 + 단위행렬).
 - Adam(learning rate 1e-4, weight decay 0.005, 공개 코드의 기본 β), batch 128, 40 epoch(공개 코드의 첫 단계).
 원 논문과 코드에서 바꾼 것(O27, SI에 기록)
-- 목표: 27개 이진 라벨 대신 34개 평정 비율(BCE가 연속값을 받으므로 손실은 그대로). 34개를 한 번에 학습한다(단계 하나).
+- 목표: 27개 대신 34개 정서를 한 번에 학습한다(단계 하나). 학습 라벨은 원 논문처럼 평정 비율을 0.1에서 이진화한다(11/10. 평정 비율 그대로는 학습되지 않았다). 선택과 평가는 평정 비율과의 r이다.
 - 분할: 우리 run 6 fold. λ3 ∈ {0.001, 0.01, 0.1, 1, 2, 5, 10}(원 논문 부록 B.4의 탐색 범위)을 검증 fold의 정서별 r 평균으로 seed 0에서 고르고 seed 1, 2를 더한다.
   학습 길이는 공개 코드대로 40 epoch로 두고 조기 종료하지 않는다.
 """
@@ -87,6 +87,12 @@ def label_graph(y_train, threshold):
     return (adj + adj.t()) * 0.5
 
 
+def train_targets(y, threshold):
+    """11/10 석진 님 결정((가)). 원 논문의 학습 라벨처럼 평정 비율을 threshold(0.1)에서 이진화한다. 평정 비율을 그대로 주면 학습 영상에서도
+    정서별 평균만 맞히는 상태로 수렴했다(04 11/10 기록). 검증 선택과 시험 평가는 평정 비율과의 r 그대로다."""
+    return (np.asarray(y, np.float64) >= threshold).astype(np.float32)
+
+
 def link_loss(emb, adj):
     """공개 코드 LinkPredictionLoss_cosine: 정서 embedding의 cosine 유사도 행렬과 그래프의 평균 제곱 차이."""
     e = emb / (emb.norm(dim=1, keepdim=True) + 1e-6)
@@ -102,7 +108,7 @@ def train_one(x, y, tr, va, adj, lam3, seed, s, device):
     torch.manual_seed(seed)
     g = torch.Generator().manual_seed(seed)
     X = torch.as_tensor(x, device=device)
-    Y = torch.as_tensor(np.asarray(y, np.float32), device=device)
+    Y = torch.as_tensor(train_targets(y, s["label_threshold"]), device=device)  # 11/10. 원 논문처럼 0.1에서 이진화한 라벨로 학습(평가는 평정 비율과의 r)
     A = adj.to(device)
     A_loss = A + torch.eye(A.shape[0], device=device)
     model = EmoGrowthNet(X.shape[1], Y.shape[1], s).to(device)
