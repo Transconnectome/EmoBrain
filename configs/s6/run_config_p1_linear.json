@@ -1,0 +1,7 @@
+{
+  "note": "11/10 1순위 본 실행(석진 님: 남은 시간 안에 필수만 먼저). 입력층 선형(본 설계). d 64 하나, 입력층 weight decay {0.1, 1, 10}(11/8 본실험 격자의 d 64 줄), learning rate 1e-4 하나(11/8, 11/9 예비 실행 모두 이 값), seed 0만(seed 1, 2는 3순위). 선택은 fold마다 자기 검증 fold로 한다(O6). 조기 종료는 검증 total loss(11/10). 시간 때문에 줄인 것이고 결과를 보고 고른 값이 아니다. 결과는 S6_OUT=s6_brain_p1_linear",
+  "k_candidates": [[64, 0.1], [64, 1.0], [64, 10.0]],
+  "learning_rates": [0.0001],
+  "seeds": [0],
+  "tokenizer": "linear"
+}

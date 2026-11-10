@@ -53,7 +53,7 @@ external/            외부 레포 (git submodule)
 
 ## 단계별 실행
 
-모든 명령은 레포 최상위에서 실행한다. GPU 단계는 `sbatch scripts/<이름>.sh <인자>`로 낸다. Slurm으로 할당받은 compute node 안(salloc 등)에서는 `bash scripts/<이름>.sh <인자>`로 돌려도 된다. login node에서 학습을 돌리지 않는다(NERSC 정책). 실제 결과를 내는 단계(S4 이후)는 설계 동결 커밋을 마지막 인자로 받고, 커밋되지 않은 코드로는 돌지 않는다. 끝난 실행은 코드, 입력, 설정이 같을 때만 건너뛰고, 다르면 섞지 않고 멈춘다.
+모든 명령은 레포 최상위에서 실행한다. GPU 단계는 `sbatch scripts/<이름>.sh <인자>`로 낸다. Slurm으로 할당받은 compute node 안(salloc 등)에서는 `bash scripts/<이름>.sh <인자>`로 돌려도 된다. S6 본실험은 `scripts/s6_dispatch.sh`가 짧은 학습 묶음을 login node GPU에, 긴 묶음을 sbatch로 나눠 낸다(11/10). 그 밖의 GPU 단계는 sbatch로 낸다. 실제 결과를 내는 단계(S4 이후)는 설계 동결 커밋을 마지막 인자로 받고, 커밋되지 않은 코드로는 돌지 않는다. 끝난 실행은 코드, 입력, 설정이 같을 때만 건너뛰고, 다르면 섞지 않고 멈춘다.
 
 | 단계 | 스크립트 | 하는 일 | 출력 |
 |---|---|---|---|
@@ -68,6 +68,7 @@ external/            외부 레포 (git submodule)
 | S5 | `s5_baselines.sh <과제> <참가자> <커밋>` | 정서 기준선: ridge, soft BCE 선형, 영상 길이, 저수준, 뇌 전체 신호, Horikawa 2020 복셀 선택 ridge (GPU) | 같은 폴더 |
 | S6 | `s6_train.sh <분할> <조건> <설정> <커밋>` | 뇌 모델 학습. 분할은 `outer_fold<k>`, `pilot_fold<k>`, `final_for_mc`, `zone_block<b>_fold<k>_<방식>` (GPU) | `<output_root>/s6_brain/` |
 | S6 | `s6_weight_counts.sh <d 목록>` | 조건별 학습 가중치 수 (CPU) | `manifests/s6/weight_counts.tsv` |
+| S6 | `s6_dispatch.sh <tag> <run worktree> <커밋> --variant <이름:설정:출력 폴더> [--conditions <조건>] [--dry-run]` | 본실험 조건을 fold와 변형마다 stream 4개로 나누고, 앞 조건의 선택이 나오는 대로 띄운다. 어림 시간이 짧은 stream은 빈 login node GPU에, 긴 stream은 청구 시간 상한 안에서 sbatch로 낸다. 상태 표로 다시 켜서 잇고, 실패한 stream은 다른 node에서 한 번 다시 띄운다. 의존과 나누는 규칙은 `scripts/s6_dispatch.py` 머리말 (CPU, 오래 도는 프로세스) | `<output_root>/logs/s6_dispatch_state_<tag>.tsv` |
 
 S6의 결과 폴더 구조와 저장 형식은 [src/s6_train.py](src/s6_train.py) 머리말에 있다.
 
@@ -107,6 +108,7 @@ bash scripts/s3_tests.sh   # 약 1분
 bash scripts/s4_tests.sh   # 약 2분
 bash scripts/s5_tests.sh   # 약 2분
 bash scripts/s6_tests.sh   # 약 2분
+python tests/s6_dispatch_tests.py   # 약 2분. S6 dispatcher의 의존 순서, 다시 켜기, 실패 처리, 동결 확인. ssh와 GPU를 쓰지 않는다
 ```
 
 합성 자료로 자료 경계(시험 영상, MC 72개), 후보값, 선택 규칙, 출처 기록, 저장 형식을 확인한다. 실제 정답과 뇌 반응은 읽지 않는다.

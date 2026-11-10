@@ -107,7 +107,7 @@ POOLED = {"brain_only_pool": "brain_only", "brain_decoded_pool": "brain_decoded"
 ZERO_SOURCE = {"brain_only_distill": ("brain_only", "alpha"), "brain_only_featdec": ("brain_only", "lam"), "brain_decoded_distill": ("brain_decoded", "alpha"), "brain_decoded_sep_distill": ("brain_decoded_sep", "alpha")}  # G9. 0 후보는 앞 조건의 학습이다
 
 
-TOKENIZERS = ("linear", "brainit", "roi_mean", "roi_cells")  # 입력층. linear만 본 설계, 나머지는 11/9 점검
+TOKENIZERS = ("linear", "brainit", "roi_mean", "roi_cells")  # 입력층. linear가 본 설계, brainit은 11/10 본 실행의 두 번째 입력층(모든 조건), roi_mean과 roi_cells는 11/9 점검
 
 @dataclass(frozen=True)
 class Spec:
@@ -663,16 +663,16 @@ def shuffle_plan(split, plan, seed, mc_ids=None):
 def build_model(condition, cand, voxel_counts, tokenizer="linear", voxel_sampling=0.0, cells=None):
     """조건의 구조를 만든다. 구조는 조건 이름으로만 정해지고 부르는 쪽이 바꿀 수 없다. tokenizer는 설정 파일의 입력층(11/9 점검)이다."""
     cfg = CONDITIONS[condition]
-    if tokenizer != "linear" and (cfg.multimodal or cfg.head_only or cfg.frozen_encoder or cfg.separate or cfg.feature_only or cfg.representation):
-        raise ValueError("입력층 점검(brainit, roi_mean, roi_cells)은 encoder 하나인 뇌 모델 조건에서만 돌린다")
+    if tokenizer in ("roi_mean", "roi_cells") and (cfg.multimodal or cfg.head_only or cfg.frozen_encoder or cfg.separate or cfg.feature_only or cfg.representation):
+        raise ValueError("입력층 점검(roi_mean, roi_cells)은 encoder 하나인 뇌 모델 조건에서만 돌린다")  # 11/10. brainit은 본 실행의 두 번째 입력층이라 모든 조건에 쓴다
     if tokenizer == "roi_cells" and cells is None:
         raise ValueError("roi_cells는 칸 번호(s2_roi_cells.py의 파일)가 있어야 한다")
     if cfg.multimodal:
-        return M.MultimodalModel(voxel_counts, cand["d"])
-    if cfg.frozen_encoder:  # D-4. 입력층과 encoder 자리는 학습 때 고정한 encoder 2의 가중치로 채운다
-        return M.FrozenEncoderModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True))
-    if cfg.head_only:  # D-3. encoder 2 자리는 학습 때 고정한 encoder 2의 가중치로 채운다
-        return M.FeatureHeadModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True), cand["rank"])
+        return M.MultimodalModel(voxel_counts, cand["d"], tokenizer, voxel_sampling)
+    if cfg.frozen_encoder:  # D-4. 입력층과 encoder 자리는 학습 때 고정한 encoder 2의 가중치로 채운다(encoder 2와 같은 입력층)
+        return M.FrozenEncoderModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True, tokenizer=tokenizer, voxel_sampling=voxel_sampling))
+    if cfg.head_only:  # D-3. encoder 2 자리는 학습 때 고정한 encoder 2의 가중치로 채운다(encoder 2와 같은 입력층)
+        return M.FeatureHeadModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True, tokenizer=tokenizer, voxel_sampling=voxel_sampling), cand["rank"])
     return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling, stop_gradient=cfg.stop_gradient, tokenizer=tokenizer, voxel_sampling=voxel_sampling, cells=cells)
 
 

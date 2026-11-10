@@ -434,7 +434,35 @@ def t_brainit_tokenizer():
         M.save_checkpoint(Path(t) / "m.pt", m)
         back, _ = M.load_checkpoint(Path(t) / "m.pt")
         check("brainit 체크포인트를 되살리면 같은 출력이다", torch.allclose(back(fd.batch(rows)).z, m(fd.batch(rows)).z, atol=1e-6) and back.spec["tokenizer"] == "brainit")
-    check("brainit은 encoder 하나인 뇌 모델에만 쓴다", stops(lambda: S.build_model("multimodal", dict(d=8, rank=None), fd.voxel_counts, "brainit")) and stops(lambda: S.build_model("brain_decoded_sep", dict(d=8, rank=2), fd.voxel_counts, "brainit")))
+    # 11/10. brainit은 본 실행의 두 번째 입력층이라 모든 조건에 쓴다. 체크포인트를 되살려도 같은 입력층과 같은 출력이다
+    ok_kinds, ok_round = True, True
+    torch.manual_seed(0)
+    enc2 = S.build_model("feature_encoder", dict(d=8, rank=None), fd.voxel_counts, "brainit", 0.375).eval()
+    for name, cfg in S.CONDITIONS.items():
+        cand = dict(d=8, rank=2 if (cfg.decoded and not cfg.pooling) else None)
+        if cfg.pooling and cfg.decoded:
+            cand["rank"] = 2
+        mdl = S.build_model(name, cand, fd.voxel_counts, "brainit", 0.375)
+        if cfg.separate:
+            mdl = M.SeparateDecodedModel(mdl, copy.deepcopy(enc2))
+        if cfg.head_only or cfg.frozen_encoder:
+            mdl.feature_model.load_state_dict(enc2.state_dict())
+        inner = mdl.main if cfg.separate else (mdl.feature_model if (cfg.head_only or cfg.frozen_encoder) else mdl)
+        ok_kinds &= type(inner.input_layer) is M.BrainItRoiInput
+        mdl.eval()
+        with tempfile.TemporaryDirectory() as td:
+            M.save_checkpoint(Path(td) / "m.pt", mdl, condition=name)
+            back, _ = M.load_checkpoint(Path(td) / "m.pt")
+            b = fd.batch(rows)
+            if cfg.multimodal:
+                v, cap = fd.feature_targets(rows)
+                same = torch.allclose(back(b, v, cap).z, mdl(b, v, cap).z, atol=1e-6)
+            else:
+                same = torch.allclose(back(b).z, mdl(b).z, atol=1e-6)
+            ok_round &= same
+    check("brainit 입력층은 모든 조건(encoder 2, D 묶음, Multimodal Model, E 포함)에서 만들어진다(11/10)", ok_kinds)
+    check("brainit을 쓴 모든 조건의 체크포인트를 되살리면 같은 출력이다(11/10)", ok_round)
+    check("roi_mean, roi_cells는 여전히 encoder 하나인 뇌 모델에만 쓴다", stops(lambda: S.build_model("multimodal", dict(d=8, rank=None), fd.voxel_counts, "roi_mean")) and stops(lambda: S.build_model("brain_decoded_sep", dict(d=8, rank=2), fd.voxel_counts, "roi_mean")))
     check("기본 tokenizer는 지금 입력층(RoiInput)이다", type(S.build_model("brain_only", dict(d=8, rank=None), fd.voxel_counts).input_layer) is M.RoiInput)
     with tempfile.TemporaryDirectory() as t:
         good = Path(t) / "a.json"; good.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], learning_rates=[1e-4], seeds=[0], tokenizer="brainit", voxel_sampling=0.375)))
@@ -985,6 +1013,31 @@ def t_early_stop():
     check("다른 seed는 다른 가중치를 낸다", a[0] != z[0])
 
 
+def t_total_val_loss():
+    """11/10. 되돌리는 기준을 학습 손실과 같게(석진 님 결정). 검증 행에 학습 손실 식을 적용하고, 정서 항의 목표는 실제 y다."""
+    w = World()
+    fd = w.fold()
+    val = fd.rows("val")
+    y = fd.y(val)
+    v, cap = fd.feature_targets(val)
+    for name, mode in (("brain_decoded", "decoded_feature_readout"), ("brain_only_featdec", "auxiliary_feature_decoding"), ("control_feature_shuffle", "auxiliary_feature_decoding")):
+        m, cand = small_model(fd, name, rank=2 if S.CONDITIONS[name].decoded else None, lam=0.1)
+        m.eval()
+        fn = T.total_val_loss(name, cand, fd, T.brain_forward(fd), 7)  # 7: 검증 행을 여러 묶음으로 나눠도 같은 값
+        with torch.no_grad():
+            want = M.ac.decoding_loss(m(fd.batch(val)), y, v, cap, lambda_feat=0.1, condition=mode).L.item()
+        check(f"{name}: 검증 total loss는 학습 손실 식(정서 항 + λ × feature 항)을 실제 y와 검증 영상의 원래 feature로 계산한 값이다", abs(fn(m) - want) < 1e-5)
+    for name in ("brain_only", "brain_only_distill", "control_label_smoothing", "control_stimulus_shuffle", "brain_features_only", "feature_encoder"):
+        check(f"{name}: 정서 항만 있거나 encoder 2면 total_val_loss는 None이다(기존 기준과 같은 식)", T.total_val_loss(name, S._cand(lam=None, alpha=0.5), fd, T.brain_forward(fd), 16) is None)
+    m, cand = small_model(fd, "brain_decoded", rank=2, lam=0.1)
+    seen = []
+    fn = T.total_val_loss("brain_decoded", cand, fd, T.brain_forward(fd), 16)
+    res = T.fit(m, fd, FAST, lr=1e-3, input_wd=1e-3, feature_wd=None, loss_fn=T.make_loss("brain_decoded", cand, fd), forward=T.brain_forward(fd), seed=0, restore_fn=lambda model: seen.append(fn(model)) or seen[-1])
+    check("fit은 restore_fn의 값으로 epoch를 고르고 history의 val_loss에 남긴다", res.history.val_loss.tolist() == seen and res.best_epoch == int(np.argmin(seen)) + 1 and "val_emotion_bce" in res.history)
+    check("선택 점수는 여전히 검증 정서별 r 평균이다", abs(res.val_score - S.validation_score(T.collect(m, val, T.brain_forward(fd), 16)["z"].sigmoid().numpy(), y.cpu().numpy(), fd.participant_names(val))) < 1e-6)
+    check("val_fn과 restore_fn은 함께 주지 않는다", stops(lambda: T.fit(m, fd, FAST, lr=1e-3, input_wd=1e-3, feature_wd=None, loss_fn=T.make_loss("brain_decoded", cand, fd), forward=T.brain_forward(fd), seed=0, val_fn=fn, restore_fn=fn)))
+
+
 def t_input_only():
     sig = list(inspect.signature(M.BrainModel.forward).parameters)
     check("BrainModel.forward의 입력은 brain 하나다", sig == ["self", "brain"])
@@ -1255,10 +1308,14 @@ def t_pipeline():
                 vp = np.load(path / "val_pred.npz")
                 loss = F.binary_cross_entropy_with_logits(torch.as_tensor(vp["logit"]), torch.as_tensor(y_val)).item()
                 hist = pd.read_csv(path / "history.tsv", sep="\t")
-                ok_loss &= abs(loss - done["val_loss"]) < 1e-5
+                at = hist.iloc[done["best_epoch"] - 1]
+                cfg_n = S.CONDITIONS[n]
+                total_cond = cfg_n.features != "none" or bool(cfg_n.representation)  # 11/10. feature 항, representation 항이 있는 조건
+                ok_loss &= abs(loss - at.val_emotion_bce) < 1e-5  # 되돌린 epoch의 검증 예측이 저장된 값이다
+                ok_loss &= (at.val_loss >= at.val_emotion_bce - 1e-9) if total_cond else abs(at.val_loss - at.val_emotion_bce) < 1e-12
                 ok_hist &= abs(hist.val_loss.min() - done["val_loss"]) < 1e-9 and hist.val_loss.argmin() + 1 == done["best_epoch"]
                 ok_score &= abs(S.validation_score(vp["p"], y_val, vp["participant"]) - done["val_score"]) < 1e-5
-        check("조기 종료 값이 정서를 내는 모든 조건에서 실제 y의 정서 soft BCE다", ok_loss)
+        check("조기 종료 값은 검증 total loss다(정서 항만 있으면 실제 y의 정서 soft BCE, feature나 representation 항이 있으면 그 이상), 되돌린 epoch의 검증 예측과 맞는다(11/10)", ok_loss)
         check("encoder 2는 검증 feature MSE로 멈추고 그 값으로 고른다", ok_fe)
         check("고른 epoch는 그 값이 가장 낮은 epoch다", ok_hist)
         check("선택 점수가 모든 조건에서 실제 y의 r 평균이다", ok_score)
@@ -1609,7 +1666,7 @@ def main():
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_total_val_loss, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
         t0 = time.time()
         try:
             f()

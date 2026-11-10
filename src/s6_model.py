@@ -356,10 +356,10 @@ class MultimodalModel(nn.Module):
     """E-고정, E-학습의 준비 모델(O5, 논문의 Multimodal Model). 뇌 모델과 같은 입력층, encoder, emotion query에 Vision, Caption token을 더한다.
     중간 표현은 emotion query 34개의 출력이고, head는 정서별 선형층이다."""
 
-    def __init__(self, voxel_counts, d):
+    def __init__(self, voxel_counts, d, tokenizer="linear", voxel_sampling=0.0):
         super().__init__()
-        self.spec = dict(kind="multimodal", voxel_counts=voxel_counts, d=d)
-        self.input_layer = RoiInput(voxel_counts, d)
+        self.spec = dict(kind="multimodal", voxel_counts=voxel_counts, d=d, tokenizer=tokenizer, voxel_sampling=voxel_sampling)
+        self.input_layer = make_input_layer(voxel_counts, d, tokenizer, voxel_sampling)  # 11/10. 뇌 모델과 같은 입력층(선형 또는 Brain-IT)
         self.vision_token = nn.Linear(VISUAL_DIM, d)
         self.caption_token = nn.Linear(CAPTION_DIM, d)
         self.encoder = Encoder(d)
@@ -590,7 +590,7 @@ def build_from_spec(spec):
     if kind == "frozen_encoder":
         return FrozenEncoderModel(build_from_spec(spec["feature_model"]))
     voxel_counts, d = spec.pop("voxel_counts"), spec.pop("d")
-    return MultimodalModel(voxel_counts, d) if kind == "multimodal" else BrainModel(voxel_counts, d, **spec)
+    return MultimodalModel(voxel_counts, d, **spec) if kind == "multimodal" else BrainModel(voxel_counts, d, **spec)  # 11/10 전 체크포인트는 tokenizer 키가 없어 선형으로 되살린다
 
 
 def load_checkpoint(path, device="cpu"):

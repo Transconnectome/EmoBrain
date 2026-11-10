@@ -2,7 +2,7 @@
 """S6 뇌 모델 학습 (04 S6, 01 5-A, G7~G16, H2, L9, M1, N3, N24, O1, O5, O6, O31, O32, 2026-11-07).
 
 바깥 fold k가 시험, 다음 fold가 H2 검증, 나머지 4개가 학습이다. 후보는 seed 0으로 고르고 고른 설정으로 seed 1, 2를 더 학습한다(L9). 고른 모델을 그대로 시험한다.
-조기 종료는 검증 자료의 실제 y에 대한 정서 soft BCE(patience 30, 가장 낮은 epoch로 되돌림), 선택은 실제 y에 대한 정서별 r 평균이다(0-2, O6).
+조기 종료와 되돌릴 epoch는 검증 total loss(학습 손실과 같은 식, 정서 항의 목표는 실제 y, patience 30)로 정하고, 선택은 실제 y에 대한 정서별 r 평균이다(0-2, O6, 11/10 total_val_loss).
 시험 영상의 사람 평정과 feature는 읽지 않는다(load_known). 시험 성능은 S10이 저장한 예측으로 낸다. 후보별 시험 예측도 저장하지만 선택에는 쓰지 않는다(N24).
 
 사용: s6_train.py --plan outer_fold1 --conditions brain_only,brain_decoded --config manifests/s6/run_config.json --design-freeze <커밋> [--device cuda]
@@ -20,7 +20,7 @@
     done.json: M1의 기록 + condition, candidate, seed, best_epoch, val_loss, val_score, n_epochs, parameter_counts, 시간, GPU 메모리
     model.pt: s6_model.load_checkpoint로 읽는다. 선택되지 않은 후보는 지운다(설정 keep_candidate_checkpoints로 남길 수 있다)
     parameter_groups.json: 파라미터마다 weight decay 묶음(G13)
-    history.tsv: epoch, train_loss, val_loss
+    history.tsv: epoch, train_loss, val_emotion_bce(검증 정서 soft BCE), val_loss(조기 종료 기준. 정서 항만 있는 조건은 val_emotion_bce와 같다)
     val_pred.npz: participant, video_id, logit(sigmoid 전), p. 고른 epoch의 값
     test_pred.npz: 같은 꼴(시험이 있는 분할만). 후보마다 저장한다(N24)
     shuffle.json: 대조군의 순열과 그 seed(O1)
@@ -183,8 +183,44 @@ def feature_val_loss(fd, batch):
     return score
 
 
-def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on_epoch=None, val_fn=None):
-    """G13, O6. AdamW, batch 64, 최대 300 epoch, patience 30, warmup 없음. 가장 낮은 epoch의 가중치로 되돌린다. 같은 값이면 앞선 epoch다."""
+def total_val_loss(condition, cand, fd, forward, batch, teacher=None):
+    """11/10 구현(석진 님 결정: 되돌리는 기준을 학습 손실과 같게). 검증 행에 학습 손실과 같은 식을 적용한 값으로 조기 종료하고 되돌린다.
+    정서 항의 목표는 실제 사람 평정이다. distillation과 대조군의 섞은 목표는 학습 행에서만 만든다(0-2, train_target). 그래서 그 항은 빠진다.
+    feature 항(B, C, D-1, D-2)과 representation 항(E)은 같은 λ로 더한다. feature 짝 섞기 대조군은 검증 영상의 원래 feature를 쓴다(audition_codex
+    apply_shuffled_scene_pairs: 검증과 시험은 원래 목표). 정서 항만 있는 조건(A-1, A-2, D-3, D-4 등)과 encoder 2는 None을 돌려준다(기존 기준과 같은 식).
+    선택 점수(검증 정서별 r 평균)는 바꾸지 않는다."""
+    cfg = S.CONDITIONS[condition]
+    if cfg.feature_only or (cfg.features == "none" and not cfg.representation):
+        return None
+    if cfg.representation and (teacher is None or teacher.o_val is None):
+        raise ValueError("representation 조건의 검증 손실에는 검증 행의 Multimodal Model 중간 표현이 필요하다")
+    val = fd.rows("val")
+    y = fd.y(val)
+    lam = cand["lam"]
+    v_all, c_all = fd.feature_targets(val) if cfg.features != "none" else (None, None)
+    mode = "decoded_feature_readout" if cfg.decoded and cfg.features == "actual" else "auxiliary_feature_decoding"
+
+    def score(model):
+        total = 0.0
+        with torch.no_grad():
+            for i in range(0, len(val), batch):
+                rows, t = val[i:i + batch], y[i:i + batch]
+                out = forward(model, rows)
+                if cfg.representation:
+                    o_t = teacher.o_val[i:i + batch]
+                    loss = soft_bce(out.z, t) + lam * F.mse_loss((out.o - teacher.mean) / teacher.std, (o_t - teacher.mean) / teacher.std)
+                else:
+                    loss = ac.decoding_loss(out, t, v_all[i:i + batch], c_all[i:i + batch], lambda_feat=lam, condition=mode).L
+                total += loss.item() * len(rows)
+        return total / len(val)
+    return score
+
+
+def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on_epoch=None, val_fn=None, restore_fn=None):
+    """G13, O6. AdamW, batch 64, 최대 300 epoch, patience 30, warmup 없음. 가장 낮은 epoch의 가중치로 되돌린다. 같은 값이면 앞선 epoch다.
+    val_fn: encoder 2의 feature MSE(조기 종료와 선택 모두). restore_fn: 정서 조건의 검증 total loss(조기 종료만, 11/10). 없으면 검증 정서 soft BCE."""
+    if val_fn is not None and restore_fn is not None:
+        raise ValueError("val_fn과 restore_fn은 함께 주지 않는다")
     train, val = fd.rows("train"), fd.rows("val")
     y_val = fd.y(val).cpu()
     optimizer = torch.optim.AdamW(M.parameter_groups(model, lr, input_wd, feature_wd))
@@ -207,14 +243,16 @@ def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on
             check_finite_state(model, f"epoch {epoch} update")
             total += loss.item() * len(rows)
         model.eval()
+        row = dict(epoch=epoch, train_loss=total / len(order))
         if val_fn is not None:  # encoder 2는 feature MSE로 멈춘다
             val_loss = numeric(lambda: val_fn(model), f"epoch {epoch} 검증")
         else:
             z = numeric(lambda: collect(model, val, forward, spec.batch)["z"], f"epoch {epoch} 검증")
-            val_loss = validation_loss(z, y_val)
+            row["val_emotion_bce"] = validation_loss(z, y_val)
+            val_loss = numeric(lambda: restore_fn(model), f"epoch {epoch} 검증") if restore_fn is not None else row["val_emotion_bce"]
         if not np.isfinite(val_loss):
             raise Diverged(f"epoch {epoch}: 검증 손실이 NaN 또는 Inf다")
-        history.append(dict(epoch=epoch, train_loss=total / len(order), val_loss=val_loss))
+        history.append(dict(row, val_loss=val_loss))
         if on_epoch is not None:
             on_epoch(epoch, model, val_loss)
         if val_loss < best_loss:
@@ -249,6 +287,8 @@ class Teacher:
         self.std = torch.as_tensor(std.reshape(shape), dtype=torch.float32, device=fd.device)
         self.position = np.full(len(fd.row_role), -1)
         self.position[rows] = np.arange(len(rows))
+        val = fd.rows("val")  # 11/10. 검증 total loss의 representation 항. 통계는 위의 학습 행 통계를 그대로 쓴다
+        self.o_val = collect(self.model, val, multimodal_forward(fd), batch, ("o",))["o"].to(fd.device)
 
 
 def _json(obj, path):
@@ -327,7 +367,7 @@ class FoldRunner:
                 fdj = self._inner_fold(enc_plan)
                 started = time.time()
                 seed_everything(seed)
-                model = S.build_model("feature_encoder", cand, fdj.voxel_counts).to(fd.device)
+                model = S.build_model("feature_encoder", cand, fdj.voxel_counts, self.config.tokenizer, self.config.voxel_sampling).to(fd.device)  # 11/10. 전체 encoder 2와 같은 입력층
                 result = fit(model, fdj, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=None, loss_fn=make_loss("feature_encoder", cand, fdj), forward=brain_forward(fdj), seed=seed, val_fn=feature_val_loss(fdj, self.spec.batch))
                 held = fdj.rows("test")
                 o = collect(model, held, brain_forward(fdj), self.spec.batch, ("v_hat", "c_hat"))
@@ -392,7 +432,9 @@ class FoldRunner:
         if oof is not None:
             forward = oof_forward(fd, oof)
         try:
-            result = fit(model, fd, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=cand["feature_wd"], loss_fn=make_loss(condition, cand, fd, shuffle, teacher), forward=forward, seed=seed, val_fn=feature_val_loss(fd, self.spec.batch) if cfg.feature_only else None)
+            result = fit(model, fd, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=cand["feature_wd"], loss_fn=make_loss(condition, cand, fd, shuffle, teacher), forward=forward, seed=seed,
+                         val_fn=feature_val_loss(fd, self.spec.batch) if cfg.feature_only else None,
+                         restore_fn=None if cfg.feature_only else total_val_loss(condition, cand, fd, forward, self.spec.batch, teacher))
         except Diverged as e:
             if not search:
                 raise
@@ -487,7 +529,7 @@ class FoldRunner:
             return json.loads((path / "done.json").read_text())
         started = time.time()
         seed_everything(seed)
-        model = S.build_model(condition, cand, fdj.voxel_counts)
+        model = S.build_model(condition, cand, fdj.voxel_counts, self.config.tokenizer, self.config.voxel_sampling)  # 11/10. 짝 조건도 같은 입력층
         model.feature_model.load_state_dict(enc["model"].state_dict())
         M.freeze(model.feature_model)
         model = model.to(fdj.device)
