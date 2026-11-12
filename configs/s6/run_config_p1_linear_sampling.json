@@ -1,0 +1,8 @@
+{
+  "note": "11/12 원인 분리 점검(석진 님). 1순위 선형판(run_config_p1_linear.json)과 같고 voxel 뽑기 0.375만 더한다(Brain-IT 입력층과 같은 복원 추출, 선형 합이라 1/비율로 맞춤). A-1과 B-1만 돌린다. Brain-IT 입력층의 이득이 attention 구조에서 오는지 voxel 뽑기에서 오는지 가른다. 결과는 S6_OUT=s6_brain_p1_linear_sampling",
+  "k_candidates": [[64, 0.1], [64, 1.0], [64, 10.0]],
+  "learning_rates": [0.0001],
+  "seeds": [0],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375
+}

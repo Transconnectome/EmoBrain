@@ -75,9 +75,12 @@ class SeparateOutput(ModelOutput):
 class RoiInput(nn.Module):
     """C4. W는 참가자마다 ROI 순서로 이어 붙여 하나의 Parameter로 둔다. bounds가 ROI 경계이고, 곱은 ROI마다 따로 한다."""
 
-    def __init__(self, voxel_counts, d):
+    def __init__(self, voxel_counts, d, voxel_sampling=0.0):
         super().__init__()
         _check_d(d)
+        if not 0.0 <= float(voxel_sampling) < 1.0:
+            raise ValueError("voxel 뽑기 비율은 0 이상 1 미만이다(0이면 뽑지 않는다)")
+        self.voxel_sampling = float(voxel_sampling)  # 11/12. 선형 입력층의 voxel 뽑기(Brain-IT 입력층과 같은 복원 추출). 원인 분리 점검용
         if len({len(v) for v in voxel_counts.values()}) != 1:
             raise ValueError("참가자마다 ROI 수가 같아야 한다(공통 ROI, C6)")
         self.d = d
@@ -109,6 +112,13 @@ class RoiInput(nn.Module):
         counts = self.voxel_counts[pid]
         if x.shape[1] != sum(counts):
             raise ValueError(f"{pid}: 입력 열 수가 입력층과 다르다")
+        if self.training and self.voxel_sampling > 0:
+            # 11/12. Brain-IT 입력층과 같은 방식으로 예시마다 voxel을 복원 추출한다(전체의 voxel_sampling 비율만큼 뽑음). 선형 합이라
+            # 뽑힌 횟수에 1/비율을 곱해 기댓값이 모든 voxel을 쓸 때와 같게 한다. 평가 때는 모든 voxel을 쓴다
+            n_draw = max(1, round(self.voxel_sampling * x.shape[1]))
+            draws = torch.randint(0, x.shape[1], (x.shape[0], n_draw), device=x.device)
+            hits = torch.zeros_like(x).scatter_add_(1, draws, torch.ones_like(draws, dtype=x.dtype))
+            x = x * hits * (x.shape[1] / n_draw)
         # split을 쓴다. ROI마다 slice하면 역전파가 ROI마다 W 전체 크기의 텐서를 만들어 수백 배 느려진다
         out = [a @ b for a, b in zip(x.split(counts, 1), self.weights[pid].split(counts, 0))]
         return torch.stack(out, 1) + self.input_bias[pid] + self.roi_embedding
@@ -224,10 +234,10 @@ CELL_TOKENIZERS = {"roi_mean": 1, "roi_cells": 8}  # 11/9 입력층 점검. 칸 
 
 def make_input_layer(voxel_counts, d, tokenizer="linear", voxel_sampling=0.0, cells=None):
     """linear는 5-5의 입력층(본 설계). 11/9 점검용: brainit(Brain-IT tokenizer), roi_mean(ROI 평균), roi_cells(ROI 8칸 평균)."""
-    if voxel_sampling and tokenizer != "brainit":
-        raise ValueError("voxel 뽑기는 brainit tokenizer에만 있다")
+    if voxel_sampling and tokenizer not in ("brainit", "linear"):
+        raise ValueError("voxel 뽑기는 brainit과 linear 입력층에만 있다")
     if tokenizer == "linear":
-        return RoiInput(voxel_counts, d)
+        return RoiInput(voxel_counts, d, voxel_sampling)  # 11/12. linear의 voxel 뽑기는 원인 분리 점검용
     if tokenizer == "brainit":
         return BrainItRoiInput(voxel_counts, d, voxel_sampling)
     if tokenizer in CELL_TOKENIZERS:

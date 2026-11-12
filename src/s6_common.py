@@ -128,7 +128,7 @@ class Config:
     keep_candidate_checkpoints: bool = False
     seeds: tuple = SEEDS  # L9. 발표용 예비 실행처럼 seed를 줄일 때만 SEEDS의 앞부분으로 준다(11/8)
     tokenizer: str = "linear"  # 입력층. linear가 본 설계(5-5). 11/9 점검용: brainit(s6_model.BrainItRoiInput), roi_mean, roi_cells(s6_model.RoiCellInput)
-    voxel_sampling: float = 0.0  # brainit에서 학습 때 예시마다 뽑는 voxel 비율(Brain-IT 부록 D.1은 약 1.5만 / 4만)
+    voxel_sampling: float = 0.0  # 학습 때 예시마다 뽑는 voxel 비율(Brain-IT 부록 D.1은 약 1.5만 / 4만). brainit, 그리고 11/12부터 linear(원인 분리 점검)
 
 
 def load_config(path):
@@ -143,8 +143,8 @@ def load_config(path):
     if not seeds or seeds != SEEDS[:len(seeds)]:
         raise ValueError("seed는 SEEDS의 앞부분이어야 한다(L9). 후보 고르기는 항상 seed 0이다")
     tokenizer, sampling = str(raw.get("tokenizer", "linear")), float(raw.get("voxel_sampling", 0.0))
-    if tokenizer not in TOKENIZERS or not 0.0 <= sampling < 1.0 or (tokenizer != "brainit" and sampling):
-        raise ValueError(f"tokenizer는 {TOKENIZERS} 가운데 하나이고, voxel 뽑기 비율(0 이상 1 미만)은 brainit에만 준다")
+    if tokenizer not in TOKENIZERS or not 0.0 <= sampling < 1.0 or (tokenizer not in ("brainit", "linear") and sampling):
+        raise ValueError(f"tokenizer는 {TOKENIZERS} 가운데 하나이고, voxel 뽑기 비율(0 이상 1 미만)은 brainit과 linear에만 준다(linear는 11/12 원인 분리 점검)")
     return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds, tokenizer, sampling)
 
 

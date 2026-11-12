@@ -423,7 +423,18 @@ def t_brainit_tokenizer():
     tt = tiny.token("a", torch.randn(50, 2))
     check("한 ROI의 voxel이 하나도 뽑히지 않아도 값이 유한하다(root 항만 남음)", torch.isfinite(tt).all())
     check("voxel 뽑기 비율이 1 이상이면 멈춘다", stops(lambda: M.BrainItRoiInput(dict(a=[2]), 8, voxel_sampling=1.0)))
-    check("linear tokenizer에 voxel 뽑기를 주면 멈춘다", stops(lambda: M.make_input_layer(dict(a=[2]), 8, "linear", 0.5)))
+    check("roi_mean, roi_cells에 voxel 뽑기를 주면 멈춘다", stops(lambda: M.make_input_layer(dict(a=[8]), 8, "roi_mean", 0.5)))
+    # 11/12. 선형 입력층의 voxel 뽑기(원인 분리 점검). 평가 때는 모든 voxel, 학습 때는 예시마다 복원 추출하고 1/비율로 맞춘다
+    torch.manual_seed(0)
+    lin = M.make_input_layer(dict(a=[40, 60]), 8, "linear", 0.375)
+    xl = torch.randn(3, 100)
+    lin.eval(); ev1, ev2 = lin.token("a", xl), lin.token("a", xl)
+    full = M.make_input_layer(dict(a=[40, 60]), 8, "linear"); full.load_state_dict(lin.state_dict()); full.eval()
+    check("선형 voxel 뽑기: 평가 때는 뽑지 않고 뽑기 없는 입력층과 같은 값이다", torch.equal(ev1, ev2) and torch.allclose(ev1, full.token("a", xl), atol=1e-6))
+    lin.train(); draws = torch.stack([lin.token("a", xl) for _ in range(3000)])
+    check("선형 voxel 뽑기: 학습 때는 예시마다 다르고, 많이 뽑아 평균하면 모든 voxel을 쓴 값에 가깝다", not torch.allclose(draws[0], draws[1]) and torch.allclose(draws.mean(0), ev1, atol=0.05))
+    lin.zero_grad(); lin.token("a", xl[:1]).sum().backward()
+    check("선형 voxel 뽑기: 뽑히지 않은 voxel의 W에는 기울기가 가지 않는다", (lin.weights["a"].grad.abs().sum(1) == 0).any() and (lin.weights["a"].grad.abs().sum(1) > 0).any())
     # 모델, 묶음, 저장
     w = World(); fd = w.fold(); rows = fd.rows("train")[:6]
     m = S.build_model("brain_only", dict(d=8, rank=None), fd.voxel_counts, "brainit", 0.375)
@@ -467,10 +478,11 @@ def t_brainit_tokenizer():
     with tempfile.TemporaryDirectory() as t:
         good = Path(t) / "a.json"; good.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], learning_rates=[1e-4], seeds=[0], tokenizer="brainit", voxel_sampling=0.375)))
         bad = Path(t) / "b.json"; bad.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], tokenizer="voxel_mlp")))
-        bad2 = Path(t) / "c.json"; bad2.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], voxel_sampling=0.3)))
+        bad2 = Path(t) / "c.json"; bad2.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], tokenizer="roi_mean", voxel_sampling=0.3)))
+        ok_lin = Path(t) / "d.json"; ok_lin.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], voxel_sampling=0.375)))
         cfg = S.load_config(good)
         check("설정 파일로 brainit과 voxel 뽑기 비율을 준다", cfg.tokenizer == "brainit" and cfg.voxel_sampling == 0.375)
-        check("알 수 없는 tokenizer와 linear의 voxel 뽑기는 멈춘다", stops(lambda: S.load_config(bad)) and stops(lambda: S.load_config(bad2)))
+        check("알 수 없는 tokenizer와 roi_mean의 voxel 뽑기는 멈추고, linear의 voxel 뽑기는 받는다(11/12)", stops(lambda: S.load_config(bad)) and stops(lambda: S.load_config(bad2)) and S.load_config(ok_lin).voxel_sampling == 0.375 and S.load_config(ok_lin).tokenizer == "linear")
     check("Stimulus 예측 평정은 그것을 쓰는 조건이 있을 때만 읽는다", not S.needs_stimulus(["brain_only", "brain_decoded", "control_feature_shuffle"]) and all(S.needs_stimulus([n]) for n in ("brain_only_distill", "brain_decoded_distill", "brain_decoded_sep_distill", "control_stimulus_shuffle")))
 
 
