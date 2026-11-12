@@ -1,0 +1,8 @@
+{
+  "note": "11/13 본 실행(석진 님). 1순위 선형판(run_config_p1_linear.json)에서 두 가지를 바꾼다. (1) 선형 입력층에 voxel 뽑기 0.375(Brain-IT 부록 D.1의 값). 11/12 원인 분리 점검에서 Brain-IT 입력층 이득의 대부분이 뽑기에서 왔고, 뽑기 유무로 B-1과 A-1의 순서가 뒤집혀 조건 비교를 같은 입력층 설정에서 다시 한다. (2) 입력층 weight decay {1, 10, 100}. 1순위 선형판과 원인 분리 점검이 6 fold 모두 끝값 10을 골라 한 칸 올렸다(0.1은 한 번도 골리지 않음). d 64, learning rate 1e-4, seed 0. 조건은 6-1 [사전] 비교와 G6 대조군에 필요한 8개. 결과를 본 뒤 바꾼 설정이다(04 기록). 결과는 S6_OUT=s6_brain_sampling_main",
+  "k_candidates": [[64, 1.0], [64, 10.0], [64, 100.0]],
+  "learning_rates": [0.0001],
+  "seeds": [0],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375
+}
