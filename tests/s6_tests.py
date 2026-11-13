@@ -1673,12 +1673,31 @@ def t_stimulus_shape():
     check("영상 ID가 정수가 아니면 멈춘다", stops(lambda: S.stimulus_bank(dict(video_id=ids.astype(float), p_clipped=np.full((16, 34), 0.3)), ids.tolist(), pos, (16, 34))))
 
 
+def t_grid_1113():
+    """11/13. learning rate × 입력층 weight decay가 1 이상인 A-1 후보는 빠지고, --only-candidates는 이 설정의 A-1 후보만 받는다."""
+    cands = S.candidates("brain_only", k_candidates=[(64, w) for w in (0.01, 0.1, 1.0, 10.0, 100.0, 1000.0)], learning_rates=[1e-5, 1e-4, 1e-3])
+    check("grid: 18개 가운데 (1e-3, 1000) 하나가 빠져 17개", len(cands) == 17 and not any(c["lr"] * c["input_wd"] >= 1 for c in cands))
+    config = S.load_config(Path(__file__).resolve().parents[1] / "configs/s6/run_config_grid_main.json")
+    ids = [S.candidate_id(c) for c in S.candidates("brain_only", k_candidates=config.k_candidates, learning_rates=config.learning_rates)]
+    picked = T.only_candidates(",".join(ids[:3]), config)
+    check("--only-candidates는 고른 후보를 그대로 돌려준다", [S.candidate_id(c) for c in picked] == ids[:3])
+    for bad in ("zzz", ids[0] + "," + ids[0], ""):
+        try:
+            T.only_candidates(bad, config)
+            check(f"--only-candidates가 잘못된 입력 {bad!r}을 막는다", False)
+        except SystemExit:
+            check(f"--only-candidates가 잘못된 입력 {bad!r}을 막는다", True)
+    base = S.candidates("brain_only", k_candidates=config.k_candidates, learning_rates=config.learning_rates)[0]
+    follow = S.candidates("brain_decoded", k_candidates=config.k_candidates, base=base, learning_rates=config.learning_rates, lr_follows_brain_only=True)
+    check("나머지 조건은 A-1이 고른 learning rate와 입력층 weight decay를 따른다(G13 예산 규칙)", len(follow) == 8 and all(c["lr"] == base["lr"] and c["input_wd"] == base["input_wd"] for c in follow))
+
+
 def main():
     if "--timing" in sys.argv:
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_total_val_loss, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_total_val_loss, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard, t_grid_1113):
         t0 = time.time()
         try:
             f()

@@ -90,6 +90,15 @@ STREAMS = {
     "separate_encoder": ("feature_encoder", "brain_frozen_feature_encoder", "brain_decoded_sep", "brain_decoded_sep_distill", "brain_features_only", "brain_features_only_paired"),
     "multimodal": ("multimodal", "brain_only_repr_frozen", "brain_only_repr_trained", "control_stimulus_shuffle"),
 }
+# 11/13. 장면 특징 줄을 둘로 나눈 표(--split-decoded). B-1과 feature 섞기는 Stimulus 예측 섞기를 운반 조건으로 데려가고, C-1과 C-2는 따로 돈다.
+# Multimodal Model과 E 묶음이 함께 돌면 그 줄에 운반 조건이 없어 check_streams가 멈춘다
+STREAMS_SPLIT_DECODED = {
+    "brain_only": STREAMS["brain_only"],
+    "decoded_aux": ("brain_only_featdec", "control_feature_shuffle", "control_stimulus_shuffle"),
+    "decoded": ("brain_decoded", "brain_decoded_additive", "brain_decoded_grad", "brain_decoded_distill", "brain_decoded_pool"),
+    "separate_encoder": STREAMS["separate_encoder"],
+    "multimodal": ("multimodal", "brain_only_repr_frozen", "brain_only_repr_trained"),
+}
 STATE_COLUMNS = ("variant", "fold", "stream", "attempt", "backend", "conditions", "node", "gpu", "pid", "job_id", "launch_kst", "launch_epoch", "log", "status",
                  "slurm_state", "reserved_gpu_h", "gpu_h", "end_kst", "note")
 # login node가 오래 비지 않을 때 쓰는 sbatch 설정(scripts/s6_main.sh와 같은 자원)
@@ -568,7 +577,7 @@ def estimate_hours(st, conditions, minutes):
 
 def sbatch_limit(est_h):
     """sbatch 시간 상한. 어림의 2배, 2시간 이상 24시간 이하, 분 단위 올림."""
-    minutes = int(-(-min(24.0, max(2.0, 2 * est_h)) * 60 // 1))
+    minutes = int(-(-min(48.0, max(2.0, 2 * est_h)) * 60 // 1))  # 11/13. shared QOS 상한 48시간(sacctmgr)
     return minutes / 60, f"{minutes // 60:02d}:{minutes % 60:02d}:00"
 
 
@@ -968,6 +977,7 @@ def main(argv=None):
     ap.add_argument("--variant", action="append", required=True, help="이름:config 경로:S6_OUT 하위 폴더. 여러 번 줄 수 있다")
     ap.add_argument("--folds", default="1-6")
     ap.add_argument("--conditions", default=",".join(MAIN_CONDITIONS), help="쉼표로 나눈 조건. 기본은 scripts/s6_main.sh의 전체 목록. 앞 조건이 빠지면 멈춘다")
+    ap.add_argument("--split-decoded", action="store_true", help="11/13. 장면 특징 줄을 B-1, feature 섞기(+ Stimulus 예측 섞기)와 C-1, C-2 둘로 나눈다(STREAMS_SPLIT_DECODED)")
     ap.add_argument("--nodes", default="01-40", help="ex) 01-40 또는 login05,login07")
     ap.add_argument("--exclude", default="")
     ap.add_argument("--poll-minutes", type=float, default=5)
@@ -994,7 +1004,7 @@ def main(argv=None):
             raise SystemExit(f"--minutes-per-training의 조건 이름이 없다: {k}")
         minutes[k.strip()] = float(v)
     conditions = tuple(c.strip() for c in a.conditions.split(",") if c.strip())
-    table = subset_streams(conditions)
+    table = subset_streams(conditions, STREAMS_SPLIT_DECODED if a.split_decoded else STREAMS)
     try:
         plan = build_plan(variants, parse_folds(a.folds), S, table, conditions)
     except ValueError as e:

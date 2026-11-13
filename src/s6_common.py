@@ -180,8 +180,8 @@ def candidates(condition, *, k_candidates=None, base=None, decoded=None, learnin
     if condition not in CONDITIONS:
         raise ValueError(condition)
     lrs = _check_lrs(learning_rates)
-    if condition == "brain_only":
-        return [_cand(d=d, input_wd=wd, lr=lr) for d, wd in _check_k(k_candidates) for lr in lrs]
+    if condition == "brain_only":  # 11/13. learning rate × 입력층 weight decay가 1 이상이면 AdamW가 step마다 가중치를 0으로 만들거나 부호를 뒤집으므로 후보에서 뺀다
+        return [_cand(d=d, input_wd=wd, lr=lr) for d, wd in _check_k(k_candidates) for lr in lrs if lr * wd < 1.0]
     if base is None:
         raise ValueError(f"{condition}: 그 fold의 brain_only 선택이 먼저 있어야 한다(5-5)")
     if lr_follows_brain_only:

@@ -310,13 +310,13 @@ def t_sbatch_routing():
     env = Env(folds=(1, 2))
     for n in NODES:
         env.remote.gpu[n] = 30000  # 다른 사람이 모든 login node GPU를 쓴다
-    kw = dict(long_h=3.0, sbatch_cap_gpu_h=40.0)
+    kw = dict(long_h=3.0, sbatch_cap_gpu_h=45.0)  # 11/13. 시간 상한이 48시간으로 바뀌어 sep 상한이 약 27시간(26:58)이다. 두 job이 들어가고 그다음은 상한을 넘는 구성을 유지
     by = {(s.fold, s.name): s for s in env.plan}
     sep, dec = by[(1, "separate_encoder")], by[(1, "decoded")]
     # 학습 횟수(k 2, learning rate 1, seed 1) x 분: encoder 2 1x25 + fold 밖 4x25 + D-4 4x18 + D-1 8x20 + D-2 2x21 + D-3 5x10 + D-3 짝 20x18
     check(abs(D.estimate_hours(sep, sep.conditions, D.MINUTES) - 809 / 60) < 1e-9, f"separate_encoder 어림 {D.estimate_hours(sep, sep.conditions, D.MINUTES)}")
     check(abs(D.estimate_hours(dec, dec.conditions, D.MINUTES) - 25 * 18 / 60) < 1e-9, "decoded 어림")
-    check(D.sbatch_limit(809 / 60)[1] == "24:00:00" and D.sbatch_limit(7.5)[1] == "15:00:00" and D.sbatch_limit(0.5)[1] == "02:00:00" and D.sbatch_limit(4.2)[1] == "08:24:00", "시간 상한")
+    check(D.sbatch_limit(809 / 60)[1] == "26:58:00" and D.sbatch_limit(30)[1] == "48:00:00" and D.sbatch_limit(7.5)[1] == "15:00:00" and D.sbatch_limit(0.5)[1] == "02:00:00" and D.sbatch_limit(4.2)[1] == "08:24:00", "시간 상한")
     d = env.dispatcher(**kw)
     d.step()
     check(env.remote.submits == [] and env.remote.launches == [], "짧은 brain_only stream을 sbatch로 냈다")
@@ -330,7 +330,7 @@ def t_sbatch_routing():
     names = [s["name"] for s in env.remote.submits]
     check(names == ["s6d_t_linear_f1_separate_encoder_t1", "s6d_t_linear_f1_decoded_t1"], f"sbatch {names}")
     times = [next(x for x in s["args"] if x.startswith("--time=")) for s in env.remote.submits]
-    check(times == ["--time=24:00:00", "--time=15:00:00"], f"{times}")
+    check(times == ["--time=26:58:00", "--time=15:00:00"], f"{times}")  # 11/13. 상한 48시간
     sub = env.remote.submits[0]
     for part in ("--account=m5187_g", "--constraint=gpu", "--qos=shared", "--gpus=1", "--cpus-per-task=32", f"--chdir={env.run_root}"):
         check(part in sub["args"], f"sbatch 인자에 {part}가 없다: {sub['args']}")
@@ -338,8 +338,8 @@ def t_sbatch_routing():
     check("bash scripts/s6_train.sh outer_fold1 feature_encoder," in wrap and FREEZE in wrap, wrap)
     check(sub["cwd"] == env.run_root and sub["env"]["S6_OUT"] == str(env.variants[0].s6_out) and "CUDA_VISIBLE_DEVICES" not in sub["env"], "sbatch 환경")
     check(any(x.startswith("--output=") and str(env.tmp / "logs") in x for x in sub["args"]), "log가 output_root/logs 아래가 아니다")
-    check(abs(d.sbatch_hours()[1] - 39.0) < 1e-6, f"상한 계산 {d.sbatch_hours()}")
-    # fold 2의 긴 stream: 39 + 24 > 40이라 login node를 기다린다. login03이 비면 거기에 띄운다
+    check(abs(d.sbatch_hours()[1] - (1618 / 60 + 15)) < 1e-3, f"상한 계산 {d.sbatch_hours()}")  # sbatch_hours는 소수 셋째 자리로 반올림한다
+    # fold 2의 긴 stream: 42.0 + 27.0 > 45라 login node를 기다린다. login03이 비면 거기에 띄운다
     env.finish("brain_only", fold=2, outputs=False)
     d.step()
     check(len(env.remote.submits) == 2 and any("sbatch 상한" in m for m in env.msgs), "상한을 넘겨 냈거나 알리지 않았다")
@@ -349,7 +349,7 @@ def t_sbatch_routing():
     d2 = env.dispatcher(**kw)  # 다시 켬
     d2.step()
     check(len(env.remote.submits) == 2, "다시 켠 뒤 같은 job을 또 냈다")
-    # 첫 job이 5시간 만에 끝나면 상한 계산이 5 + 15 = 20이 되어 fold 2의 decoded(15)를 낸다
+    # 첫 job이 5시간 만에 끝나면 상한 계산이 5 + 15 = 20이 되어(상한 45) fold 2의 decoded(15)를 낸다
     for c in sep.conditions:
         env.finish(c, fold=1)
     env.remote.jobs[env.remote.submits[0]["job"]].update(state="COMPLETED", elapsed_s=5 * 3600)
@@ -359,7 +359,7 @@ def t_sbatch_routing():
     check(first["status"] == "done" and abs(float(first["gpu_h"]) - 5.0) < 1e-6 and first["backend"] == "sbatch", f"끝난 job {first}")
     check([s["name"] for s in env.remote.submits][2:] == ["s6d_t_linear_f2_decoded_t1"], f"{[s['name'] for s in env.remote.submits]}")
     check(abs(d2.sbatch_hours()[0] - 5.0) < 1e-6 and abs(d2.sbatch_hours()[1] - 35.0) < 1e-6, f"청구 계산 {d2.sbatch_hours()}")
-    # 둘째 job이 TIMEOUT으로 끝나고 조건이 남으면 실패. 다시 띄워야 하지만 5 + 15 + 15 + 15 > 40이라 login node를 기다린다
+    # 둘째 job이 TIMEOUT으로 끝나고 조건이 남으면 실패. 다시 띄워야 하지만 5 + 15 + 15 + 15 > 45라 login node를 기다린다
     env.remote.jobs[env.remote.submits[1]["job"]].update(state="TIMEOUT", elapsed_s=15 * 3600)
     d2.step()
     rows = D.State(d2.state.path).rows
@@ -377,6 +377,38 @@ def t_sbatch_parsing():
 
 
 TESTS = [t_dependency_rules, t_dependency_order, t_restart_no_duplicate, t_failure_relaunch_once, t_freeze_refusal, t_node_parsing, t_sbatch_routing, t_sbatch_parsing]
+
+
+def t_split_decoded():
+    """11/13. 장면 특징 줄을 둘로 나눈 표. 8개 조건이면 줄 3개이고 줄마다 운반 조건이 있다. Multimodal Model이 함께 있으면 운반 조건이 없어 멈춘다."""
+    eight = ["brain_only", "brain_only_distill", "control_label_smoothing", "brain_only_featdec", "brain_decoded", "brain_decoded_distill", "control_feature_shuffle", "control_stimulus_shuffle"]
+    table = D.subset_streams(eight, D.STREAMS_SPLIT_DECODED)
+    assert set(table) == {"brain_only", "decoded_aux", "decoded"}, table
+    v = D.parse_variant("linear:configs/s6/run_config_grid_main.json:s6_x", REPO, REPO / "outputs")
+    plan = D.build_plan([v], [1], S, table, eight)
+    assert all(st.carriers for st in plan), [(st.name, st.carriers) for st in plan]
+    assert {c for cs in table.values() for c in cs} == set(eight)
+    D.check_streams(table, eight, S)
+    try:
+        D.check_streams(D.subset_streams(eight + ["multimodal"], D.STREAMS_SPLIT_DECODED), eight + ["multimodal"], S)
+        raise AssertionError("운반 조건이 없는 줄을 막지 않았다")
+    except ValueError:
+        pass
+
+
+def t_grid_groups():
+    """11/13. A-1 grid 묶음. 17개 후보를 learning rate별로 묶고 1e-5는 둘로 나눈다. 모든 후보를 한 번씩 덮는다."""
+    spec = importlib.util.spec_from_file_location("s6_grid", REPO / "scripts" / "s6_grid.py")
+    G = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(G)
+    config = S.load_config(REPO / "configs/s6/run_config_grid_main.json")
+    groups = G.make_groups(S, config, {1e-5: 2})
+    sizes = [(g["lr"], len(g["ids"])) for g in groups]
+    assert sizes == [(1e-5, 3), (1e-5, 3), (1e-4, 6), (1e-3, 5)], sizes
+    assert 1000.0 not in groups[3]["wds"]
+
+
+TESTS += [t_split_decoded, t_grid_groups]
 
 
 def main():

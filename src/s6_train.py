@@ -726,6 +726,16 @@ def decoding_accuracy(model, fd, batch):
     return pd.DataFrame(out)
 
 
+def only_candidates(text, config):
+    """11/13. --only-candidates의 candidate_id를 이 설정의 brain_only 후보에서 찾는다. 후보에 없는 번호가 있으면 멈춘다(후보를 함수 밖에서 만들지 않는다)."""
+    wanted = [x for x in text.split(",") if x]
+    cands = {S.candidate_id(cnd): cnd for cnd in S.candidates("brain_only", k_candidates=config.k_candidates, learning_rates=config.learning_rates)}
+    missing = [x for x in wanted if x not in cands]
+    if missing or not wanted or len(set(wanted)) != len(wanted):
+        raise SystemExit(f"--only-candidates: 이 설정의 brain_only 후보가 아니거나 겹친다 {missing}")
+    return [cands[x] for x in wanted]
+
+
 def load_known(split, plan, include_test_features=False):
     """split 순서의 y, v, c. 학습과 검증 영상의 행만 읽고 나머지는 NaN이다. 시험 영상의 사람 평정은 읽지 않는다.
     시험 영상의 feature는 Multimodal Model의 참고 성능을 낼 때만 읽는다(G16)."""
@@ -773,6 +783,7 @@ def main(argv=None):
     ap.add_argument("--design-freeze", default="")
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--weight-counts", help="d 값을 쉼표로 나눠 주면 F8의 표만 쓰고 끝난다")
+    ap.add_argument("--only-candidates", default="", help="11/13. brain_only 후보 일부(쉼표로 나눈 candidate_id)만 seed 0으로 학습하고 선택 없이 끝낸다. 같은 실행 번호의 프로세스 여럿이 A-1 후보를 나눠 돌릴 때 쓴다. 실행 번호에 들어가지 않는다")
     a = ap.parse_args(argv)
     if a.weight_counts:
         S.MANIFEST.mkdir(parents=True, exist_ok=True)
@@ -806,6 +817,10 @@ def main(argv=None):
     run.check()  # 읽은 내용이 기록한 해시와 같음을 확인한다
     runner = FoldRunner(fd, split, run, spec, config, S.OUT / plan.name)
     runner.raw = raw
+    if a.only_candidates:
+        for cand in only_candidates(a.only_candidates, config):
+            runner.train_one("brain_only", cand, spec.seeds[0], search=True)
+        return
     for name in S.ORDER:
         if name in wanted:
             runner.run_condition(name)
