@@ -19,6 +19,7 @@ import s5_baselines as b5
 import s5_collect as col
 import s5_common as d5
 import s5_decoding as dec
+import s5_roi_map as rm
 
 RESULTS = []
 
@@ -583,8 +584,49 @@ def t_collect():
     check("참가자의 시험 영상은 그 block이 있는 영상이다", e[1] == [1, 7] and e[2] == [2] and e[3] == [])
 
 
+def t_roi_map():
+    """370개 ROI 지도(11/13). ROI마다 따로 학습하고, 시험 fold를 고르는 데 쓰지 않으며, fold를 모은 r이 직접 계산과 같다."""
+    brain, y = synth(n=180, p=30, q=4, seed=3)
+    g = np.random.default_rng(4)
+    feats = dict(vision=brain.X[:, :8] @ g.normal(size=(8, 5)) + 0.5 * g.normal(size=(180, 5)), caption=g.normal(size=(180, 3)))
+    k = 2
+    a = rm.roi_map_task(brain, y, feats, k, "cpu")
+    tr, va, te = rm.split_idx(brain.fold, k)
+    x0 = d5.as_tensor(brain.X[:, brain.roi_positions[0]], "cpu")
+    main, pick = d5.main_version(x0, d5.as_tensor(y, "cpu"), tr, va, te)
+    check("ROI 지도: 정서 예측은 그 ROI만 넣은 주 비교판 ridge와 같다", np.allclose(a["emotion_pred"][:, 0], main.numpy(), atol=1e-5) and (a["emotion_lambda_index"][0] == pick.numpy()).all())
+    check("ROI 지도: 시험 행은 바깥 fold k다", (a["video_id"] == brain.video_id[brain.fold == k]).all() and int(a["n_test"]) == (brain.fold == k).sum())
+    y2, f2 = y.copy(), {n: v.copy() for n, v in feats.items()}
+    y2[te] += 50 * g.normal(size=y2[te].shape)
+    for n in f2:
+        f2[n][te] += 50 * g.normal(size=f2[n][te].shape)
+    b = rm.roi_map_task(brain, y2, f2, k, "cpu")
+    same = all((a[f"{n}_lambda_index"] == b[f"{n}_lambda_index"]).all() for n in feats) and (a["emotion_lambda_index"] == b["emotion_lambda_index"]).all() and np.allclose(a["emotion_pred"], b["emotion_pred"], atol=1e-5)
+    check("ROI 지도: 시험 fold의 정답을 바꿔도 λ와 예측이 같다", same)
+    x2 = brain.X.copy()
+    x2[:, brain.roi_positions[1]] += g.normal(size=(180, len(brain.roi_positions[1])))
+    x2[:, 0:12] = brain.X[:, 0:12]  # ROI 0(0~11)은 ROI 1과 10, 11을 함께 쓴다
+    c2 = rm.roi_map_task(d5.BrainSet(brain.participant, x2.astype(np.float32), brain.video_id, brain.fold, brain.roi_positions, brain.n_voxels_with_overlap), y, feats, k, "cpu")
+    check("ROI 지도: 다른 ROI의 voxel을 바꿔도 ROI 0의 결과는 같다", np.allclose(a["emotion_pred"][:, 0], c2["emotion_pred"][:, 0], atol=1e-5))
+    parts, preds = [], []
+    for kk in range(1, 7):
+        z = rm.roi_map_task(brain, y, feats, kk, "cpu")
+        parts.append(z)
+    r = rm.pooled_r(parts, "vision")
+    # 직접 계산: fold마다 고른 λ로 예측을 다시 내 이어 붙인다
+    for kk in range(1, 7):
+        trk, vak, tek = rm.split_idx(brain.fold, kk)
+        x = d5.as_tensor(brain.X[:, brain.roi_positions[0]], "cpu")
+        d = d5.DualRidge(x, trk, dict(test=tek))
+        ff = d.fit(d5.as_tensor(feats["vision"], "cpu")[trk])
+        preds.append((tek, d.predict("test", ff, d5.LAMBDAS[int(parts[kk - 1]["vision_lambda_index"][0])]).numpy()))
+    rows = np.concatenate([t for t, _ in preds]); P = np.concatenate([p for _, p in preds]); Y = feats["vision"][rows]
+    direct = [np.corrcoef(P[:, j], Y[:, j])[0, 1] for j in range(Y.shape[1])]
+    check("ROI 지도: fold별 합으로 낸 r이 예측을 이어 붙여 낸 r과 같다(O19)", np.allclose(r[0], direct, atol=1e-6))
+
+
 def main():
-    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_identification_mean, t_without_h2020, t_timing, t_layer_metrics, t_qc_rows, t_soft_bce, t_mlp, t_ged, t_mlbvae, t_emogrowth, t_h2020, t_video_zone, t_boundaries, t_collect):
+    for f in (t_dual, t_selection, t_versions, t_decoding, t_identification, t_identification_mean, t_without_h2020, t_timing, t_layer_metrics, t_qc_rows, t_soft_bce, t_mlp, t_ged, t_mlbvae, t_emogrowth, t_h2020, t_video_zone, t_boundaries, t_collect, t_roi_map):
         f()
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)

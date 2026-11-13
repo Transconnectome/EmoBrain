@@ -65,6 +65,7 @@ external/            외부 레포 (git submodule)
 | S4 | `s4_feature_model.sh <과제> <커밋>` | 뇌 없는 모델. Stimulus Model(Vision + Caption → Emotion)과 distillation용 fold 밖 예측, 14개 차원판, 정서어 제거판, 구역 제외, 비교용 특징판 (GPU) | `<output_root>/s4_no_brain/` |
 | S4 | `s4_ridge.sh`, `s4_window_change.sh`, `s4_collect.sh` | V-JEPA 2 block별 ridge, 긴 영상의 window 변화, 점검과 요약 | 같은 폴더, `<output_root>/s4_collect/` |
 | S5 | `s5_decoding.sh <참가자> <커밋>` | 뇌 → 층별 feature ridge decoding (GPU) | `<output_root>/s5_ridge/` |
+| S5 | `s5_roi_map.sh <참가자> <커밋> [fold 목록]` | 370개 ROI 지도. ROI마다 그 ROI voxel만으로 정서 34개, Vision feature, Caption feature를 ridge로 decoding (GPU) | `<output_root>/s5_ridge/roi_map/` |
 | S5 | `s5_baselines.sh <과제> <참가자> <커밋>` | 정서 기준선: ridge, soft BCE 선형, 영상 길이, 저수준, 뇌 전체 신호, Horikawa 2020 복셀 선택 ridge (GPU) | 같은 폴더 |
 | S6 | `s6_train.sh <분할> <조건> <설정> <커밋>` | 뇌 모델 학습. 분할은 `outer_fold<k>`, `pilot_fold<k>`, `final_for_mc`, `zone_block<b>_fold<k>_<방식>` (GPU) | `<output_root>/s6_brain/` |
 | S6 | `s6_weight_counts.sh <d 목록>` | 조건별 학습 가중치 수 (CPU) | `manifests/s6/weight_counts.tsv` |
