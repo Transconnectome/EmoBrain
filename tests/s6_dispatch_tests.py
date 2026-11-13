@@ -408,7 +408,40 @@ def t_grid_groups():
     assert 1000.0 not in groups[3]["wds"]
 
 
-TESTS += [t_split_decoded, t_grid_groups]
+def t_target_mode():
+    """11/14. A-1 밖 조건의 후보 나누기. 그 fold의 A-1 선택으로 후보를 만들고, C-2처럼 다른 선택을 읽는 조건과 잘못된 번호는 막는다."""
+    spec = importlib.util.spec_from_file_location("s6_grid", REPO / "scripts" / "s6_grid.py")
+    G = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(G)
+    spec2 = importlib.util.spec_from_file_location("s6_candidates", REPO / "scripts" / "s6_candidates.py")
+    W = importlib.util.module_from_spec(spec2)
+    spec2.loader.exec_module(W)
+    config = S.load_config(REPO / "configs/s6/run_config_grid_main.json")
+    base = [c for c in S.candidates("brain_only", k_candidates=config.k_candidates, learning_rates=config.learning_rates) if c["lr"] == 1e-3 and c["input_wd"] == 100.0][0]
+    with tempfile.TemporaryDirectory() as td:
+        d = Path(td) / "outer_fold1" / "brain_only"
+        d.mkdir(parents=True)
+        (d / "selected.json").write_text(json.dumps(dict(candidate=base)))
+        groups = G.target_groups(S, config, td, 1, {"brain_decoded": 2, "brain_only_featdec": 2, "control_feature_shuffle": 2, "control_stimulus_shuffle": 2})
+    assert [(g["cond"], len(g["ids"])) for g in groups] == [("brain_decoded", 2)] * 4 + [("brain_only_featdec", 2), ("control_feature_shuffle", 2), ("control_stimulus_shuffle", 2)], groups
+    c1 = [S.candidate_id(c) for c in S.candidates("brain_decoded", k_candidates=config.k_candidates, base=base, learning_rates=config.learning_rates, lr_follows_brain_only=True)]
+    assert sorted(i for g in groups if g["cond"] == "brain_decoded" for i in g["ids"]) == sorted(c1)
+    picked = W.pick("brain_decoded", c1[:2], config, base)
+    assert [S.candidate_id(c) for c in picked] == c1[:2] and all(c["lr"] == 1e-3 and c["input_wd"] == 100.0 for c in picked)
+    for bad in ("brain_decoded_distill:x", "brain_decoded:", "brain_decoded:a,a", "brain_only:x"):
+        try:
+            W.parse_target(bad)
+            raise AssertionError(f"{bad}를 막지 않았다")
+        except SystemExit:
+            pass
+    try:
+        W.pick("brain_decoded", ["없는번호"], config, base)
+        raise AssertionError("없는 후보 번호를 막지 않았다")
+    except SystemExit:
+        pass
+
+
+TESTS += [t_split_decoded, t_grid_groups, t_target_mode]
 
 
 def main():
