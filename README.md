@@ -70,6 +70,7 @@ external/            외부 레포 (git submodule)
 | S6 | `s6_train.sh <분할> <조건> <설정> <커밋>` | 뇌 모델 학습. 분할은 `outer_fold<k>`, `pilot_fold<k>`, `final_for_mc`, `zone_block<b>_fold<k>_<방식>` (GPU) | `<output_root>/s6_brain/` |
 | S6 | `s6_weight_counts.sh <d 목록>` | 조건별 학습 가중치 수 (CPU) | `manifests/s6/weight_counts.tsv` |
 | S6 | `s6_dispatch.sh <tag> <run worktree> <커밋> --variant <이름:설정:출력 폴더> [--conditions <조건>] [--dry-run]` | 본실험 조건을 fold와 변형마다 stream 4개로 나누고, 앞 조건의 선택이 나오는 대로 띄운다. 어림 시간이 짧은 stream은 빈 login node GPU에, 긴 stream은 청구 시간 상한 안에서 sbatch로 낸다. 상태 표로 다시 켜서 잇고, 실패한 stream은 다른 node에서 한 번 다시 띄운다. 의존과 나누는 규칙은 `scripts/s6_dispatch.py` 머리말 (CPU, 오래 도는 프로세스) | `<output_root>/logs/s6_dispatch_state_<tag>.tsv` |
+| S9 | `s9_saved_models.sh <swap|perturb> <S6 결과 폴더> <커밋> [fold 목록]` | 저장된 모델로 하는 분석. swap은 C-1의 바꿔 끼우기와 같은 크기의 무작위 변경 대조(2-2, 1-1, 1-2), perturb는 A-1과 C-1의 네트워크 13묶음, ROI 370개 입력 교란(6-4b) (GPU, 학습 없음) | `<output_root>/s9_saved_models/` |
 
 S6의 결과 폴더 구조와 저장 형식은 [src/s6_train.py](src/s6_train.py) 머리말에 있다.
 
