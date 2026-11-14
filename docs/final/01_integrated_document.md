@@ -1400,7 +1400,7 @@ C-2에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder�
 - 내용 구역(6-2)의 이름표 73개: Horikawa 외(2020)가 다른 평정자에게 영상 내용(사람, 동물, 실내 등)을 매기게 한 값이다. 정서 평정도 뇌 반응도 아니고, 학습 결과도 보지 않고 구역을 정했으므로 결과를 정하는 데 결과를 쓰는 순환은 없다. 다만 Caption feature도 내용을 기술하므로 구역이 캡션 경로에 불리할 수 있다는 점은 6-2에 적었다.
 - 11/14 석진 님 결정
     - 입력층은 ROI tokenizer(지금 방식)를 유지한다. 리뷰어 대비로 MindEye2 형식 입력층(모든 voxel → 참가자별 선형층 하나 → 64차원 token 하나, 입력 가중치 수는 같음)을 A-1에서 비교한다(run_config_dense_check.json).
-    - voxel 남기는 비율: 입력 dropout의 권장값(80% 남김, Srivastava 외 2014)으로 A-1을 점검한다(run_config_keep80_check.json). 검증 fold에서 지금(약 31%)보다 나으면 전체를 다시 돌릴지 정한다.
+    - voxel 남기는 비율: 입력 dropout의 권장값(80% 남김, Srivastava 외 2014)으로 A-1을 점검했다(run_config_keep80_check.json). 검증 fold에서 지금(약 31%)과 같은 수준이었다(6 fold 중 4개에서 조금 높고, 평균 차이는 fold 사이 차이보다 훨씬 작음). 그래서 약 31%를 유지하고 다시 돌리지 않는다(석진 님 결정). 논문에는 80% 입력 dropout도 검증 성능이 같은 수준이었다고 한 줄 쓴다. 해석은 입력층 weight decay가 이미 강해서 같은 일을 하는 입력 dropout의 세기가 결과를 거의 바꾸지 않는다는 것이다(Wager 외, 2013, NeurIPS. 선형 모델의 입력 dropout은 L2 규제와 1차로 같다).
     - 정서 기능 군집(voxel마다 정서 34개 → 반응의 encoding, 반응 모양으로 5명의 voxel을 묶음)은 모델을 바꾸지 않는 보조 결과로 쓴다. Horikawa 외(2020)는 voxel-wise encoding으로 정서 범주 모델과 정서 차원, 시각, 의미 모델을 비교했고, k-means는 영상의 뇌 반응 패턴에 적용했다. voxel을 정서 반응으로 묶은 분석은 그 논문에 없다. 쓰기 전에 한 명을 빼고 묶어도 군집이 재현되는지 확인한다.
     - router와 mixture of experts는 쓰지 않는다. 자료가 적고, 경로 사용은 바꿔 끼우기로 보며, 설계 변경이다.
 - Kamitani, Tanaka, Shirakawa(2025, arXiv 2505.08429, 리뷰)에서 가져오는 것
