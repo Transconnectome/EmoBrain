@@ -14,4 +14,4 @@ set -euo pipefail
 HERE="${SLURM_SUBMIT_DIR:+$SLURM_SUBMIT_DIR/scripts}"; source "${HERE:-$(dirname "$0")}/_env.sh"
 TASK="${1:?과제}"; FREEZE="${2:?설계 동결 커밋}"; PART="${3:-0/1}"
 export OMP_NUM_THREADS=4
-"$PY" s4_feature_model.py --task "$TASK" --design-freeze "$FREEZE" --part "$PART" --device cuda
+"$PY" s4_feature_model.py --task "$TASK" --design-freeze "$FREEZE" --part "$PART" --device cuda "${@:4}"  # 11/14. 넷째 인자부터 그대로 넘긴다(ex) --learning-rates 1e-4,1e-3,1e-2)
