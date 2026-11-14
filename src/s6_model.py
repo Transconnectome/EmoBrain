@@ -75,12 +75,17 @@ class SeparateOutput(ModelOutput):
 class RoiInput(nn.Module):
     """C4. W는 참가자마다 ROI 순서로 이어 붙여 하나의 Parameter로 둔다. bounds가 ROI 경계이고, 곱은 ROI마다 따로 한다."""
 
-    def __init__(self, voxel_counts, d, voxel_sampling=0.0):
+    def __init__(self, voxel_counts, d, voxel_sampling=0.0, aggregate="sum"):
         super().__init__()
         _check_d(d)
         if not 0.0 <= float(voxel_sampling) < 1.0:
             raise ValueError("voxel 뽑기 비율은 0 이상 1 미만이다(0이면 뽑지 않는다)")
+        if aggregate not in ("sum", "mean"):
+            raise ValueError("ROI token은 voxel의 합(sum)이나 평균(mean)으로 만든다")
         self.voxel_sampling = float(voxel_sampling)  # 11/12. 선형 입력층의 voxel 뽑기(Brain-IT 입력층과 같은 복원 추출). 원인 분리 점검용
+        # 11/15 석진 님 점검. mean이면 token을 voxel 수 n으로 나눈다(W'/n). 처음 token 크기는 sum과 같게 W'의 초기 범위를 n배로 둔다.
+        # Adam은 가중치마다 비슷한 폭으로 움직이므로, 합으로 모으면 voxel이 많은 ROI의 token이 한 step에 크게 바뀐다. 평균은 ROI마다 그 폭을 같게 한다
+        self.aggregate = aggregate
         if len({len(v) for v in voxel_counts.values()}) != 1:
             raise ValueError("참가자마다 ROI 수가 같아야 한다(공통 ROI, C6)")
         self.d = d
@@ -101,7 +106,7 @@ class RoiInput(nn.Module):
             w, b = torch.empty(bounds[-1], d), torch.empty(self.n_roi, d)
             for r, n in enumerate(counts):
                 limit = n ** -0.5
-                nn.init.uniform_(w[bounds[r]:bounds[r + 1]], -limit, limit)
+                nn.init.uniform_(w[bounds[r]:bounds[r + 1]], -limit * (n if aggregate == "mean" else 1), limit * (n if aggregate == "mean" else 1))
                 nn.init.uniform_(b[r], -limit, limit)
             self.weights[pid], self.input_bias[pid] = nn.Parameter(w), nn.Parameter(b)
         self.roi_embedding = nn.Parameter(torch.empty(self.n_roi, d))
@@ -130,6 +135,8 @@ class RoiInput(nn.Module):
         x = self.sample(x)
         # split을 쓴다. ROI마다 slice하면 역전파가 ROI마다 W 전체 크기의 텐서를 만들어 수백 배 느려진다
         out = [a @ b for a, b in zip(x.split(counts, 1), self.weights[pid].split(counts, 0))]
+        if getattr(self, "aggregate", "sum") == "mean":
+            out = [o / n for o, n in zip(out, counts)]
         return torch.stack(out, 1) + self.input_bias[pid] + self.roi_embedding
 
     def forward(self, batch):
@@ -265,10 +272,12 @@ CELL_TOKENIZERS = {"roi_mean": 1, "roi_cells": 8}  # 11/9 입력층 점검. 칸 
 
 def make_input_layer(voxel_counts, d, tokenizer="linear", voxel_sampling=0.0, cells=None):
     """linear는 5-5의 입력층(본 설계). 11/9 점검용: brainit(Brain-IT tokenizer), roi_mean(ROI 평균), roi_cells(ROI 8칸 평균)."""
-    if voxel_sampling and tokenizer not in ("brainit", "linear", "linear_bernoulli", "dense"):
-        raise ValueError("voxel 뽑기는 brainit, linear, linear_bernoulli, dense 입력층에만 있다")
+    if voxel_sampling and tokenizer not in ("brainit", "linear", "linear_bernoulli", "dense", "linear_mean"):
+        raise ValueError("voxel 뽑기는 brainit, linear, linear_bernoulli, dense, linear_mean 입력층에만 있다")
     if tokenizer == "linear":
         return RoiInput(voxel_counts, d, voxel_sampling)  # 11/12. linear의 voxel 뽑기는 원인 분리 점검용
+    if tokenizer == "linear_mean":  # 11/15. ROI token을 voxel 평균으로(RoiInput.aggregate)
+        return RoiInput(voxel_counts, d, voxel_sampling, aggregate="mean")
     if tokenizer == "linear_bernoulli":  # 11/14. voxel_sampling은 voxel마다 빼는 확률
         layer = RoiInput(voxel_counts, d, voxel_sampling)
         layer.sampling_mode = "bernoulli"
@@ -581,10 +590,13 @@ def parameter_assignment(model):
     return out
 
 
-def parameter_groups(model, lr, input_weight_decay, feature_token_decay=None):
-    """AdamW에 넘길 묶음(G13). 학습하는 파라미터가 빠지거나 겹치면 멈춘다."""
+def parameter_groups(model, lr, input_weight_decay, feature_token_decay=None, input_lr=None):
+    """AdamW에 넘길 묶음(G13). 학습하는 파라미터가 빠지거나 겹치면 멈춘다.
+    input_lr: 11/15 점검. 입력층 W만 다른 learning rate로 학습한다(없으면 lr). bias와 ROI embedding은 lr을 쓴다."""
     if not isinstance(lr, float) or lr <= 0:
         raise ValueError("learning rate가 잘못됐다")
+    if input_lr is not None and (not isinstance(input_lr, float) or input_lr <= 0):
+        raise ValueError("입력층 learning rate가 잘못됐다")
     if not isinstance(input_weight_decay, float) or input_weight_decay < 0:
         raise ValueError("입력층 weight decay가 잘못됐다")
     assignment = parameter_assignment(model)
@@ -596,7 +608,7 @@ def parameter_groups(model, lr, input_weight_decay, feature_token_decay=None):
         if params:
             if decay is None:
                 raise ValueError(f"{group} 묶음의 weight decay가 없다")
-            groups.append(dict(params=params, weight_decay=decay, lr=lr, name=group))
+            groups.append(dict(params=params, weight_decay=decay, lr=input_lr if group == "input_weight" and input_lr is not None else lr, name=group))
     trainable = {id(p) for p in model.parameters() if p.requires_grad}
     placed = [id(p) for g in groups for p in g["params"]]
     if len(placed) != len(set(placed)) or set(placed) != trainable:

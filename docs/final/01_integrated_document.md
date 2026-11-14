@@ -1403,6 +1403,12 @@ C-2에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder�
     - voxel 남기는 비율: 입력 dropout의 권장값(80% 남김, Srivastava 외 2014)으로 A-1을 점검했다(run_config_keep80_check.json). 검증 fold에서 지금(약 31%)과 같은 수준이었다(6 fold 중 4개에서 조금 높고, 평균 차이는 fold 사이 차이보다 훨씬 작음). 그래서 약 31%를 유지하고 다시 돌리지 않는다(석진 님 결정). 논문에는 80% 입력 dropout도 검증 성능이 같은 수준이었다고 한 줄 쓴다. 해석은 입력층 weight decay가 이미 강해서 같은 일을 하는 입력 dropout의 세기가 결과를 거의 바꾸지 않는다는 것이다(Wager 외, 2013, NeurIPS. 선형 모델의 입력 dropout은 L2 규제와 1차로 같다).
     - 정서 기능 군집(voxel마다 정서 34개 → 반응의 encoding, 반응 모양으로 5명의 voxel을 묶음)은 모델을 바꾸지 않는 보조 결과로 쓴다. Horikawa 외(2020)는 voxel-wise encoding으로 정서 범주 모델과 정서 차원, 시각, 의미 모델을 비교했고, k-means는 영상의 뇌 반응 패턴에 적용했다. voxel을 정서 반응으로 묶은 분석은 그 논문에 없다. 쓰기 전에 한 명을 빼고 묶어도 군집이 재현되는지 확인한다.
     - router와 mixture of experts는 쓰지 않는다. 자료가 적고, 경로 사용은 바꿔 끼우기로 보며, 설계 변경이다.
+- 11/15 석진 님 결정. 입력층 학습 폭 점검
+    - 문제: A-1 grid에서 입력층 weight decay가 후보 끝에서 선택되었다(lr × weight decay 0.1. PyTorch AdamW는 step마다 가중치에 1 − lr × weight decay를 곱하므로 10%씩 줄인다). MindEye2(Scotti 외, 2024)와 Brain-IT(Beliy 외, 2026)는 0.01이다. 값 자체는 optimizer 설정 방식에서 나온 것이라 직접 비교할 수 없다(Wang, Aitchison, 2025, ICML. AdamW의 가중치는 최근 update의 이동 평균이고 기간은 1/(lr × weight decay) step).
+    - 검토(critic, Codex): 계산 버그는 없다. 입력층 가중치는 초기값보다 크게 줄어 있고, 크기를 모두 같게 하고 부호만 남겨도 검증 r이 같다. 가중치가 더 작은 후보가 오히려 낮아서, 최종 가중치 크기보다 학습 중 움직이는 폭이 문제로 보인다.
+    - 가설: ROI마다 voxel 수가 수백 배 다른데(37~21,842개) learning rate가 하나다. token은 voxel의 합이라 voxel이 많은 ROI의 token이 한 step에 크게 바뀌고, 큰 weight decay가 이를 누른다. 아직 확인하지 않은 가설이다.
+    - 점검: A-1에서 두 방식을 본다. (1) ROI token을 voxel 평균으로 만든다(weight decay 0.01, learning rate {1e-4, 1e-3}). Brain-IT는 voxel을 attention 가중 평균으로 모은다. Adam에서 입력이 많은 층의 learning rate를 입력 수에 반비례하게 주는 µP(Yang 외, 2021, NeurIPS)의 원리를 ROI의 voxel 수에 옮긴 것이라 그 자체로 근거가 되지는 않는다(Codex 지적). (2) 입력층 W만 learning rate를 10배 낮춘다(입력층 1e-4, 나머지 1e-3, 입력층 weight decay {10, 100}. Codex 제안). 모두 seed 0, 6 fold.
+    - 판정(결과 전에 정함): 두 방식 가운데 6 fold 평균 검증 r이 높은 쪽이 지금 A-1의 검증 r보다 0.005 넘게 낮지 않으면 그 방식으로 바꾸고 모든 조건을 다시 학습한다. 0.005는 fold마다 검증 r이 흔들리는 정도이고, 성능이 비슷하면 설명하기 쉬운 방식을 고른다는 뜻이다. 둘 다 그보다 낮으면 지금 설계를 유지하고 한계로 쓴다. 시험 fold는 보지 않는다.
 - Kamitani, Tanaka, Shirakawa(2025, arXiv 2505.08429, 리뷰)에서 가져오는 것
     - 뇌 → 사전학습 모델의 특징(translator) → 출력(generator)의 틀. C-1은 뇌 → Vision/Caption feature → 정서의 같은 틀이다.
     - recovery check: 특징이 출력에 필요한 정보를 담는지 먼저 확인하라는 권고. 실제 특징만으로 정서를 맞히는 Stimulus Model이 그 확인이다.

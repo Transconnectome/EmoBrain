@@ -1728,12 +1728,59 @@ def t_input_1114():
         check(f"{tok}: 설정을 읽는다", cfg.tokenizer == tok and cfg.voxel_sampling == 0.2)
 
 
+def t_inputstep_1115():
+    """11/15. linear_mean(ROI token을 voxel 평균으로)과 입력층만 다른 learning rate(input_lr_scale)."""
+    counts = {"sub-01": [5, 40, 3], "sub-02": [4, 6, 50]}
+    torch.manual_seed(0)
+    mean = M.make_input_layer(counts, 8, "linear_mean", 0.0)
+    total = M.make_input_layer(counts, 8, "linear", 0.0)
+    with torch.no_grad():
+        for p, c in counts.items():
+            n = torch.cat([torch.full((k, 1), float(k)) for k in c])
+            mean.weights[p].copy_(total.weights[p] * n)  # W' = n W 이면 같은 함수다
+            mean.input_bias[p].copy_(total.input_bias[p])
+        mean.roi_embedding.copy_(total.roi_embedding)
+    xs = {p: torch.randn(3, sum(c)) for p, c in counts.items()}
+    batch = M.BrainBatch(xs, {"sub-01": torch.tensor([0, 2, 4]), "sub-02": torch.tensor([1, 3, 5])}, 6)
+    mean.eval(), total.eval()
+    check("linear_mean: W'를 n W로 두면 linear와 같은 token이다", torch.allclose(mean(batch), total(batch), atol=1e-5))
+    torch.manual_seed(1)
+    fresh_mean, fresh_sum = M.make_input_layer(counts, 64, "linear_mean", 0.0), M.make_input_layer(counts, 64, "linear", 0.0)
+    xb = {p: torch.randn(2000, sum(c)) for p, c in counts.items()}
+    big = M.BrainBatch(xb, {"sub-01": torch.arange(0, 4000, 2), "sub-02": torch.arange(1, 4000, 2)}, 4000)
+    with torch.no_grad():
+        a = (fresh_mean(big) - fresh_mean.input_bias["sub-01"] - fresh_mean.roi_embedding).std(0).mean(1)
+        b = (fresh_sum(big) - fresh_sum.input_bias["sub-01"] - fresh_sum.roi_embedding).std(0).mean(1)
+    check("linear_mean: 처음 token의 뇌 부분 크기가 linear와 비슷하다(ROI마다 0.7~1.4배)", bool(((a / b) > 0.7).all() and ((a / b) < 1.4).all()))
+    model = M.BrainModel(counts, 8, tokenizer="linear_mean", voxel_sampling=0.375).eval()
+    with tempfile.TemporaryDirectory() as td:
+        M.save_checkpoint(Path(td) / "m.pt", model, condition="brain_only")
+        back, _ = M.load_checkpoint(Path(td) / "m.pt")
+    check("linear_mean: 체크포인트를 되살리면 평균 입력층이다", back.input_layer.aggregate == "mean" and all(torch.equal(x, y) for x, y in zip(model.state_dict().values(), back.state_dict().values())))
+    groups = M.parameter_groups(M.BrainModel(counts, 8), 1e-3, 100.0, input_lr=1e-4)
+    lrs = {g["name"]: g["lr"] for g in groups}
+    check("input_lr: 입력층 W만 다른 learning rate다", lrs["input_weight"] == 1e-4 and all(v == 1e-3 for k, v in lrs.items() if k != "input_weight"))
+    same = M.parameter_groups(M.BrainModel(counts, 8), 1e-3, 100.0, input_lr=1e-3 * 1.0)
+    check("input_lr: 배율 1이면 모든 묶음이 같은 learning rate다", all(g["lr"] == 1e-3 for g in same))
+    for scale, ok in ((0.1, True), (1.0, True), (0.5, False)):
+        with tempfile.TemporaryDirectory() as td:
+            pth = Path(td) / "c.json"
+            pth.write_text(json.dumps(dict(k_candidates=[[64, 10.0]], learning_rates=[1e-3], seeds=[0], tokenizer="linear_mean", voxel_sampling=0.375, input_lr_scale=scale)))
+            try:
+                cfg = S.load_config(pth)
+                got = cfg.input_lr_scale == scale and cfg.tokenizer == "linear_mean"
+            except ValueError:
+                got = False
+        check(f"input_lr_scale {scale}: {'읽는다' if ok else '멈춘다'}", got == ok)
+    check("Spec이 입력층 배율을 담는다(기본 1)", S.Spec().input_lr_scale == 1.0 and S.Spec(input_lr_scale=0.1).input_lr_scale == 0.1)
+
+
 def main():
     if "--timing" in sys.argv:
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_total_val_loss, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard, t_grid_1113, t_input_1114):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_total_val_loss, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard, t_grid_1113, t_input_1114, t_inputstep_1115):
         t0 = time.time()
         try:
             f()

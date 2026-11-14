@@ -107,7 +107,7 @@ POOLED = {"brain_only_pool": "brain_only", "brain_decoded_pool": "brain_decoded"
 ZERO_SOURCE = {"brain_only_distill": ("brain_only", "alpha"), "brain_only_featdec": ("brain_only", "lam"), "brain_decoded_distill": ("brain_decoded", "alpha"), "brain_decoded_sep_distill": ("brain_decoded_sep", "alpha")}  # G9. 0 후보는 앞 조건의 학습이다
 
 
-TOKENIZERS = ("linear", "brainit", "roi_mean", "roi_cells", "linear_bernoulli", "dense")  # 입력층. linear가 본 설계, brainit은 11/10 본 실행의 두 번째 입력층(모든 조건), roi_mean과 roi_cells는 11/9 점검
+TOKENIZERS = ("linear", "brainit", "roi_mean", "roi_cells", "linear_bernoulli", "dense", "linear_mean")  # 입력층. linear가 본 설계, brainit은 11/10 본 실행의 두 번째 입력층(모든 조건), roi_mean과 roi_cells는 11/9 점검
 
 @dataclass(frozen=True)
 class Spec:
@@ -116,6 +116,10 @@ class Spec:
     max_epochs: int = MAX_EPOCHS
     patience: int = PATIENCE
     seeds: tuple = SEEDS
+    input_lr_scale: float = 1.0  # 11/15 점검. 입력층 W의 learning rate = lr × 이 값(설정의 input_lr_scale)
+
+
+INPUT_LR_SCALES = (0.1, 1.0)  # 11/15 석진 님 점검. 0.1은 입력층만 10배 천천히(Codex 제안), 1은 지금과 같음
 
 
 @dataclass(frozen=True)
@@ -129,12 +133,13 @@ class Config:
     seeds: tuple = SEEDS  # L9. 발표용 예비 실행처럼 seed를 줄일 때만 SEEDS의 앞부분으로 준다(11/8)
     tokenizer: str = "linear"  # 입력층. linear가 본 설계(5-5). 11/9 점검용: brainit(s6_model.BrainItRoiInput), roi_mean, roi_cells(s6_model.RoiCellInput)
     voxel_sampling: float = 0.0  # 학습 때 예시마다 뽑는 voxel 비율(Brain-IT 부록 D.1은 약 1.5만 / 4만). brainit, 그리고 11/12부터 linear(원인 분리 점검)
+    input_lr_scale: float = 1.0  # 11/15 점검. INPUT_LR_SCALES 가운데 하나
 
 
 def load_config(path):
     """configs/s6의 JSON을 읽는다. 알 수 없는 키, S7 전의 빈 후보, G13 밖의 learning rate는 멈춘다."""
     raw = json.loads(Path(path).read_text())
-    extra = set(raw) - {"k_candidates", "learning_rates", "lr_follows_brain_only", "keep_candidate_checkpoints", "seeds", "tokenizer", "voxel_sampling", "note"}
+    extra = set(raw) - {"k_candidates", "learning_rates", "lr_follows_brain_only", "keep_candidate_checkpoints", "seeds", "tokenizer", "voxel_sampling", "input_lr_scale", "note"}
     if extra:
         raise ValueError(f"설정에 알 수 없는 키가 있다: {sorted(extra)}")
     if not raw.get("k_candidates"):
@@ -143,9 +148,12 @@ def load_config(path):
     if not seeds or seeds != SEEDS[:len(seeds)]:
         raise ValueError("seed는 SEEDS의 앞부분이어야 한다(L9). 후보 고르기는 항상 seed 0이다")
     tokenizer, sampling = str(raw.get("tokenizer", "linear")), float(raw.get("voxel_sampling", 0.0))
-    if tokenizer not in TOKENIZERS or not 0.0 <= sampling < 1.0 or (tokenizer not in ("brainit", "linear", "linear_bernoulli", "dense") and sampling):
-        raise ValueError(f"tokenizer는 {TOKENIZERS} 가운데 하나이고, voxel 뽑기 비율(0 이상 1 미만)은 brainit과 linear에만 준다(linear는 11/12 원인 분리 점검)")
-    return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds, tokenizer, sampling)
+    if tokenizer not in TOKENIZERS or not 0.0 <= sampling < 1.0 or (tokenizer not in ("brainit", "linear", "linear_bernoulli", "dense", "linear_mean") and sampling):
+        raise ValueError(f"tokenizer는 {TOKENIZERS} 가운데 하나이고, voxel 뽑기 비율(0 이상 1 미만)은 brainit과 linear 계열에만 준다(linear는 11/12 원인 분리 점검)")
+    input_lr_scale = float(raw.get("input_lr_scale", 1.0))
+    if input_lr_scale not in INPUT_LR_SCALES:
+        raise ValueError(f"input_lr_scale은 {INPUT_LR_SCALES} 가운데 하나다(11/15 점검)")
+    return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds, tokenizer, sampling, input_lr_scale)
 
 
 def _cand(**kw):

@@ -223,7 +223,7 @@ def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on
         raise ValueError("val_fn과 restore_fn은 함께 주지 않는다")
     train, val = fd.rows("train"), fd.rows("val")
     y_val = fd.y(val).cpu()
-    optimizer = torch.optim.AdamW(M.parameter_groups(model, lr, input_wd, feature_wd))
+    optimizer = torch.optim.AdamW(M.parameter_groups(model, lr, input_wd, feature_wd, input_lr=lr * float(getattr(spec, "input_lr_scale", 1.0))))  # 11/15. 기본값 1이면 지금과 같다
     generator = torch.Generator().manual_seed(seed)  # 자료 순서(O32)
     best_loss, best_epoch, best_state = float("inf"), 0, None
     history = []
@@ -799,7 +799,7 @@ def main(argv=None):
     plan = S.load_plan(a.plan, split)  # manifests/s2/splits의 목록 파일을 쓰고 분할 표와 대조한다
     wanted = a.conditions.split(",")
     S.check_conditions(plan.name, wanted)
-    spec = S.Spec(seeds=config.seeds)
+    spec = S.Spec(seeds=config.seeds, input_lr_scale=config.input_lr_scale)
     stimulus_run = None
     use_stimulus = plan.name.startswith(("outer_fold", "pilot_fold")) and S.needs_stimulus(wanted)  # Stimulus 예측 평정을 쓰는 조건이 없으면 읽지 않는다(11/9)
     if use_stimulus:  # S4 출처를 학습 전에 대조한다. 입력 해시는 이 실행과 같은 방식으로 낸다

@@ -34,9 +34,13 @@ def now():
     return datetime.now(KST).strftime("%Y-%m-%d %H:%M:%S")
 
 
-def make_groups(S, config, split):
-    """learning rate마다 후보를 입력층 weight decay 순으로 묶는다. split: lr -> 나눌 수."""
+def make_groups(S, config, split, together=False):
+    """learning rate마다 후보를 입력층 weight decay 순으로 묶는다. split: lr -> 나눌 수.
+    together(11/15): fold마다 모든 후보를 작업 하나로 묶는다(후보가 적은 점검에서 GPU 수를 줄인다). 묶음의 lr은 가장 작은 값으로 적는다."""
     cands = S.candidates("brain_only", k_candidates=config.k_candidates, learning_rates=config.learning_rates)
+    if together:
+        cs = sorted(cands, key=lambda c: (c["lr"], c["d"], c["input_wd"]))
+        return [dict(lr=cs[0]["lr"], lrs=[c["lr"] for c in cs], ids=[S.candidate_id(c) for c in cs], wds=[c["input_wd"] for c in cs])]
     by_lr = {}
     for c in cands:
         by_lr.setdefault(c["lr"], []).append(c)
@@ -80,6 +84,7 @@ def main():
     ap.add_argument("--s6-out", required=True)
     ap.add_argument("--folds", default="1-6")
     ap.add_argument("--split", default="", help="ex) 1e-05=2. 그 learning rate의 후보를 몇 작업으로 나눌지")
+    ap.add_argument("--together", action="store_true", help="11/15. fold마다 모든 후보를 작업 하나로 묶는다")
     ap.add_argument("--minutes", default="", help="어림용 학습 한 번의 분. ex) 1e-05=200,0.0001=45,0.001=20")
     ap.add_argument("--nodes", default="01-40")
     ap.add_argument("--exclude", default="")
@@ -117,12 +122,12 @@ def main():
             if est > 24:
                 raise SystemExit("작업 하나의 어림이 24시간을 넘는다(login node 규칙). 묶음을 줄인다")
     else:
-        groups = make_groups(S, config, split)
+        groups = make_groups(S, config, split, a.together)
         jobs = [dict(fold=k, group=g, cond="brain_only", lr=gr["lr"], ids=gr["ids"], wds=gr["wds"], status="pending", attempts=0, node="", log="", launched="") for k in folds for g, gr in enumerate(groups)]
         log_dir = Path(a.s6_out).parent / "logs" / f"s6_grid_{Path(a.s6_out).name}"
         print(f"[{now()}] 작업 {len(jobs)}개(fold {len(folds)} × 묶음 {len(groups)}), 후보 {sum(len(g['ids']) for g in groups)}개/fold", flush=True)
         for g, gr in enumerate(groups):
-            est = minutes.get(gr["lr"], 0) * len(gr["ids"]) / 60
+            est = sum(minutes.get(x, 0) for x in gr.get("lrs", [gr["lr"]] * len(gr["ids"]))) / 60
             print(f"  묶음 {g}: lr {gr['lr']}, weight decay {gr['wds']}, 어림 {est:.1f} h", flush=True)
             if est > 24:
                 raise SystemExit(f"묶음 {g}의 어림이 24시간을 넘는다. --split으로 더 나누거나 sbatch로 따로 낸다(login node 규칙)")
