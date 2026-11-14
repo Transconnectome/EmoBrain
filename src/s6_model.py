@@ -107,18 +107,27 @@ class RoiInput(nn.Module):
         self.roi_embedding = nn.Parameter(torch.empty(self.n_roi, d))
         nn.init.normal_(self.roi_embedding, std=d ** -0.5)
 
+    def sample(self, x):
+        """학습 때만 voxel을 고른다. 평가 때는 모든 voxel을 쓴다.
+        - 11/12(replace): Brain-IT 입력층과 같은 방식으로 예시마다 voxel을 복원 추출한다(전체의 voxel_sampling 비율만큼 뽑음). 선형 합이라
+          뽑힌 횟수에 1/비율을 곱해 기댓값이 모든 voxel을 쓸 때와 같게 한다.
+        - 11/14(bernoulli, 석진 님): voxel마다 voxel_sampling 확률로 빼고(0) 남은 값에 1/(1 − 확률)을 곱한다(입력 dropout, Srivastava 외 2014. 0.2면 80%를 남김)."""
+        if not self.training or self.voxel_sampling <= 0:
+            return x
+        if getattr(self, "sampling_mode", "replace") == "bernoulli":
+            keep = 1.0 - self.voxel_sampling
+            return x * (torch.rand_like(x) < keep).to(x.dtype) / keep
+        n_draw = max(1, round(self.voxel_sampling * x.shape[1]))
+        draws = torch.randint(0, x.shape[1], (x.shape[0], n_draw), device=x.device)
+        hits = torch.zeros_like(x).scatter_add_(1, draws, torch.ones_like(draws, dtype=x.dtype))
+        return x * hits * (x.shape[1] / n_draw)
+
     def token(self, pid, x):
         """x: 행 × 그 참가자의 voxel 열. ROI token은 그 ROI의 voxel만으로 만든다(5-5). 칸 평균은 쓰지 않는다."""
         counts = self.voxel_counts[pid]
         if x.shape[1] != sum(counts):
             raise ValueError(f"{pid}: 입력 열 수가 입력층과 다르다")
-        if self.training and self.voxel_sampling > 0:
-            # 11/12. Brain-IT 입력층과 같은 방식으로 예시마다 voxel을 복원 추출한다(전체의 voxel_sampling 비율만큼 뽑음). 선형 합이라
-            # 뽑힌 횟수에 1/비율을 곱해 기댓값이 모든 voxel을 쓸 때와 같게 한다. 평가 때는 모든 voxel을 쓴다
-            n_draw = max(1, round(self.voxel_sampling * x.shape[1]))
-            draws = torch.randint(0, x.shape[1], (x.shape[0], n_draw), device=x.device)
-            hits = torch.zeros_like(x).scatter_add_(1, draws, torch.ones_like(draws, dtype=x.dtype))
-            x = x * hits * (x.shape[1] / n_draw)
+        x = self.sample(x)
         # split을 쓴다. ROI마다 slice하면 역전파가 ROI마다 W 전체 크기의 텐서를 만들어 수백 배 느려진다
         out = [a @ b for a, b in zip(x.split(counts, 1), self.weights[pid].split(counts, 0))]
         return torch.stack(out, 1) + self.input_bias[pid] + self.roi_embedding
@@ -135,6 +144,28 @@ class RoiInput(nn.Module):
             raise ValueError("묶음의 행 위치가 맞지 않다")
         return torch.cat(parts)[order.argsort()]
 
+
+
+class DenseVoxelInput(RoiInput):
+    """11/14 석진 님. MindEye2 형식 입력층(Scotti 외 2024의 참가자별 선형층과 같은 형식). ROI로 묶지 않고 그 참가자의 모든 voxel 열을
+    참가자별 선형층 하나로 d차원 token 하나에 보낸다. 가중치는 RoiInput과 같은 크기(열 수 × d)이고, RoiInput은 이 행렬에서 ROI 밖 가중치를 0으로 둔
+    특수한 경우다. 그래서 가중치 수를 같게 둔 채 ROI 구조의 효과를 비교한다. voxel 뽑기는 RoiInput과 같다."""
+
+    def __init__(self, voxel_counts, d, voxel_sampling=0.0):
+        super().__init__(voxel_counts, d, voxel_sampling)
+        self.input_bias = nn.ParameterDict({pid: nn.Parameter(b[:1].clone()) for pid, b in self.input_bias.items()})
+        self.roi_embedding = nn.Parameter(self.roi_embedding[:1].detach().clone())
+        for pid, counts in self.voxel_counts.items():  # 열 전체를 한 번에 받으므로 초기값 범위도 열 전체 수로 맞춘다
+            limit = sum(counts) ** -0.5
+            with torch.no_grad():
+                self.weights[pid].uniform_(-limit, limit)
+                self.input_bias[pid].uniform_(-limit, limit)
+
+    def token(self, pid, x):
+        if x.shape[1] != sum(self.voxel_counts[pid]):
+            raise ValueError(f"{pid}: 입력 열 수가 입력층과 다르다")
+        x = self.sample(x)
+        return (x @ self.weights[pid])[:, None, :] + self.input_bias[pid] + self.roi_embedding
 
 
 class BrainItRoiInput(RoiInput):
@@ -234,10 +265,16 @@ CELL_TOKENIZERS = {"roi_mean": 1, "roi_cells": 8}  # 11/9 입력층 점검. 칸 
 
 def make_input_layer(voxel_counts, d, tokenizer="linear", voxel_sampling=0.0, cells=None):
     """linear는 5-5의 입력층(본 설계). 11/9 점검용: brainit(Brain-IT tokenizer), roi_mean(ROI 평균), roi_cells(ROI 8칸 평균)."""
-    if voxel_sampling and tokenizer not in ("brainit", "linear"):
-        raise ValueError("voxel 뽑기는 brainit과 linear 입력층에만 있다")
+    if voxel_sampling and tokenizer not in ("brainit", "linear", "linear_bernoulli", "dense"):
+        raise ValueError("voxel 뽑기는 brainit, linear, linear_bernoulli, dense 입력층에만 있다")
     if tokenizer == "linear":
         return RoiInput(voxel_counts, d, voxel_sampling)  # 11/12. linear의 voxel 뽑기는 원인 분리 점검용
+    if tokenizer == "linear_bernoulli":  # 11/14. voxel_sampling은 voxel마다 빼는 확률
+        layer = RoiInput(voxel_counts, d, voxel_sampling)
+        layer.sampling_mode = "bernoulli"
+        return layer
+    if tokenizer == "dense":  # 11/14. MindEye2 형식, token 하나
+        return DenseVoxelInput(voxel_counts, d, voxel_sampling)
     if tokenizer == "brainit":
         return BrainItRoiInput(voxel_counts, d, voxel_sampling)
     if tokenizer in CELL_TOKENIZERS:

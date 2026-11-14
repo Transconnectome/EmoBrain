@@ -1692,12 +1692,48 @@ def t_grid_1113():
     check("나머지 조건은 A-1이 고른 learning rate와 입력층 weight decay를 따른다(G13 예산 규칙)", len(follow) == 8 and all(c["lr"] == base["lr"] and c["input_wd"] == base["input_wd"] for c in follow))
 
 
+def t_input_1114():
+    """11/14. linear_bernoulli(voxel마다 빼는 dropout)와 dense(MindEye2 형식, token 하나) 입력층."""
+    counts = {"sub-01": [5, 7, 3], "sub-02": [4, 6, 5]}
+    torch.manual_seed(0)
+    layer = M.make_input_layer(counts, 8, "linear_bernoulli", 0.2)
+    x = torch.ones(4000, sum(counts["sub-01"]))
+    layer.train()
+    z = layer.sample(x)
+    check("bernoulli: 학습 때 약 80%를 남긴다", abs(float((z != 0).float().mean()) - 0.8) < 0.01)
+    check("bernoulli: 남긴 값에 1/0.8을 곱해 평균이 그대로다", abs(float(z.mean()) - 1.0) < 0.02 and torch.allclose(z[z != 0], torch.full_like(z[z != 0], 1 / 0.8)))
+    layer.eval()
+    check("bernoulli: 평가 때는 모든 voxel을 그대로 쓴다", torch.equal(layer.sample(x), x))
+    dense = M.make_input_layer(counts, 8, "dense", 0.0)
+    roi = M.make_input_layer(counts, 8, "linear", 0.0)
+    check("dense: 입력 가중치 수가 ROI 입력층과 같다", all(dense.weights[p].shape == roi.weights[p].shape for p in counts))
+    xs = {p: torch.randn(3, sum(c)) for p, c in counts.items()}
+    batch = M.BrainBatch(xs, {"sub-01": torch.tensor([0, 2, 4]), "sub-02": torch.tensor([1, 3, 5])}, 6)
+    dense.eval()
+    out = dense(batch)
+    want = xs["sub-01"] @ dense.weights["sub-01"] + dense.input_bias["sub-01"][0] + dense.roi_embedding[0]
+    check("dense: token 하나이고 모든 voxel을 한 선형층으로 받는다", tuple(out.shape) == (6, 1, 8) and torch.allclose(out[[0, 2, 4], 0], want, atol=1e-5))
+    for tok in ("dense", "linear_bernoulli"):
+        model = M.BrainModel(counts, 8, tokenizer=tok, voxel_sampling=0.2).eval()
+        with tempfile.TemporaryDirectory() as td:
+            M.save_checkpoint(Path(td) / "m.pt", model, condition="brain_only")
+            back, _ = M.load_checkpoint(Path(td) / "m.pt")
+        same = all(torch.equal(a, b) for a, b in zip(model.state_dict().values(), back.state_dict().values()))
+        check(f"{tok}: 체크포인트를 되살리면 같다", same and type(back.input_layer) is type(model.input_layer) and getattr(back.input_layer, "sampling_mode", "replace") == getattr(model.input_layer, "sampling_mode", "replace"))
+    for tok in ("dense", "linear_bernoulli"):
+        with tempfile.TemporaryDirectory() as td:
+            pth = Path(td) / "c.json"
+            pth.write_text(json.dumps(dict(k_candidates=[[64, 10.0]], learning_rates=[1e-3], seeds=[0], tokenizer=tok, voxel_sampling=0.2)))
+            cfg = S.load_config(pth)
+        check(f"{tok}: 설정을 읽는다", cfg.tokenizer == tok and cfg.voxel_sampling == 0.2)
+
+
 def main():
     if "--timing" in sys.argv:
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_total_val_loss, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard, t_grid_1113):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_total_val_loss, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard, t_grid_1113, t_input_1114):
         t0 = time.time()
         try:
             f()

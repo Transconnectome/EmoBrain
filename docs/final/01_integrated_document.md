@@ -1398,6 +1398,11 @@ C-2에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder�
     - 남는 한계: 바꾼 영역과 나머지 뇌 사이에 어색한 조합이 생긴다(Hooker, Mentch, Zhou, 2021, 목록 밖). 네트워크 단위로 바꾸면 네트워크 안의 상관은 남고 네트워크 사이의 상관은 깨진다.
     - 신경과학 선례: 영역마다 따로 학습(Horikawa 외, 2020, iScience. Tang 외, 2023, Nature Neuroscience)하거나, 학습 없이 0으로 바꿨다(Chen 외, 2024, Nature Machine Intelligence. Willett 외, 2023, Nature). 다른 표본 값으로 바꾼 신경과학 선례는 찾지 못했으므로, 논문에는 기계학습 근거로 정당화한다고 쓴다.
 - 내용 구역(6-2)의 이름표 73개: Horikawa 외(2020)가 다른 평정자에게 영상 내용(사람, 동물, 실내 등)을 매기게 한 값이다. 정서 평정도 뇌 반응도 아니고, 학습 결과도 보지 않고 구역을 정했으므로 결과를 정하는 데 결과를 쓰는 순환은 없다. 다만 Caption feature도 내용을 기술하므로 구역이 캡션 경로에 불리할 수 있다는 점은 6-2에 적었다.
+- 11/14 석진 님 결정
+    - 입력층은 ROI tokenizer(지금 방식)를 유지한다. 리뷰어 대비로 MindEye2 형식 입력층(모든 voxel → 참가자별 선형층 하나 → 64차원 token 하나, 입력 가중치 수는 같음)을 A-1에서 비교한다(run_config_dense_check.json).
+    - voxel 남기는 비율: 입력 dropout의 권장값(80% 남김, Srivastava 외 2014)으로 A-1을 점검한다(run_config_keep80_check.json). 검증 fold에서 지금(약 31%)보다 나으면 전체를 다시 돌릴지 정한다.
+    - 정서 기능 군집(voxel마다 정서 34개 → 반응의 encoding, 반응 모양으로 5명의 voxel을 묶음)은 모델을 바꾸지 않는 보조 결과로 쓴다. Horikawa 외(2020)는 voxel-wise encoding으로 정서 범주 모델과 정서 차원, 시각, 의미 모델을 비교했고, k-means는 영상의 뇌 반응 패턴에 적용했다. voxel을 정서 반응으로 묶은 분석은 그 논문에 없다. 쓰기 전에 한 명을 빼고 묶어도 군집이 재현되는지 확인한다.
+    - router와 mixture of experts는 쓰지 않는다. 자료가 적고, 경로 사용은 바꿔 끼우기로 보며, 설계 변경이다.
 - Kamitani, Tanaka, Shirakawa(2025, arXiv 2505.08429, 리뷰)에서 가져오는 것
     - 뇌 → 사전학습 모델의 특징(translator) → 출력(generator)의 틀. C-1은 뇌 → Vision/Caption feature → 정서의 같은 틀이다.
     - recovery check: 특징이 출력에 필요한 정보를 담는지 먼저 확인하라는 권고. 실제 특징만으로 정서를 맞히는 Stimulus Model이 그 확인이다.

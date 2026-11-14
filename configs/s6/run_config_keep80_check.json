@@ -1,0 +1,8 @@
+{
+  "note": "11/14 석진 님. voxel 남기는 비율 점검. 본 실행(run_config_grid_main.json)의 A-1과 같고, voxel 뽑기만 복원 추출 0.375(약 31% 남김) 대신 voxel마다 20% 확률로 빼는 입력 dropout(80% 남김, Srivastava 외 2014의 입력 권장값)으로 바꾼다. learning rate는 본 실행이 고른 1e-3, 입력층 weight decay {10, 100}. A-1만, seed 0. 검증 fold r로 본 실행과 비교한다. 결과는 S6_OUT=s6_brain_keep80_check",
+  "k_candidates": [[64, 10.0], [64, 100.0]],
+  "learning_rates": [0.001],
+  "seeds": [0],
+  "tokenizer": "linear_bernoulli",
+  "voxel_sampling": 0.2
+}

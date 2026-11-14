@@ -107,7 +107,7 @@ POOLED = {"brain_only_pool": "brain_only", "brain_decoded_pool": "brain_decoded"
 ZERO_SOURCE = {"brain_only_distill": ("brain_only", "alpha"), "brain_only_featdec": ("brain_only", "lam"), "brain_decoded_distill": ("brain_decoded", "alpha"), "brain_decoded_sep_distill": ("brain_decoded_sep", "alpha")}  # G9. 0 후보는 앞 조건의 학습이다
 
 
-TOKENIZERS = ("linear", "brainit", "roi_mean", "roi_cells")  # 입력층. linear가 본 설계, brainit은 11/10 본 실행의 두 번째 입력층(모든 조건), roi_mean과 roi_cells는 11/9 점검
+TOKENIZERS = ("linear", "brainit", "roi_mean", "roi_cells", "linear_bernoulli", "dense")  # 입력층. linear가 본 설계, brainit은 11/10 본 실행의 두 번째 입력층(모든 조건), roi_mean과 roi_cells는 11/9 점검
 
 @dataclass(frozen=True)
 class Spec:
@@ -143,7 +143,7 @@ def load_config(path):
     if not seeds or seeds != SEEDS[:len(seeds)]:
         raise ValueError("seed는 SEEDS의 앞부분이어야 한다(L9). 후보 고르기는 항상 seed 0이다")
     tokenizer, sampling = str(raw.get("tokenizer", "linear")), float(raw.get("voxel_sampling", 0.0))
-    if tokenizer not in TOKENIZERS or not 0.0 <= sampling < 1.0 or (tokenizer not in ("brainit", "linear") and sampling):
+    if tokenizer not in TOKENIZERS or not 0.0 <= sampling < 1.0 or (tokenizer not in ("brainit", "linear", "linear_bernoulli", "dense") and sampling):
         raise ValueError(f"tokenizer는 {TOKENIZERS} 가운데 하나이고, voxel 뽑기 비율(0 이상 1 미만)은 brainit과 linear에만 준다(linear는 11/12 원인 분리 점검)")
     return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds, tokenizer, sampling)
 
