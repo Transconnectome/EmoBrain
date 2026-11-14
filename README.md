@@ -72,6 +72,7 @@ external/            외부 레포 (git submodule)
 | S6 | `s6_dispatch.sh <tag> <run worktree> <커밋> --variant <이름:설정:출력 폴더> [--conditions <조건>] [--dry-run]` | 본실험 조건을 fold와 변형마다 stream 4개로 나누고, 앞 조건의 선택이 나오는 대로 띄운다. 어림 시간이 짧은 stream은 빈 login node GPU에, 긴 stream은 청구 시간 상한 안에서 sbatch로 낸다. 상태 표로 다시 켜서 잇고, 실패한 stream은 다른 node에서 한 번 다시 띄운다. 의존과 나누는 규칙은 `scripts/s6_dispatch.py` 머리말 (CPU, 오래 도는 프로세스) | `<output_root>/logs/s6_dispatch_state_<tag>.tsv` |
 | S6 | `s6_grid.sh <run worktree> <커밋> <설정> <출력 폴더> [--split 1e-05=2] [--dry-run]` | A-1 후보 grid(learning rate × 입력층 weight decay)를 learning rate별 묶음으로 나눠 빈 login node GPU에 띄운다. 같은 실행 번호로 돌려 dispatcher의 brain_only stream이 끝난 후보를 건너뛰고 선택만 한다. 규칙은 `scripts/s6_grid.py` 머리말 (CPU, 오래 도는 프로세스) | `<output_root>/logs/s6_grid_<출력 폴더 이름>/state.json` |
 | S6 | `s6_candidates.sh <run worktree> --plan <분할> --conditions <조건> --config <설정> --design-freeze <커밋> --target <조건>:<id>,<id>` | 한 조건의 후보 일부만 같은 실행 번호로 학습한다. src를 고치면 실행 번호가 바뀌므로 src 밖에서 run worktree의 s6_train을 불러 쓴다. `s6_grid.py --target`이 부른다 (GPU) | `<output_root>/<출력 폴더>/` |
+| S6 | `s6_merge_lr.sh <본 실행 폴더> <learning rate 1e-4 실행 폴더> <합친 폴더> [--folds 1-6]` | 두 실행(learning rate 1e-3, 1e-4)을 조건과 fold마다 검증 r로 합친다. A-1은 본 실행 그대로, C-2는 합친 C-1의 실행을 따른다. 원래 결과는 옮기지 않고 symlink와 selected.json, merge_record.tsv를 만든다. 규칙은 `scripts/s6_merge_lr.py` 머리말 (CPU, 몇 초) | `<output_root>/<합친 폴더>/` |
 | S9 | `s9_saved_models.sh <swap|perturb> <S6 결과 폴더> <커밋> [fold 목록]` | 저장된 모델로 하는 분석. swap은 C-1의 바꿔 끼우기와 같은 크기의 무작위 변경 대조(2-2, 1-1, 1-2), perturb는 A-1과 C-1의 네트워크 13묶음, ROI 370개 입력 교란(6-4b) (GPU, 학습 없음) | `<output_root>/s9_saved_models/` |
 
 S6의 결과 폴더 구조와 저장 형식은 [src/s6_train.py](src/s6_train.py) 머리말에 있다.
@@ -113,6 +114,7 @@ bash scripts/s4_tests.sh   # 약 2분
 bash scripts/s5_tests.sh   # 약 2분
 bash scripts/s6_tests.sh   # 약 2분
 python tests/s6_dispatch_tests.py   # 약 2분. S6 dispatcher의 의존 순서, 다시 켜기, 실패 처리, 동결 확인. ssh와 GPU를 쓰지 않는다
+python tests/s6_merge_tests.py   # 몇 초. 두 실행을 합치는 규칙(검증 r, 같으면 작은 learning rate, 0 후보, C-2가 C-1을 따름)
 ```
 
 합성 자료로 자료 경계(시험 영상, MC 72개), 후보값, 선택 규칙, 출처 기록, 저장 형식을 확인한다. 실제 정답과 뇌 반응은 읽지 않는다.
