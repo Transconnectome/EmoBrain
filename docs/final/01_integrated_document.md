@@ -1372,6 +1372,38 @@ C-2에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder�
         - 그림 N. Vision feature와 Caption feature 경로를 검사하기 위한 뇌 모델 설계. (a) 직접 예측. 뇌 반응만으로 34개 사람 평정을 예측한다. (b) Brain + Decoded Feature → Emotion. 직접 예측 경로(회색)를 유지한 채, Vision feature와 Caption feature와 대응하는 뇌 정보가 정서 예측에 쓰이는지 검사하기 위해 Vision feature 경로(파랑)와 Caption feature 경로(주황)를 추가했다. 두 경로의 출력은 학습 때만 고정된 Feature Extractor의 특징과 비교하도록 학습하고(점선), 정서 손실의 기울기는 두 경로로 전달하지 않는다(//). 시험 때 입력은 뇌 반응뿐이다. (c) 추가한 경로의 검증. 한 단계에 하나만 바꾼 조건 비교로 각 단계가 예측에 도움이 되는지 평가하고, decoded features 교체로 모델이 해당 경로에 의존하는지 검사한다. 교체 효과는 이 모델의 경로 의존성이며, 뇌의 정서 정보 가운데 그 경로가 담는 양이 아니다. 화살표는 모델의 계산을 나타내며 뇌의 실제 처리 순서를 가정하지 않는다.
     - 그림 파일은 그리는 코드(fig56_v2.py)로 만들었다. 본문이 바뀌면 코드에서 고쳐 다시 낸다. 11/18 결과 뒤 결과 그림을 만들 때도 같은 색(시각 파랑, 캡션 주황, 공통 회색)과 글꼴을 쓴다.
 
+### 5-7. 부품별 근거와 문헌 [11/14 석진 님 요청. 원문 확인]
+
+모델은 한 논문의 구조를 통째로 가져오지 않고, 질문에 필요한 구조를 먼저 정한 뒤 부품마다 선례를 따랐다. 아래는 부품마다 무엇을 어디서 빌렸고 어디가 선례와 다른지다. "(목록 밖)"은 프로젝트의 허용 학술지 목록 밖이라 원리의 근거로만 쓴다는 뜻이다.
+
+- 입력 형식: ROI마다 그 영역의 모든 voxel을 참가자별 선형층으로 token 하나로 만든다(영역 평균이 아님)
+    - 가장 가까운 선례: ROITok(Liu 외, 2026, CVPR). "each ROI as a contextual token that encapsulates its distributed, multi-voxel response pattern", ROI와 참가자마다 embedder를 둔다. 시각 ROI 12개다.
+    - 비슷한 선례: CLIP-MUSED(Zhou 외, 2024, ICLR)는 ROI마다 PCA로 token 하나, Brain-IT(Beliy 외, 2026, ICLR)는 기능 군집 128개마다 graph attention으로 token 하나를 만든다.
+    - 다른 형식: 뇌 전체 voxel을 펼친 벡터(MindEye2, Scotti 외 2024, ICML. MindBridge, Wang 외 2024, CVPR), parcel 시계열 token(BrainLM, Ortega Caro 외 2024, ICLR. Brain-JEPA, Dong 외 2024, NeurIPS), flat map patch(CortexMAE, Lane 외 2026, ICML).
+    - 입력 형식을 비교한 논문: CortexMAE는 parcel, flat map, volume을 비교했고 volume(voxel 수준)이 parcel보다 낫지 않았다. Brain-IT는 기능 군집이 해부 parcel보다 조금 나았다.
+    - 선례와 다른 점: 뇌 전체 370개 영역을 voxel 해상도로 token화한 선례는 찾지 못했다. 크기(d 64, block 1개)는 확인한 fMRI Transformer(512차원, 4층 이상)보다 훨씬 작다. 근거는 같은 자료의 선행 정서 decoder(GED, ML-BVAE, EmoGrowth)의 64차원과, 참가자당 학습 영상이 약 1,390개뿐이라는 점이다(F3).
+    - voxel 수준 비교: 뇌 전체 voxel을 받는 ridge와 MLP 기준선과 비교한다. 리뷰어 대비로 "같은 공유 모델에 MindEye2 형식 입력층(뇌 전체 voxel → 참가자별 선형 → 공유 표현을 64차원 token으로 나눔)"을 붙인 비교를 더할지는 석진 님 결정 대기다.
+- 참가자별 입력 + 공유 모델: MindEye2(참가자별 선형), Brain-IT(참가자별 voxel embedding, 새 참가자는 그것만 학습), ROITok(ROI × 참가자별 embedder). 참가자가 5명뿐이라 공유 모델로 간다(11/14 석진 님 재확인).
+- 정서마다 query 하나로 영역을 읽기: 학습하는 query로 읽는 방식의 원형은 DETR의 object query(Carion 외, 2020, ECCV)다. Query2Label(Liu 외, 2021)은 arXiv에만 있다. fMRI에서는 Brain-IT, UMBRAE(Xia 외, 2024, ECCV), MindLLM(Qiu 외, 2025, ICML)이 학습 query로 읽는다.
+- 평균 pooling판(F7)을 쉽게: query판은 정서마다 370개 영역에 다른 가중치를 줘서 읽는다(ex) fear는 시각 영역을, sadness는 Default 영역을 더 볼 수 있음). 평균 pooling판은 370개 token을 똑같이 평균한 요약 하나에서 정서 34개를 모두 낸다(이미지 분류의 global average pooling). query판이 나으면 정서마다 다른 영역을 골라 읽는 것이 도움이 된다는 뜻이다.
+- Multimodal Model(E의 teacher): 뇌 token 370개 뒤에 Vision feature token과 Caption feature token을 이어 붙여 같은 Transformer에 넣는다. 이어 붙이기(early fusion)는 표준 형식이다(ViLT, Kim 외 2021, ICML. Perceiver, Jaegle 외 2021, ICML). Nagrani 외(2021, NeurIPS)는 이 방식이 중간 단계에서 합치는 것보다 낮았다고 보고했다. 두 특징 token은 따로 학습하는 선형층(편향 포함)으로 만들어 modality 구분 embedding의 역할을 한다. 학생이 teacher의 분류기를 재사용하는 방식은 SimKD(Chen 외, 2022, CVPR)다.
+- 학습 때 voxel 뽑기
+    - 직접 선례: Brain-IT 부록 D.1, "we sample voxels both to reduce memory usage and as a form of regularization", 약 4만 개 중 1.5만 개를 복원 추출. 0으로 채우는 방식까지 같은 선례는 Wen 외(2018, Cerebral Cortex, 목록 밖)의 "randomly dropping 30% of voxels in every iteration, i.e. setting the dropped voxels to zeros".
+    - 원리: 입력 dropout(Hinton 외, 2012, arXiv. Srivastava 외, 2014, JMLR, 목록 밖). Wager 외(2013, NeurIPS)는 선형 모델의 입력 dropout이 L2 규제와 1차로 같다고 보였다. voxel마다 가중치가 따로 있는 우리 선형 입력층에 해당한다.
+    - 비율: 0.375는 Brain-IT의 1.5만/4만을 따랐고, 복원 추출이라 실제로 남는 voxel은 약 31%다. 이 비율을 검증한 논문은 없다. Srivastava 외(2014)는 입력은 0.8 정도를 남기라고 권했고, 학습 예가 수백 개일 때는 dropout 이득이 없었다고 보고했다. 남기는 비율을 바꿔 보는 점검은 석진 님 결정 대기다.
+    - 근거로 쓰지 않는 것: MAE, BrainLM, Brain-JEPA의 masking은 사전학습용이라 목적이 다르다.
+- 영역 입력을 다른 영상 값으로 바꾸기(6-4b)
+    - 기계학습 근거: 학습된 모델을 고정하고 한 변수를 다른 관측의 값으로 바꾸는 model reliance(Fisher 외, 2019, JMLR, 목록 밖. Breiman, 2001, 목록 밖의 permutation importance). 바꾸면 그 변수는 정답과의 대응을 잃지만 분포는 그대로다.
+    - 0으로 지우지 않는 이유: 학습 때 본 적 없는 입력이 되어, 성능 하락이 정보를 뺀 때문인지 분포 밖 입력 때문인지 구분되지 않는다(Hooker 외, 2019, NeurIPS. Hase 외, 2021, NeurIPS).
+    - 남는 한계: 바꾼 영역과 나머지 뇌 사이에 어색한 조합이 생긴다(Hooker, Mentch, Zhou, 2021, 목록 밖). 네트워크 단위로 바꾸면 네트워크 안의 상관은 남고 네트워크 사이의 상관은 깨진다.
+    - 신경과학 선례: 영역마다 따로 학습(Horikawa 외, 2020, iScience. Tang 외, 2023, Nature Neuroscience)하거나, 학습 없이 0으로 바꿨다(Chen 외, 2024, Nature Machine Intelligence. Willett 외, 2023, Nature). 다른 표본 값으로 바꾼 신경과학 선례는 찾지 못했으므로, 논문에는 기계학습 근거로 정당화한다고 쓴다.
+- 내용 구역(6-2)의 이름표 73개: Horikawa 외(2020)가 다른 평정자에게 영상 내용(사람, 동물, 실내 등)을 매기게 한 값이다. 정서 평정도 뇌 반응도 아니고, 학습 결과도 보지 않고 구역을 정했으므로 결과를 정하는 데 결과를 쓰는 순환은 없다. 다만 Caption feature도 내용을 기술하므로 구역이 캡션 경로에 불리할 수 있다는 점은 6-2에 적었다.
+- Kamitani, Tanaka, Shirakawa(2025, arXiv 2505.08429, 리뷰)에서 가져오는 것
+    - 뇌 → 사전학습 모델의 특징(translator) → 출력(generator)의 틀. C-1은 뇌 → Vision/Caption feature → 정서의 같은 틀이다.
+    - recovery check: 특징이 출력에 필요한 정보를 담는지 먼저 확인하라는 권고. 실제 특징만으로 정서를 맞히는 Stimulus Model이 그 확인이다.
+    - 학습과 시험의 자극이 비슷하면 성능이 부풀려진다는 경고와 처음 보는 내용에서의 평가(zero-shot). 6-2와 4-3의 거리 점검이 이 평가다.
+    - 영상 식별(pairwise identification)을 표준 지표로 쓴다(2-1). 자료가 적을 때 선형 모델이 선호된다는 서술은 ridge 기준선을 두는 이유와 같다.
+
 ## 6단계. 분석과 예상 결과 [정함, 11/3]
 
 ### 6-0. 예측표와 지표 읽는 법 [정함, 11/8 석진 님. 설명 그대로 넣음]
