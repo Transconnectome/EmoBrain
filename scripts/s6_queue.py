@@ -15,6 +15,7 @@
 """
 import argparse
 import json
+import re
 import shlex
 import sys
 import time
@@ -62,10 +63,11 @@ def finished(job):
 
 
 def job_procs(probe, job):
-    """probe에서 이 작업(같은 분할, 같은 설정)의 s6_train 프로세스."""
+    """probe에서 이 작업(같은 분할, 같은 설정, 겹치는 조건)의 s6_train 프로세스. 같은 분할과 설정이라도 조건이 다르면 다른 작업이다(11/15)."""
     if probe is None:
         return []
-    return [(p, a) for p, a in probe.procs if D.S6_PROC.search(a) and job["plan"] in a.split() and job["config"] in a]
+    conds = set(job["conditions"].split(","))
+    return [(p, a) for p, a in probe.procs if D.S6_PROC.search(a) and job["plan"] in a.split() and job["config"] in a and conds & set(re.split(r"[,\s]+", a))]
 
 
 def usable_gpu(probe, free_mib, share_own):

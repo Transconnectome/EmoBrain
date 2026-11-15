@@ -122,6 +122,11 @@ def main():
         sj2 = Q.read_jobs(write_jobs(tmp, [("s2", "outer_fold2", "brain_decoded_additive", cfg, tmp / "out" / "s6_own2", 2)]), run_root)
         Q.step(sj2, own2, ["login03"], run_root, "c0ffee", log_dir, 30000, out=lambda s: None, share_own=True)
         check("share_own이어도 같은 작업이 이미 돌면 띄우지 않는다", len(own2.launches) == 0 and sj2[0]["status"] == "pending")
+        own3 = Fake(["login04"])
+        own3.procs["login04"] = [(9, f"python s6_train.py --plan outer_fold2 --conditions multimodal,brain_only_repr_frozen --config {cfg}")]
+        sj3 = Q.read_jobs(write_jobs(tmp, [("s2", "outer_fold2", "brain_decoded_additive", cfg, tmp / "out" / "s6_own3", 2)]), run_root)
+        Q.step(sj3, own3, ["login04"], run_root, "c0ffee", log_dir, 30000, out=lambda s: None, share_own=True)
+        check("같은 분할과 설정이라도 조건이 다른 작업은 다른 작업으로 본다", [n for n, _ in own3.launches] == ["login04"])
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)
     sys.exit(1 if bad else 0)
