@@ -1,0 +1,7 @@
+# b300-01 서버 고정 경로 (configs/paths.yaml로 복사해 사용; configs/paths.yaml은 git 제외)
+data_root: /scratch/emobrain/data
+output_root: /scratch/emobrain/outputs
+ffmpeg: /usr/bin/ffmpeg
+ffprobe: /usr/bin/ffprobe
+pymoten_dir: /scratch/envs/centaur/lib/python3.12/site-packages
+video_root: /scratch/emobrain/data/stimuli
