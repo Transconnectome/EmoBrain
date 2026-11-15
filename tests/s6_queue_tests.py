@@ -107,6 +107,21 @@ def main():
         n0 = len(race.launches)
         Q.step(more, race, ["login01", "login02"], run_root, "c0ffee", log_dir, 2000, out=lambda s: None)
         check("띄우기 직전 다시 봐서 다른 실행기가 잡은 node는 건너뛴다", len(race.launches) == n0 + 1 and race.launches[-1][0] == "login02")
+        # --share-own: 이 사용자의 다른 s6_train이 있는 node도 메모리가 남으면 쓴다. 같은 작업이 이미 돌면 띄우지 않는다
+        own = Fake(["login01", "login02"])
+        own.procs["login01"] = [(7, "python s6_train.py --plan outer_fold9 --config other.json")]
+        own.gpu["login01"] = 8000
+        own.gpu["login02"] = 39000
+        sj = Q.read_jobs(write_jobs(tmp, [("s1", "outer_fold1", "brain_decoded_additive", cfg, tmp / "out" / "s6_own", 2), ("s2", "outer_fold2", "brain_decoded_additive", cfg, tmp / "out" / "s6_own", 2)]), run_root)
+        Q.step(sj, own, ["login01", "login02"], run_root, "c0ffee", log_dir, 30000, out=lambda s: None)
+        check("share_own이 없으면 우리 작업이 있는 node에 띄우지 않는다", len(own.launches) == 0)
+        Q.step(sj, own, ["login01", "login02"], run_root, "c0ffee", log_dir, 30000, out=lambda s: None, share_own=True)
+        check("share_own이면 메모리가 남는 node에 하나만 띄우고 메모리가 찬 node는 건너뛴다", [n for n, _ in own.launches] == ["login01"] and sj[0]["status"] == "running" and sj[1]["status"] == "pending")
+        own2 = Fake(["login03"])
+        own2.procs["login03"] = [(8, f"python s6_train.py --plan outer_fold2 --conditions brain_decoded_additive --config {cfg}")]
+        sj2 = Q.read_jobs(write_jobs(tmp, [("s2", "outer_fold2", "brain_decoded_additive", cfg, tmp / "out" / "s6_own2", 2)]), run_root)
+        Q.step(sj2, own2, ["login03"], run_root, "c0ffee", log_dir, 30000, out=lambda s: None, share_own=True)
+        check("share_own이어도 같은 작업이 이미 돌면 띄우지 않는다", len(own2.launches) == 0 and sj2[0]["status"] == "pending")
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)
     sys.exit(1 if bad else 0)

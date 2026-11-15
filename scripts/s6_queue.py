@@ -7,9 +7,11 @@
   프로세스가 사라졌는데 끝나지 않았으면 다른 node에서 한 번 더 띄운다(s6_train은 끝난 후보를 건너뛴다).
 - node는 이 사용자의 s6_train이 없고 GPU 메모리가 빈 것만 쓴다(s6_dispatch.free_gpu). login node GPU는 다른 사용자도 쓰므로 node 묶음을 나누지 않고,
   띄우기 직전에 그 node를 다시 본다. 다른 실행기(dispatcher)가 그 사이 잡았으면 건너뛴다.
+- --share-own(11/15 석진 님): 이 사용자의 다른 s6_train이 있는 node도 GPU 메모리 사용이 --free-mib 아래면 쓴다. 같은 작업(같은 분할, 같은 설정)이
+  어느 node에서든 돌고 있으면 띄우지 않고, 이 실행기의 작업은 node 하나에 하나만 띄운다.
 - 어림이 24시간을 넘는 작업은 받지 않는다(login node 규칙). sbatch를 내지 않는다. 목록의 순서대로 띄운다.
 - 다시 켜면 상태 파일(<s6_out 부모>/logs/s6_queue_<tag>/state.json)에서 잇는다.
-사용(레포 최상위): python scripts/s6_queue.py --tag <이름> --run-root <run worktree> --freeze <커밋> --jobs <작업 TSV> --nodes 17-40 [--exclude 28] [--dry-run]
+사용(레포 최상위): python scripts/s6_queue.py --tag <이름> --run-root <run worktree> --freeze <커밋> --jobs <작업 TSV> --nodes 17-40 [--exclude 28] [--share-own] [--dry-run]
 """
 import argparse
 import json
@@ -66,6 +68,18 @@ def job_procs(probe, job):
     return [(p, a) for p, a in probe.procs if D.S6_PROC.search(a) and job["plan"] in a.split() and job["config"] in a]
 
 
+def usable_gpu(probe, free_mib, share_own):
+    """띄울 GPU 번호. share_own이면 이 사용자의 다른 s6_train이 있어도 메모리만 본다."""
+    if not share_own:
+        return D.free_gpu(probe, free_mib)
+    if probe is None:
+        return None
+    for i, mib in enumerate(probe.gpus):
+        if mib < free_mib:
+            return i
+    return None
+
+
 def command(run_root, job, gpu, freeze):
     q = shlex.quote
     log = Path(job["log"])
@@ -73,7 +87,7 @@ def command(run_root, job, gpu, freeze):
             f"nohup bash scripts/s6_train.sh {q(job['plan'])} {q(job['conditions'])} {q(job['config'])} {q(freeze)} > {q(str(log))} 2>&1 < /dev/null & echo {D.PID_MARK}$!")
 
 
-def step(jobs, remote, nodes, run_root, freeze, log_dir, free_mib, out=print):
+def step(jobs, remote, nodes, run_root, freeze, log_dir, free_mib, out=print, share_own=False):
     """한 번 확인하고 띄운다. 돌려주는 값: 아직 끝나지 않은 작업 수."""
     with ThreadPoolExecutor(16) as ex:
         probes = dict(zip(nodes, ex.map(remote.probe, nodes)))
@@ -92,7 +106,7 @@ def step(jobs, remote, nodes, run_root, freeze, log_dir, free_mib, out=print):
             j["status"] = "pending" if j["attempts"] < D.MAX_ATTEMPTS else "failed"
             out(f"[{now()}] 사라짐 {j['name']} ({j['node']}) -> {j['status']}")
     busy = {j["node"] for j in jobs if j["status"] == "running"}
-    free = [n for n in nodes if n not in busy and D.free_gpu(probes.get(n), free_mib) is not None]
+    free = [n for n in nodes if n not in busy and usable_gpu(probes.get(n), free_mib, share_own) is not None]
     for j in jobs:
         if not free:
             break
@@ -101,10 +115,12 @@ def step(jobs, remote, nodes, run_root, freeze, log_dir, free_mib, out=print):
         if finished(j):
             j["status"] = "done"
             continue
+        if share_own and any(job_procs(p, j) for p in probes.values()):
+            continue  # 같은 작업이 이미 어딘가에서 돈다
         gpu = None
         while free and gpu is None:  # 11/15. 띄우기 직전에 다시 본다. 다른 실행기(dispatcher)가 그 사이 같은 node를 잡았으면 다음 node로 넘어간다
             node = free.pop(0)
-            gpu = D.free_gpu(remote.probe(node), free_mib)
+            gpu = usable_gpu(remote.probe(node), free_mib, share_own)
         if gpu is None:
             break
         j["attempts"] += 1
@@ -125,6 +141,7 @@ def main():
     ap.add_argument("--exclude", default="")
     ap.add_argument("--free-mib", type=int, default=2000)
     ap.add_argument("--poll", type=float, default=300)
+    ap.add_argument("--share-own", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
     run_root = Path(a.run_root).resolve()
@@ -148,7 +165,7 @@ def main():
                 j.update({k: o[k] for k in ("status", "attempts", "node", "log", "launched")})
     remote = D.Remote()
     while True:
-        left = step(jobs, remote, nodes, run_root, a.freeze, log_dir, a.free_mib, out=lambda s: print(s, flush=True))
+        left = step(jobs, remote, nodes, run_root, a.freeze, log_dir, a.free_mib, out=lambda s: print(s, flush=True), share_own=a.share_own)
         state_path.write_text(json.dumps(jobs, indent=1))
         if not left:
             print(f"[{now()}] 모두 끝. 실패 {sum(j['status'] == 'failed' for j in jobs)}개", flush=True)
