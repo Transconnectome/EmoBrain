@@ -5,7 +5,8 @@
   config는 run worktree 안의 절대 경로다. 실행 번호(run_key)는 s6_train이 그 설정과 코드로 만든다.
 - 끝남은 조건마다 <s6_out>/<plan>/<조건>/selected.json이 있고 프로세스가 사라진 것이다. selected.json은 모든 seed를 학습한 뒤에 쓰인다.
   프로세스가 사라졌는데 끝나지 않았으면 다른 node에서 한 번 더 띄운다(s6_train은 끝난 후보를 건너뛴다).
-- node는 이 사용자의 s6_train이 없고 GPU 메모리가 빈 것만 쓴다(s6_dispatch.free_gpu). 다른 실행기와 node를 나눠 쓰지 않도록 --nodes로 묶음을 따로 준다.
+- node는 이 사용자의 s6_train이 없고 GPU 메모리가 빈 것만 쓴다(s6_dispatch.free_gpu). login node GPU는 다른 사용자도 쓰므로 node 묶음을 나누지 않고,
+  띄우기 직전에 그 node를 다시 본다. 다른 실행기(dispatcher)가 그 사이 잡았으면 건너뛴다.
 - 어림이 24시간을 넘는 작업은 받지 않는다(login node 규칙). sbatch를 내지 않는다. 목록의 순서대로 띄운다.
 - 다시 켜면 상태 파일(<s6_out 부모>/logs/s6_queue_<tag>/state.json)에서 잇는다.
 사용(레포 최상위): python scripts/s6_queue.py --tag <이름> --run-root <run worktree> --freeze <커밋> --jobs <작업 TSV> --nodes 17-40 [--exclude 28] [--dry-run]
@@ -100,8 +101,12 @@ def step(jobs, remote, nodes, run_root, freeze, log_dir, free_mib, out=print):
         if finished(j):
             j["status"] = "done"
             continue
-        node = free.pop(0)
-        gpu = D.free_gpu(probes[node], free_mib)
+        gpu = None
+        while free and gpu is None:  # 11/15. 띄우기 직전에 다시 본다. 다른 실행기(dispatcher)가 그 사이 같은 node를 잡았으면 다음 node로 넘어간다
+            node = free.pop(0)
+            gpu = D.free_gpu(remote.probe(node), free_mib)
+        if gpu is None:
+            break
         j["attempts"] += 1
         j["log"] = str(log_dir / f"{j['name']}_try{j['attempts']}.log")
         remote.launch(node, command(run_root, j, gpu, freeze))

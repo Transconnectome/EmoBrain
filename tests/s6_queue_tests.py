@@ -89,6 +89,24 @@ def main():
         fake.end("login02")
         Q.step(jobs, fake, ["login01", "login02"], run_root, "c0ffee", log_dir, 2000, out=lambda s: None)
         check("두 번 실패하면 failed로 두고 더 띄우지 않는다", jobs[1]["status"] == "failed")
+        more = Q.read_jobs(write_jobs(tmp, [("z9", "zone_block2_fold1_excluded", "brain_only,brain_decoded", cfg, out, 8)]), run_root)
+        fake.end("login01")
+        fake.end("login02")
+
+        class Racing(Fake):  # 첫 확인 뒤 다른 실행기가 login01을 잡는다
+            def __init__(self, base):
+                self.__dict__.update(base.__dict__)
+                self.calls = 0
+
+            def probe(self, node):
+                self.calls += 1
+                if node == "login01" and self.calls > 2:
+                    self.procs["login01"] = [(9, "python s6_train.py --plan outer_fold3 --config other.json")]
+                return Fake.probe(self, node)
+        race = Racing(fake)
+        n0 = len(race.launches)
+        Q.step(more, race, ["login01", "login02"], run_root, "c0ffee", log_dir, 2000, out=lambda s: None)
+        check("띄우기 직전 다시 봐서 다른 실행기가 잡은 node는 건너뛴다", len(race.launches) == n0 + 1 and race.launches[-1][0] == "login02")
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)
     sys.exit(1 if bad else 0)
