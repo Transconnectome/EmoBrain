@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """S10 2부 합성 자료 시험 (2026-11-15). 실제 정답, 실제 예측, 실제 특징, GPU를 쓰지 않는다. 결과 폴더는 임시 폴더에 만든다.
 시험: 특징 순열 r(참가자에게 없는 영상이 들어오는 경우 포함)과 짝 열 가중 r의 손 계산, 2-1(이어 붙이기, 차원 r 평균, 순열 p, 식별, 빠진 fold),
-2-2(audition_codex와 같은 관찰 효과, 짝 연결 묶음 재표집이 반복 표본과 같음, Δy와 짝 대조, 빠진 fold), 6-4b(fold 합으로 낸 r과 하락, 빠진 fold),
+2-2(audition_codex와 같은 관찰 효과, 짝 연결 묶음 재표집이 반복 표본과 같음, Δy와 짝 대조, 빠진 fold),
+6-4b(영상별 예측으로 낸 하락, 영상 단위 재표집이 반복 표본과 같음, Holm 13과 BH 묶음, 반복 처리 선택, workers 무관, 옛 형식과 합 불일치 거절, 빠진 fold),
 6-2(평가 정서 목록, 상수 예측 범위 옵션, 다섯 구역 평균, 하락폭, [사전] 차이, 빠진 분할), 6-4a(작업 목록, [사전] 세 행, BH 묶음 옵션, decoded features),
 6-3(평정 상수 정서, 상수 예측 범위 옵션, 확인용 실행 거절, seed 요약, 빠진 단위).
 사용(레포 최상위): python tests/s10b_tests.py
@@ -269,8 +270,18 @@ def t_swap():
 
 # 6-4b
 
-def build_perturb(root, drop_fold=None, units=("Default", "Visual1"), rep=3):
+PERT_UNITS, PERT_ROIS = ("Default", "Visual1"), ("L_V1", "L_V2", "L_V3")
+PERT_AG = pd.DataFrame(dict(group=list(PERT_UNITS), group_ko=["d", "v"], median=[0.1, 0.2], min=[0, 0], max=[1, 1], count=[3, 2]))
+PERT_NB = 40  # 시험용 재표집 수
+PERT_OPTS = dict(repeat_handling="fixed", drop_bh_family="by_model", n_boot=PERT_NB, agreement=PERT_AG)
+
+
+def build_perturb(root, drop_fold=None, rep=3, old_format=None, bad_sum=None, bad_keys=None):
+    """S9 perturb 꼴의 합성 결과. 영상별 예측은 float32이고 합은 그 값을 float64로 더한 것이다(s9_saved_models와 같음).
+    old_format: 영상별 예측을 쓰지 않는 fold. bad_sum: 영상별 교란 예측 하나를 바꾼 fold. bad_keys: 영상별 행 순서를 바꾼 fold."""
     rng = np.random.default_rng(3)
+    names = list(PERT_UNITS) + list(PERT_ROIS)
+    kinds = ["group"] * len(PERT_UNITS) + ["roi"] * len(PERT_ROIS)
     truth = {}
     for k in range(1, 7):
         rows = [(q, v) for q in PIDS for v in PVIDEOS[q] if SPLIT.fold[SPLIT.video_id == v].iloc[0] == k]
@@ -279,49 +290,150 @@ def build_perturb(root, drop_fold=None, units=("Default", "Visual1"), rep=3):
         y = Y[vid - 1]
         onehot = np.stack([pid == q for q in PIDS], 1).astype(float)
         sums = lambda p: np.stack([onehot.T @ p, onehot.T @ (p * p), onehot.T @ (p * y)])
-        arr = dict(video_id=vid, participant=pid, donors=np.zeros((rep, len(vid)), int), donor_seed=np.array(1), unit_kind=np.array(["group"] * len(units) + ["roi"]),
-                   unit_name=np.array(list(units) + ["L_V1"]), sum_y=onehot.T @ y, sum_yy=onehot.T @ (y * y), n=onehot.sum(0))
+        arr = dict(video_id=vid, participant=pid, donors=np.zeros((rep, len(vid)), int), donor_seed=np.array(1), unit_kind=np.array(kinds),
+                   unit_name=np.array(names), sum_y=onehot.T @ y, sum_yy=onehot.T @ (y * y), n=onehot.sum(0))
+        pv = dict(video_id=vid, participant=pid, unit_kind=np.array(kinds), unit_name=np.array(names))
+        big = {}
         for m in pt.MODELS:
-            base = np.clip(y + rng.normal(0, 0.3, y.shape), 0, 1)
-            pert = np.clip(base[None, None] + rng.normal(0, 0.2, (len(units) + 1, rep) + y.shape), 0, 1)
-            truth[m, k] = (pid, vid, base, pert)
-            arr[f"{m}_base"] = sums(base)
-            arr[f"{m}_perturbed"] = np.stack([np.stack([sums(pert[u, t]) for t in range(rep)]) for u in range(len(units) + 1)])
+            base = np.clip(y + rng.normal(0, 0.3, y.shape), 0, 1).astype(np.float32)
+            pert = np.clip(base[None, None] + rng.normal(0, 0.2, (len(names), rep) + y.shape), 0, 1).astype(np.float32)
+            b64, p64 = base.astype(np.float64), pert.astype(np.float64)
+            truth[m, k] = (pid, vid, b64, p64)
+            arr[f"{m}_base"] = sums(b64)
+            arr[f"{m}_perturbed"] = np.stack([np.stack([sums(p64[u, t]) for t in range(rep)]) for u in range(len(names))])
+            pv[f"{m}_base"], big[m] = base, pert
         if k == drop_fold:
             continue
         d = root / f"outer_fold{k}_seed0"
         d.mkdir(parents=True)
         np.savez(d / "perturb_sums.npz", **arr)
         (d / "done.json").write_text("{}")
+        if k == old_format:
+            continue
+        if k == bad_keys:
+            pv["video_id"] = pv["video_id"][::-1].copy()
+        np.savez(d / pt.PRED_FILE, **pv)
+        for m in pt.MODELS:
+            a = big[m].copy()
+            if k == bad_sum and m == "brain_decoded":
+                a[3, 1, 2, 5] = np.float32(0.5) if a[3, 1, 2, 5] != 0.5 else np.float32(0.25)
+            np.save(d / pt.PRED_ARRAY.format(m), a)
     return truth
+
+
+def perturb_truth(truth, m, q):
+    """참가자 q의 6 fold 행을 fold 순서로 모은 (사람 평정, 원래 예측, 교란 예측 단위 × 반복 × 영상 × 34, 영상 번호)."""
+    pid = np.concatenate([truth[m, k][0] for k in range(1, 7)])
+    vid = np.concatenate([truth[m, k][1] for k in range(1, 7)])
+    base = np.concatenate([truth[m, k][2] for k in range(1, 7)])
+    pert = np.concatenate([truth[m, k][3] for k in range(1, 7)], 2)
+    s = pid == q
+    return Y[vid[s] - 1], base[s], pert[:, :, s], vid[s]
+
+
+def hand_drop_boot(truth, m, q, u, counts=None):
+    """뽑힌 횟수만큼 영상을 반복한 표본에서 r을 다시 내 낸 하락(재표집마다). 1부와 같은 단위(canonical_id)와 seed를 쓴다."""
+    U = np.array(sorted(set().union(*[set(v.tolist()) for v in PVIDEOS.values()])))
+    codes, n_units = st.unit_codes(SPLIT.set_index("video_id").loc[U].canonical_id.to_numpy())
+    W = st.bootstrap_counts(n_units, PERT_NB, np.random.default_rng(perf.BOOT_SEED))
+    yq, base, pert, vq = perturb_truth(truth, m, q)
+    keep = np.isfinite(st.pearson_columns(yq, base))
+    out = []
+    for b in range(PERT_NB):
+        rep = np.repeat(np.arange(len(vq)), W[b, codes[np.searchsorted(U, vq)]])
+        bs = np.nanmean(st.pearson_columns(yq[rep], base[rep])[keep])
+        d = np.array([bs - np.nanmean(st.pearson_columns(yq[rep], pert[u, t][rep])[keep]) for t in range(pert.shape[1])])
+        out.append(d.mean() if counts is None else (counts[b] * d).sum() / counts[b].sum())
+    return np.array(out)
 
 
 def t_perturb():
     root = TMP / "pert"
     truth = build_perturb(root)
-    ag = pd.DataFrame(dict(group=["Default", "Visual1"], group_ko=["d", "v"], median=[0.1, 0.2], min=[0, 0], max=[1, 1], count=[3, 2]))
-    pt.run(root, TMP / "pert_out", SPLIT, Y, EMOTIONS, agreement=ag)
+    pt.run(root, TMP / "pert_out", SPLIT, Y, EMOTIONS, **PERT_OPTS)
     t = pd.read_csv(TMP / "pert_out" / "network_drops.tsv", sep="\t")
-    pid = np.concatenate([truth["brain_only", k][0] for k in range(1, 7)])
-    vid = np.concatenate([truth["brain_only", k][1] for k in range(1, 7)])
-    m = pid == "sub-02"
-    base = np.concatenate([truth["brain_only", k][2] for k in range(1, 7)])[m]
-    pert = np.concatenate([truth["brain_only", k][3] for k in range(1, 7)], 2)[:, :, m]
-    yq = Y[vid[m] - 1]
+    yq, base, pert, _ = perturb_truth(truth, "brain_only", "sub-02")
     rb = st.pearson_columns(yq, base)
     keep = np.isfinite(rb)
     drops = [rb[keep].mean() - st.pearson_columns(yq, pert[0, t_])[keep].mean() for t_ in range(pert.shape[1])]
     row = t[(t.unit == "Default") & (t.participant == "sub-02")].iloc[0]
-    check("6-4b 하락 = fold 합으로 모은 r의 (원래 − 교란) 점수를 반복마다 내 평균", np.isclose(row.drop_A1, np.mean(drops)) and np.isclose(row.base_score_A1, rb[keep].mean()))
-    check("6-4b 하락폭 차이 = C-1 − A-1, 일치도를 붙이고 구간이 없다는 사실을 적는다", np.isclose(row.drop_difference, row.drop_C1 - row.drop_A1) and row.agreement_median == 0.1 and row.uncertainty == pt.NO_UNCERTAINTY)
+    check("6-4b 하락 = 6 fold를 모은 r의 (원래 − 교란) 점수를 반복마다 내 평균(11/15 전 점추정과 같음)", np.isclose(row.drop_A1, np.mean(drops)) and np.isclose(row.base_score_A1, rb[keep].mean()))
+    check("6-4b 하락폭 차이 = C-1 − A-1, 일치도를 붙인다", np.isclose(row.drop_difference, row.drop_C1 - row.drop_A1) and row.agreement_median == 0.1)
+    # 재표집: 뽑힌 횟수만큼 반복한 표본으로 손 계산
+    ok = True
+    for u, unit in ((0, "Default"), (3, "L_V2")):
+        hb = {m: hand_drop_boot(truth, m, "sub-02", u) for m in pt.MODELS}
+        tab = t if u < 2 else pd.read_csv(TMP / "pert_out" / "roi_drops.tsv", sep="\t")
+        r_ = tab[(tab.unit == unit) & (tab.participant == "sub-02")].iloc[0]
+        for pre, est, b in (("drop_A1", r_.drop_A1, hb["brain_only"]), ("drop_C1", r_.drop_C1, hb["brain_decoded"]), ("difference", r_.drop_difference, hb["brain_decoded"] - hb["brain_only"])):
+            lo, hi = st.basic_ci(est, b)
+            ok &= np.isclose(r_[f"{pre}_ci_low"], lo, atol=1e-9) and np.isclose(r_[f"{pre}_ci_high"], hi, atol=1e-9) and np.isclose(r_[f"{pre}_p_raw"], st.centered_p(est, b))
+    check("6-4b 영상 단위 재표집(1부와 같은 단위와 seed) = 뽑힌 횟수만큼 영상을 반복한 표본에서 반복마다 하락을 다시 내 평균한 값의 basic 구간과 중심 맞춘 p(묶음과 ROI)", ok)
+    m5 = t[(t.unit == "Default") & (t.participant == "mean5")].iloc[0]
+    sub = t[(t.unit == "Default") & (t.participant != "mean5")]
+    check("6-4b 5명 평균 하락은 참가자 하락의 평균", np.isclose(m5.drop_A1, sub.drop_A1.mean()) and np.isclose(m5.drop_difference, sub.drop_difference.mean()))
+    ok = True
+    for (s, q), g in t.groupby(["seed", "participant"]):
+        ok &= np.allclose(g.difference_p_holm, st.holm(g.difference_p_raw.to_numpy())) and np.allclose(g.drop_A1_p_bh, st.bh(g.drop_A1_p_raw.to_numpy()))
+        ok &= (g.difference_family_size == len(PERT_UNITS)).all() and g.difference_family.str.contains("Holm").all() and g.drop_family.str.contains("by_model").all()
+    check("6-4b 하락폭 차이는 seed와 참가자(5명 평균 따로)마다 묶음 전체로 Holm, 각 모델 하락은 by_model BH", ok and set(t.participant) == set(PIDS + ["mean5"]))
+    rd = pd.read_csv(TMP / "pert_out" / "roi_drops.tsv", sep="\t")
+    ok = len(rd) == len(PERT_ROIS) * 3
+    for _, g in rd.groupby(["seed", "participant"]):
+        for pre in ("drop_A1", "drop_C1", "difference"):
+            ok &= np.allclose(g[f"{pre}_p_bh"], st.bh(g[f"{pre}_p_raw"].to_numpy())) and (g[f"{pre}_family_size"] == len(PERT_ROIS)).all()
+    check("6-4b ROI판은 탐색이고 BH는 seed, 참가자, 값마다 ROI 전체", ok and "difference_p_holm" not in rd.columns)
+    pe = pd.read_csv(TMP / "pert_out" / "network_drops_per_emotion.tsv", sep="\t")
+    g = pe[(pe.unit == "Visual1") & (pe.participant == "sub-01") & (pe.quantity == pt.QUANTITIES["difference"])]
+    check("6-4b 묶음 안 정서별은 탐색이고 BH는 참가자, 묶음, 값마다 34개 정서(계산할 수 없는 정서는 뺌)",
+          len(g) == N_EMO and np.allclose(g.p_bh, st.bh(g.p_raw.to_numpy()), equal_nan=True) and (g.family_size == N_EMO - 1).all() and g.label.eq("탐색(BH-FDR)").all())
+    cf = pd.read_csv(TMP / "pert_out" / "network_confirmed.tsv", sep="\t")
+    check("6-4b 묶음마다 확인된 참가자 수(보정 전과 후)", len(cf) == len(PERT_UNITS) and (cf.n_participants == len(PIDS)).all()
+          and (cf.n_confirmed_after_holm <= cf.n_confirmed_before_holm).all())
+    info = json.loads((TMP / "pert_out" / "run_info.json").read_text())
+    check("6-4b run_info에 반복 처리, BH 묶음, 보정 묶음 설명, 재표집 seed를 적는다", info["repeat_handling"] == "fixed" and info["drop_bh_family"] == "by_model"
+          and "[사전] Holm 13" in info["correction_families"] and info["resampling"]["boot_seed"] == perf.BOOT_SEED)
+    # 다른 선택
+    pt.run(root, TMP / "pert_pool", SPLIT, Y, EMOTIONS, **dict(PERT_OPTS, drop_bh_family="pooled", repeat_handling="resample"))
+    tp = pd.read_csv(TMP / "pert_pool" / "network_drops.tsv", sep="\t")
+    ok = True
+    for _, g in tp.groupby(["seed", "participant"]):
+        adj = st.bh(np.concatenate([g.drop_A1_p_raw.to_numpy(), g.drop_C1_p_raw.to_numpy()]))
+        ok &= np.allclose(np.concatenate([g.drop_A1_p_bh.to_numpy(), g.drop_C1_p_bh.to_numpy()]), adj) and (g.drop_A1_family_size == 2 * len(PERT_UNITS)).all()
+    check("6-4b --drop-bh-family pooled: 두 모델의 하락을 한 BH 묶음으로", ok)
+    R = pert.shape[1]
+    pick = np.random.default_rng(pt.REPEAT_SEED).integers(0, R, size=(PERT_NB, R))
+    counts = np.stack([np.bincount(x, minlength=R) for x in pick])
+    hb = hand_drop_boot(truth, "brain_only", "sub-02", 0, counts)
+    r_ = tp[(tp.unit == "Default") & (tp.participant == "sub-02")].iloc[0]
+    lo, hi = st.basic_ci(r_.drop_A1, hb)
+    check("6-4b --repeat-handling resample: 재표집마다 반복도 복원 추출해 뽑힌 횟수로 평균(관찰 값은 같음)", np.isclose(r_.drop_A1, row.drop_A1) and np.isclose(r_.drop_A1_ci_low, lo, atol=1e-9)
+          and np.isclose(r_.drop_A1_ci_high, hi, atol=1e-9) and not np.isclose(r_.drop_A1_ci_low, row.drop_A1_ci_low))
+    pt.run(root, TMP / "pert_w2", SPLIT, Y, EMOTIONS, workers=2, **PERT_OPTS)
+    same = all(pd.read_csv(TMP / "pert_w2" / f, sep="\t").equals(pd.read_csv(TMP / "pert_out" / f, sep="\t")) for f in ("network_drops.tsv", "roi_drops.tsv", "network_drops_per_emotion.tsv"))
+    check("6-4b --workers 2의 결과가 1과 같다", same)
+    # 거절
+    check("6-4b 문서가 정하지 않은 두 선택이 없으면 최종 표를 내지 않는다", raises(lambda: pt.run(root, TMP / "pert_x", SPLIT, Y, EMOTIONS, n_boot=PERT_NB, agreement=PERT_AG), text="기본값 없음"))
     root_b = TMP / "pert_b"
     build_perturb(root_b, drop_fold=4)
-    check("6-4b 빠진 fold가 있으면 최종 표를 내지 않는다", raises(lambda: pt.run(root_b, TMP / "pert_out_b", SPLIT, Y, EMOTIONS, agreement=ag), text="빠진 입력"))
-    pt.run(root_b, TMP / "pert_out_c", SPLIT, Y, EMOTIONS, agreement=ag, partial_check=True)
-    check("6-4b --partial-check는 점검용", (pd.read_csv(TMP / "pert_out_c" / "network_drops.tsv", sep="\t").n_folds == 5).all())
+    check("6-4b 빠진 fold가 있으면 최종 표를 내지 않는다", raises(lambda: pt.run(root_b, TMP / "pert_out_b", SPLIT, Y, EMOTIONS, **PERT_OPTS), text="빠진 입력"))
+    pt.run(root_b, TMP / "pert_out_c", SPLIT, Y, EMOTIONS, agreement=PERT_AG, partial_check=True)
+    tc = pd.read_csv(TMP / "pert_out_c" / "network_drops.tsv", sep="\t")
+    check("6-4b --partial-check는 점검용(선택이 없으면 재표집 없이 점추정만)", (tc.n_folds == 5).all() and tc.difference_ci_low.isna().all()
+          and "점검용" in json.loads((TMP / "pert_out_c" / "run_info.json").read_text())["note"])
+    root_o = TMP / "pert_old"
+    build_perturb(root_o, old_format=2)
+    check("6-4b 영상별 예측이 없는 옛 S9 형식 fold는 빠진 입력으로 센다", raises(lambda: pt.run(root_o, TMP / "pert_out_o", SPLIT, Y, EMOTIONS, **PERT_OPTS), text="영상별 예측 없음"))
+    root_s = TMP / "pert_sum"
+    build_perturb(root_s, bad_sum=5)
+    check("6-4b 영상별 교란 예측의 합이 저장된 합과 다르면 멈춘다", raises(lambda: pt.run(root_s, TMP / "pert_out_s", SPLIT, Y, EMOTIONS, **PERT_OPTS), text="합이 perturb_sums.npz와 다르다"))
+    root_k = TMP / "pert_keys"
+    build_perturb(root_k, bad_keys=3)
+    check("6-4b 영상별 예측의 행 열쇠가 다르면 멈춘다", raises(lambda: pt.run(root_k, TMP / "pert_out_k", SPLIT, Y, EMOTIONS, **PERT_OPTS), text="행 열쇠"))
     Y2 = Y.copy()
     Y2[0, 0] += 0.5
-    check("6-4b 저장된 사람 평정 합이 다르면 멈춘다", raises(lambda: pt.run(root, TMP / "pert_out_d", SPLIT, Y2, EMOTIONS, agreement=ag), text="사람 평정 합"))
+    check("6-4b 저장된 사람 평정 합이 다르면 멈춘다", raises(lambda: pt.run(root, TMP / "pert_out_d", SPLIT, Y2, EMOTIONS, **PERT_OPTS), text="사람 평정 합"))
+    check("6-4b 묶음 단위가 S2 일치도 표의 묶음과 다르면 멈춘다(Holm 13의 묶음)", raises(lambda: pt.run(root, TMP / "pert_out_g", SPLIT, Y, EMOTIONS, **dict(PERT_OPTS, agreement=PERT_AG.iloc[:1])), text="Holm 13"))
 
 
 # 6-2

@@ -16,8 +16,15 @@ task perturb (네트워크 단위와 ROI 단위 입력 교란, 6-4b와 그 ROI�
   선형 입력층에서 ROI token은 그 ROI의 voxel만으로 만들어지고 평가 때는 voxel 뽑기를 하지 않으므로, 입력을 바꾼 것은 그 ROI token을 다른 영상의 token으로 바꾼 것과 같다.
   그래서 token을 한 번 만들고 바꿔 넣는다. 실행마다 첫 묶음에서 입력을 직접 바꾼 결과와 같은지 확인하고 다르면 멈춘다.
 - 다른 영상 배정: 시험 영상마다 같은 참가자의 다른 시험 영상 하나를 무작위로 고른다. 20회 반복(04 S9). 두 모델과 모든 묶음, ROI에 같은 배정표를 쓴다. 배정표와 seed를 저장한다.
-- 저장: 참가자마다 6 fold를 모은 r(O19와 같은 방식)을 낼 수 있게, 원래 예측과 교란 예측의 합, 제곱합, 사람 평정과의 곱의 합을 fold마다 저장한다.
+- 저장: 참가자마다 6 fold를 모은 r(O19와 같은 방식)을 낼 수 있게, 원래 예측과 교란 예측의 합, 제곱합, 사람 평정과의 곱의 합을 fold마다 저장한다(perturb_sums.npz).
   성능 하락은 반복마다 (원래 r − 교란 r)을 낸 뒤 20회를 평균한다(04 S9). 검정은 S10이다.
+- 영상별 예측(11/15 석진 님 승인): S10의 영상 단위 재표집(04 S10, O4 (3))을 위해 행마다의 예측도 저장한다. 교란 방식(배정표, 반복, 단위, 계산 순서)은 그대로다.
+  - perturb_pred.npz: 행 열쇠(participant, video_id. perturb_sums.npz와 같은 행 순서), 단위 이름, 조건마다 원래 예측(<조건>_base, 행 × 34)
+  - perturb_pred_<조건>.npy: 교란 예측(단위 × 반복 × 행 × 34). 확률이다
+  - 자료형은 float32다. 모델이 낸 확률이 float32이고 합은 그 값을 float64로 바꿔 더한 것이므로, 영상별 배열을 더하면 저장된 합과 같다.
+    float16은 크기가 절반이지만 값마다 상대 오차 약 5e-4가 생겨, ROI 하나를 바꾼 작은 하락과 비슷한 크기의 오차가 r에 들어갈 수 있다.
+  - 크기: 6 fold의 시험 행 약 10,400개 × 단위 383 × 반복 20 × 34 × 4바이트 × 2모델로 약 22 GB(fold마다 약 3.6 GB)다.
+- 결과 위치: S9_OUT(없으면 <output_root>/s9_saved_models). 같은 fold의 임시 폴더(.outer_fold<k>_seed<s>_*)가 있으면 다른 실행이 쓰는 중일 수 있어 멈춘다.
 사용: s9_saved_models.py --task swap|perturb --s6-dir <S6 결과 폴더> --design-freeze <커밋> [--folds 1,2] [--seed 0] [--device cuda]
 """
 import argparse
@@ -43,6 +50,7 @@ OUT = Path(os.environ.get("S9_OUT", P.OUT / "s9_saved_models"))
 SWAP_CONDITION = "brain_decoded"  # C-1. 04 S9의 상호작용 head
 PERTURB_CONDITIONS = ("brain_only", "brain_decoded")  # A-1, C-1
 PERTURB_REPEATS = 20  # 04 S9, O3
+PRED_FILE, PRED_ARRAY, PRED_DTYPE = "perturb_pred.npz", "perturb_pred_{}.npy", np.float32  # 영상별 예측(머리말). s10_perturb가 같은 이름으로 읽는다
 CHUNK = 512
 START_CODE = dict(S.START_CODE, **{Path(__file__).name: c.sha256(Path(__file__))})
 
@@ -199,7 +207,8 @@ def predict_from_tokens(model, Tk):
 
 @torch.no_grad()
 def perturb_fold(models, fd, split, k, repeats=PERTURB_REPEATS):
-    """models: 조건 -> 고정한 모델. 돌려주는 것: 저장할 배열. repeats는 시험에서만 줄인다(실행은 04 S9의 20회)."""
+    """models: 조건 -> 고정한 모델. 돌려주는 것: (합 배열, 영상별 배열). repeats는 시험에서만 줄인다(실행은 04 S9의 20회).
+    합 배열은 perturb_sums.npz의 내용 그대로다. 영상별 배열은 같은 예측 텐서를 float32로 옮긴 것이고(머리말), 교란 방식과 계산 순서는 바꾸지 않았다."""
     rows = fd.rows("test")
     y = torch.as_tensor(test_ratings(split, fd.row_video[rows]), dtype=torch.float64, device=fd.device)
     part = fd.row_participant[rows]
@@ -212,11 +221,16 @@ def perturb_fold(models, fd, split, k, repeats=PERTURB_REPEATS):
     arrays = dict(video_id=fd.row_video[rows], participant=fd.participant_names(rows), donors=donors, donor_seed=np.array(fixed_seed("perturb", k)),
                   unit_kind=np.array([u[0] for u in units]), unit_name=np.array([u[1] for u in units]),
                   sum_y=(onehot.T @ y).cpu().numpy(), sum_yy=(onehot.T @ (y * y)).cpu().numpy(), n=onehot.sum(0).cpu().numpy())
+    per_video = {k_: arrays[k_] for k_ in ("video_id", "participant", "unit_kind", "unit_name")}
     for name, model in models.items():
         if model.training:
             raise ValueError("평가 상태에서만 한다")
         Tk = tokens(model, fd, rows)
-        base = predict_from_tokens(model, Tk).double()
+        base32 = predict_from_tokens(model, Tk)
+        if base32.dtype != torch.float32:
+            raise ValueError(f"{name}: 예측이 float32가 아니다({base32.dtype}). 영상별 배열과 합이 같다는 전제가 깨진다")
+        base = base32.double()
+        per_video[f"{name}_base"] = base32.cpu().numpy()
         # 확인: 첫 참가자의 시험 행에서, 첫 묶음 단위의 입력을 직접 바꾼 결과와 token을 바꾼 결과가 같다
         p0 = np.flatnonzero(part == 0)
         local = {g: i for i, g in enumerate(p0)}
@@ -228,15 +242,32 @@ def perturb_fold(models, fd, split, k, repeats=PERTURB_REPEATS):
             raise ValueError(f"{name}: token 교체가 입력 교체와 다르다")
         arrays[f"{name}_base"] = sums(base).cpu().numpy()
         out = np.empty((len(units), repeats, 3, n_part, base.shape[1]))
+        pv = np.empty((len(units), repeats, len(rows), base.shape[1]), PRED_DTYPE)  # 단위 × 반복 × 행 × 34
         for t in range(repeats):
             donor_tokens = Tk[torch.as_tensor(donors[t], device=Tk.device)]
             for u, (_, _, idx) in enumerate(units):
                 keep = Tk[:, idx].clone()
                 Tk[:, idx] = donor_tokens[:, idx]
-                out[u, t] = sums(predict_from_tokens(model, Tk).double()).cpu().numpy()
+                p = predict_from_tokens(model, Tk)
+                out[u, t] = sums(p.double()).cpu().numpy()
+                pv[u, t] = p.cpu().numpy()
                 Tk[:, idx] = keep
         arrays[f"{name}_perturbed"] = out
-    return arrays
+        per_video[f"{name}_perturbed"] = pv
+    return arrays, per_video
+
+
+def save_per_video(folder, per_video, conditions):
+    """영상별 예측을 쓴다. 큰 교란 배열은 S10이 단위마다 memmap으로 읽도록 조건마다 .npy 하나로 둔다."""
+    small = {k: v for k, v in per_video.items() if not k.endswith("_perturbed")}
+    np.savez(Path(folder) / PRED_FILE, **small)
+    for cond in conditions:
+        np.save(Path(folder) / PRED_ARRAY.format(cond), per_video[f"{cond}_perturbed"])
+
+
+def busy_tmp(out):
+    """c.Atomic이 같은 결과 폴더 옆에 만드는 임시 폴더. 있으면 다른 실행이 그 fold를 쓰는 중이거나, 끊긴 실행이 남긴 것이다."""
+    return sorted(Path(out).parent.glob(f".{Path(out).name}_*"))
 
 
 def pooled_r(base_sums, sum_y, sum_yy, n):
@@ -263,13 +294,18 @@ def main():
     dirs = {(k, cond): model_dir(a.s6_dir, k, cond, a.seed) for k in folds for cond in conditions}
     inputs = {f"model:fold{k}:{cond}": d / "model.pt" for (k, cond), (d, _) in dirs.items()}
     inputs.update({"pairs": c.S2 / "pairs_directed.tsv", "roi_table": c.S2 / "roi_table.tsv", "cabnp": c.S2 / "cabnp_groups.tsv", "labels": c.LABELS})
-    run = Run(a.design_freeze, inputs, task=a.task, s6_dir=str(a.s6_dir), seed=a.seed, control_repeats=ac.CONTROL_REPEATS, perturb_repeats=PERTURB_REPEATS, s6_run_keys={f"{k}:{cond}": rk for (k, cond), (_, rk) in dirs.items()})
+    extra = dict(per_video_dtype=np.dtype(PRED_DTYPE).name) if a.task == "perturb" else {}
+    run = Run(a.design_freeze, inputs, task=a.task, s6_dir=str(a.s6_dir), seed=a.seed, control_repeats=ac.CONTROL_REPEATS, perturb_repeats=PERTURB_REPEATS, s6_run_keys={f"{k}:{cond}": rk for (k, cond), (_, rk) in dirs.items()}, **extra)
     variant = Path(a.s6_dir).name
     pairs_table = pd.read_csv(c.S2 / "pairs_directed.tsv", sep="\t")
+    print("결과 위치", OUT / a.task / variant, flush=True)
     for k in folds:
         out = OUT / a.task / variant / f"outer_fold{k}_seed{a.seed}"
         if c.done_or_new(out, run.key):
             continue
+        if busy_tmp(out):
+            raise SystemExit(f"{out}: 임시 폴더 {[p.name for p in busy_tmp(out)]}가 있다. 다른 실행이 이 fold를 쓰는 중일 수 있다. "
+                             "S9_OUT으로 새 결과 위치를 주거나, 끊긴 실행이 남긴 것이 확실하면 지운다")
         started = time.time()
         split, fd = load_fold(k, a.s6_dir, a.device)
         rows = fd.rows("test")
@@ -289,7 +325,10 @@ def main():
                 torch.save({pid: vars(r) for pid, r in res.items()}, tmp / "interventions.pt")
                 pd.DataFrame(log).to_csv(tmp / "pairs_used.tsv", sep="\t", index=False)
             else:
-                np.savez(tmp / "perturb_sums.npz", **perturb_fold(models, fd, split, k))
+                sums, per_video = perturb_fold(models, fd, split, k)
+                np.savez(tmp / "perturb_sums.npz", **sums)
+                save_per_video(tmp, per_video, conditions)
+                del per_video
             run.check()
             json.dump(dict(run.prov, **c.timing(started), fold=k), open(tmp / "done.json", "w"), indent=1)
         print("저장", out, f"{time.time() - started:.0f}초", flush=True)

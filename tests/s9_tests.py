@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""S9 합성 자료 시험 (2026-11-13). 실제 정답과 실제 뇌 반응은 읽지 않는다. S2 표(roi_table, cabnp_groups)만 읽는다."""
+"""S9 합성 자료 시험 (2026-11-13, 11/15 영상별 예측 저장 추가). 실제 정답과 실제 뇌 반응은 읽지 않는다. S2 표(roi_table, cabnp_groups)만 읽는다."""
 import sys as _sys
 from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parents[1] / "src"))  # 코드는 src에 있다
@@ -111,7 +111,7 @@ def t_perturb_sums():
     g = np.random.default_rng(0)
     y_by_video = {v: g.random(34) for v in range(1, 10)}
     s9.test_ratings = lambda split, vids: np.array([y_by_video[int(v)] for v in vids])
-    arr = s9.perturb_fold({"brain_only": m1, "brain_decoded": m2}, fd, None, 2, repeats=8)
+    arr, pv = s9.perturb_fold({"brain_only": m1, "brain_decoded": m2}, fd, None, 2, repeats=8)
     rows = fd.rows("test")
     Y = np.array([y_by_video[int(v)] for v in fd.row_video[rows]])
     part = fd.row_participant[rows]
@@ -128,6 +128,35 @@ def t_perturb_sums():
     dp = np.array([[np.corrcoef(pert[part == p, e], Y[part == p, e])[0, 1] for e in range(34)] for p in range(2)])
     check("합으로 낸 교란 r이 직접 계산한 r과 같다", np.allclose(rp, dp, atol=1e-8))
     check("두 모델이 같은 배정표를 쓴다(하나만 저장)", arr["donors"].shape == (8, len(rows)) and arr["brain_only_perturbed"].shape[1] == 8)
+    # 영상별 예측(11/15): 행 열쇠가 합 배열과 같고, 참가자마다 더하면 저장된 합과 같다
+    onehot = np.stack([part == p for p in range(2)], 1).astype(np.float64)
+    def sums_of(p):  # p: (..., 행, 34) -> (..., 3, 참가자, 34)
+        p = np.asarray(p, np.float64)
+        return np.stack([np.einsum("rp,...re->...pe", onehot, p), np.einsum("rp,...re->...pe", onehot, p * p), np.einsum("rp,...re->...pe", onehot, p * Y)], -3)
+    ok = np.array_equal(pv["video_id"], arr["video_id"]) and np.array_equal(pv["participant"], arr["participant"]) and np.array_equal(pv["unit_name"], arr["unit_name"])
+    for cond in ("brain_only", "brain_decoded"):
+        ok &= pv[f"{cond}_base"].dtype == np.float32 and pv[f"{cond}_perturbed"].dtype == np.float32
+        ok &= pv[f"{cond}_perturbed"].shape == (len(s9.units_table()), 8, len(rows), 34)
+        ok &= np.allclose(sums_of(pv[f"{cond}_base"]), arr[f"{cond}_base"], rtol=1e-12, atol=1e-12)
+        ok &= np.allclose(sums_of(pv[f"{cond}_perturbed"]), arr[f"{cond}_perturbed"], rtol=1e-12, atol=1e-12)
+    check("영상별 예측(float32)을 참가자마다 더하면 저장된 합과 같다(원래, 모든 단위와 반복)", ok)
+    check("영상별 교란 예측은 token을 바꿔 직접 계산한 예측과 같다", np.array_equal(pv["brain_decoded_perturbed"][u, t], pert.astype(np.float32)))
+    d = _Path(os.environ["S9_OUT"]) / "pv"
+    d.mkdir()
+    s9.save_per_video(d, pv, ("brain_only", "brain_decoded"))
+    small = np.load(d / s9.PRED_FILE)
+    big = np.load(d / s9.PRED_ARRAY.format("brain_only"), mmap_mode="r")
+    check("영상별 예측 파일: 작은 배열은 npz, 교란 예측은 조건마다 memmap으로 읽는 .npy", set(small.files) == {"video_id", "participant", "unit_kind", "unit_name", "brain_only_base", "brain_decoded_base"}
+          and np.array_equal(big[u], pv["brain_only_perturbed"][u]) and (d / s9.PRED_ARRAY.format("brain_decoded")).stat().st_size >= pv["brain_decoded_perturbed"].nbytes)
+
+
+def t_busy_tmp():
+    out = _Path(os.environ["S9_OUT"]) / "busy" / "outer_fold4_seed0"
+    out.parent.mkdir(parents=True)
+    a = s9.busy_tmp(out)
+    (out.parent / ".outer_fold4_seed0_x1").mkdir()
+    (out.parent / ".outer_fold5_seed0_x2").mkdir()
+    check("같은 fold의 임시 폴더(다른 실행이 쓰는 중)를 찾고 다른 fold의 것은 보지 않는다", a == [] and [p.name for p in s9.busy_tmp(out)] == [".outer_fold4_seed0_x1"])
 
 
 def t_swap():
@@ -157,7 +186,7 @@ def t_swap():
 
 
 def main():
-    for f in (t_token_equals_input, t_donors, t_units, t_perturb_sums, t_swap):
+    for f in (t_token_equals_input, t_donors, t_units, t_perturb_sums, t_busy_tmp, t_swap):
         f()
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)
