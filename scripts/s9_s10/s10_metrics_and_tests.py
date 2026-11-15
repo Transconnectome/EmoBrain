@@ -116,8 +116,11 @@ def basic_ci(obs: float, boot: np.ndarray, alpha: float = 0.05) -> Tuple[float, 
 
 def basic_ci_vec(obs: np.ndarray, boot: np.ndarray, alpha: float = 0.05) -> Tuple[np.ndarray, np.ndarray]:
     """obs: (D,), boot: (B, D)."""
-    q_low = np.nanquantile(boot, alpha / 2.0, axis=0)
-    q_high = np.nanquantile(boot, 1.0 - alpha / 2.0, axis=0)
+    if not np.isfinite(obs).any():
+        return np.full_like(obs, np.nan), np.full_like(obs, np.nan)
+    with np.errstate(invalid="ignore"):
+        q_low = np.nanquantile(boot, alpha / 2.0, axis=0)
+        q_high = np.nanquantile(boot, 1.0 - alpha / 2.0, axis=0)
     return 2.0 * obs - q_high, 2.0 * obs - q_low
 
 
@@ -535,6 +538,17 @@ def collect_all_emotion_models(
                 preds_sub={sub: np.full((3, 4, n_dev, N_EMOTIONS), np.nan, dtype=np.float64) for sub in PARTICIPANTS},
             )
 
+        if not all((S.OUT / f"outer_fold{k}/{cond}/selected.json").exists() for k in range(1, N_FOLDS + 1)):
+            em.status = "not_run_missing_artifact"
+            em.display_name = f"{disp} [미실행: 핵심 조건 외 생략]"
+            models[em.model_id] = em
+            if sp_em is not None:
+                sp_em.status = "not_run_missing_artifact"
+                sp_em.display_name = f"{sp_disp} [미실행: 핵심 조건 외 생략]"
+                single_pair_models[sp_em.model_id] = sp_em
+            checks[f"s6_{cond}_status"] = "missing_selected_json"
+            continue
+
         for k in range(1, N_FOLDS + 1):
             fdir = S.OUT / f"outer_fold{k}"
             sel = json.loads((fdir / cond / "selected.json").read_text())
@@ -577,26 +591,30 @@ def collect_all_emotion_models(
             ordered_models[f"{mid}_single_pair"] = single_pair_models[f"{mid}_single_pair"]
     models = ordered_models
 
-    # Verify cross-fold pair-slot invariance for D-4 single-pair average
+    # Verify cross-fold pair-slot invariance for D-4 single-pair average (when D-4 is executed)
     rng_slot = np.random.default_rng(42)
     d4_sp = models["s6_brain_frozen_feature_encoder_single_pair"]
-    slot_vals = []
-    for _ in range(100):
-        # Randomly permute pair slots 0..3 independently within each fold k=1..6 on seed 0
-        acc = 0.0
-        for sub in PARTICIPANTS:
-            pmask = present_masks[sub]
-            mixed = np.empty((4, n_dev, N_EMOTIONS), dtype=np.float64)
-            mixed[:] = np.nan
-            for k in range(1, N_FOLDS + 1):
-                frows = np.flatnonzero((fold_arr == k) & pmask)
-                perm4 = rng_slot.permutation(4)
-                mixed[:, frows, :] = d4_sp.preds_sub[sub][0, perm4][:, frows, :]
-            pair_rs = [float(np.nanmean(c.pearson(y_em[pmask], mixed[j, pmask, :]))) for j in range(4)]
-            acc += float(np.mean(pair_rs)) / len(PARTICIPANTS)
-        slot_vals.append(acc)
-    checks["d4_single_pair_seed0_slot_permutation_sd"] = float(np.std(slot_vals, ddof=1))
-    checks["d4_single_pair_seed0_slot_permutation_range"] = float(np.max(slot_vals) - np.min(slot_vals))
+    if d4_sp.status == "ok":
+        slot_vals = []
+        for _ in range(100):
+            # Randomly permute pair slots 0..3 independently within each fold k=1..6 on seed 0
+            acc = 0.0
+            for sub in PARTICIPANTS:
+                pmask = present_masks[sub]
+                mixed = np.empty((4, n_dev, N_EMOTIONS), dtype=np.float64)
+                mixed[:] = np.nan
+                for k in range(1, N_FOLDS + 1):
+                    frows = np.flatnonzero((fold_arr == k) & pmask)
+                    perm4 = rng_slot.permutation(4)
+                    mixed[:, frows, :] = d4_sp.preds_sub[sub][0, perm4][:, frows, :]
+                pair_rs = [float(np.nanmean(c.pearson(y_em[pmask], mixed[j, pmask, :]))) for j in range(4)]
+                acc += float(np.mean(pair_rs)) / len(PARTICIPANTS)
+            slot_vals.append(acc)
+        checks["d4_single_pair_seed0_slot_permutation_sd"] = float(np.std(slot_vals, ddof=1))
+        checks["d4_single_pair_seed0_slot_permutation_range"] = float(np.max(slot_vals) - np.min(slot_vals))
+    else:
+        checks["d4_single_pair_seed0_slot_permutation_sd"] = None
+        checks["d4_single_pair_seed0_slot_permutation_range"] = None
 
     # 2. S5 Participant-Specific Baselines + D_k training mean
     m_dk_sub = {sub: np.full((n_dev, N_EMOTIONS), np.nan, dtype=np.float64) for sub in PARTICIPANTS}
@@ -638,6 +656,24 @@ def collect_all_emotion_models(
     em_ged = make_s5_3seed("s5_ged", "ged", "S5 외부 기준선: GED (3 seeds)")
     em_emogrowth = make_s5_3seed("s5_emogrowth", "emogrowth", "S5 외부 기준선: EmoGrowth (3 seeds)")
 
+    opt_s5_specs = [
+        ("soft_bce", em_soft_bce, "pred", False),
+        ("h2020", em_h2020, "pred", False),
+        ("signal", em_signal, "pred", False),
+        ("mlp", em_mlp, "emotion_seeds", True),
+        ("ged", em_ged, "emotion_seeds", True),
+        ("emogrowth", em_emogrowth, "emotion_seeds", True),
+    ]
+    opt_s5_complete = {
+        tname: all((d5.OUT / f"{tname}/sub-{s_tag}_fold{k}/pred.npz").exists() for s_tag in d5.HK for k in range(1, N_FOLDS + 1))
+        for tname, _, _, _ in opt_s5_specs
+    }
+    for tname, obj, _, _ in opt_s5_specs:
+        if not opt_s5_complete[tname]:
+            obj.status = "not_run_missing_artifact"
+            obj.display_name = f"{obj.display_name} [미실행: 산출물 없음]"
+            checks[f"s5_{tname}_status"] = "missing_or_incomplete_artifact"
+
     max_mdk_diff = 0.0
     for s_tag in d5.HK:
         sub = f"sub-{s_tag}"
@@ -661,23 +697,13 @@ def collect_all_emotion_models(
             ref_mp = y_em[(fold_arr != k) & pmask].mean(axis=0)
             max_mdk_diff = max(max_mdk_diff, float(np.max(np.abs(mp - ref_mp))))
 
-            zb, dest = load_align(d5.OUT / f"soft_bce/sub-{s_tag}_fold{k}/pred.npz")
-            em_soft_bce.preds_sub[sub][0, dest, :] = zb["pred"].astype(np.float64)
-
-            zh, dest = load_align(d5.OUT / f"h2020/sub-{s_tag}_fold{k}/pred.npz")
-            em_h2020.preds_sub[sub][0, dest, :] = zh["pred"].astype(np.float64)
-
-            zs, dest = load_align(d5.OUT / f"signal/sub-{s_tag}_fold{k}/pred.npz")
-            em_signal.preds_sub[sub][0, dest, :] = zs["pred"].astype(np.float64)
-
-            zm, dest = load_align(d5.OUT / f"mlp/sub-{s_tag}_fold{k}/pred.npz")
-            em_mlp.preds_sub[sub][:, dest, :] = zm["emotion_seeds"].astype(np.float64)
-
-            zg, dest = load_align(d5.OUT / f"ged/sub-{s_tag}_fold{k}/pred.npz")
-            em_ged.preds_sub[sub][:, dest, :] = zg["emotion_seeds"].astype(np.float64)
-
-            ze, dest = load_align(d5.OUT / f"emogrowth/sub-{s_tag}_fold{k}/pred.npz")
-            em_emogrowth.preds_sub[sub][:, dest, :] = ze["emotion_seeds"].astype(np.float64)
+            for tname, obj, arr_key, is_3seed in opt_s5_specs:
+                if opt_s5_complete[tname]:
+                    zt, dest = load_align(d5.OUT / f"{tname}/sub-{s_tag}_fold{k}/pred.npz")
+                    if is_3seed:
+                        obj.preds_sub[sub][:, dest, :] = zt[arr_key].astype(np.float64)
+                    else:
+                        obj.preds_sub[sub][0, dest, :] = zt[arr_key].astype(np.float64)
 
     if max_mdk_diff > 1e-6:
         raise AssertionError(f"D_k mean_prediction mismatch: {max_mdk_diff}")
@@ -696,9 +722,14 @@ def collect_all_emotion_models(
     ):
         models[obj.model_id] = obj
 
-    # Check optional / missing mlbvae
+    # Check optional / missing / partial mlbvae (must have ALL 30 participant-folds to pool)
     mlbvae_dir = d5.OUT / "mlbvae"
-    if mlbvae_dir.exists() and (mlbvae_dir / "sub-01_fold1/pred.npz").exists():
+    mlbvae_present = (
+        sum((mlbvae_dir / f"sub-{s_tag}_fold{k}/pred.npz").exists() for s_tag in d5.HK for k in range(1, N_FOLDS + 1))
+        if mlbvae_dir.exists()
+        else 0
+    )
+    if mlbvae_present == len(d5.HK) * N_FOLDS:
         z_probe = np.load(mlbvae_dir / "sub-01_fold1/pred.npz")
         has_seeds = "emotion_seeds" in z_probe.files
         em_mlb = (
@@ -722,12 +753,20 @@ def collect_all_emotion_models(
             model_id="s5_mlbvae",
             family="S5_baseline",
             code="mlbvae",
-            display_name="S5 외부 기준선: ML-BVAE [미실행/중단: 산출물 없음]",
+            display_name=(
+                f"S5 외부 기준선: ML-BVAE [부분 완료 {mlbvae_present}/30 folds: 정품 ROI 복구 전 제외]"
+                if mlbvae_present > 0
+                else "S5 외부 기준선: ML-BVAE [미실행/중단: 산출물 없음]"
+            ),
             status="not_run_missing_artifact",
             is_multiseed=True,
             is_video_level=False,
         )
-        checks["s5_mlbvae_status"] = "missing_artifact_in_s5_ridge"
+        checks["s5_mlbvae_status"] = (
+            f"partial_{mlbvae_present}_of_30_excluded"
+            if mlbvae_present > 0
+            else "missing_artifact_in_s5_ridge"
+        )
 
     # 3. Video-Level S5 Baselines & S4 No-Brain Feature Models (evaluated on both N11 participant-matched & all 2,109)
     def load_video_model(
@@ -1315,6 +1354,12 @@ def build_table4_per_emotion(
 
     for mid, tag in t4_specs:
         em = models[mid]
+        if em.status != "ok":
+            obs_sub_map[tag] = np.full((len(PARTICIPANTS), N_EMOTIONS), np.nan, dtype=np.float64)
+            boot_sub_map[tag] = np.full((len(PARTICIPANTS), B, N_EMOTIONS), np.nan, dtype=np.float64)
+            sd_sub_map[tag] = np.full((len(PARTICIPANTS), N_EMOTIONS), np.nan, dtype=np.float64)
+            sd_m5_map[tag] = np.full(N_EMOTIONS, np.nan, dtype=np.float64)
+            continue
         n_seeds = 3 if em.is_multiseed else 1
         obs_ps = np.full((len(PARTICIPANTS), n_seeds, N_EMOTIONS), np.nan, dtype=np.float64)
         boot_ps = np.full((len(PARTICIPANTS), n_seeds, B, N_EMOTIONS), np.nan, dtype=np.float64)
@@ -1726,6 +1771,10 @@ def build_table5_feature_decoding(
         active_folds: List[int] = []
         skipped_zero_folds: List[int] = []
 
+        if not all((S.OUT / f"outer_fold{k}/{cond}/selected.json").exists() for k in range(1, N_FOLDS + 1)):
+            checks[f"table5_skipped_{cond}_{code}"] = "missing_selected_json"
+            continue
+
         for k in range(1, N_FOLDS + 1):
             fdir = S.OUT / f"outer_fold{k}"
             sel = json.loads((fdir / cond / "selected.json").read_text())
@@ -1937,7 +1986,10 @@ def build_table6_bundle(
     for cond in S.CONDITIONS.keys():
         code, disp = code_map.get(cond, (cond, S.DISPLAY.get(cond, cond)))
         for k in range(1, N_FOLDS + 1):
-            sel = json.loads((S.OUT / f"outer_fold{k}/{cond}/selected.json").read_text())
+            sel_path = S.OUT / f"outer_fold{k}/{cond}/selected.json"
+            if not sel_path.exists():
+                continue
+            sel = json.loads(sel_path.read_text())
             cand = sel["candidate"]
             d_val = int(cand["d"])
             rk_val = -1 if cand.get("rank") is None else int(cand["rank"])
@@ -1975,6 +2027,8 @@ def build_table6_bundle(
     zero_rows = []
     for cond in S.CONDITIONS.keys():
         sub_df = df_s6_sel[df_s6_sel["condition"] == cond]
+        if sub_df.empty:
+            continue
         code, disp = code_map.get(cond, (cond, cond))
         zs_folds = sub_df.loc[sub_df["zero_selected"], "fold"].tolist()
         l0_folds = sub_df.loc[sub_df["lam_is_zero"], "fold"].tolist()
@@ -2033,10 +2087,12 @@ def build_table6_bundle(
             rm_dim.append(zr["lambda_main"][34:])
             rl_em.append(zr["lambda_literature"][:34])
             rl_dim.append(zr["lambda_literature"][34:])
-            zh = np.load(d5.OUT / f"h2020/sub-{s_tag}_fold{k}/pred.npz")
-            h20_idx.append(zh["lambda_index"])
-            zs = np.load(d5.OUT / f"signal/sub-{s_tag}_fold{k}/pred.npz")
-            sig_idx.append(zs["lambda_index"])
+            h20_path = d5.OUT / f"h2020/sub-{s_tag}_fold{k}/pred.npz"
+            if h20_path.exists():
+                h20_idx.append(np.load(h20_path)["lambda_index"])
+            sig_path = d5.OUT / f"signal/sub-{s_tag}_fold{k}/pred.npz"
+            if sig_path.exists():
+                sig_idx.append(np.load(sig_path)["lambda_index"])
             for b in range(1, 6):
                 z_exc_idx.append(np.load(d5.OUT / f"zone/sub-{s_tag}_block{b}_fold{k}_excluded/pred.npz")["lambda_index"])
                 z_ctl_idx.append(np.load(d5.OUT / f"zone/sub-{s_tag}_block{b}_fold{k}_control/pred.npz")["lambda_index"])
@@ -2045,8 +2101,10 @@ def build_table6_bundle(
     add_boundary_row("s5_ridge", "dimension_main_14", np.concatenate(rm_dim), 9, "logspace(1,6,10)")
     add_boundary_row("s5_ridge", "emotion_literature_34", np.concatenate(rl_em), 9, "logspace(1,6,10)")
     add_boundary_row("s5_ridge", "dimension_literature_14", np.concatenate(rl_dim), 9, "logspace(1,6,10)")
-    add_boundary_row("s5_h2020", "370roi_x_34emotions", np.stack(h20_idx), 19, "logspace(1,4,20)")
-    add_boundary_row("s5_signal", "34emotions", np.concatenate(sig_idx), 9, "logspace(1,6,10)")
+    if len(h20_idx) == len(d5.HK) * N_FOLDS:
+        add_boundary_row("s5_h2020", "370roi_x_34emotions", np.stack(h20_idx), 19, "logspace(1,4,20)")
+    if len(sig_idx) == len(d5.HK) * N_FOLDS:
+        add_boundary_row("s5_signal", "34emotions", np.concatenate(sig_idx), 9, "logspace(1,6,10)")
     add_boundary_row("s5_zone", "excluded_5blocks", np.concatenate(z_exc_idx), 9, "logspace(1,6,10)")
     add_boundary_row("s5_zone", "control_5blocks", np.concatenate(z_ctl_idx), 9, "logspace(1,6,10)")
 
@@ -2649,10 +2707,15 @@ def build_table7_statistical_tests(
     em_vec_cache: Dict[str, np.ndarray] = {}
 
     for tid, fgrp, is_pre, label, ma, mb in boot_comparisons:
-        st_a = full_cache[ma]
-        st_b = full_cache[mb]
         ema = models[ma]
         emb = models[mb]
+        if ema.status != "ok" or emb.status != "ok":
+            if is_pre:
+                raise RuntimeError(f"Preregistered test {tid} requires executed models ({ma}={ema.status}, {mb}={emb.status})")
+            checks[f"skipped_aux_comparison_{tid}"] = f"{ma}({ema.status})_vs_{mb}({emb.status})"
+            continue
+        st_a = full_cache[ma]
+        st_b = full_cache[mb]
 
         obs_m5 = st_a["mean_5sub"] - st_b["mean_5sub"]
         boot_m5 = st_a["_boot_m5"] - st_b["_boot_m5"]

@@ -690,10 +690,16 @@ def make_fig1_condition_ladder(base_dir: Path, fig_dir: Path) -> List[str]:
         ("s6_brain_only_repr_trained", "E-trained: Multimodal Joint Repr.", PAL["navy"], "D", False),
     ]
 
+    ladder = [
+        x for x in ladder
+        if x[0] in t1.index and np.isfinite(float(t1.loc[x[0], "mean_5sub"]))
+    ]
+    n_ref = sum(1 for x in ladder if x[4])
     ya = np.arange(len(ladder))[::-1]
-    # Shade top 2 reference rows
-    ax_a.axhspan(ya[1] - 0.45, ya[0] + 0.45, color="#ECEFF4", zorder=0)
-    ax_a.axhline(ya[1] - 0.48, color="#777777", ls="--", lw=0.9, zorder=1)
+    # Shade top reference rows
+    if n_ref >= 1:
+        ax_a.axhspan(ya[n_ref - 1] - 0.45, ya[0] + 0.45, color="#ECEFF4", zorder=0)
+        ax_a.axhline(ya[n_ref - 1] - 0.48, color="#777777", ls="--", lw=0.9, zorder=1)
 
     a1_val = float(t1.loc["s6_brain_only", "mean_5sub"])
     ax_a.axvline(a1_val, color=PAL["blue"], ls=":", lw=1.1, alpha=0.85, zorder=1)
@@ -745,6 +751,12 @@ def make_fig1_condition_ladder(base_dir: Path, fig_dir: Path) -> List[str]:
         ("N23_C1_vs_ridge_main", "[Baseline N23] C-1 - S5 Primary Ridge", False),
     ]
 
+    contrasts = [
+        c for c in contrasts
+        if c[0] in t7.index and np.isfinite(float(t7.loc[c[0], "mean_5sub_effect"]))
+    ]
+    n_pre_c = sum(1 for c in contrasts if c[2])
+
     # Compute unified Holm-11 on the 6 [2-3] rows by combining with 2-1 and 2-2 p-values
     sw_df = read_tsv(base_dir / "s9_summary/interchange/s9_2_2_swap_summary.tsv")
     sw_c1_m5 = sw_df[
@@ -766,8 +778,9 @@ def make_fig1_condition_ladder(base_dir: Path, fig_dir: Path) -> List[str]:
     p11_holm = dict(zip(p11_ids, holm_adjust(p11_vals)))
 
     yb = np.arange(len(contrasts))[::-1]
-    ax_b.axhspan(yb[5] - 0.45, yb[0] + 0.45, color="#FDF6EC", zorder=0)
-    ax_b.axhline(yb[5] - 0.48, color="#999999", ls="--", lw=0.85, zorder=1)
+    if n_pre_c >= 1:
+        ax_b.axhspan(yb[n_pre_c - 1] - 0.45, yb[0] + 0.45, color="#FDF6EC", zorder=0)
+        ax_b.axhline(yb[n_pre_c - 1] - 0.48, color="#999999", ls="--", lw=0.85, zorder=1)
     ax_b.axvline(0.0, color="#333333", ls="--", lw=1.0, zorder=1)
 
     for idx_c, (tid, clabel, is_pre) in enumerate(contrasts):

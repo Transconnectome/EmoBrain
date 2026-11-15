@@ -66,6 +66,20 @@ if missing_paths:
     print(f"\nERROR: Missing required b300-01 local NVMe paths (did you run on b300-01?): {missing_paths}")
     sys.exit(1)
 
+import subprocess
+print("\n=== S2 roi_voxels Canonical SHA256 Verification ===")
+roi_chk = subprocess.run(
+    [sys.executable, str(Path(__file__).resolve().parent / "verify_s2_roi_voxels.py")],
+    check=False,
+)
+if roi_chk.returncode != 0:
+    print(
+        "\n[HOLD] S2 roi_voxels/*.npz do NOT yet match canonical Perlmutter SHA256 (provenance.json).\n"
+        "       Do NOT launch S6/S7/S8 GPU jobs until canonical roi_voxels/*.npz (11 files) are synced."
+    )
+    if os.environ.get("REQUIRE_AUTHENTIC_ROI", "0") == "1":
+        sys.exit(roi_chk.returncode)
+
 if in_slurm:
     import torch
 

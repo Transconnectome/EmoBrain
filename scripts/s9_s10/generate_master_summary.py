@@ -60,9 +60,14 @@ def build_summary(base_dir: Path, verdict_override_dir: Path | None = None) -> s
 
     a("# EmoBrain S9·S10 통합 결과 및 판정 요약 보고서 (`MASTER_RESULTS_SUMMARY`)")
     a("")
-    a("- **설계 동결 기준 브랜치**: `origin/design/emobrain-final-2026-11-03` (`HEAD = a0a3c8f1aa7a7bd8b9d69fa4cba5bc58c75aa534`, 추적 파일 수정 `0건`)")
+    a("> **[데이터 정합성 및 핵심 4단계 갱신 고지 (`Data Provenance & Core Roadmap Notice`)]**")
+    a("> 1. **100% 정품 확정 영역 (`S3` 자극 특징 8종 · `S4` 뇌 없는 자극 모델 전체 · `S5` 영상 기준선)**: `roi_voxels`와 무관하게 원본 영상·캡션·평정으로 학습·검증된 확정 수치다(`s4_stimulus = 0.4766`, `s4_noemo = 0.4810`, `s4_clip = 0.5595` 등 `Table 1` 43개 행 전체 수록).")
+    a("> 2. **보수적 전뇌 하한치 영역 (`S5` 전뇌 선형 해독·기준선 및 `S9 K1/K1a`)**: 초기 `b300-01` 이관본의 구형 근사 `roi_voxels`(`60.3%` 복셀 커버리지) 위에서 산출된 전뇌 선형 보수적 하한치이며, 그 조건에서도 64개 층 해독·`K1`·`K1a + B4`가 5명 전원 유의하게 확인되었다. 정품 `Glasser HCP360 + PickAtlas` `roi_voxels`(`manifests/s2/provenance.json` SHA256 일치본) 반입 즉시 **Step 1 (`<1시간`)**에서 `100%` 커버리지 수치로 갱신한다.")
+    a("> 3. **정품 ROI 교체 후 재실행 예정 영역 (`S6` 뇌 신경망 조건 및 `S9 2-2 / 6-4b`)**: 아래 `S6` 계열 수치는 구형 근사 ROI 토큰 위에서 산출된 v1 예비 수치이므로 해부학적 네트워크 결론에 인용하지 않으며, 정품 `roi_voxels` 반입 즉시 **Step 2 (`~5시간`, 핵심 11개 조건)**로 재산출한다. (`ML-BVAE` 부분 실행분은 합산에서 배제함; 상세 실행·생략 목록은 `docs/FUTURE_RESEARCH_PLAN.md` 참조.)")
+    a("")
+    a("- **설계 동결 기준 브랜치**: `origin/design/emobrain-final-2026-11-03` (`f5c8569` / `a0a3c8f`, `src/` 수정 `0건`)")
     a("- **원격 산출물 루트 (`b300-01`)**: `/scratch/emobrain/outputs/{s9_analysis,s10_tables_figures}/`")
-    a("- **로컬 동기화 루트 (`spark-3a4c`)**: `/home/juke/git/EmoBrain/outputs/b300_s9_s10/`")
+    a("- **레포 요약본 루트**: `results/b300_hk_6fold/`")
     a("- **평가 규모**: 개발 영상 `2,109개` (`canonical_id` 묶음 `2,108개`, 5명 공통 `in_all_5 = 1,969개`, 단일 창 `2,029개`, 다중 창 `80개`), 참가자 `5명`(`sub-01`~`sub-05`, 총 `10,402` 참가자-영상 쌍), 외부 `6-fold` 풀링 평가")
     a("- **계산 불가(`n_not_computable`) 점검**: 전 주 지표 표(Table 1~5, K1, K1a, 6-4b)에서 상수 예측/정답으로 인한 계산 불가 차원 수 **`0개`** 확인 (`O35` 소분산 차원 수 **`0개`**)")
     a("")
@@ -145,34 +150,51 @@ def build_summary(base_dir: Path, verdict_override_dir: Path | None = None) -> s
         "s6_brain_only_repr_trained",
         "s5_ridge_main",
         "s5_ridge_literature",
+        "s5_dk_mean",
         "s5_mlp",
         "s5_h2020",
         "s5_ged",
         "s5_soft_bce",
         "s5_signal",
         "s5_emogrowth",
+        "s5_mlbvae",
         "s5_video_length",
         "s5_video_lowlevel",
         "s4_stimulus",
+        "s4_stimulus_additive",
+        "s4_stimulus_interaction",
+        "s4_noemo",
+        "s4_videomae",
+        "s4_timesformer",
+        "s4_clip",
+        "s4_mpnet",
         "s6_multimodal",
     ]
+    # Include any additional rows present in Table 1 so zero rows are ever dropped
+    for mid_extra in t1.index:
+        if mid_extra not in main_ids:
+            main_ids.append(mid_extra)
+
     a("| 모델 코드 | 설명 | 5명 평균 `r` (± seed SD) | 95% Basic CI | 참가자 범위 (`sub-01`~`05`) | 오차감소 (`O25`) | 프로필 `r` (`2-4`) | 정서 식별 (`O19`) | 길이 통제 편상관 (`N21`) |")
     a("| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |")
     for mid in main_ids:
         if mid not in t1.index:
             continue
         r1 = t1.loc[mid]
-        r3 = t3_m5.loc[mid] if mid in t3_m5.index else None
+        if str(r1.get("status", "ok")) != "ok" or not np.isfinite(float(r1["mean_5sub"])):
+            a(f"| `{r1['code']}` | {r1['display_name']} | 미실행/생략 | - | - | - | - | - | - |")
+            continue
+        r3 = t3_m5.loc[mid] if (mid in t3_m5.index and str(t3_m5.loc[mid].get("status", "ok")) == "ok") else None
         mv = float(r1["mean_5sub"])
         sd = float(r1["mean_5sub_seed_sd"])
         mv_s = f"`{mv:.4f} ± {sd:.4f}`" if np.isfinite(sd) else f"`{mv:.4f}`"
         ci_s = f"`{fmt_ci(float(r1['mean_5sub_ci_low']), float(r1['mean_5sub_ci_high']))}`"
         subs = [float(r1[s]) for s in PARTICIPANTS]
         sub_rng = f"`{min(subs):.4f}`~`{max(subs):.4f}`"
-        er_s = f"`{float(r3['error_reduction_vs_dk_mean']):.4f}`" if r3 is not None else "-"
-        pr_s = f"`{float(r3['profile_r']):.4f}`" if r3 is not None else "-"
-        id_s = f"`{float(r3['emotion_identification'])*100:.2f}%`" if r3 is not None else "-"
-        pt_s = f"`{float(r3['partial_r_controlling_log_length']):.4f}`" if r3 is not None else "-"
+        er_s = f"`{float(r3['error_reduction_vs_dk_mean']):.4f}`" if r3 is not None and np.isfinite(float(r3["error_reduction_vs_dk_mean"])) else "-"
+        pr_s = f"`{float(r3['profile_r']):.4f}`" if r3 is not None and np.isfinite(float(r3["profile_r"])) else "-"
+        id_s = f"`{float(r3['emotion_identification'])*100:.2f}%`" if r3 is not None and np.isfinite(float(r3["emotion_identification"])) else "-"
+        pt_s = f"`{float(r3['partial_r_controlling_log_length']):.4f}`" if r3 is not None and np.isfinite(float(r3["partial_r_controlling_log_length"])) else "-"
         a(f"| `{r1['code']}` | {r1['display_name']} | {mv_s} | {ci_s} | {sub_rng} | {er_s} | {pr_s} | {id_s} | {pt_s} |")
 
     a("")
@@ -201,6 +223,8 @@ def build_summary(base_dir: Path, verdict_override_dir: Path | None = None) -> s
         "N23_A1_vs_ridge_main",
         "N23_C1_vs_ridge_main",
     ]:
+        if tid_aux not in t7.index:
+            continue
         rx = t7.loc[tid_aux]
         n_em = int(rx["n_emotions_pos_of_34"]) if np.isfinite(rx["n_emotions_pos_of_34"]) else 0
         a(
