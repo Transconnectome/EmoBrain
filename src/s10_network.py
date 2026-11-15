@@ -11,12 +11,12 @@
 - 순열 기준(O4 (1), (6)): 1부와 같은 block(같은 시험 fold, 같은 원래 run), 같은 순열 seed, 5명 공통. 한쪽 p.
   1-3 [사전]: A-1의 Visual1, Visual2, Default 점수 대 순열 기준(prereg_pvalues.tsv, s10_holm15.py로 넘김).
   나머지(A-1의 다른 10묶음, C-1의 13묶음)는 탐색이고 BH-FDR이다. 그 묶음 구성은 문서가 정하지 않아(01 6-4 "참가자, 묶음, 비교마다 34개 정서 등")
-  --network-bh-family로 받고 기본값이 없다. by_model: 모델마다(A-1 10개, C-1 13개), pooled: 23개 함께. 둘 다 참가자마다(5명 평균 따로), seed마다.
+  --network-bh-family. 본 설정은 by_model(모델마다 A-1 10개, C-1 13개, 11/15 석진 님)이고 pooled(23개 함께)는 민감도다. 둘 다 참가자마다(5명 평균 따로), seed마다. run()을 직접 부를 때는 기본값 없이 명시한다.
   묶음 안 정서별 순열 p는 탐색이고 BH 묶음은 참가자, 묶음, 모델마다 34개 정서다.
 - C-1의 decoded features(Vision, Caption)는 2-1의 지표(차원별 r 평균, 원래 척도로 되돌려 6 fold를 모음, O20)로 낸다. 관찰 값만 낸다.
 - 13묶음의 참가자 간 일치도(S2 agreement_hk_13groups.tsv)를 붙인다.
 출력(레포 밖 --out): network_scores.tsv, network_per_emotion.tsv, network_decoding.tsv, prereg_pvalues.tsv, coverage.tsv, run_info.json
-사용: s10_network.py --jobs <작업 TSV> --out <출력 폴더> --design-freeze <커밋> --network-bh-family by_model|pooled [--n-boot 10000] [--n-perm 10000] [--partial-check] [--overwrite]
+사용: s10_network.py --jobs <작업 TSV> --out <출력 폴더> --design-freeze <커밋> [--network-bh-family by_model] [--n-boot 10000] [--n-perm 10000] [--partial-check] [--overwrite]
 """
 import argparse
 import re
@@ -229,7 +229,7 @@ def main(argv=None):
     ap.add_argument("--jobs", required=True, help="S6 작업 목록 TSV(<output_root>/logs/s6_queue_jobs_<tag>.tsv)")
     ap.add_argument("--out", required=True)
     ap.add_argument("--design-freeze", required=True)
-    ap.add_argument("--network-bh-family", choices=BH_FAMILIES, default=None, help="탐색 묶음 검정의 BH 묶음. 문서가 정하지 않아 기본값이 없다")
+    ap.add_argument("--network-bh-family", choices=BH_FAMILIES, default="by_model", help="탐색 묶음 검정의 BH 묶음. by_model이 본 설정(11/15 석진 님), pooled는 민감도")
     ap.add_argument("--split-content-pairs", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--n-boot", type=int, default=st.N_RESAMPLE)
     ap.add_argument("--n-perm", type=int, default=st.N_RESAMPLE)
