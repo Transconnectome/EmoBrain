@@ -144,6 +144,14 @@ def main():
         Q.step(sj4, st, ["login07", "login08"], run_root, "c0ffee", log_dir, 30000, out=lambda s: None, share_own=True, stack_mib=9000, clock=clock)
         where = [n for n, _ in st.launches]
         check("stack: 여유를 계산해 같은 GPU에 두 개 올리고, 자리가 없는 GPU에는 올리지 않는다", where == ["login07", "login07"] and [j["status"] for j in sj4] == ["running", "running", "pending", "pending"])
+        class Busy(Fake):  # 다른 실행기가 login09에 막 두 개를 띄웠다(프로세스 시작 2분 전)
+            def _ssh(self, node, cmd):
+                return "120 /x/python s6_train.py --plan a\n130 /x/python s6_train.py --plan b\n9000 /x/python s6_train.py --plan old\n" if node == "login09" else ""
+        bz = Busy(["login09"])
+        bz.gpu["login09"] = 10000
+        sj5 = Q.read_jobs(write_jobs(tmp, [("m1", "outer_fold1", "brain_only_pool", cfg, tmp / "out" / "s6_stack2", 2)]), run_root)
+        Q.step(sj5, bz, ["login09"], run_root, "c0ffee", log_dir, 30000, out=lambda s: None, share_own=True, stack_mib=9000, clock=clock)
+        check("stack: 다른 실행기가 막 띄운 우리 학습도 세어 겹쳐 올리지 않는다", len(bz.launches) == 0 and Q.recent_procs(bz, "login09") == 2)
         check("stack은 share_own 없이 쓰면 멈춘다", stops_exit(lambda: Q.step(sj4, st, ["login07"], run_root, "c0ffee", log_dir, 30000, out=lambda s: None, stack_mib=9000)))
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)

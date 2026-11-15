@@ -98,6 +98,25 @@ def recent_on(jobs, node, clock=None):
     return n
 
 
+def recent_procs(remote, node):
+    """그 node에서 최근 RECENT_MINUTES분 안에 시작한 이 사용자의 s6_train 수(실행기와 상관없이 센다). 셀 수 없으면 None."""
+    ssh = getattr(remote, "_ssh", None)
+    if ssh is None:
+        return None
+    try:
+        text = ssh(node, "ps -u $(whoami) -o etimes=,args=")
+    except Exception:
+        return None
+    if text is None:
+        return None
+    n = 0
+    for line in str(text).splitlines():
+        parts = line.split(None, 1)
+        if len(parts) == 2 and parts[0].isdigit() and D.S6_PROC.search(parts[1]) and "python" in parts[1].split()[0]:
+            n += int(parts[0]) < RECENT_MINUTES * 60
+    return n
+
+
 def stack_gpu(probe, stack_mib, recent):
     """11/15 석진 님. 한 GPU에 여러 작업을 올린다. 지금 쓰는 메모리 + 최근 띄운 작업의 어림 + 새 작업의 어림이 GPU 메모리 - 여유 안이면 그 GPU 번호."""
     if probe is None:
@@ -149,7 +168,8 @@ def step(jobs, remote, nodes, run_root, freeze, log_dir, free_mib, out=print, sh
             gpu = None
             while order and gpu is None:  # 띄우기 직전에 다시 보고, 자리가 없으면 다음 node로
                 node = order[0]
-                gpu = stack_gpu(remote.probe(node), stack_mib, recent_on(jobs, node, clock))
+                seen = recent_procs(remote, node)  # 다른 실행기가 막 띄운 작업도 센다
+                gpu = stack_gpu(remote.probe(node), stack_mib, max(recent_on(jobs, node, clock), seen or 0))
                 if gpu is None:
                     order.pop(0)
             if gpu is None:
