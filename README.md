@@ -73,7 +73,7 @@ external/            외부 레포 (git submodule)
 | S6 | `s6_grid.sh <run worktree> <커밋> <설정> <출력 폴더> [--split 1e-05=2] [--together] [--dry-run]` | A-1 후보 grid(learning rate × 입력층 weight decay)를 learning rate별 묶음으로 나눠 빈 login node GPU에 띄운다. 같은 실행 번호로 돌려 dispatcher의 brain_only stream이 끝난 후보를 건너뛰고 선택만 한다. 규칙은 `scripts/s6_grid.py` 머리말 (CPU, 오래 도는 프로세스) | `<output_root>/logs/s6_grid_<출력 폴더 이름>/state.json` |
 | S6 | `s6_queue.sh <tag> <run worktree> <커밋> <작업 TSV> [--nodes 17-40] [--dry-run]` | 분할 여러 개(6-2 구역 분할, 6-4a 묶음, HK 최종 모델)를 빈 login node GPU에 차례로 띄운다. 작업 하나가 s6_train 한 번이고, 사라진 작업은 한 번만 다시 띄운다. 24시간 넘는 작업은 받지 않는다. 규칙은 `scripts/s6_queue.py` 머리말 (CPU, 오래 도는 프로세스) | `<output_root>/logs/s6_queue_<tag>/state.json` |
 | S6 | `s6_candidates.sh <run worktree> --plan <분할> --conditions <조건> --config <설정> --design-freeze <커밋> --target <조건>:<id>,<id>` | 한 조건의 후보 일부만 같은 실행 번호로 학습한다. src를 고치면 실행 번호가 바뀌므로 src 밖에서 run worktree의 s6_train을 불러 쓴다. `s6_grid.py --target`이 부른다 (GPU) | `<output_root>/<출력 폴더>/` |
-| S6 | `s6_merge_lr.sh <본 실행 폴더> <learning rate 1e-4 실행 폴더> <합친 폴더> [--folds 1-6]` | 두 실행(learning rate 1e-3, 1e-4)을 조건과 fold마다 검증 r로 합친다. A-1은 본 실행 그대로, C-2는 합친 C-1의 실행을 따른다. 원래 결과는 옮기지 않고 symlink와 selected.json, merge_record.tsv를 만든다. 규칙은 `scripts/s6_merge_lr.py` 머리말 (CPU, 몇 초) | `<output_root>/<합친 폴더>/` |
+| S6 | `s6_merge_lr.sh <본 실행 폴더> <learning rate 1e-4 실행 폴더> <합친 폴더> [--folds 1-6] [--conditions AC\|DE]` | 두 실행(learning rate 1e-3, 1e-4)을 조건과 fold마다 검증 r로 합친다. A-1은 본 실행 그대로, C-2는 합친 C-1의, D-2는 합친 D-1의 실행을 따른다. 한 실행에만 선택이 있으면 합치지 않고 missing으로 남긴다. 원래 결과는 옮기지 않고 symlink와 selected.json, merge_record.tsv를 만든다. 규칙은 `scripts/s6_merge_lr.py` 머리말 (CPU, 몇 초) | `<output_root>/<합친 폴더>/` |
 | S8 | `s8_mc_transfer.sh <HK 최종 모델 폴더> <출력 폴더> <커밋> [조건] [seed] [참가자]` | 6-3 MC 시청 전이. HK 최종 모델(final_for_mc)의 공유 가중치를 고정하고 MC 참가자마다 입력층만 학습(O29의 검증 run으로 입력층 weight decay 선택)한 뒤 시험 영상 72개의 반복 평균 반응으로 채점한다. 규칙은 `src/s8_mc_transfer.py` 머리말 (GPU) | `<output_root>/<출력 폴더>/<조건>/seed<k>/mc-0X/` |
 | S9 | `s9_saved_models.sh <swap|perturb> <S6 결과 폴더> <커밋> [fold 목록]` | 저장된 모델로 하는 분석. swap은 C-1의 바꿔 끼우기와 같은 크기의 무작위 변경 대조(2-2, 1-1, 1-2), perturb는 A-1과 C-1의 네트워크 13묶음, ROI 370개 입력 교란(6-4b) (GPU, 학습 없음) | `<output_root>/s9_saved_models/` |
 
@@ -116,7 +116,7 @@ bash scripts/s4_tests.sh   # 약 2분
 bash scripts/s5_tests.sh   # 약 2분
 bash scripts/s6_tests.sh   # 약 2분
 python tests/s6_dispatch_tests.py   # 약 2분. S6 dispatcher의 의존 순서, 다시 켜기, 실패 처리, 동결 확인. ssh와 GPU를 쓰지 않는다
-python tests/s6_merge_tests.py   # 몇 초. 두 실행을 합치는 규칙(검증 r, 같으면 작은 learning rate, 0 후보, C-2가 C-1을 따름)
+python tests/s6_merge_tests.py   # 몇 초. 두 실행을 합치는 규칙(검증 r, 같으면 작은 learning rate, 0 후보, C-2와 D-2가 앞 조건을 따름, 짝 학습 D-4, 한쪽만 끝난 조건)
 python tests/s6_queue_tests.py   # 몇 초. 분할 실행기의 작업 목록 확인, 빈 node에만 띄우기, 끝남 판정, 한 번만 다시 띄우기
 python tests/s8_tests.py   # src에서 실행. 몇 초. MC 전이의 공유 가중치 고정, 입력층만 학습, 시험 반복 평균, 빠진 run 행, MC 72개 경계, 후보 선택
 ```
