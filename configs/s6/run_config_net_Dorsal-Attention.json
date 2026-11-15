@@ -1,0 +1,55 @@
+{
+  "note": "11/15 석진 님. 6-4a 묶음만으로 학습. CAB-NP 묶음 Dorsal-Attention의 ROI token만 넣는다. 설정은 L10대로 표준 실행의 fold별 선택값(A-1 learning rate 1e-3, 입력층 weight decay 100, d 64. C-1 learning rate 1e-4와 fold별 λ, r). seed 0만(01 11/15). 결과는 S6_OUT=s6_brain_net_Dorsal-Attention",
+  "k_candidates": [
+    [
+      64,
+      100.0
+    ]
+  ],
+  "learning_rates": [
+    0.001
+  ],
+  "learning_rates_by_condition": {
+    "brain_only": [
+      0.001
+    ],
+    "brain_decoded": [
+      0.0001
+    ]
+  },
+  "keep_candidate_checkpoints": true,
+  "seeds": [
+    0
+  ],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375,
+  "roi_group": "Dorsal-Attention",
+  "fixed_candidates": {
+    "brain_decoded": {
+      "1": {
+        "lam": 1.0,
+        "rank": 2
+      },
+      "2": {
+        "lam": 1.0,
+        "rank": 2
+      },
+      "3": {
+        "lam": 1.0,
+        "rank": 8
+      },
+      "4": {
+        "lam": 1.0,
+        "rank": 2
+      },
+      "5": {
+        "lam": 0.1,
+        "rank": 2
+      },
+      "6": {
+        "lam": 1.0,
+        "rank": 2
+      }
+    }
+  }
+}

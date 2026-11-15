@@ -1412,6 +1412,12 @@ C-2에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder�
     - 결과(11/15): 두 방식 모두 6 fold 모두에서 지금 A-1보다 검증 r이 낮아 규칙대로 지금 설계를 유지한다. 입력층만 천천히 학습해도 몇 epoch 만에 검증 손실이 최저가 되어(과적합이 빨리 옴) 큰 weight decay를 대신하지 못했다. 평균 token은 학습은 안정적이었으나 낮았고, learning rate 1e-4에서는 거의 배우지 못했다. 그래서 큰 weight decay는 큰 update 폭을 보정하는 값이라기보다, 입력층이 voxel별 패턴을 외우지 못하게 하는 강한 규제로 본다. 닫힌 해 ridge도 강한 규제를 고른 것과 맞는다. 앞의 가설(voxel 수 차이에 따른 update 폭)은 지지되지 않았다.
     - 논문에 쓸 문장: 입력층에는 검증에서 가장 짧은 가중치 평균 기간(AdamW, lr × weight decay 0.1)이 선택되었다. 입력층 learning rate를 따로 낮추거나 ROI token을 voxel 평균으로 만드는 방식은 이를 대신하지 못했다. weight decay 값 자체는 optimizer 설정 방식에서 나온 것이라 다른 모델의 값과 직접 비교할 수 없다. 선택된 값이 후보 범위의 끝에 있고, 같은 검증 fold를 보며 후보를 넓혔다는 점은 한계로 쓴다.
     - 조건마다 learning rate {1e-4, 1e-3}(11/14 결정)은 그대로 진행한다. 1e-4 실행의 입력층 weight decay는 A-1이 1e-3에서 고른 값이고, 모든 조건이 같은 두 후보를 가지므로 조건 사이 비교는 같은 규칙이다. 1e-4에서 weight decay 1000을 더하는 실행은 하지 않는다(석진 님 결정. C-1이 1e-4에서 정상으로 돌아왔고, 1000에서는 학습이 3~4배 길어져 일정이 위험하다).
+- 11/15 석진 님 결정. 남은 HK 실행
+    - Brain-IT 구조는 더 가져오지 않는다. 뇌 token과 학습 query로 출력을 읽는 틀은 Brain-IT(Beliy 외, 2026)와 같고(신규성으로 주장하지 않음), tokenizer와 모델 크기는 HK 자료 규모와 원인 분리 점검(11/13)에 따라 정했다.
+    - D 묶음(D-1~D-4, encoder 2)과 E 묶음(Multimodal Model, E-고정, E-학습)을 지금 설정으로 다시 돌린다. 두 learning rate 실행(1e-3, 1e-4)에 같은 실행 번호로 이어 붙이고, A~C처럼 조건과 fold마다 검증 r이 높은 쪽으로 합친다. D-2는 합친 D-1의 실행을 따른다. D 줄은 sbatch(shared QOS, GPU 1), E 줄은 login node에서 돈다. D-3 짝, C-1 손실 흐름 허용판, 평균 pooling판은 미룬 그대로다.
+    - 6-2: A-1은 표준 실행이 6 fold 모두 고른 값(learning rate 1e-3, 입력층 weight decay 100, d 64)으로 고정하고, C-1은 learning rate 1e-4(표준 실행이 6 fold 모두 고른 값)에서 r × λ 8개를 구역 자료 안의 검증으로 다시 고른다. 04 S8 원안(모든 설정을 다시 고름)에서 A-1 grid만 뺐다. 구역 5개 × fold 6개 × 제외 방식 2개다.
+    - 6-4a: seed 0만 돌린다(seed 1, 2는 미룬 결정과 같음). 설정은 L10대로 표준 실행의 fold별 선택값이다. CAB-NP 13묶음 × fold 6개 × A-1, C-1이다.
+    - HK 최종 모델(6-3 준비): A-1은 위와 같이 고정하고 C-1은 이 분할의 검증으로 r × λ를 고른다. seed 3개다. MC 입력층을 맞추는 코드는 그 뒤에 짠다.
 - Kamitani, Tanaka, Shirakawa(2025, arXiv 2505.08429, 리뷰)에서 가져오는 것
     - 뇌 → 사전학습 모델의 특징(translator) → 출력(generator)의 틀. C-1은 뇌 → Vision/Caption feature → 정서의 같은 틀이다.
     - recovery check: 특징이 출력에 필요한 정보를 담는지 먼저 확인하라는 권고. 실제 특징만으로 정서를 맞히는 Stimulus Model이 그 확인이다.

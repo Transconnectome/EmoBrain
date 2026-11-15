@@ -347,7 +347,7 @@ class FoldRunner:
         if self.raw is None:
             raise ValueError("fold 밖 encoder 2를 만들 원자료가 없다(FoldRunner.raw)")
         brains, y, v, cap = self.raw
-        return S.prepare_fold(brains, self.split, y, v, cap, plan, device=self.fd.device, mc_ids=self.mc_ids)
+        return S.prepare_fold(brains, self.split, y, v, cap, plan, device=self.fd.device, mc_ids=self.mc_ids, roi_keep=S.roi_keep(self.config))
 
     def oof(self, seed):
         """11/9 석진 님. 학습 fold 4개를 하나씩 뺀 encoder 2 네 개(같은 seed, 전체 encoder 2가 고른 learning rate, 검증 feature MSE로 조기 종료).
@@ -497,7 +497,8 @@ class FoldRunner:
         cfg, config = S.CONDITIONS[condition], self.config
         base = None if condition == "brain_only" else self.selected("brain_only")["candidate"]
         decoded = self.selected(S.DECODED_SOURCE[condition])["candidate"] if condition in S.DECODED_SOURCE else None
-        cands = S.candidates(condition, k_candidates=config.k_candidates, base=base, decoded=decoded, learning_rates=config.learning_rates, lr_follows_brain_only=config.lr_follows_brain_only)
+        cands = S.candidates(condition, k_candidates=config.k_candidates, base=base, decoded=decoded, learning_rates=S.condition_lrs(config, condition), lr_follows_brain_only=config.lr_follows_brain_only)
+        cands = S.fixed_filter(config, condition, self.fd.plan.outer_fold, cands)  # 11/15 6-4a(L10). 고정이 없으면 그대로
         rows = [self._row(cand, self.train_one(condition, cand, self.spec.seeds[0], search=True)) for cand in cands]
         source = None
         if condition in S.ZERO_SOURCE:
@@ -567,7 +568,7 @@ class FoldRunner:
         if self.raw is None:
             raise ValueError("짝 학습의 자료를 만들 원자료가 없다(FoldRunner.raw)")
         brains, y, v, cap = self.raw
-        return S.prepare_fold(brains, self.split, y, v, cap, enc["head_plan"], device=self.fd.device, mc_ids=self.mc_ids, stats_videos=enc["stats_videos"])
+        return S.prepare_fold(brains, self.split, y, v, cap, enc["head_plan"], device=self.fd.device, mc_ids=self.mc_ids, stats_videos=enc["stats_videos"], roi_keep=S.roi_keep(self.config))
 
     def _ensemble(self, condition, cand, seed, pairs):
         """시험(과 검증) 예측은 네 짝의 예측 평정을 평균한다. 짝마다의 예측도 남겨 짝 하나의 성능을 따로 낼 수 있게 한다(11/9)."""
@@ -593,7 +594,7 @@ class FoldRunner:
         """11/9 석진 님. D-4와 D-3 짝. 후보마다 네 짝을 학습하고, 네 짝의 검증 점수 평균으로 고른다(learning rate는 네 짝에 같은 값). 시험은 네 짝의 평균."""
         config = self.config
         base = self.selected("brain_only")["candidate"]
-        cands = S.candidates(condition, k_candidates=config.k_candidates, base=base, learning_rates=config.learning_rates, lr_follows_brain_only=config.lr_follows_brain_only)
+        cands = S.candidates(condition, k_candidates=config.k_candidates, base=base, learning_rates=S.condition_lrs(config, condition), lr_follows_brain_only=config.lr_follows_brain_only)
         s0 = self.spec.seeds[0]
         done = self._pairs(condition, cands, s0)
         rows = []
@@ -729,7 +730,7 @@ def decoding_accuracy(model, fd, batch):
 def only_candidates(text, config):
     """11/13. --only-candidates의 candidate_id를 이 설정의 brain_only 후보에서 찾는다. 후보에 없는 번호가 있으면 멈춘다(후보를 함수 밖에서 만들지 않는다)."""
     wanted = [x for x in text.split(",") if x]
-    cands = {S.candidate_id(cnd): cnd for cnd in S.candidates("brain_only", k_candidates=config.k_candidates, learning_rates=config.learning_rates)}
+    cands = {S.candidate_id(cnd): cnd for cnd in S.candidates("brain_only", k_candidates=config.k_candidates, learning_rates=S.condition_lrs(config, "brain_only"))}
     missing = [x for x in wanted if x not in cands]
     if missing or not wanted or len(set(wanted)) != len(wanted):
         raise SystemExit(f"--only-candidates: 이 설정의 brain_only 후보가 아니거나 겹친다 {missing}")
@@ -810,7 +811,7 @@ def main(argv=None):
     y, v, cap = load_known(split, plan, include_test)
     brains = S.load_brains(split, list(plan.train) + list(plan.val) + list(plan.test))  # 이번 실행에 쓰는 영상의 행만 읽는다. 파일럿은 시험 영상이 없다
     stimulus = dict(np.load(S.stimulus_path(plan.outer_fold))) if use_stimulus else None
-    fd = S.prepare_fold(brains, split, y, v, cap, plan, stimulus=stimulus, include_test_features=include_test, device=a.device)
+    fd = S.prepare_fold(brains, split, y, v, cap, plan, stimulus=stimulus, include_test_features=include_test, device=a.device, roi_keep=S.roi_keep(config))
     needs_inner = any(S.CONDITIONS[n].separate or S.CONDITIONS[n].head_only or S.CONDITIONS[n].paired for n in wanted)  # 11/9. fold 밖 encoder 2와 짝 학습은 원자료로 자료를 다시 준비한다
     raw = (brains, y, v, cap) if needs_inner else None
     del brains, y, v, cap

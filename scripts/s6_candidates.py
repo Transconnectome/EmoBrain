@@ -31,7 +31,7 @@ def parse_target(text):
 
 
 def pick(cond, ids, config, base):
-    cands = S.candidates(cond, k_candidates=config.k_candidates, base=base, learning_rates=config.learning_rates, lr_follows_brain_only=config.lr_follows_brain_only)
+    cands = S.candidates(cond, k_candidates=config.k_candidates, base=base, learning_rates=S.condition_lrs(config, cond), lr_follows_brain_only=config.lr_follows_brain_only)
     by = {S.candidate_id(c): c for c in cands}
     missing = [x for x in ids if x not in by]
     if missing:

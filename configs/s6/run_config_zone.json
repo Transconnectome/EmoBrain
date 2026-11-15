@@ -1,0 +1,26 @@
+{
+  "note": "11/15 석진 님. 6-2 처음 보는 내용(구역 제외, 학습량 대조). 04 S8 원안은 설정을 구역 자료 안에서 모두 다시 고르는 것인데, A-1은 표준 실행이 6 fold 모두 고른 값(learning rate 1e-3, 입력층 weight decay 100, d 64)으로 고정하고 C-1은 r × λ 8개를 구역 자료 안의 검증으로 다시 고른다(01 11/15 (가)). C-1 learning rate 1e-4는 표준 실행에서 6 fold 모두 고른 값이다. 결과는 S6_OUT=s6_brain_zone",
+  "k_candidates": [
+    [
+      64,
+      100.0
+    ]
+  ],
+  "learning_rates": [
+    0.001
+  ],
+  "learning_rates_by_condition": {
+    "brain_only": [
+      0.001
+    ],
+    "brain_decoded": [
+      0.0001
+    ]
+  },
+  "keep_candidate_checkpoints": true,
+  "seeds": [
+    0
+  ],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375
+}

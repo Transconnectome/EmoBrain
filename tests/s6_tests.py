@@ -1775,12 +1775,45 @@ def t_inputstep_1115():
     check("Spec이 입력층 배율을 담는다(기본 1)", S.Spec().input_lr_scale == 1.0 and S.Spec(input_lr_scale=0.1).input_lr_scale == 0.1)
 
 
+def t_runs_1115():
+    """11/15. 조건마다 learning rate(lr_by_condition), 6-4a의 묶음 하나만 입력(roi_group), fold별 고정 후보(fixed_candidates)."""
+    with tempfile.TemporaryDirectory() as td:
+        pth = Path(td) / "c.json"
+        raw = dict(k_candidates=[[64, 100.0]], learning_rates=[1e-3], seeds=[0], tokenizer="linear", voxel_sampling=0.375,
+                   learning_rates_by_condition={"brain_only": [1e-3], "brain_decoded": [1e-4]}, roi_group="Visual1",
+                   fixed_candidates={"brain_decoded": {"1": {"lam": 1.0, "rank": 2}, "5": {"lam": 0.1, "rank": 2}}})
+        pth.write_text(json.dumps(raw))
+        cfg = S.load_config(pth)
+        for bad in (dict(raw, roi_group="Nowhere"), dict(raw, learning_rates_by_condition={"nope": [1e-3]}), dict(raw, fixed_candidates={"brain_decoded": {"1": {"d": 32}}})):
+            pth.write_text(json.dumps(bad))
+            check(f"설정 오류는 멈춘다 {sorted(set(bad.items()) - set(raw.items())) if False else ''}".strip(), stops(lambda: S.load_config(pth)))
+    check("조건마다 learning rate를 읽는다", S.condition_lrs(cfg, "brain_only") == (1e-3,) and S.condition_lrs(cfg, "brain_decoded") == (1e-4,) and S.condition_lrs(cfg, "brain_only_distill") == (1e-3,))
+    base = dict(d=64, input_wd=100.0, lr=1e-3)
+    c1 = S.candidates("brain_decoded", base=base, learning_rates=S.condition_lrs(cfg, "brain_decoded"))
+    kept1, kept5, kept2 = S.fixed_filter(cfg, "brain_decoded", 1, c1), S.fixed_filter(cfg, "brain_decoded", 5, c1), S.fixed_filter(cfg, "brain_decoded", 2, c1)
+    check("고정 후보는 fold마다 하나만 남는다", len(c1) == 8 and len(kept1) == 1 and kept1[0]["lam"] == 1.0 and kept1[0]["rank"] == 2 and kept1[0]["lr"] == 1e-4 and len(kept5) == 1 and kept5[0]["lam"] == 0.1)
+    check("고정이 없는 fold는 후보를 그대로 둔다", kept2 == c1)
+    check("A-1 후보는 learning rate 1e-3, weight decay 100 하나다", S.candidates("brain_only", k_candidates=cfg.k_candidates, learning_rates=S.condition_lrs(cfg, "brain_only")) == [S._cand(d=64, input_wd=100.0, lr=1e-3)])
+    keep = S.roi_keep(cfg)
+    groups = pd.read_csv(c.S2 / "cabnp_groups.tsv", sep="\t").set_index("group").n_roi
+    check("roi_group은 그 묶음의 ROI 위치를 낸다", len(keep) == int(groups["Visual1"]) and len(S.network_groups()) == 13)
+    w = World()
+    full, sub = w.fold(), w.fold(roi_keep=np.array([0, 2]))
+    pid = full.participants[0]
+    ok = sub.voxel_counts[pid] == [full.voxel_counts[pid][0], full.voxel_counts[pid][2]]
+    a, b = np.cumsum([0] + full.voxel_counts[pid])[[0, 2]], np.cumsum([0] + full.voxel_counts[pid])[[1, 3]]
+    want = torch.cat([full.columns[pid][a[0]:b[0]], full.columns[pid][a[1]:b[1]]])
+    check("묶음만 넣으면 그 ROI의 voxel 열만 남는다(순서 그대로)", ok and torch.equal(sub.columns[pid], want))
+    model = S.build_model("brain_only", dict(d=8, input_wd=1.0, lr=1e-3, lam=None, alpha=None, rank=None, feature_wd=None), sub.voxel_counts)
+    check("묶음 입력으로 모델의 token 수가 줄어든다", model.input_layer.n_roi == 2)
+
+
 def main():
     if "--timing" in sys.argv:
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_total_val_loss, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard, t_grid_1113, t_input_1114, t_inputstep_1115):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_total_val_loss, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard, t_grid_1113, t_input_1114, t_inputstep_1115, t_runs_1115):
         t0 = time.time()
         try:
             f()

@@ -37,7 +37,7 @@ def now():
 def make_groups(S, config, split, together=False):
     """learning rate마다 후보를 입력층 weight decay 순으로 묶는다. split: lr -> 나눌 수.
     together(11/15): fold마다 모든 후보를 작업 하나로 묶는다(후보가 적은 점검에서 GPU 수를 줄인다). 묶음의 lr은 가장 작은 값으로 적는다."""
-    cands = S.candidates("brain_only", k_candidates=config.k_candidates, learning_rates=config.learning_rates)
+    cands = S.candidates("brain_only", k_candidates=config.k_candidates, learning_rates=S.condition_lrs(config, "brain_only"))
     if together:
         cs = sorted(cands, key=lambda c: (c["lr"], c["d"], c["input_wd"]))
         return [dict(lr=cs[0]["lr"], lrs=[c["lr"] for c in cs], ids=[S.candidate_id(c) for c in cs], wds=[c["input_wd"] for c in cs])]
@@ -65,7 +65,7 @@ def target_groups(S, config, s6_out, k, sizes):
     sel = json.loads((Path(s6_out) / f"outer_fold{k}" / "brain_only" / "selected.json").read_text())
     out = []
     for cond, size in sizes.items():
-        cands = S.candidates(cond, k_candidates=config.k_candidates, base=sel["candidate"], learning_rates=config.learning_rates, lr_follows_brain_only=config.lr_follows_brain_only)
+        cands = S.candidates(cond, k_candidates=config.k_candidates, base=sel["candidate"], learning_rates=S.condition_lrs(config, cond), lr_follows_brain_only=config.lr_follows_brain_only)
         ids = [S.candidate_id(c) for c in cands]
         for i in range(0, len(ids), size):
             out.append(dict(cond=cond, ids=ids[i:i + size], lr=sel["candidate"]["lr"], wds=[sel["candidate"]["input_wd"]]))
