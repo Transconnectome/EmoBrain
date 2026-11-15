@@ -8,6 +8,7 @@
 - 사람 평정이나 예측이 상수라 계산할 수 없는 r은 NaN이다. 0으로 채우지 않고 그 수를 센다(2-6).
 - 참가자 점수는 계산할 수 있는 정서의 r 평균, 5명 평균은 참가자 점수의 평균이다.
 보조 지표(2-4, 6-0, N19, O25)
+- 영상별 프로필 상관(2-4): 영상마다 34개 예측과 사람 평정의 r. 영상들에 걸쳐 평균한다(11/15 석진 님). 학습 자료의 평균 프로필(D_k 평균)을 늘 내는 기준선을 함께 낸다.
 - R² = 1 − Σ(y − p)² / Σ(y − ȳ)². ȳ는 그 참가자가 모은 시험 영상의 평균이다(6-0 "실제 평정의 분산").
 - 평균 예측 대비 오차 감소 = 1 − Σ(y − p)² / Σ(y − m)². m은 그 영상이 시험된 fold의 D_k 정서별 평균이다(O25).
 - MAE는 전체, 사람 평정이 0인 영상, 0보다 큰 영상으로 나눠 낸다(N19).
@@ -110,6 +111,24 @@ def emotion_metrics(y, p, m=None):
         with np.errstate(invalid="ignore", divide="ignore"):
             out["error_reduction"] = np.where(ssm > 0, 1.0 - sse / ssm, np.nan)
     return out
+
+
+def profile_r(y, p):
+    """영상별 프로필 상관(2-4): 한 영상 안에서 34개 예측과 34개 사람 평정의 Pearson r. y, p: (영상, 정서). 돌려주는 값: (영상,).
+    그 영상의 사람 평정이나 예측이 34개 모두 같으면 NaN이다. 요약은 영상들에 걸친 평균이다(11/15 석진 님)."""
+    y, p = _arr(y, "사람 평정"), _arr(p, "예측")
+    if y.shape != p.shape:
+        raise ValueError("사람 평정과 예측의 크기가 다르다")
+    return pearson_columns(y.T, p.T)
+
+
+def weighted_mean_boot(w, values):
+    """재표집마다 값의 가중 평균. w: (B, 영상) 뽑힌 횟수, values: (영상,). NaN인 영상은 빼고 평균한다."""
+    v = np.asarray(values, np.float64)
+    ok = np.isfinite(v)
+    w = np.asarray(w, np.float64)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return (w @ np.where(ok, v, 0.0)) / (w @ ok.astype(np.float64))
 
 
 def dk_means(video_fold, y, weights, folds):

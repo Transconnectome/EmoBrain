@@ -148,6 +148,16 @@ def t_permutation():
     check("한 block 안의 같은 내용 쌍은 멈춘다", raises(lambda: st.check_content_units(blocks, content2, True)))
 
 
+def t_profile():
+    y = np.array([[0.1, 0.5, 0.2, 0.0], [0.3, 0.3, 0.3, 0.3], [0.0, 0.2, 0.9, 0.4]])
+    p = np.array([[0.2, 0.4, 0.1, 0.1], [0.1, 0.5, 0.2, 0.3], [0.3, 0.3, 0.3, 0.3]])
+    r = st.profile_r(y, p)
+    check("2-4 프로필 상관: 영상 안 34개(여기서는 4개)의 r, 평정이나 예측이 모두 같으면 NaN", np.isclose(r[0], np.corrcoef(y[0], p[0])[0, 1]) and np.isnan(r[1]) and np.isnan(r[2]))
+    w = np.array([[1, 0, 1], [2, 1, 0]])
+    v = np.array([0.5, np.nan, 0.1])
+    check("재표집 가중 평균은 NaN 영상을 뺀다", np.allclose(st.weighted_mean_boot(w, v), [0.3, 0.5]))
+
+
 def t_multiple():
     p = np.array([0.01, 0.04, 0.03, 0.005])
     check("Holm 손 계산", np.allclose(st.holm(p), [0.03, 0.06, 0.06, 0.02]))
@@ -297,6 +307,9 @@ def t_end_to_end():
     check("계산 불가 수를 센다", (nc.n_rating_constant == 1).all() and (nc.n_computable == N_EMO - 1).all())
     sc = ps[(ps.condition == "brain_only") & (ps.seed == 0) & (ps.participant == "sub-01")].iloc[0]
     check("참가자 점수 = 계산 가능한 33개 정서의 r 평균", np.isclose(sc.score_r, np.nanmean(st.pearson_columns(yq, pq))) and sc.n_emotions_used == N_EMO - 1)
+    prof = st.profile_r(yq, pq)
+    check("2-4 프로필 상관 = 영상마다 34개의 r을 영상들에 걸쳐 평균", np.isclose(sc.profile_r_mean, np.nanmean(prof)) and sc.profile_n_noncomputable == int(np.isnan(prof).sum()) and sc.profile_ci_low <= sc.profile_r_mean <= sc.profile_ci_high)
+    check("2-4 기준선(D_k 평균 프로필)도 낸다", np.isfinite(sc.profile_baseline_mean) and "profile_r_mean_mean" in pd.read_csv(out / "all" / "seed_summary.tsv", sep="\t").columns)
     m5 = ps[(ps.condition == "brain_only") & (ps.seed == 0) & (ps.participant == "mean5")].score_r.iloc[0]
     check("5명 평균 = 참가자 점수의 평균", np.isclose(m5, ps[(ps.condition == "brain_only") & (ps.seed == 0) & (ps.participant != "mean5")].score_r.mean()))
     yd, pd_ = pooled(truth, ("brain_only_distill", 0), "sub-02", y, split)
@@ -381,7 +394,7 @@ def t_holm15(out, tmp):
 
 
 def main():
-    for f in (t_pooled_r, t_nan, t_metrics_definition, t_bootstrap, t_permutation, t_multiple, t_end_to_end):
+    for f in (t_pooled_r, t_nan, t_metrics_definition, t_bootstrap, t_permutation, t_profile, t_multiple, t_end_to_end):
         f()
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)

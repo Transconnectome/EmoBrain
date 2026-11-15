@@ -6,8 +6,8 @@
 - 묶음마다 15개가 모두 있어야 보정한다. 하나라도 없으면 어느 묶음에서 무엇이 없는지 쓰고 보정 값을 내지 않는다(종료 코드 1).
 - 15개 밖의 이름, 같은 검정과 묶음과 seed가 둘 이상인 행은 멈춘다.
 - seed: ridge처럼 seed가 없는 검정은 seed 칸을 비운다. 한 검정과 묶음에 seed가 여럿이면 --seed로 하나를 고르게 한다. seed별 p를 어떻게 묶을지는 문서가 정하지 않았다.
-- --alpha를 주면 검정마다 보정 전과 후에 확인된 참가자 수를 센다(6-1). 유의수준은 01이 정하지 않아 기본값이 없다.
-사용: s10_holm15.py --inputs <p 파일> [<p 파일> ...] --out <출력 파일> [--seed 0] [--alpha <값>]
+- 검정마다 보정 전과 후에 확인된 참가자 수를 센다(6-1). 유의수준은 Holm 보정 뒤 0.05다(11/15 석진 님).
+사용: s10_holm15.py --inputs <p 파일> [<p 파일> ...] --out <출력 파일> [--seed 0] [--alpha 0.05]
 """
 import argparse
 import sys
@@ -93,7 +93,7 @@ def main(argv=None):
     ap.add_argument("--inputs", nargs="+", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--seed", type=int, default=None)
-    ap.add_argument("--alpha", type=float, default=None, help="확인된 참가자 수를 셀 유의수준. 01이 정하지 않아 기본값이 없다")
+    ap.add_argument("--alpha", type=float, default=0.05, help="확인된 참가자 수를 셀 유의수준. 0.05(11/15 석진 님)")
     a = ap.parse_args(argv)
     t = pick_seed(read_inputs(a.inputs), a.seed)
     out = Path(a.out)

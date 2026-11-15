@@ -10,6 +10,7 @@
 - 사람 평정은 S4~S6과 같은 s4_common.load_scores로 읽는다. 뇌 모델이 아닌 encoder 2(정서 출력 없음)와 Multimodal Model(시험 입력에 feature, G16 참고 성능)은 이 표에 넣지 않는다.
 계산(s10_stats)
 - 참가자마다 정서별 r 하나(6 fold를 모음, 2-3), R²(6-0), MAE와 평정 0, 0 초과로 나눈 MAE(N19), 평균 예측 대비 오차 감소(O25). 0이 아닌 영상 수, 평정 분산, bootstrap 구간(2-6).
+- 영상별 프로필 상관(2-4): 영상마다 34개 예측과 사람 평정의 r을 영상들에 걸쳐 평균하고, D_k 평균 프로필 기준선과 함께 낸다(11/15 석진 님).
 - 참가자 점수는 계산할 수 있는 정서의 r 평균, 5명 평균은 참가자 점수의 평균. 계산할 수 없는 r의 수를 센다(N12).
 - bootstrap 10,000회(I5): 영상 단위이고 같은 내용 영상 묶음(split의 canonical_id)은 함께 뽑는다. 모든 조건, seed, 5명에 같은 재표집을 쓴다(6-1).
 - [사전] 2-3 여섯 비교(6-1 표)와 보조 비교: 차이, basic 95% 구간, 중심을 맞춘 양측 p(O4 (3)). 정서별 차이는 탐색이고 BH-FDR(참가자마다, 비교마다 34개, I9).
@@ -22,10 +23,11 @@
 - prereg_pvalues.tsv: [사전] 비교의 보정 전 p(all만). s10_holm15.py가 15개를 모아 Holm을 적용한다.
 - coverage.tsv(조건, seed, fold마다 읽은 파일과 0 후보 여부), rows.tsv(참가자별 영상 수), run_info.json(입력 해시, 설정, 시간)
 그림은 s10_figures.py가 그린다(scripts/s10_performance.sh가 이어서 부른다).
-정하지 못한 것은 옵션으로 받고 기본값을 두지 않는다.
-- --dk-mean: O25의 D_k 평균을 참가자의 D_k 영상(participant), 5명의 D_k 행(rows), D_k 영상(videos) 가운데 무엇으로 낼지
-- --split-content-pairs: 같은 내용 영상 쌍이 다른 run에 있을 때 순열에서 각자 자기 run 안에서 섞을지(주지 않으면 멈춘다)
-사용: s10_performance.py --s6-dir <S6 결과 폴더> --out <출력 폴더> --dk-mean participant|rows|videos --design-freeze <커밋> [--split-content-pairs] [--bootstrap-unit video|run] [--n-boot 10000] [--n-perm 10000] [--overwrite]
+문서가 정하지 않아 11/15 석진 님이 정한 것(04 기록 칸)
+- --dk-mean participant: O25의 D_k 평균은 그 참가자가 본 D_k 영상으로 낸다(S5 평균 예측 기준선과 같은 값). rows(5명의 D_k 행), videos(D_k 영상)는 민감도로만 쓴다.
+- --split-content-pairs: 같은 내용 영상 쌍이 다른 run에 있으면(1349, 1363) 순열에서 각자 자기 run 안에서 섞는다. --no-split-content-pairs면 멈춘다.
+- 영상별 프로필 상관(2-4)은 영상들에 걸친 평균으로 요약한다. 유의수준 0.05는 s10_holm15.py가 쓴다.
+사용: s10_performance.py --s6-dir <S6 결과 폴더> --out <출력 폴더> --design-freeze <커밋> [--dk-mean participant] [--no-split-content-pairs] [--bootstrap-unit video|run] [--n-boot 10000] [--n-perm 10000] [--overwrite]
 """
 import argparse
 import json
@@ -243,24 +245,29 @@ def analyze(name, data, videos, split, y_split, dkref, emotions, *, n_boot, n_pe
     info = dict(n_videos_union=len(U))
 
     # 관찰 지표
-    metrics, keep, score = {}, {}, {}
+    metrics, keep, score, prof, prof_base = {}, {}, {}, {}, {}
     for key in keys:
         for q in pids:
             m = np.stack([dkref[q][f] for f in fold_U[pos[q]]])
             metrics[key, q] = st.emotion_metrics(yU[pos[q]], data[key][q], m)
             keep[key, q] = np.isfinite(metrics[key, q]["r"])
             score[key, q] = float(metrics[key, q]["r"][keep[key, q]].mean()) if keep[key, q].any() else np.nan
+            prof[key, q] = st.profile_r(yU[pos[q]], data[key][q])  # 2-4 영상별 프로필 상관
+    for q in pids:  # 2-4 기준선: 학습 자료의 평균 프로필(O25와 같은 D_k 평균, --dk-mean)을 늘 낸다
+        prof_base[q] = st.profile_r(yU[pos[q]], np.stack([dkref[q][f] for f in fold_U[pos[q]]]))
 
     # bootstrap(6-1, O4 (3)). 모든 조건, seed, 5명에 같은 뽑힌 횟수
     labels = sp.canonical_id.to_numpy() if boot_unit == "video" else sp.run_index.to_numpy()
     codes, n_units = st.unit_codes(labels)
     info.update(bootstrap_unit=boot_unit, n_bootstrap_units=n_units)
     W = st.bootstrap_counts(n_units, n_boot, np.random.default_rng(BOOT_SEED))
-    boot = {}
+    boot, prof_boot, prof_base_boot = {}, {}, {}
     for q in pids:
         rb = st.boot_r(W[:, codes[pos[q]]], yU[pos[q]], {key: data[key][q] for key in keys})
         for key in keys:
             boot[key, q] = rb[key]
+            prof_boot[key, q] = st.weighted_mean_boot(W[:, codes[pos[q]]], prof[key, q])
+        prof_base_boot[q] = st.weighted_mean_boot(W[:, codes[pos[q]]], prof_base[q])
     del W
     score_boot = {kq: st.mean_over(boot[kq], keep[kq]) for kq in boot}
     mean5 = {key: float(np.mean([score[key, q] for q in pids])) for key in keys}
@@ -312,9 +319,20 @@ def analyze(name, data, videos, split, y_split, dkref, emotions, *, n_boot, n_pe
                              r2_mean=float(np.nanmean(mt["r2"])), mae_sum=float(mt["mae"].sum()), mae_zero_sum=float(np.nansum(mt["mae_zero"])), mae_nonzero_sum=float(np.nansum(mt["mae_nonzero"])),
                              error_reduction_mean=float(np.nanmean(mt["error_reduction"])), n_videos=int(mt["n_videos"][0]))
             lo, hi = st.basic_ci(th, b)
+            if q == "mean5":  # 2-4 프로필 상관의 5명 평균
+                pm, pmb = float(np.mean([np.nanmean(prof[key, x]) for x in pids])), np.mean(np.stack([prof_boot[key, x] for x in pids]), 0)
+                bm, bmb = float(np.mean([np.nanmean(prof_base[x]) for x in pids])), np.mean(np.stack([prof_base_boot[x] for x in pids]), 0)
+                n_pnan = int(sum(np.isnan(prof[key, x]).sum() for x in pids))
+            else:
+                pm, pmb, bm, bmb = float(np.nanmean(prof[key, q])), prof_boot[key, q], float(np.nanmean(prof_base[q])), prof_base_boot[q]
+                n_pnan = int(np.isnan(prof[key, q]).sum())
+            plo, phi = st.basic_ci(pm, pmb)
+            blo, bhi = st.basic_ci(bm, bmb)
+            extra.update(profile_r_mean=pm, profile_ci_low=float(plo), profile_ci_high=float(phi), profile_n_noncomputable=n_pnan,
+                         profile_baseline_mean=bm, profile_baseline_ci_low=float(blo), profile_baseline_ci_high=float(bhi))
             rows.append(dict(analysis=name, condition=cond, display=display(cond), fig_label=fig_label(cond), seed=seed, participant=q, score_r=th, ci_low=float(lo), ci_high=float(hi), **extra))
     tables["participant_scores"] = pd.DataFrame(rows)
-    tables["seed_summary"] = st.seed_summary(tables["participant_scores"], ["analysis", "condition", "display", "participant"], ["score_r", "r2_mean", "mae_sum", "error_reduction_mean"])
+    tables["seed_summary"] = st.seed_summary(tables["participant_scores"], ["analysis", "condition", "display", "participant"], ["score_r", "r2_mean", "mae_sum", "error_reduction_mean", "profile_r_mean"])
 
     # 계산할 수 없는 r의 수(2-6, N12)
     rows = []
@@ -498,9 +516,9 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="S10 주 지표, 보조 지표, 2-3 비교, 0행 전제 검정")
     ap.add_argument("--s6-dir", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--dk-mean", required=True, choices=DK_MODES, help="O25의 D_k 평균: 참가자의 D_k 영상, 5명의 D_k 행, D_k 영상. 문서가 정하지 않아 기본값이 없다")
+    ap.add_argument("--dk-mean", default="participant", choices=DK_MODES, help="O25의 D_k 평균. participant(그 참가자가 본 D_k 영상, S5 평균 예측 기준선과 같음)가 본 설정이다(11/15 석진 님). rows, videos는 민감도")
     ap.add_argument("--design-freeze", required=True)
-    ap.add_argument("--split-content-pairs", action="store_true", help="같은 내용 영상 쌍이 다른 run에 있으면 순열에서 각자 자기 run 안에서 섞는다(O4 (1)이 정하지 않은 경우)")
+    ap.add_argument("--split-content-pairs", action=argparse.BooleanOptionalAction, default=True, help="같은 내용 영상 쌍이 다른 run에 있으면 순열에서 각자 자기 run 안에서 섞는다. 본 설정(11/15 석진 님, O4 (1)이 정하지 않은 경우)")
     ap.add_argument("--bootstrap-unit", choices=("video", "run"), default="video", help="video가 주(6-1, 같은 내용 묶음), run은 민감도")
     ap.add_argument("--n-boot", type=int, default=st.N_RESAMPLE)
     ap.add_argument("--n-perm", type=int, default=st.N_RESAMPLE)
