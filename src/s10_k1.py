@@ -6,7 +6,8 @@
 - S6 결과 폴더: A-1 Brain → Emotion(brain_only)의 selected.json seed마다 6 fold 시험 예측(test_pred.npz의 p). s10_performance와 같은 함수로 읽는다.
   S9가 C-1 decoded features를 읽을 때 쓴 plan/rows.npz와 sha256이 같아야 한다(같은 분할의 행).
 - S5 ridge 폴더(<output_root>/s5_ridge/ridge): 참가자, fold마다 pred.npz의 dimension_main(B4 주 비교판, N15). 사람 평정 1~9점 값 그대로의 ridge다.
-- S4 결과 폴더: k1a/fold<k>/test_pred.npz의 additive_score, interaction_score(실제 Vision feature와 Caption feature를 넣은 K1a Stimulus Model). S9가 읽은 파일과 sha256이 같아야 한다.
+- S4 결과 폴더(기본값 <output_root>/s4_no_brain, s9_path_eval.py 머리말): k1a/fold<k>/test_pred.npz의 additive_score, interaction_score(실제 Vision feature와 Caption feature를 넣은
+  K1a Stimulus Model). S9가 읽은 파일과 sha256이 같아야 한다.
 - 사람 평정: 정서 34개(비율)와 14개 차원(1~9점 평균)을 s4_common.load_scores로 읽는다.
 행 대조(N11): 모든 판이 참가자마다 같은 영상 행이어야 한다. 다르면 멈춘다.
 계산(s10_stats, s10_performance와 같은 규칙)
@@ -17,16 +18,19 @@
 K1(정서 34개, 보조)
 - 판: A-1(seed마다), 경로 평가 ridge판과 C-1판(C-1판은 seed마다). 각각 더하기 head와 상호작용 head, 보정 전과 보정판(N8).
 - 절대 성능: 정서별 r과 구간(k1_per_emotion.tsv), 참가자 점수(계산할 수 있는 정서의 r 평균)와 구간(k1_scores.tsv).
-- 차이(경로 평가 − A-1): C-1판은 같은 seed의 A-1과, ridge판은 A-1의 seed마다 짝짓는다. 참가자 점수 차이(k1_differences.tsv)와
-  정서별 차이(k1_differences_per_emotion.tsv, 탐색, BH-FDR은 참가자마다, 비교마다 34개 정서, I9). 비율은 내지 않는다(K1, N6). [사전] 15개의 Holm에 넣지 않는다.
+- 차이(경로 평가 − A-1)와 구간: C-1판은 같은 seed의 A-1과, ridge판은 A-1의 seed마다 짝짓는다. 참가자 점수 차이(k1_differences.tsv)와 정서별 차이(k1_differences_per_emotion.tsv).
+  04 S10이 K1에 요구한 것은 두 절대 성능과 그 차이의 구간이라 p와 BH는 내지 않는다. 비율은 내지 않는다(K1, N6). [사전] 15개의 Holm에 넣지 않는다.
 14개 차원(B4, K1a, 보조). 표 하나(dimensions14.tsv)에 세 성능을 나란히 둔다
 - (1) B4 ridge의 뇌 직접 decoding(주 비교판), (2) 실제 특징을 넣은 Stimulus Model(더하기, 상호작용. 참고값이고 상한이 아니다),
   (3) decoded features를 넣은 Stimulus Model(ridge판, C-1판 × 더하기, 상호작용 × 보정 전, 보정판. C-1판은 seed마다).
 - 차원마다 참가자별 r과 구간, 5명 평균. (3)의 행에는 (1)과의 차이, 구간, p, BH-FDR(탐색, 참가자마다, 비교마다 14개 차원)을 함께 적는다. [사전] 15개의 Holm에 넣지 않는다.
 - 차원별 평정 신뢰도 칸(rating_reliability)은 [미확인]이다(K1a, 04 기록 칸 S0). 분석에 넣거나 빼는 조건으로 쓰지 않는다.
-seed(G14): A-1과 C-1판은 seed마다 내고 평균과 표준편차를 따로 낸다(k1_seed_summary.tsv, dimensions14_seed_summary.tsv). 예측을 seed끼리 평균하지 않는다.
+seed(G14): 합친 S6 폴더의 selected.json이 적은 seed를 그대로 쓴다. seed 1, 2는 나중에 돌린다(11/15 석진 님). A-1과 C-1의 seed 목록이 모든 fold에서 같아야 하고, 다르면 멈춘다.
+  seed가 빠졌다는 이유로는 거절하지 않지만, fold나 seed가 아닌 입력이 빠지면 거절한다. 쓴 seed 목록과 수를 run_info.json과 모든 표(n_seeds, seeds)에 적는다.
+  A-1과 C-1판은 seed마다 내고 평균과 표준편차를 따로 낸다(k1_seed_summary.tsv, dimensions14_seed_summary.tsv). 표준편차는 seed가 2개 이상일 때만 낸다(s10_stats.seed_summary, s10_performance와 같다).
+  예측을 seed끼리 평균하지 않는다.
 그 밖의 표: n8_shift_only.tsv(N8에서 평균만 옮긴 차원 수, O35. S9의 n8_counts.tsv), coverage.tsv, missing.tsv(빠진 것이 있을 때), run_info.json
-사용: s10_k1.py --path-eval-dir <S9 경로 평가 폴더> --s6-dir <S6 결과 폴더> --s5-ridge-dir <S5 ridge 폴더> --s4-dir <S4 결과 폴더> --out <출력 폴더> --design-freeze <커밋>
+사용: s10_k1.py --path-eval-dir <S9 경로 평가 폴더> --s6-dir <S6 결과 폴더> --s5-ridge-dir <S5 ridge 폴더> [--s4-dir <S4 결과 폴더>] --out <출력 폴더> --design-freeze <커밋>
       [--n-boot 10000] [--partial-check] [--overwrite]
 """
 import argparse
@@ -39,12 +43,12 @@ import numpy as np
 import pandas as pd
 
 import s4_common as c
+import s9_path_eval as pe
 import s10_inputs as I
 import s10_performance as perf
 import s10_stats as st
 
 N_FOLDS = 6
-EXPECTED_SEEDS = (0, 1, 2)  # G14
 HEADS = ("additive", "interaction")  # O17
 CALIBRATIONS = ("uncorrected", "corrected")  # N8
 RELIABILITY = "[미확인]"  # K1a. 개별 평정이 없어 계산할 수 없고(2-6) 원문에서 값을 찾지 못했다
@@ -112,7 +116,7 @@ def stack_folds(parts):
     return res
 
 
-def s9_versions(units, prefix, n_out, split):
+def s9_versions(units, prefix, n_out, split, c1_seeds):
     """S9 단위에서 판마다 참가자 -> (영상, 값). prefix는 k1(p) 또는 k1a(score). 돌려주는 값: 판 키 -> 참가자 -> (영상, 값), 빠진 목록."""
     fold_of = dict(zip(split.video_id.astype(int), split.fold.astype(int)))
     parts, missing = {}, []
@@ -121,6 +125,8 @@ def s9_versions(units, prefix, n_out, split):
         if not m:
             raise SystemExit(f"S9 단위 이름 {name}을 알 수 없다")
         src, seed, k = ("ridge", None, int(m.group(3))) if m.group(1) == "ridge" else ("C-1", int(m.group(2)), int(m.group(3)))
+        if seed is not None and seed not in c1_seeds:
+            raise SystemExit(f"S9 단위 {name}의 seed가 done.json의 C-1 seed 목록 {c1_seeds}에 없다")
         pid, vid = z["participant"].astype(str), z["video_id"].astype(np.int64)
         if any(fold_of.get(int(v)) != k for v in vid):
             raise ValueError(f"S9 {name}: fold {k}의 시험 영상이 아닌 행이 있다")
@@ -131,7 +137,7 @@ def s9_versions(units, prefix, n_out, split):
                 if x.shape != (len(vid), n_out) or not np.isfinite(x).all():
                     raise ValueError(f"S9 {name}: {col}의 크기 {x.shape}가 다르거나 NaN이 있다")
                 parts.setdefault((src, h, cal, seed), {})[k] = by_participant(pid, vid, x)
-    want = [("ridge", None)] + [("C-1", s) for s in EXPECTED_SEEDS]
+    want = [("ridge", None)] + [("C-1", s) for s in c1_seeds]
     for src, seed in want:
         for k in range(1, N_FOLDS + 1):
             if (src, HEADS[0], CALIBRATIONS[0], seed) not in parts or k not in parts[src, HEADS[0], CALIBRATIONS[0], seed]:
@@ -141,10 +147,11 @@ def s9_versions(units, prefix, n_out, split):
 
 
 def load_a1(s6_dir, split, info9, n_emotions):
-    """A-1 seed마다 6 fold 시험 예측. 돌려주는 값: seed -> 참가자 -> (영상, p), coverage 행, 빠진 목록."""
+    """A-1 seed마다 6 fold 시험 예측. seed는 selected.json이 적은 것이고 모든 fold에서 같아야 한다(G14, 11/15).
+    돌려주는 값: seed -> 참가자 -> (영상, p), seed 목록, coverage 행, 빠진 목록."""
     found = perf.find_predictions(s6_dir)
     f = found[found.condition == "brain_only"] if len(found) else found
-    cov, missing, out = [], [], {}
+    cov, missing, out, seed_sets, paths = [], [], {}, {}, {}
     plan_rows = {}
     for k in range(1, N_FOLDS + 1):
         p = Path(s6_dir) / f"outer_fold{k}" / "plan" / "rows.npz"
@@ -153,22 +160,25 @@ def load_a1(s6_dir, split, info9, n_emotions):
             if h is not None and c.sha256(p) != h:
                 raise SystemExit(f"{p}: S9가 C-1 decoded features를 읽을 때 쓴 plan/rows.npz와 다르다. 같은 S6 결과 폴더를 준다")
             plan_rows[k] = perf.plan_test_rows(s6_dir, k)
-    for s in EXPECTED_SEEDS:
-        paths = {}
-        for k in range(1, N_FOLDS + 1):
-            hit = f[(f.fold == k) & (f.seed == s)] if len(f) else f
-            ok = len(hit) and hit.iloc[0].status == "ok" and k in plan_rows
-            cov.append(dict(source="A-1", seed=s, fold=k, participant="", status="ok" if ok else "없음", path=hit.iloc[0].path if len(hit) else str(Path(s6_dir) / f"outer_fold{k}" / "brain_only")))
+        fk = f[(f.fold == k) & f.seed.notna()] if len(f) else f
+        where = str(Path(s6_dir) / f"outer_fold{k}" / "brain_only" / "selected.json")
+        if not len(fk) or k not in plan_rows:
+            cov.append(dict(source="A-1", seed="", fold=k, participant="", status="없음", path=where))
+            missing.append(dict(source="A-1", seed="", fold=k, participant="", path=where))
+            continue
+        seed_sets[k] = sorted(int(x) for x in fk.seed)
+        for _, h in fk.iterrows():
+            ok = h.status == "ok"
+            cov.append(dict(source="A-1", seed=int(h.seed), fold=k, participant="", status="ok" if ok else "없음", path=h.path))
             if ok:
-                paths[k] = hit.iloc[0].path
+                paths.setdefault(int(h.seed), {})[k] = h.path
             else:
-                missing.append(dict(source="A-1", seed=s, fold=k, participant="", path=cov[-1]["path"]))
-        if len(paths) == N_FOLDS:
-            out[s] = perf.load_condition(paths, split, plan_rows, n_emotions)
-    extra = sorted(set(int(x) for x in f.seed.dropna()) - set(EXPECTED_SEEDS)) if len(f) else []
-    if extra:
-        raise ValueError(f"A-1 seed {extra}는 G14의 seed(0, 1, 2)가 아니다")
-    return out, cov, missing
+                missing.append(dict(source="A-1", seed=int(h.seed), fold=k, participant="", path=h.path))
+    seeds = pe.check_seed_sets(seed_sets, "A-1")
+    for s in seeds:
+        if len(paths.get(s, {})) == N_FOLDS:
+            out[s] = perf.load_condition(paths[s], split, plan_rows, n_emotions)
+    return out, seeds, cov, missing
 
 
 def load_b4(ridge_dir, split, pvideos, pids):
@@ -343,12 +353,11 @@ def k1_tables(path_versions, a1, videos, split, y, emotions, n_boot):
                 tb, bb = score_of(res, kb, q)
                 d, db = ta - tb, ba - bb
                 lo, hi = st.basic_ci(d, db)
-                diffs.append(dict(base, participant=q, score_path=ta, score_a1=tb, estimate=d, ci_low=float(lo), ci_high=float(hi), p_raw=float(st.centered_p(d, db)),
-                                  n_boot_valid=int(np.isfinite(db).sum()), statistic="34개 정서 평균 r의 차이(경로 평가 − A-1)", label="보조(방향 없음, Holm 15개 밖)"))
+                diffs.append(dict(base, participant=q, score_path=ta, score_a1=tb, estimate=d, ci_low=float(lo), ci_high=float(hi),
+                                  n_boot_valid=int(np.isfinite(db).sum()), statistic="34개 정서 평균 r의 차이(경로 평가 − A-1)", label="보조(Holm 15개 밖)"))
                 t = per_t[q]
                 for e, n in enumerate(emotions):
-                    diff_emo.append(dict(base, participant=q, emotion=n, estimate=t["estimate"][e], ci_low=t["ci_low"][e], ci_high=t["ci_high"][e], p_raw=t["p_raw"][e], p_bh=t["p_bh"][e],
-                                         family_size=t["family_size"], label=EXPLORATORY))
+                    diff_emo.append(dict(base, participant=q, emotion=n, estimate=t["estimate"][e], ci_low=t["ci_low"][e], ci_high=t["ci_high"][e], n_boot_valid=int(t["n_boot_valid"][e])))
     per = pd.DataFrame(per).rename(columns={"target": "emotion"})
     scores, diffs, diff_emo = pd.DataFrame(scores), pd.DataFrame(diffs), pd.DataFrame(diff_emo)
     seed_rows = []
@@ -404,13 +413,16 @@ def run(s9_dir, s6_dir, ridge_dir, s4_dir, out, split, y_emotions, y_dimensions,
     info9, units = load_s9(s9_dir, partial_check)
     pvideos = I.participant_videos(split) if pvideos is None else pvideos
     pids = [q for q in I.HK_PIDS if q in pvideos]
-    k1_paths, miss_9 = s9_versions(units, "k1", len(emotions), split)
-    k1a_paths, _ = s9_versions(units, "k1a", len(c.DIMENSIONS), split)
-    a1, cov_a1, miss_a1 = load_a1(s6_dir, split, info9, len(emotions))
+    c1_seeds = [int(x) for x in info9.get("c1_seeds", [])]
+    k1_paths, miss_9 = s9_versions(units, "k1", len(emotions), split, c1_seeds)
+    k1a_paths, _ = s9_versions(units, "k1a", len(c.DIMENSIONS), split, c1_seeds)
+    a1, a1_seeds, cov_a1, miss_a1 = load_a1(s6_dir, split, info9, len(emotions))
     b4, cov_b4, miss_b4 = load_b4(ridge_dir, split, pvideos, pids)
     stim, cov_st, miss_st = load_stimulus_k1a(s4_dir, split, info9, pvideos, pids)
     missing = miss_9 + miss_a1 + miss_b4 + miss_st
     I.require_complete(missing, partial_check, "K1, 14개 차원")
+    if a1_seeds and a1_seeds != c1_seeds:
+        raise SystemExit(f"A-1 seed {a1_seeds}와 C-1 seed {c1_seeds}가 다르다. 같은 seed 목록일 때만 표를 낸다(G14)")
     tables = {}
     if a1 and k1_paths:
         videos = same_rows({**{("A-1", None, None, s): by for s, by in a1.items()}, **k1_paths})
@@ -422,16 +434,19 @@ def run(s9_dir, s6_dir, ridge_dir, s4_dir, out, split, y_emotions, y_dimensions,
         tables.update(t)
     if not tables:
         raise SystemExit("6 fold가 모두 있는 판이 없어 표를 낼 수 없다")
+    for name in list(tables):  # 쓴 seed 목록(G14, 11/15). seed 요약 표는 묶음마다 n_seeds, seeds를 이미 갖는다
+        if not name.endswith("seed_summary"):
+            tables[name] = tables[name].assign(n_seeds=len(c1_seeds), seeds=",".join(str(x) for x in c1_seeds))
     n8 = Path(s9_dir) / "n8_counts.tsv"
     if n8.exists():
-        tables["n8_shift_only"] = pd.read_csv(n8, sep="\t")
+        tables["n8_shift_only"] = pd.read_csv(n8, sep="\t", dtype={"seeds": str})
     tables["coverage"] = pd.DataFrame(cov_a1 + cov_b4 + cov_st)
     if missing:
         tables["missing"] = pd.DataFrame(missing)
     info = dict(stage="S10 K1, 14개 차원(B4, K1a)", s9_dir=str(s9_dir), s9_code_commit=info9.get("code_commit"), s9_partial_check=bool(info9.get("partial_check")), s6_dir=str(s6_dir),
-                ridge_dir=str(ridge_dir), s4_dir=str(s4_dir), participants=pids, a1_seeds=sorted(a1), c1_seeds=sorted({k[3] for k in k1_paths if k[0] == "C-1"}),
+                ridge_dir=str(ridge_dir), s4_dir=str(s4_dir), participants=pids, seeds=c1_seeds, n_seeds=len(c1_seeds), a1_seeds_used=sorted(a1), c1_seeds_used=sorted({k[3] for k in k1_paths if k[0] == "C-1"}),
                 k1_versions=[key_name(k) for k in k1_paths], dimension_versions=[key_name(k) for k in k1a_paths], tables=sorted(tables),
-                settings=dict(n_boot=n_boot, boot_seed=perf.BOOT_SEED, bootstrap_unit="video", ci_level=st.CI_LEVEL, expected_seeds=EXPECTED_SEEDS),
+                settings=dict(n_boot=n_boot, boot_seed=perf.BOOT_SEED, bootstrap_unit="video", ci_level=st.CI_LEVEL),
                 partial_check=bool(missing), **(extra_info or {}))
     if missing:
         info["note"] = I.PARTIAL_NOTE
@@ -445,7 +460,7 @@ def main(argv=None):
     ap.add_argument("--path-eval-dir", required=True, help="S9 경로 평가 결과 폴더(s9_path_eval.py의 --out)")
     ap.add_argument("--s6-dir", required=True, help="S6 결과 폴더(A-1 시험 예측. S9에 준 것과 같은 폴더)")
     ap.add_argument("--s5-ridge-dir", required=True, help="S5 ridge 폴더(<output_root>/s5_ridge/ridge, B4)")
-    ap.add_argument("--s4-dir", required=True, help="S4 결과 폴더(S9에 준 것과 같은 폴더)")
+    ap.add_argument("--s4-dir", default=str(pe.S4_DEFAULT), help="S4 결과 폴더(S9에 준 것과 같은 폴더. 기본값 <output_root>/s4_no_brain)")
     ap.add_argument("--out", required=True)
     ap.add_argument("--design-freeze", required=True)
     ap.add_argument("--n-boot", type=int, default=st.N_RESAMPLE)

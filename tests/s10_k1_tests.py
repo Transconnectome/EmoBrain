@@ -174,7 +174,8 @@ def a1_pred(ids, seed, salt):
     return np.clip(Y_EMO[np.asarray(ids) - 1] * 0.5 + rng.random((len(ids), N_EMO)) * 0.3, 0, 1)
 
 
-def build_s6(root, seeds=SEEDS, a1_seeds=SEEDS):
+def build_s6(root, seeds=SEEDS, a1_seeds=SEEDS, c1_fold_seeds=None):
+    """c1_fold_seeds: fold -> C-1 seed 목록(fold마다 다르게 할 때)."""
     for k in range(1, 7):
         fo = root / f"outer_fold{k}"
         (fo / "plan").mkdir(parents=True)
@@ -188,7 +189,7 @@ def build_s6(root, seeds=SEEDS, a1_seeds=SEEDS):
         f = FEAT[tr - 1].astype(np.float64)
         m, s = f.mean(0), f.std(0)
         np.savez(fo / "plan" / "standardization.npz", visual_mean=m[:DV], visual_std=s[:DV], caption_mean=m[DV:], caption_std=s[DV:])
-        for cond, sd_list in (("brain_decoded", seeds), ("brain_only", a1_seeds)):
+        for cond, sd_list in (("brain_decoded", (c1_fold_seeds or {}).get(k, seeds)), ("brain_only", a1_seeds)):
             (fo / cond).mkdir()
             seeds_map = {}
             for sd in sd_list:
@@ -238,6 +239,10 @@ def s9(out, s4=S4, s5=S5, s6=S6, **kw):
     return pe.run(s4, s5, s6, out, SPLIT, pvideos=PVIDEOS, **kw)
 
 
+def no_p(t):
+    return not any(col.startswith(("p_", "p ")) or col in ("p", "family_size", "bh_family_size") for col in t.columns)
+
+
 def s10(s9_dir, out, s4=S4, s6=S6, **kw):
     return K.run(s9_dir, s6, B4, s4, out, SPLIT, Y_EMO, Y_DIM, EMOTIONS, n_boot=N_BOOT, pvideos=PVIDEOS, **kw)
 
@@ -247,7 +252,8 @@ def s10(s9_dir, out, s4=S4, s6=S6, **kw):
 def t_s9():
     s9(TMP / "pe")
     done = json.loads((TMP / "pe" / "done.json").read_text())
-    check("S9 단위: ridge 6 fold와 C-1 seed 3개 × 6 fold, 점검용 표시 없음", len(done["units"]) == 6 + 18 and not done["partial_check"])
+    check("S9 단위: ridge 6 fold와 C-1 seed 3개 × 6 fold, 점검용 표시 없음, seed 목록 기록", len(done["units"]) == 6 + 18 and not done["partial_check"]
+          and done["c1_seeds"] == list(SEEDS) and done["n_seeds"] == 3)
     k, q = 2, "sub-02"
     val = k % 6 + 1
     coord = dict(np.load(S4 / "stimulus" / f"fold{k}" / "coordinates.npz"))
@@ -316,13 +322,22 @@ def t_s9_guards():
     bad3 = TMP / "s4_coord"
     build_s4(bad3, k1a_coord_shift=True)
     check("K1a 입력 눈금이 K1 head와 다르면 멈춘다(04 S4)", raises(lambda: s9(TMP / "pe_bad3", s4=bad3), text="K1a Stimulus Model의 입력 눈금"))
-    s6b = TMP / "s6_two_seeds"
-    build_s6(s6b, seeds=(0, 1))
-    check("C-1 seed 2가 없으면 결과를 내지 않는다(G14)", raises(lambda: s9(TMP / "pe_b", s6=s6b), text="빠진 입력"))
-    s9(TMP / "pe_partial", s6=s6b, partial_check=True)
+    s6b = TMP / "s6_one_seed"
+    build_s6(s6b, seeds=(0,), a1_seeds=(0,))
+    s9(TMP / "pe_one", s6=s6b)
+    done = json.loads((TMP / "pe_one" / "done.json").read_text())
+    check("selected.json이 seed 0만 적으면 seed 0으로 결과를 낸다(seed 1, 2는 나중, 11/15)", not done["partial_check"] and done["c1_seeds"] == [0] and done["n_seeds"] == 1 and len(done["units"]) == 6 + 6)
+    s6c = TMP / "s6_fold_seeds"
+    build_s6(s6c, c1_fold_seeds={4: (0, 1)})
+    check("C-1 seed 목록이 fold마다 다르면 멈춘다", raises(lambda: s9(TMP / "pe_c", s6=s6c), text="seed 목록이 fold마다 다르다"))
+    s6d = TMP / "s6_gone"
+    build_s6(s6d)
+    (s6d / "outer_fold2" / "brain_decoded" / "cand_seed1" / "outputs" / "decoded_val.npz").unlink()
+    check("selected.json이 적은 seed의 파일이 없으면 결과를 내지 않는다", raises(lambda: s9(TMP / "pe_d", s6=s6d), text="빠진 입력"))
+    s9(TMP / "pe_partial", s6=s6d, partial_check=True)
     done = json.loads((TMP / "pe_partial" / "done.json").read_text())
-    check("--partial-check는 있는 단위만 내고 점검용으로 표시한다", done["partial_check"] and done["note"] == I.PARTIAL_NOTE and len(done["units"]) == 6 + 12
-          and (pd.read_csv(TMP / "pe_partial" / "missing.tsv", sep="\t").seed == 2).all())
+    check("--partial-check는 있는 단위만 내고 점검용으로 표시한다", done["partial_check"] and done["note"] == I.PARTIAL_NOTE and len(done["units"]) == 6 + 17
+          and (pd.read_csv(TMP / "pe_partial" / "missing.tsv", sep="\t").seed == 1).all())
     check("S10은 점검용 S9 결과를 --partial-check 없이 읽지 않는다", raises(lambda: s10(TMP / "pe_partial", TMP / "k1_p"), text="점검용"))
     s5b = TMP / "s5_val"
     shutil.copytree(S5, s5b)
@@ -361,10 +376,14 @@ def t_k1():
     check("K1 차이는 같은 seed의 A-1과 짝(점수 차이 = 정서 r 평균의 차이)", len(row) == 1 and row.a1_seed.iloc[0] == seed and np.isclose(row.estimate.iloc[0], r_path[keep].mean() - r_a1[keep].mean()))
     rr = d[(d.source == "ridge") & (d["head"] == "interaction") & (d.calibration == "uncorrected") & (d.participant == q)]
     check("K1 ridge판은 A-1의 seed마다 짝짓는다", sorted(rr.a1_seed.tolist()) == list(SEEDS))
-    check("K1 차이에 구간과 p가 있고 비율 열이 없다(K1, N6)", d.ci_low.notna().all() and d.p_raw.between(0, 1).all() and not any(col.startswith(("ratio", "pct", "percent", "share")) for col in d.columns))
     de = pd.read_csv(TMP / "k1" / "k1_differences_per_emotion.tsv", sep="\t")
     g = de[(de.comparison == row.comparison.iloc[0]) & (de.participant == q)]
-    check("K1 정서별 차이: BH 묶음은 참가자마다, 비교마다 34개(I9)", len(g) == N_EMO and (g.family_size == np.isfinite(g.p_raw).sum()).all() and np.allclose(g.p_bh, st.bh(g.p_raw.to_numpy()), equal_nan=True))
+    check("K1 차이에는 구간만 있고 p, BH, 비율 열이 없다(04 S10, K1, N6)", d.ci_low.notna().all() and g.ci_low.notna().all() and len(g) == N_EMO
+          and all(no_p(pd.read_csv(TMP / "k1" / f"{n}.tsv", sep="\t")) for n in ("k1_scores", "k1_per_emotion", "k1_differences", "k1_differences_per_emotion"))
+          and not any(col.startswith(("ratio", "pct", "percent", "share")) for col in d.columns))
+    check("K1 정서별 차이 = 경로 평가 r − 같은 seed A-1 r", np.allclose(g.sort_values("emotion", key=lambda s: s.str[3:].astype(int)).estimate.to_numpy(), r_path - r_a1, equal_nan=True))
+    check("K1 표와 run_info에 seed 수와 목록", (d.n_seeds == 3).all() and (d.seeds.astype(str) == "0,1,2").all()
+          and json.loads((TMP / "k1" / "run_info.json").read_text())["seeds"] == list(SEEDS))
     ss = pd.read_csv(TMP / "k1" / "k1_seed_summary.tsv", sep="\t")
     check("K1 seed 요약: A-1과 C-1 점수, 차이의 seed 3개 평균과 표준편차(G14)", (ss[ss.source.isin(["A-1", "C-1"])].n_seeds == 3).all() and set(ss.what) == {"점수", "차이(경로 평가 − A-1)"})
     n8 = pd.read_csv(TMP / "k1" / "n8_shift_only.tsv", sep="\t")
@@ -418,11 +437,19 @@ def t_s10_guards():
     s6a = TMP / "s6_a1two"
     build_s6(s6a, a1_seeds=(0, 1))
     s9(TMP / "pe_a1two", s6=s6a)
-    check("A-1 seed 2가 없으면 최종 표를 내지 않는다", raises(lambda: s10(TMP / "pe_a1two", TMP / "k1_a", s6=s6a), text="빠진 입력"))
-    s10(TMP / "pe_a1two", TMP / "k1_a2", s6=s6a, partial_check=True)
-    info = json.loads((TMP / "k1_a2" / "run_info.json").read_text())
-    d = pd.read_csv(TMP / "k1_a2" / "k1_differences.tsv", sep="\t")
-    check("--partial-check: 있는 seed로만 계산하고 점검용으로 표시한다", info["note"] == I.PARTIAL_NOTE and info["a1_seeds"] == [0, 1] and set(d[d.source == "C-1"].seed.astype(int)) == {0, 1})
+    check("A-1과 C-1의 seed 목록이 다르면 멈춘다(G14)", raises(lambda: s10(TMP / "pe_a1two", TMP / "k1_a", s6=s6a), text="seed"))
+    s10(TMP / "pe_one", TMP / "k1_one", s6=TMP / "s6_one_seed")
+    info = json.loads((TMP / "k1_one" / "run_info.json").read_text())
+    ss = pd.read_csv(TMP / "k1_one" / "k1_seed_summary.tsv", sep="\t")
+    ds = pd.read_csv(TMP / "k1_one" / "dimensions14_seed_summary.tsv", sep="\t")
+    t = pd.read_csv(TMP / "k1_one" / "dimensions14.tsv", sep="\t")
+    check("seed 하나면 최종 표를 내고 seed 수와 목록을 적는다", "note" not in info and info["n_seeds"] == 1 and info["seeds"] == [0] and (t.n_seeds == 1).all())
+    check("seed 하나면 표준편차를 내지 않는다(s10_performance와 같다)", ss.score_r_sd.isna().all() and ss.estimate_sd.isna().all() and ds.r_sd.isna().all() and (ds.n_seeds == 1).all())
+    s6e = TMP / "s6_a1gone"
+    build_s6(s6e)
+    s9(TMP / "pe_a1gone", s6=s6e)
+    (s6e / "outer_fold5" / "brain_only" / "cand_seed2" / "test_pred.npz").unlink()
+    check("selected.json이 적은 A-1 seed의 예측이 없으면 최종 표를 내지 않는다", raises(lambda: s10(TMP / "pe_a1gone", TMP / "k1_e", s6=s6e), text="빠진 입력"))
 
 
 def main():

@@ -9,6 +9,8 @@
 - C-1(Brain + Decoded Feature → Emotion, 상호작용 head): S6 selected.json의 seed마다 outputs/decoded_test.npz. 학습 fold 4개의 D9 눈금이라 그 분할의 plan/standardization.npz로 원래 척도로 되돌린다(O20, s10_inputs.load_decoded).
 - 두 값 모두 원래 척도에서 K1 head의 D_k 눈금(S4 stimulus/fold<k>/coordinates.npz)으로 바꾼다(N3, s6_common.to_k1_head와 같은 식).
 head(O17, K1a)
+- S4 결과 폴더의 기본값은 <output_root>/s4_no_brain이다. A-2, C-2가 Stimulus 예측 평정을 가져온 실행이다. 11/14에 learning rate 후보를 바꿔 다시 돌린 s4_no_brain_lr도
+  6 fold 모두 같은 설정(learning rate, weight decay, epoch 수, 검증 r)을 골랐고 K1 head 파일이 같다(11/15 메인 세션 확인).
 - K1: S4 stimulus/fold<k>/head_additive.pt(r = 0), head_interaction.pt(r ∈ {1, 2, 4, 8}). 출력은 logit과 sigmoid 확률.
 - K1a: S4 k1a/fold<k>/head_*.pt. 출력은 표준화한 값 z와, fold의 사람 평정 표준화 통계(target_mean, target_std)로 되돌린 1~9점 값(04 S9).
 - K1a의 입력 눈금이 K1 head와 같아야 한다(04 S4 확인 기준). 다르면 멈춘다. 같으므로 N8 보정 통계도 K1의 것을 그대로 쓴다(K1a).
@@ -19,14 +21,16 @@ head(O17, K1a)
 - μ̂, σ̂는 decoded features의, μ, σ는 같은 영상의 실제 특징의 차원별 평균과 표준편차(모집단 식)다. 보정은 v̂' = μ + (σ / σ̂)(v̂ − μ̂).
 - σ̂_j가 같은 목표(Vision 또는 Caption) 안 σ̂ 중앙값의 1% 미만이면 평균만 옮긴다(v̂' = v̂ − μ̂ + μ). 그 차원 수를 목표, fold, seed, 참가자마다 적는다(n8_counts.tsv).
   σ̂ 중앙값이 0이면 문서로 정할 수 없는 경우라 멈춘다.
-빠진 입력: S4 head 두 종류(6 fold), S5 decoding(5명 × 6 fold), C-1 seed 0, 1, 2(G14)의 decoded_test와 decoded_val(6 fold)이 모두 있어야 결과를 낸다.
+seed(G14): C-1은 합친 S6 폴더의 selected.json이 적은 seed를 그대로 쓴다. seed 1, 2는 나중에 돌린다(11/15 석진 님). 모든 fold의 seed 목록이 같아야 하고, 다르면 멈춘다.
+  쓴 seed 목록과 수를 done.json(c1_seeds, n_seeds)과 n8_counts.tsv에 적는다.
+빠진 입력: S4 head 두 종류(6 fold), S5 decoding(5명 × 6 fold), 모든 fold의 selected.json과 그 seed의 decoded_test, decoded_val이 모두 있어야 결과를 낸다.
   --partial-check면 있는 것만 계산하고 done.json에 partial_check를 남긴다. S10(s10_k1.py)은 --partial-check 없이 그 결과를 읽지 않는다.
 출처(M1, CLAUDE_EmoBrain 5절): 읽은 모든 입력 파일의 sha256을 읽기 전에 내고 저장 전에 다시 본다. 출력 파일의 sha256도 done.json에 남긴다.
 출력(레포 밖 --out)
 - units/<ridge|c1_seed<s>>_fold<k>.npz: participant, video_id, k1_<head>_<보정>_logit, k1_<head>_<보정>_p(행 × 34), k1a_<head>_<보정>_z, k1a_<head>_<보정>_score(행 × 14).
   head는 additive, interaction, 보정은 uncorrected, corrected. 같은 파일에 N8 통계 n8_participant, n8_mu_hat, n8_sd_hat, n8_mu, n8_sd, n8_shift_only(참가자 × 9,728).
 - n8_counts.tsv, head_check.tsv, coverage.tsv, missing.tsv(빠진 것이 있을 때), done.json
-사용: s9_path_eval.py --s4-dir <S4 결과 폴더> --s5-dir <S5 decoding 폴더> --s6-dir <S6 결과 폴더> --out <출력 폴더> --design-freeze <커밋> [--partial-check] [--overwrite]
+사용: s9_path_eval.py [--s4-dir <S4 결과 폴더>] --s5-dir <S5 decoding 폴더> --s6-dir <S6 결과 폴더> --out <출력 폴더> --design-freeze <커밋> [--partial-check] [--overwrite]
 """
 import argparse
 import json
@@ -37,12 +41,13 @@ import numpy as np
 import pandas as pd
 import torch
 
+import paths as P
 import s4_common as c
 import s10_inputs as I
 from s4_feature_model import FeatureModel
 
 N_FOLDS = 6
-EXPECTED_SEEDS = (0, 1, 2)  # G14. C-1은 seed 3개가 모두 있어야 한다
+S4_DEFAULT = P.OUT / "s4_no_brain"  # K1 head(머리말)
 HEADS = ("additive", "interaction")  # O17. 더하기판(r = 0)과 상호작용판(r ∈ {1, 2, 4, 8})
 INTERACTION_RANKS = (1, 2, 4, 8)  # E2, O17
 CALIBRATIONS = ("uncorrected", "corrected")  # N8
@@ -268,9 +273,9 @@ def unit_predictions(fh, by_q, split, k, source, seed):
 
 def collect(s4_dir, s5_dir, s6_dir, split, pvideos, inputs):
     """있는 입력과 빠진 입력. 읽을 파일의 sha256을 읽기 전에 낸다. decoded features는 단위마다 계산할 때 읽는다(메모리).
-    돌려주는 값: fold -> head, ridge 단위 fold -> 참가자 목록, C-1 단위 seed -> fold -> (plan, seed 폴더), coverage 표, missing 행."""
+    돌려주는 값: fold -> head, ridge 단위 fold -> 참가자 목록, C-1 단위 seed -> fold -> (plan, seed 폴더), C-1 seed 목록, coverage 표, missing 행."""
     pids = [q for q in I.HK_PIDS if q in pvideos]
-    heads, ridge, c1, cov, missing = {}, {}, {}, [], []
+    heads, ridge, c1, cov, missing, seed_sets = {}, {}, {}, [], [], {}
     for k in range(1, N_FOLDS + 1):
         ok = all(head_dir_ok(Path(s4_dir) / t / f"fold{k}") for t in ("stimulus", "k1a"))
         where = str(Path(s4_dir) / "{stimulus,k1a}" / f"fold{k}")
@@ -291,23 +296,33 @@ def collect(s4_dir, s5_dir, s6_dir, split, pvideos, inputs):
             ridge.setdefault(k, []).append(q)
         plan = Path(s6_dir) / f"outer_fold{k}"
         seeds = (I.selected_seeds(plan, "brain_decoded") if plan.is_dir() else None) or {}
-        if seeds:
-            inputs.add(plan / "brain_decoded" / "selected.json")
-        for s in sorted(set(EXPECTED_SEEDS) | set(seeds)):
-            if s not in EXPECTED_SEEDS:
-                raise ValueError(f"{plan}: C-1 seed {s}는 G14의 seed(0, 1, 2)가 아니다")
-            d = seeds.get(s)
-            files = c1_files(plan, d) if d is not None else []
-            ok = d is not None and all(f.exists() for f in files)
-            where = str(d) if d is not None else str(plan / "brain_decoded" / "selected.json")
-            cov.append(dict(source="C-1", seed=s, fold=k, participant="", status="ok" if ok else "없음", path=where))
+        if not seeds:
+            where = str(plan / "brain_decoded" / "selected.json")
+            cov.append(dict(source="C-1", seed="", fold=k, participant="", status="없음", path=where))
+            missing.append(dict(source="C-1", seed="", fold=k, participant="", path=where))
+            continue
+        inputs.add(plan / "brain_decoded" / "selected.json")
+        seed_sets[k] = sorted(seeds)
+        for s, d in sorted(seeds.items()):
+            files = c1_files(plan, d)
+            ok = all(f.exists() for f in files)
+            cov.append(dict(source="C-1", seed=s, fold=k, participant="", status="ok" if ok else "없음", path=str(d)))
             if not ok:
-                missing.append(dict(source="C-1", seed=s, fold=k, participant="", path=where))
+                missing.append(dict(source="C-1", seed=s, fold=k, participant="", path=str(d)))
                 continue
             for f in files:
                 inputs.add(f)
             c1.setdefault(s, {})[k] = (plan, d)
-    return heads, ridge, c1, pd.DataFrame(cov), missing
+    seeds = check_seed_sets(seed_sets, "C-1")
+    return heads, ridge, c1, seeds, pd.DataFrame(cov), missing
+
+
+def check_seed_sets(seed_sets, what):
+    """G14. 모든 fold의 seed 목록이 같아야 한다(11/15 석진 님: selected.json이 적은 seed를 쓴다). 돌려주는 값: seed 목록."""
+    kinds = {tuple(v) for v in seed_sets.values()}
+    if len(kinds) > 1:
+        raise SystemExit(f"{what}의 seed 목록이 fold마다 다르다: {dict(sorted(seed_sets.items()))}. 모든 fold가 같은 seed를 가질 때만 표를 낸다")
+    return list(next(iter(kinds))) if kinds else []
 
 
 def run(s4_dir, s5_dir, s6_dir, out, split, *, partial_check=False, overwrite=False, extra_info=None, pvideos=None):
@@ -321,7 +336,7 @@ def run(s4_dir, s5_dir, s6_dir, out, split, *, partial_check=False, overwrite=Fa
     for p in (c.SPLITS / "split_hk_dev.tsv", c.SPLITS / "fold_roles.tsv", c.S2 / "participant_blocks_hk.tsv"):
         if p.exists():
             inputs.add(p)
-    heads, ridge, c1, cov, missing = collect(s4_dir, s5_dir, s6_dir, split, pvideos, inputs)
+    heads, ridge, c1, c1_seeds, cov, missing = collect(s4_dir, s5_dir, s6_dir, split, pvideos, inputs)
     I.require_complete(missing, partial_check, "K1, K1a 경로 평가 예측")
     if not heads:
         raise SystemExit("읽은 S4 head가 없다")
@@ -346,19 +361,21 @@ def run(s4_dir, s5_dir, s6_dir, out, split, *, partial_check=False, overwrite=Fa
     if code_hashes() != code0:
         raise SystemExit("시작 뒤 코드가 바뀌었다")
     info = dict(stage="S9 path evaluation (K1, K1a)", s4_dir=str(s4_dir), s5_dir=str(s5_dir), s6_dir=str(s6_dir), code_commit=c.START_HEAD, code_dirty=c.START_DIRTY, code_sha256=code0,
-                inputs=inputs.hashes, settings=dict(heads=HEADS, interaction_ranks=INTERACTION_RANKS, calibrations=CALIBRATIONS, shift_only_fraction=SHIFT_ONLY_FRACTION, expected_seeds=EXPECTED_SEEDS,
+                inputs=inputs.hashes, settings=dict(heads=HEADS, interaction_ranks=INTERACTION_RANKS, calibrations=CALIBRATIONS, shift_only_fraction=SHIFT_ONLY_FRACTION,
                 vision_layers=VISION_LAYERS, caption_layers=CAPTION_LAYERS, head_check_tol=HEAD_CHECK_TOL, torch=torch.__version__),
                 heads={k: {t: {h: {x: v for x, v in hd.items() if x != "model"} for h, hd in fh[t]["heads"].items()} for t in ("stimulus", "k1a")} for k, fh in heads.items()},
-                units=sorted(units), partial_check=bool(missing), **(extra_info or {}))
+                units=sorted(units), c1_seeds=c1_seeds, n_seeds=len(c1_seeds), partial_check=bool(missing), **(extra_info or {}))
     if missing:
         info["note"] = I.PARTIAL_NOTE
+    counts = pd.DataFrame(counts)
+    counts["n_seeds"], counts["seeds"] = len(c1_seeds), ",".join(str(s) for s in c1_seeds)
     with c.Atomic(out) as tmp:
         (tmp / "units").mkdir()
         outputs = {}
         for name, arrays in units.items():
             np.savez(tmp / "units" / f"{name}.npz", **arrays)
             outputs[f"units/{name}.npz"] = c.sha256(tmp / "units" / f"{name}.npz")
-        I.write_tsv(pd.DataFrame(counts), tmp / "n8_counts.tsv")
+        I.write_tsv(counts, tmp / "n8_counts.tsv")
         I.write_tsv(pd.DataFrame(check_rows), tmp / "head_check.tsv")
         I.write_tsv(cov, tmp / "coverage.tsv")
         if missing:
@@ -371,7 +388,7 @@ def run(s4_dir, s5_dir, s6_dir, out, split, *, partial_check=False, overwrite=Fa
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="S9 경로 평가(K1, K1a) 예측. 고정한 Stimulus Model head에 decoded features를 넣는다")
-    ap.add_argument("--s4-dir", required=True, help="S4 결과 폴더(stimulus/fold<k>, k1a/fold<k>가 있는 곳)")
+    ap.add_argument("--s4-dir", default=str(S4_DEFAULT), help="S4 결과 폴더(stimulus/fold<k>, k1a/fold<k>). 기본값 <output_root>/s4_no_brain(머리말)")
     ap.add_argument("--s5-dir", required=True, help="S5 decoding 폴더(<output_root>/s5_ridge/decoding)")
     ap.add_argument("--s6-dir", required=True, help="S6 결과 폴더(합친 폴더. outer_fold<k>/brain_decoded/selected.json)")
     ap.add_argument("--out", required=True)
