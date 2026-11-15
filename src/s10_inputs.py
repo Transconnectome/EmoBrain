@@ -45,14 +45,22 @@ def actual_features(split, ids):
     return {name: c.load_rows(path, ids, split) for name, (path, _) in FEATURES.items()}
 
 
-def plan_test_rows(plan_dir):
-    """plan/rows.npz의 시험 행(참가자, 영상)."""
+PLAN_ROLES = {"train": 0, "val": 1, "test": 2}  # s6_train 머리말의 rows.npz role
+
+
+def plan_rows(plan_dir, role):
+    """plan/rows.npz에서 한 역할(train, val, test)의 행(참가자, 영상)."""
     path = Path(plan_dir) / "plan" / "rows.npz"
     if not path.exists():
-        raise SystemExit(f"{path}가 없다. 시험 행을 대조할 수 없다")
+        raise SystemExit(f"{path}가 없다. {role} 행을 대조할 수 없다")
     z = np.load(path)
-    t = z["role"] == 2
+    t = z["role"] == PLAN_ROLES[role]
     return set(zip(z["participant"][t].astype(str).tolist(), z["video_id"][t].astype(np.int64).tolist()))
+
+
+def plan_test_rows(plan_dir):
+    """plan/rows.npz의 시험 행(참가자, 영상)."""
+    return plan_rows(plan_dir, "test")
 
 
 def selected_seeds(plan_dir, condition):
@@ -93,9 +101,12 @@ def load_test_pred(path, want, n_emotions):
     return _by_participant(pid, vid, [p])
 
 
-def load_decoded(seed_dir, plan_dir, want):
-    """C-1의 decoded features(outputs/decoded_test.npz)를 그 분할의 D9 통계로 되돌린 원래 척도 값(O20). 돌려주는 값: 참가자 -> (영상 번호, vision, caption)."""
-    path = Path(seed_dir) / "outputs" / "decoded_test.npz"
+def load_decoded(seed_dir, plan_dir, want, which="test"):
+    """C-1의 decoded features(outputs/decoded_<which>.npz)를 그 분할의 D9 통계로 되돌린 원래 척도 값(O20). which는 test 또는 val(H2 검증 fold, N8과 O34의 보정 통계).
+    want: 그 역할의 plan 행(plan_rows). 돌려주는 값: 참가자 -> (영상 번호, vision, caption)."""
+    if which not in ("test", "val"):
+        raise ValueError(f"decoded features는 test 또는 val이다: {which}")
+    path = Path(seed_dir) / "outputs" / f"decoded_{which}.npz"
     z = np.load(path)
     s = np.load(Path(plan_dir) / "plan" / "standardization.npz")
     pid, vid = z["participant"].astype(str), z["video_id"].astype(np.int64)
