@@ -76,6 +76,8 @@ external/            외부 레포 (git submodule)
 | S6 | `s6_merge_lr.sh <본 실행 폴더> <learning rate 1e-4 실행 폴더> <합친 폴더> [--folds 1-6] [--conditions AC\|DE]` | 두 실행(learning rate 1e-3, 1e-4)을 조건과 fold마다 검증 r로 합친다. A-1은 본 실행 그대로, C-2는 합친 C-1의, D-2는 합친 D-1의 실행을 따른다. 한 실행에만 선택이 있으면 합치지 않고 missing으로 남긴다. 원래 결과는 옮기지 않고 symlink와 selected.json, merge_record.tsv를 만든다. 규칙은 `scripts/s6_merge_lr.py` 머리말 (CPU, 몇 초) | `<output_root>/<합친 폴더>/` |
 | S8 | `s8_mc_transfer.sh <HK 최종 모델 폴더> <출력 폴더> <커밋> [조건] [seed] [참가자]` | 6-3 MC 시청 전이. HK 최종 모델(final_for_mc)의 공유 가중치를 고정하고 MC 참가자마다 입력층만 학습(O29의 검증 run으로 입력층 weight decay 선택)한 뒤 시험 영상 72개의 반복 평균 반응으로 채점한다. 규칙은 `src/s8_mc_transfer.py` 머리말 (GPU) | `<output_root>/<출력 폴더>/<조건>/seed<k>/mc-0X/` |
 | S9 | `s9_saved_models.sh <swap|perturb> <S6 결과 폴더> <커밋> [fold 목록]` | 저장된 모델로 하는 분석. swap은 C-1의 바꿔 끼우기와 같은 크기의 무작위 변경 대조(2-2, 1-1, 1-2), perturb는 A-1과 C-1의 네트워크 13묶음, ROI 370개 입력 교란(6-4b) (GPU, 학습 없음) | `<output_root>/s9_saved_models/` |
+| S10 | `s10_performance.sh <S6 결과 폴더> <출력 폴더> <커밋> --dk-mean <participant\|rows\|videos> [--split-content-pairs]` | 저장된 시험 예측으로 주 지표(참가자마다 정서별 r, 6 fold를 모아 한 번), R², MAE(평정 0과 0 초과), 평균 예측 대비 오차 감소, bootstrap 구간, 2-3 [사전] 여섯 비교와 보조 비교, 0행 전제 검정(순열, Holm 2개), 5명 공통 영상판, seed 평균과 표준편차, 그림. --dk-mean과 --split-content-pairs는 문서가 정하지 않은 선택이라 기본값이 없다. 규칙은 `src/s10_performance.py` 머리말 (CPU, 몇 분) | `<출력 폴더>/{all,common5}/`, `prereg_pvalues.tsv` |
+| S10 | `s10_holm15.sh <출력 파일> <p 파일>... [--seed 0] [--alpha <값>]` | [사전] 15개의 Holm 보정(5명 평균, 참가자마다). 15개가 다 모이지 않으면 없는 것을 적고 보정 값을 내지 않는다 (CPU, 몇 초) | `<출력 파일>`, `*_missing.tsv`, `*_counts.tsv` |
 
 S6의 결과 폴더 구조와 저장 형식은 [src/s6_train.py](src/s6_train.py) 머리말에 있다.
 
@@ -119,6 +121,7 @@ python tests/s6_dispatch_tests.py   # 약 2분. S6 dispatcher의 의존 순서, 
 python tests/s6_merge_tests.py   # 몇 초. 두 실행을 합치는 규칙(검증 r, 같으면 작은 learning rate, 0 후보, C-2와 D-2가 앞 조건을 따름, 짝 학습 D-4, 한쪽만 끝난 조건)
 python tests/s6_queue_tests.py   # 몇 초. 분할 실행기의 작업 목록 확인, 빈 node에만 띄우기, 끝남 판정, 한 번만 다시 띄우기, GPU 같이 쓰기(--share-own)
 python tests/s8_tests.py   # src에서 실행. 몇 초. MC 전이의 공유 가중치 고정, 입력층만 학습, 시험 반복 평균, 빠진 run 행, MC 72개 경계, 후보 선택
+bash scripts/s10_tests.sh   # 약 30초. 모은 r과 계산 불가, R²와 MAE 정의, bootstrap 구간과 p의 식, block 안 순열, Holm과 BH, 합친 S6 폴더 끝에서 끝까지(0 후보 fold, D-4 ensemble, 빠진 fold), [사전] 15개 Holm, 그림
 ```
 
 합성 자료로 자료 경계(시험 영상, MC 72개), 후보값, 선택 규칙, 출처 기록, 저장 형식을 확인한다. 실제 정답과 뇌 반응은 읽지 않는다.
