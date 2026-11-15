@@ -45,6 +45,14 @@ class Fake:
         self.gpu[node] = 0
 
 
+def stops_exit(f):
+    try:
+        f()
+    except SystemExit:
+        return True
+    return False
+
+
 def write_jobs(tmp, rows):
     p = tmp / "jobs.tsv"
     p.write_text("\t".join(Q.COLUMNS) + "\n" + "".join("\t".join(str(x) for x in r) + "\n" for r in rows))
@@ -127,6 +135,16 @@ def main():
         sj3 = Q.read_jobs(write_jobs(tmp, [("s2", "outer_fold2", "brain_decoded_additive", cfg, tmp / "out" / "s6_own3", 2)]), run_root)
         Q.step(sj3, own3, ["login04"], run_root, "c0ffee", log_dir, 30000, out=lambda s: None, share_own=True)
         check("같은 분할과 설정이라도 조건이 다른 작업은 다른 작업으로 본다", [n for n, _ in own3.launches] == ["login04"])
+        # --stack-mib: 한 GPU에 여유만큼 여러 작업. 10GB 쓰는 GPU에 9GB 어림이면 (40GB - 4GB 여유)까지 두 개, 그다음 node로
+        from datetime import datetime as _dt
+        st = Fake(["login07", "login08"])
+        st.gpu["login07"], st.gpu["login08"] = 10000, 30000
+        sj4 = Q.read_jobs(write_jobs(tmp, [(f"k{i}", f"outer_fold{i}", "brain_only_pool", cfg, tmp / "out" / "s6_stack", 2) for i in range(1, 5)]), run_root)
+        clock = _dt.now(Q.KST)
+        Q.step(sj4, st, ["login07", "login08"], run_root, "c0ffee", log_dir, 30000, out=lambda s: None, share_own=True, stack_mib=9000, clock=clock)
+        where = [n for n, _ in st.launches]
+        check("stack: 여유를 계산해 같은 GPU에 두 개 올리고, 자리가 없는 GPU에는 올리지 않는다", where == ["login07", "login07"] and [j["status"] for j in sj4] == ["running", "running", "pending", "pending"])
+        check("stack은 share_own 없이 쓰면 멈춘다", stops_exit(lambda: Q.step(sj4, st, ["login07"], run_root, "c0ffee", log_dir, 30000, out=lambda s: None, stack_mib=9000)))
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)
     sys.exit(1 if bad else 0)

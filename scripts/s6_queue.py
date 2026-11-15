@@ -11,7 +11,7 @@
   어느 node에서든 돌고 있으면 띄우지 않고, 이 실행기의 작업은 node 하나에 하나만 띄운다.
 - 어림이 24시간을 넘는 작업은 받지 않는다(login node 규칙). sbatch를 내지 않는다. 목록의 순서대로 띄운다.
 - 다시 켜면 상태 파일(<s6_out 부모>/logs/s6_queue_<tag>/state.json)에서 잇는다.
-사용(레포 최상위): python scripts/s6_queue.py --tag <이름> --run-root <run worktree> --freeze <커밋> --jobs <작업 TSV> --nodes 17-40 [--exclude 28] [--share-own] [--dry-run]
+사용(레포 최상위): python scripts/s6_queue.py --tag <이름> --run-root <run worktree> --freeze <커밋> --jobs <작업 TSV> --nodes 17-40 [--exclude 28] [--share-own [--stack-mib 9000]] [--dry-run]
 """
 import argparse
 import json
@@ -82,6 +82,32 @@ def usable_gpu(probe, free_mib, share_own):
     return None
 
 
+GPU_TOTAL_MIB = 40960  # login node GPU(A100 40GB) 하나의 메모리
+STACK_MARGIN_MIB = 4096  # 한 GPU에 여러 작업을 올릴 때 남겨 둘 여유
+RECENT_MINUTES = 15  # 띄운 지 이만큼 안 된 작업은 아직 메모리를 다 잡지 않았다고 보고 어림 메모리로 센다
+
+
+def recent_on(jobs, node, clock=None):
+    """이 실행기가 node에 최근 RECENT_MINUTES분 안에 띄운 작업 수."""
+    t = clock or datetime.now(KST)
+    n = 0
+    for j in jobs:
+        if j["status"] == "running" and j["node"] == node and j["launched"]:
+            age = (t - datetime.strptime(j["launched"], "%Y-%m-%d %H:%M:%S").replace(tzinfo=KST)).total_seconds() / 60
+            n += age < RECENT_MINUTES
+    return n
+
+
+def stack_gpu(probe, stack_mib, recent):
+    """11/15 석진 님. 한 GPU에 여러 작업을 올린다. 지금 쓰는 메모리 + 최근 띄운 작업의 어림 + 새 작업의 어림이 GPU 메모리 - 여유 안이면 그 GPU 번호."""
+    if probe is None:
+        return None
+    for i, mib in enumerate(probe.gpus):
+        if mib + stack_mib * (recent + 1) <= GPU_TOTAL_MIB - STACK_MARGIN_MIB:
+            return i
+    return None
+
+
 def command(run_root, job, gpu, freeze):
     q = shlex.quote
     log = Path(job["log"])
@@ -89,8 +115,9 @@ def command(run_root, job, gpu, freeze):
             f"nohup bash scripts/s6_train.sh {q(job['plan'])} {q(job['conditions'])} {q(job['config'])} {q(freeze)} > {q(str(log))} 2>&1 < /dev/null & echo {D.PID_MARK}$!")
 
 
-def step(jobs, remote, nodes, run_root, freeze, log_dir, free_mib, out=print, share_own=False):
-    """한 번 확인하고 띄운다. 돌려주는 값: 아직 끝나지 않은 작업 수."""
+def step(jobs, remote, nodes, run_root, freeze, log_dir, free_mib, out=print, share_own=False, stack_mib=None, clock=None):
+    """한 번 확인하고 띄운다. 돌려주는 값: 아직 끝나지 않은 작업 수.
+    stack_mib(--stack-mib)를 주면 node 하나에 하나만 띄우지 않고, GPU 메모리 여유를 계산해 같은 GPU에 여러 작업을 올린다(share_own 필요)."""
     with ThreadPoolExecutor(16) as ex:
         probes = dict(zip(nodes, ex.map(remote.probe, nodes)))
     for j in jobs:
@@ -107,6 +134,32 @@ def step(jobs, remote, nodes, run_root, freeze, log_dir, free_mib, out=print, sh
         else:
             j["status"] = "pending" if j["attempts"] < D.MAX_ATTEMPTS else "failed"
             out(f"[{now()}] 사라짐 {j['name']} ({j['node']}) -> {j['status']}")
+    if stack_mib:
+        if not share_own:
+            raise SystemExit("--stack-mib는 --share-own과 함께 쓴다")
+        order = sorted((n for n in nodes if probes.get(n) is not None and probes[n].gpus), key=lambda n: min(probes[n].gpus))
+        for j in jobs:
+            if j["status"] != "pending":
+                continue
+            if finished(j):
+                j["status"] = "done"
+                continue
+            if any(job_procs(p, j) for p in probes.values()):
+                continue  # 같은 작업이 이미 어딘가에서 돈다
+            gpu = None
+            while order and gpu is None:  # 띄우기 직전에 다시 보고, 자리가 없으면 다음 node로
+                node = order[0]
+                gpu = stack_gpu(remote.probe(node), stack_mib, recent_on(jobs, node, clock))
+                if gpu is None:
+                    order.pop(0)
+            if gpu is None:
+                break
+            j["attempts"] += 1
+            j["log"] = str(log_dir / f"{j['name']}_try{j['attempts']}.log")
+            remote.launch(node, command(run_root, j, gpu, freeze))
+            j.update(status="running", node=node, launched=(clock or datetime.now(KST)).strftime("%Y-%m-%d %H:%M:%S"))
+            out(f"[{now()}] 띄움 {j['name']} ({j['plan']}, {j['conditions']}, 어림 {j['est_hours']:.1f} h) -> {node} 시도 {j['attempts']} (같은 GPU의 최근 작업 {recent_on(jobs, node, clock) - 1}개)")
+        return sum(j["status"] in ("pending", "running") for j in jobs)
     busy = {j["node"] for j in jobs if j["status"] == "running"}
     free = [n for n in nodes if n not in busy and usable_gpu(probes.get(n), free_mib, share_own) is not None]
     for j in jobs:
@@ -144,6 +197,7 @@ def main():
     ap.add_argument("--free-mib", type=int, default=2000)
     ap.add_argument("--poll", type=float, default=300)
     ap.add_argument("--share-own", action="store_true")
+    ap.add_argument("--stack-mib", type=int, default=None, help="작업 하나의 GPU 메모리 어림(MiB). 주면 같은 GPU에 여유만큼 여러 작업을 올린다(11/15 석진 님)")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
     run_root = Path(a.run_root).resolve()
@@ -167,7 +221,7 @@ def main():
                 j.update({k: o[k] for k in ("status", "attempts", "node", "log", "launched")})
     remote = D.Remote()
     while True:
-        left = step(jobs, remote, nodes, run_root, a.freeze, log_dir, a.free_mib, out=lambda s: print(s, flush=True), share_own=a.share_own)
+        left = step(jobs, remote, nodes, run_root, a.freeze, log_dir, a.free_mib, out=lambda s: print(s, flush=True), share_own=a.share_own, stack_mib=a.stack_mib)
         state_path.write_text(json.dumps(jobs, indent=1))
         if not left:
             print(f"[{now()}] 모두 끝. 실패 {sum(j['status'] == 'failed' for j in jobs)}개", flush=True)
