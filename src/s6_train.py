@@ -416,7 +416,7 @@ class FoldRunner:
             torch.cuda.reset_peak_memory_stats()
         teacher = self.teacher(seed) if cfg.representation else None
         seed_everything(seed)
-        model = S.build_model(condition, cand, fd.voxel_counts, self.config.tokenizer, self.config.voxel_sampling, self.cells)
+        model = S.build_model(condition, cand, fd.voxel_counts, self.config.tokenizer, self.config.voxel_sampling, self.cells, n_blocks=self.config.n_blocks)
         if teacher is not None:
             model.load_head_from(teacher.model, frozen=cfg.representation == "frozen")
         fenc = self.feature_encoder(seed) if (cfg.separate or cfg.head_only or cfg.frozen_encoder) else None

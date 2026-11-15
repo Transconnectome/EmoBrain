@@ -137,12 +137,13 @@ class Config:
     lr_by_condition: tuple = ()  # 11/15. ((조건, (learning rate, ...)), ...). 있으면 그 조건은 learning_rates 대신 이 값을 쓴다(조건마다 고른 learning rate를 6-2, 6-4a, 최종 모델에 옮김)
     roi_group: str = ""  # 11/15. 6-4a. CAB-NP 13묶음 가운데 하나만 입력으로 쓴다(manifests/s2/cabnp_groups.tsv). 비면 ROI 370개 전부
     fixed_candidates: tuple = ()  # 11/15. 6-4a(L10). ((조건, 바깥 fold, ((키, 값), ...)), ...). 그 fold의 그 조건은 이 값과 같은 후보만 학습한다
+    n_blocks: int = 1  # 11/15 석진 님. encoder block 수(F3 본 설계 1). 2는 A-1 민감도 전용이다
 
 
 def load_config(path):
     """configs/s6의 JSON을 읽는다. 알 수 없는 키, S7 전의 빈 후보, G13 밖의 learning rate는 멈춘다."""
     raw = json.loads(Path(path).read_text())
-    extra = set(raw) - {"k_candidates", "learning_rates", "lr_follows_brain_only", "keep_candidate_checkpoints", "seeds", "tokenizer", "voxel_sampling", "input_lr_scale", "learning_rates_by_condition", "roi_group", "fixed_candidates", "note"}
+    extra = set(raw) - {"k_candidates", "learning_rates", "lr_follows_brain_only", "keep_candidate_checkpoints", "seeds", "tokenizer", "voxel_sampling", "input_lr_scale", "learning_rates_by_condition", "roi_group", "fixed_candidates", "n_blocks", "note"}
     if extra:
         raise ValueError(f"설정에 알 수 없는 키가 있다: {sorted(extra)}")
     if not raw.get("k_candidates"):
@@ -175,7 +176,10 @@ def load_config(path):
                 raise ValueError(f"fixed_candidates: {cond} fold {fold}의 키가 잘못됐다 {sorted(bad)}")
             fixed.append((cond, int(fold), tuple(sorted((k, None if v is None else (int(v) if k == "rank" else float(v))) for k, v in values.items()))))
     fixed = tuple(fixed)
-    return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds, tokenizer, sampling, input_lr_scale, lr_by_condition, roi_group, fixed)
+    n_blocks = raw.get("n_blocks", 1)
+    if isinstance(n_blocks, bool) or n_blocks not in M.ENCODER_BLOCKS:
+        raise ValueError(f"n_blocks는 {M.ENCODER_BLOCKS} 가운데 하나다(F3 본 설계 1, 11/15 민감도 2)")
+    return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds, tokenizer, sampling, input_lr_scale, lr_by_condition, roi_group, fixed, int(n_blocks))
 
 
 def condition_lrs(config, condition):
@@ -724,8 +728,10 @@ def shuffle_plan(split, plan, seed, mc_ids=None):
     return s
 
 
-def build_model(condition, cand, voxel_counts, tokenizer="linear", voxel_sampling=0.0, cells=None):
+def build_model(condition, cand, voxel_counts, tokenizer="linear", voxel_sampling=0.0, cells=None, n_blocks=1):
     """조건의 구조를 만든다. 구조는 조건 이름으로만 정해지고 부르는 쪽이 바꿀 수 없다. tokenizer는 설정 파일의 입력층(11/9 점검)이다."""
+    if n_blocks != 1 and condition != "brain_only":
+        raise ValueError("encoder block 수 민감도(11/15)는 A-1(brain_only)에만 쓴다")
     cfg = CONDITIONS[condition]
     if tokenizer in ("roi_mean", "roi_cells") and (cfg.multimodal or cfg.head_only or cfg.frozen_encoder or cfg.separate or cfg.feature_only or cfg.representation):
         raise ValueError("입력층 점검(roi_mean, roi_cells)은 encoder 하나인 뇌 모델 조건에서만 돌린다")  # 11/10. brainit은 본 실행의 두 번째 입력층이라 모든 조건에 쓴다
@@ -737,7 +743,7 @@ def build_model(condition, cand, voxel_counts, tokenizer="linear", voxel_samplin
         return M.FrozenEncoderModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True, tokenizer=tokenizer, voxel_sampling=voxel_sampling))
     if cfg.head_only:  # D-3. encoder 2 자리는 학습 때 고정한 encoder 2의 가중치로 채운다(encoder 2와 같은 입력층)
         return M.FeatureHeadModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True, tokenizer=tokenizer, voxel_sampling=voxel_sampling), cand["rank"])
-    return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling, stop_gradient=cfg.stop_gradient, tokenizer=tokenizer, voxel_sampling=voxel_sampling, cells=cells)
+    return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling, stop_gradient=cfg.stop_gradient, tokenizer=tokenizer, voxel_sampling=voxel_sampling, cells=cells, n_blocks=n_blocks)
 
 
 def to_k1_head(v_hat, c_hat, feature_stats, coordinates):

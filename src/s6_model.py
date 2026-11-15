@@ -291,17 +291,30 @@ def make_input_layer(voxel_counts, d, tokenizer="linear", voxel_sampling=0.0, ce
     raise ValueError(f"알 수 없는 tokenizer: {tokenizer}")
 
 
+ENCODER_BLOCKS = (1, 2)  # F3 본 설계는 1. 2는 11/15 A-1 민감도
+
+
 class Encoder(nn.Module):
     """F3, O26."""
 
-    def __init__(self, d):
+    def __init__(self, d, n_blocks=1):
         super().__init__()
         _check_d(d)
-        self.block = nn.TransformerEncoderLayer(d, 4, 2 * d, dropout=0.1, activation="gelu", batch_first=True, norm_first=True)
+        if n_blocks not in ENCODER_BLOCKS:
+            raise ValueError(f"encoder block 수는 {ENCODER_BLOCKS} 가운데 하나다(F3 본 설계 1, 11/15 민감도 2)")
+        layer = lambda: nn.TransformerEncoderLayer(d, 4, 2 * d, dropout=0.1, activation="gelu", batch_first=True, norm_first=True)
+        if n_blocks == 1:
+            self.block = layer()  # 본 설계. 이름을 그대로 두어 저장한 체크포인트를 그대로 읽는다
+        else:
+            self.blocks = nn.ModuleList(layer() for _ in range(n_blocks))  # 11/15 석진 님. A-1 block 수 민감도(보고만, 설계는 바꾸지 않음)
         self.final_norm = nn.LayerNorm(d)
 
     def forward(self, tokens):
-        return self.final_norm(self.block(tokens))
+        if hasattr(self, "block"):
+            return self.final_norm(self.block(tokens))
+        for block in self.blocks:
+            tokens = block(tokens)
+        return self.final_norm(tokens)
 
 
 class Readout(nn.Module):
@@ -378,11 +391,13 @@ class AuditionReadout(Readout):
 class BrainModel(nn.Module):
     """시험 입력이 Brain뿐인 모델(01 5-A의 A~C, E 묶음, 대조군, 평균 pooling판)."""
 
-    def __init__(self, voxel_counts, d, *, feature_head=False, decoded=False, rank=None, pooling=False, stop_gradient=True, tokenizer="linear", voxel_sampling=0.0, cells=None):
+    def __init__(self, voxel_counts, d, *, feature_head=False, decoded=False, rank=None, pooling=False, stop_gradient=True, tokenizer="linear", voxel_sampling=0.0, cells=None, n_blocks=1):
         super().__init__()
         self.spec = dict(kind="brain", voxel_counts=voxel_counts, d=d, feature_head=feature_head, decoded=decoded, rank=rank, pooling=pooling, stop_gradient=stop_gradient, tokenizer=tokenizer, voxel_sampling=voxel_sampling)
+        if n_blocks != 1:
+            self.spec["n_blocks"] = n_blocks  # 본 설계(1)의 spec은 예전과 같게 둔다
         self.input_layer = make_input_layer(voxel_counts, d, tokenizer, voxel_sampling, cells)  # cells는 spec에 넣지 않는다. 체크포인트는 buffer로 되살린다
-        self.encoder = Encoder(d)
+        self.encoder = Encoder(d, n_blocks)
         self.readout = Readout(d, feature_head=feature_head, decoded=decoded, rank=rank, pooling=pooling, stop_gradient=stop_gradient)
 
     def encode(self, brain):

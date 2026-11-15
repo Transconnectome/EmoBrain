@@ -1808,12 +1808,41 @@ def t_runs_1115():
     check("묶음 입력으로 모델의 token 수가 줄어든다", model.input_layer.n_roi == 2)
 
 
+def t_depth_1115():
+    """11/15 석진 님. encoder block 수 민감도(A-1만). 본 설계(1)의 키와 spec은 예전과 같다."""
+    counts = {"sub-01": [5, 7, 3], "sub-02": [4, 6, 5]}
+    one, two = M.BrainModel(counts, 8), M.BrainModel(counts, 8, n_blocks=2)
+    check("block 1개는 예전과 같은 이름(encoder.block)과 spec(n_blocks 키 없음)이다", any(k.startswith("encoder.block.") for k in one.state_dict()) and "n_blocks" not in one.spec)
+    check("block 2개는 encoder.blocks.0, 1을 두고 spec에 남긴다", {k.split(".")[2] for k in two.state_dict() if k.startswith("encoder.blocks.")} == {"0", "1"} and two.spec["n_blocks"] == 2)
+    xs = {p: torch.randn(3, sum(c)) for p, c in counts.items()}
+    batch = M.BrainBatch(xs, {"sub-01": torch.tensor([0, 2, 4]), "sub-02": torch.tensor([1, 3, 5])}, 6)
+    two.eval()
+    with tempfile.TemporaryDirectory() as td:
+        M.save_checkpoint(Path(td) / "m.pt", two, condition="brain_only")
+        back, _ = M.load_checkpoint(Path(td) / "m.pt")
+        old = M.BrainModel(counts, 8).eval()
+        saved = dict(spec={k: v for k, v in old.spec.items()}, state_dict=old.state_dict(), meta={})
+        torch.save(saved, Path(td) / "old.pt")
+        back_old, _ = M.load_checkpoint(Path(td) / "old.pt")
+    with torch.no_grad():
+        check("block 2개 체크포인트를 되살리면 같은 예측이다", torch.allclose(back(batch).z, two(batch).z, atol=1e-6))
+        check("예전 spec(n_blocks 없음) 체크포인트는 block 1개로 되살린다", hasattr(back_old.encoder, "block") and torch.allclose(back_old(batch).z, old(batch).z, atol=1e-6))
+    check("block 수 민감도는 A-1에만 쓴다", stops(lambda: S.build_model("brain_decoded", S._cand(lam=1.0, rank=2), counts, n_blocks=2)))
+    check("block 수는 1 또는 2다", stops(lambda: M.Encoder(8, 3)))
+    with tempfile.TemporaryDirectory() as td:
+        f = Path(td) / "c.json"
+        f.write_text(json.dumps(dict(k_candidates=[[64, 100.0]], learning_rates=[1e-3], seeds=[0], tokenizer="linear", voxel_sampling=0.375, n_blocks=2)))
+        check("설정의 n_blocks를 읽는다", S.load_config(f).n_blocks == 2)
+        f.write_text(json.dumps(dict(k_candidates=[[64, 100.0]], n_blocks=4)))
+        check("n_blocks 1, 2 밖은 멈춘다", stops(lambda: S.load_config(f)))
+
+
 def main():
     if "--timing" in sys.argv:
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_total_val_loss, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard, t_grid_1113, t_input_1114, t_inputstep_1115, t_runs_1115):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_total_val_loss, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard, t_grid_1113, t_input_1114, t_inputstep_1115, t_runs_1115, t_depth_1115):
         t0 = time.time()
         try:
             f()
