@@ -17,6 +17,9 @@
 - 구간은 basic bootstrap 95% [2θ − q(0.975), 2θ − q(0.025)], 차이의 p는 중심을 맞춘 양측 검정 (1 + #(|Δ* − Δ| ≥ |Δ|)) / (B + 1)(O4 (3)).
 - 순열: exchangeability block(같은 시험 fold, 같은 원래 run) 안에서만 영상과 사람 평정 34개 벡터의 대응을 섞는다.
   예측은 그대로 두고 5명에 같은 순열을 쓴다. 한쪽 p = (1 + #(귀무 값 ≥ 관찰 값)) / (순열 수 + 1)(O4 (1), (6)).
+2부(2-1, 2-2)에서 더한 것
+- boot_r_paired: 여러 열이 같은 y 열과 짝인 가중 r(바꿔 끼우기의 실제 교체와 대조 100회가 같은 Δy를 씀).
+- permuted_feature_r: 2-1 순열. 실제 특징 벡터를 block 안에서 옮기고 decoded features는 그대로 둔다.
 다중비교(6-1): Holm, BH-FDR. 값이 NaN인 검정은 묶음에서 빼고 남은 수로 보정한다.
 seed(G14): 점수를 seed마다 내고 평균과 표준편차를 낸다. 예측을 seed끼리 평균하지 않는다.
 """
@@ -292,6 +295,61 @@ def permutation_p(observed, null):
         hit = (null >= observed) & valid
     p = (1.0 + hit.sum(0)) / (valid.sum(0) + 1.0)
     return np.where(np.isfinite(observed), p, np.nan)
+
+
+# S10 2부(2-1, 2-2, 6-2, 6-3, 6-4)에서 더한 함수
+
+def boot_r_paired(w, x, y, col_of):
+    """재표집마다 열 r. x의 열 j는 y의 열 col_of[j]와 짝이다(ex) 바꿔 끼우기의 실제 교체와 대조 100회가 같은 Δy를 쓴다).
+    w: (B, 행) 뽑힌 횟수, x: (행, M), y: (행, K). 돌려주는 값: (B, M). 재표집 안에서 상수인 열은 NaN이다(boot_r과 같은 허용치)."""
+    x, y = _arr(x, "x"), _arr(y, "y")
+    w = np.asarray(w, np.float64)
+    col_of = np.asarray(col_of)
+    if len(x) != len(y) or w.shape[1] != len(x) or len(col_of) != x.shape[1]:
+        raise ValueError("행 수나 짝 열의 수가 맞지 않는다")
+    x, y = x - x.mean(0), y - y.mean(0)
+    sw = w.sum(1, keepdims=True)
+    sy, syy = w @ y, w @ (y * y)
+    vy = syy - sy * sy / sw
+    cy = vy <= REL_TOL * syy
+    sx, sxx, sxy = w @ x, w @ (x * x), w @ (x * y[:, col_of])
+    vx = sxx - sx * sx / sw
+    const = cy[:, col_of] | (vx <= REL_TOL * sxx)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        r = (sxy - sx * sy[:, col_of] / sw) / np.sqrt(np.where(const, 1.0, vx * vy[:, col_of]))
+    r[const] = np.nan
+    return r
+
+
+def permuted_feature_r(perm, pos, f_all, p):
+    """2-1 순열(04 S10 순열, O4 (1)). 실제 Vision feature, Caption feature 벡터를 영상 사이에 다시 배정하고 decoded features는 그대로 둔다.
+    perm: (B, N) 전체 영상의 순열(5명 공통), pos: 이 참가자 영상의 전체 위치, f_all: (N, 차원) 전체 영상의 실제 특징, p: (이 참가자 영상, 차원) decoded features.
+    돌려주는 값: (B, 차원) 차원별 r. 참가자에게 없는 영상의 특징도 순열로 들어올 수 있어 분산은 순열마다 다시 낸다(permuted_r과 같은 방식). 상수 차원은 NaN이다.
+    곱의 합은 float32로 모으고(영상 수천 개의 합이라 상대 오차 1e-6 안팎), 나머지는 float64다."""
+    f_all = _arr(f_all, "실제 특징")
+    p = _arr(p, "decoded features")
+    pos = np.asarray(pos)
+    perm = np.asarray(perm)
+    n = len(pos)
+    if p.shape != (n, f_all.shape[1]):
+        raise ValueError("decoded features의 크기가 참가자 영상 수, 특징 차원과 다르다")
+    fc = f_all - f_all.mean(0)
+    f32 = fc.astype(np.float32)
+    pc = p - p.mean(0)
+    p32 = pc.astype(np.float32)
+    spp = (pc * pc).sum(0)
+    const_p = constant_columns(p)
+    take = perm[:, pos]
+    ind = np.zeros((len(perm), len(f_all)))
+    ind[np.arange(len(perm))[:, None], take] = 1.0  # 이 참가자 자리에 들어온 영상
+    sy, syy = ind @ fc, ind @ (fc * fc)
+    vy = syy - sy * sy / n
+    const = (vy <= REL_TOL * syy) | const_p[None, :]
+    num = np.stack([np.einsum("nd,nd->d", f32[t], p32).astype(np.float64) for t in take])
+    with np.errstate(invalid="ignore", divide="ignore"):
+        r = num / np.sqrt(np.where(const, 1.0, vy * spp[None, :]))
+    r[const] = np.nan
+    return r
 
 
 # 다중비교
