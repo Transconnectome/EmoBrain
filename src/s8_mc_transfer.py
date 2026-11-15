@@ -14,6 +14,7 @@
   사람 평정은 채점에만, 실제 feature는 decoded features 채점에만 쓴다. 시험 때 모델 입력은 뇌 반응뿐이다.
 - 고정한 encoder의 dropout은 학습 중 켜 둔다(HK에서 학습할 때와 같은 상태). 이 선택은 done.json에 남긴다.
 출력: <out>/<조건>/seed<k>/mc-0X/{selection.tsv, test_pred_<후보>.npz, input_layer.pt, done.json}
+확인용 실행(11/15): --plan outer_fold1로 바깥 fold 모델을 옮겨 오류, 메모리, 시간만 본다. 출력 폴더를 따로 두고 결과로 쓰지 않는다.
 사용(run worktree의 src에서): python s8_mc_transfer.py --final <s6_brain_final_for_mc> --out <s8_mc> --conditions brain_only,brain_decoded --seeds 0,1,2
                                --participants 01,02,03,04,05,06 --design-freeze <커밋> [--device cuda]
 """
@@ -240,6 +241,7 @@ def main():
     ap.add_argument("--conditions", default=",".join(CONDITIONS))
     ap.add_argument("--seeds", default="0,1,2")
     ap.add_argument("--participants", default=",".join(MC))
+    ap.add_argument("--plan", default="final_for_mc", help="옮길 HK 모델의 분할. 본 실행은 final_for_mc. 확인용 실행만 outer_fold<k>를 준다(결과로 쓰지 않음)")
     ap.add_argument("--design-freeze", default="")
     ap.add_argument("--device", default="cuda")
     a = ap.parse_args()
@@ -251,7 +253,9 @@ def main():
     parts = [x for x in a.participants.split(",") if x]
     if set(parts) - set(MC):
         raise SystemExit("MC 참가자는 01~06이다")
-    final = Path(a.final) / "final_for_mc"
+    if a.plan != "final_for_mc" and not a.plan.startswith("outer_fold"):
+        raise SystemExit("--plan은 final_for_mc나 outer_fold<k>다")
+    final = Path(a.final) / a.plan
     stats = dict(np.load(final / "plan" / "standardization.npz"))
     stats = {k: stats[k] for k in ("visual_mean", "visual_std", "caption_mean", "caption_std")}
     blocks, repeats, idmap = (pd.read_csv(p, sep="\t") for p in (MC_BLOCKS, MC_REPEATS, ID_MAP))
@@ -277,7 +281,7 @@ def main():
                 out_dir = Path(a.out) / cond / f"seed{seed}" / pid
                 inputs = {"hk_checkpoint": ckpt, "hk_standardization": final / "plan" / "standardization.npz", "mc_blocks": MC_BLOCKS, "mc_repeats": MC_REPEATS,
                           "id_map": ID_MAP, "mc72": d5.MC72, "response": response_path(s), "roi": roi_path(s), "code_s8": Path(__file__).resolve()}
-                run = S.Run(a.design_freeze, inputs, task="mc_transfer", condition=cond, seed=seed, participant=pid, input_wds=list(INPUT_WDS), spec=dataclasses.asdict(spec))
+                run = S.Run(a.design_freeze, inputs, task="mc_transfer", hk_plan=a.plan, condition=cond, seed=seed, participant=pid, input_wds=list(INPUT_WDS), spec=dataclasses.asdict(spec))
                 if c.done_or_new(out_dir, run.key):
                     print(f"끝난 단위 건너뜀 {out_dir}", flush=True)
                     continue
