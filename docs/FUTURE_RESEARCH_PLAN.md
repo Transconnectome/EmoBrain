@@ -1,67 +1,69 @@
-# EmoBrain 핵심 연구 완결 로드맵 (`FUTURE_RESEARCH_PLAN.md`)
+# EmoBrain 마스터 플랜 및 실험 진행 현황 (`2026-11-17` 정본 `464f516` 기준)
 
-> **[2026-11-16 정본 단일화 업데이트 (`origin/design/emobrain-final-2026-11-03 @ 431c1bc`)]**
-> - 공식 브랜치 `design/emobrain-final-2026-11-03`(`431c1bc`)에서 Perlmutter 정품 `roi_voxels` 기반 주 모델 개선(`voxel_sampling = 0.375`, `weight_decay = 100`, 조건별 `{1e-4, 1e-3}` 검증 $r$ 병합 `s6_merge_lr.py`) 및 공식 `S5(370-ROI map)`·`S8(MC transfer)`·`S9(swap, stimulus_swap, per-video perturb, path_eval)`·`S10(Part 1/2, K1/K1a, sensitivity, 6-4c geometry & rating_parts)` 구현이 완료됨을 확인했다.
-> - 이에 따라 `b300-01`의 구버전(`f5c8569`) 독자 재학습 대기는 종료하고, 로컬 및 `b300-01:/scratch/emobrain/code`의 `src/` 전체를 `431c1bc` 정본과 100% 일치시켰다.
-> - 후속 진행은 ① Perlmutter 완료 `s10_stats/` 요약표 반입·검증 및 그림/요약 통합, ② Perlmutter 잔여 미완료 GPU 과업(`D·E` 묶음, `S8 6-2 / 6-4a / MC 6-3`, `A-1 depth4` 등) 확인 시 정품 `roi_voxels` 11개와 함께 `b300-01`에서 동일 `431c1bc` 코드로 분담 실행하는 단일 트랙으로 운영한다.
-
-본 문서는 `b300-01` 서버의 데이터 정합성 감사 결과와 3중 비평(신경과학 인과식별·실행 함정·신규 합류자 관점)을 반영하여, **불필요하거나 교란된 가지치기 실험을 전면 배제하고 논문 핵심 주장에 직결되는 4단계 실행만 남긴 공식 로드맵**이다.
+본 문서는 공식 원격 브랜치(`origin/design/emobrain-final-2026-11-03 @ 464f516`)의 통합문서(`01_integrated_document.md`)와 작업 기록(`04_claude_code_workorder.md`)을 전수 대조하여, **현재 시점(`2026-11-17 08:30 KST`)까지 완료된 실험과 앞으로 남아 있는 실험·통계 과업, 그리고 `Perlmutter`–`B300` 연계 완결 절차**를 정리한 최신 마스터 플랜이다.
 
 ---
 
-## 1. 현황 진단 및 데이터 정합성 경계
+## 1. 전체 파이프라인 단계별 진행 현황 (`S1` ~ `S10`)
 
-| 파이프라인 계층 | 현재 상태 | 과학적·통계적 유효성 판정 | 조치 |
+| 단계 | 과업 내용 | 현재 상태 | 근거 및 비고 |
 | :--- | :--- | :--- | :--- |
-| **`S1` 분할 · `S3` 자극 특징 8종 · `S4` 자극 모델 전체** | **100% 정품 확정** | `roi_voxels`를 전혀 사용하지 않음. `s4_stimulus`(`0.4766`), `s4_noemo`(`0.4810`), `s4_clip`(`0.5595`), `s4_k1a` 등 모든 수치 확정. | **재실행 불필요 (그대로 사용)** |
-| **`S5` 전뇌 선형 복원·기준선 · `S9 K1 / K1a + B4`** | **보수적 하한치 확인** | 초기 이관본의 구형 근사 `roi_voxels`로 인해 고유 복셀의 `60.3%`만 포함되었으나, 그 하한 조건에서도 64개 층 복원(`[사전] 2-1`), `K1`(`0.2952`), `K1a`(`0.4530 > B4 0.3712`)가 5명 전원 유의(`p = 0.0001`). | **Step 1 (`<1시간`)에서 정품 `roi_voxels`로 100% 커버리지 갱신 + 심화 3종 추가** |
-| **`S6` 뇌 신경망 · `S9 2-2 / 6-4b`** | **v1 예비 실행** | ROI별 선형 투영층(`W_r x_r + b_r`)이 구형 근사 좌표에 묶여 있어 해부학적 네트워크 결론에 인용 불가. 또한 `A-1`(`0.2329`) < `A-1_pool`(`0.2660`) < `S5 Ridge`(`0.2931`)로 확인됨(`N22`, `N23`). | **Step 2 (`~5시간`)에서 핵심 11개 조건만 정품 `roi_voxels`로 압축 재실행** |
+| **`S1` · `S2`** | `HCP360 + 피질하 10개(370 ROI)` 복셀 추출(`11명`), 6-fold 분할(`hk_dev_v4`), 5개 내용 구역(`content_blocks`), 최근접 자극 짝(`pairs_directed`), MC 반복 제시 목록 | **완료 (Perlmutter)** | `b300-01`에는 정본 `roi_voxels` 11개 미반입(`0/11`, 필요시 수령 또는 `connectome` 원본에서 40분 내 자체 재구축 가능) |
+| **`S3`** | 자극 특징 전수 추출 (`V-JEPA 2` 24층, `TimeSformer`, `DeBERTa-v3` 25층, 정서어 181개 제거 `noemo`, `MPNet`, `CLIP`, `motion energy` 등) | **완료** | 재실행 불필요 (`b300-01`에도 동일 보존) |
+| **`S4`** | 자극 모델 학습 (`Stimulus Model`, `noemo`, `CLIP`, 14개 차원 `K1a`, lr 재점검판 `s4_no_brain_lr`) | **완료 (점검 항목 1건)** | `11/17(a8a5532)`: 동일 특징 위 닫힌 해 `Ridge`가 신경망 `Stimulus Model`보다 34개 정서 모두에서 높아 teacher 과소적합 한계 기록(재학습 여부는 선택) |
+| **`S5`** | 전뇌 선형 `DualRidge`(34개 정서, 14개 차원, 64개 층 해독 `[사전] 2-1`), 외부 기준선(`MLP`, `GED`, `ML-BVAE` 손실 수정판, `EmoGrowth` 이진화판), **370개 ROI 개별 지도(`s5_roi_map`)** | **완료 (Perlmutter)** | 합성 시험 `166/166` 통과 |
+| **`S6` (`A·B·C·E`)** | 본 설계 뇌 신경망 (`voxel_sampling=0.375`, `wd=100`, 조건별 lr `{1e-4, 1e-3}` 검증 $r$ 병합): `A-1`, `A-2`, `B-1`, `C-1`, `C-1_add`, `C-2`, 대조군 3종, `E-고정`, `E-학습`, `A-1 2-block` 민감도 | **완료 (Perlmutter)** | `11/14~11/16`(`66cbdd6`, `5af3d92`) 병합 완료 |
+| **`S6` (`D` 묶음)** | 분리 인코더 계열 (`encoder 2` OOF 4겹 + `D-1`, `D-2`, `D-3`, `D-4`; `[사전] 2-3(바)` `C-1 vs D-1` 포함) | **마감 진행 중 / 완료 확인 대기** | `11/16(5af3d92)` 시점에 `D` 완료 전 `E`만 먼저 병합됨; 이후 `s6_merge_lr --conditions DE` 마감 대상 |
+| **`S8` (`6-2` 구역)** | 5개 내용 구역 제외 및 학습량 대조 신경망 학습 (`5구역 × 6 fold × 2방식 = 60개 분할`, `A-1`·`C-1`) | **학습 60개 완료 → 통계 산출 직전** | `11/17(566cb1a, 464f516)`: 학습 60개 전원 완료 후 구역 3 `pride`(`sub-05` 상수 평정) 규칙을 **5명 전원 제외(선택지 나)**로 확정·코드 반영 완료 |
+| **`S8` (`6-4a` 네트워크)** | `CAB-NP` 13개 묶음 단독 입력 신경망 학습 (`13묶음 × 6 fold × A-1, C-1 × seed 0 = 156회`; `[사전] 1-3` 3개 포함) | **진행 중 / 완료 확인 대기** | `11/15(7f7d49f)` 설정 13개 및 `s6_queue` 준비 완료; 완료 기록 행 미등재 상태 |
+| **`S8` (`6-3` MC 전이)** | ① HK 전체 개발 영상 최종 모델(`final_for_mc`, `seed 0,1,2`) 학습 → ② MC 6명(`mc-01~06`) 입력층 어댑터 학습 → ③ `mc_test72` 단판(`1-shot`) 평가 | **진행 중 / 완료 확인 대기** | `11/15(551369c)` `s8_mc_transfer.py` 및 실자료 읽기 점검 완료; 본 실행 결과 기록 대기 |
+| **`S9`** | `[사전] 2-2` 뇌 해독 특징 교체(`swap`), 실제 특징 `Stimulus Model` 교체 기준선(`s9_stimulus_swap`), `[사전] 2-4` 13묶음·370 ROI 영상별 입력 교란(`pervideo`), `K1`/`K1a` 경로 평가(`s9_path_eval`) | **완료 (Perlmutter)** | `11/15~11/16`(`e8afce4`, `31503ad`, `da279e1`) 실행 완료 |
+| **`S10` (탐색 `6-4c·6-4d`)** | 13개 네트워크 표현 기하학(`CCGP`, `SD`)·평정 성분 분해(`s10_rating_parts`: valence·arousal) 및 장면 표현 너머 잔차 해독(`s10_beyond_scene`, 10,000회 순열) | **완료 (Perlmutter)** | `11/16~11/17`(`e58b3b7`, `0fdf130`, `a8a5532`) 실행 완료 |
+| **`S10` (최종 통합)** | `s10_zone` 완료 후 **사전 등록 15개 가설 통합 Holm 다중비교(`s10_holm15.py`)** 및 최종 결과표·논문 그림 생성 | **최종 마감 단계** | 15개 가설 중 하나라도 빠지면 `s10_holm15.py`가 정지하도록 설계됨 |
 
 ---
 
-## 2. 과감히 생략하는 5가지 가지치기 목록 (`Cut List`)
+## 2. 실험 관점에서 지금 남아 있는 작업 (핵심 4항목 vs 선택 3항목)
 
-1. **`S8` 신경망 60개 구역 제외 재학습 (`6-2`) 생략**: GPU ~30시간 소요 대비 `A-1`/`C-1` 자체가 전뇌 선형 모델보다 낮아 과학적 이득이 없다. **Step 1의 전뇌 선형 `K1_zone` (60개 분할 × 5명, GPU 30초)**으로 대체한다.
-2. **`S5 ML-BVAE` 잔여 18개 fold 및 외부 문헌 신경망(`GED`, `EmoGrowth`) 재학습 생략**: 부분 완료(`12/30`) 상태의 합산은 금지하며, 정품 ROI 복구 후에도 `S5 Ridge`·`MLP`·`H2020` 주 기준선만으로 비교가 완결된다.
-3. **`S6` 비핵심 파생 조건 10종 생략 (`290 -> 117 runs/fold`, GPU 시간 60% 절감)**: `D-3_paired`(68 runs), `D-3`(29 runs), `C-1_grad`(26 runs), `D-4`(20 runs), `multimodal`(11 runs), `E-고정`/`E-학습`(16 runs), `D-2`(8 runs), 섞기 대조군 2종(`ctrl_stimulus_shuffle`, `ctrl_feature_shuffle`, 16 runs)을 생략한다.
-4. **신경망 13개 네트워크 단독 재학습(`S8 6-4a`) 생략 및 `6-4b` 주 해석 격하**: `C-1`은 글로벌 해독 특징(`v_hat, c_hat`) 경로가 추가된 구조이므로 단일 ROI 토큰 교란(`6-4b`)에서 구조적 완충 교란이 발생한다. 주 해부학 분석은 **Step 1의 교란 없는 전뇌 `S5 Ridge` 13네트워크 `LONO`·`SNO`**로 대체한다.
-5. **신규 아키텍처(`Brain-IT`, `ROI-cells`, Graph-CNN 등) 탐색 금지**: 설계 동결(`f5c8569`) 및 `src/` 무수정 원칙을 엄수한다.
+### 2-1. 본 논문 완결을 위해 반드시 끝내야 하는 핵심 잔여 작업 4가지
+
+1. **`S10 6-2` 구역 통계 산출 및 `[사전] 15개` 통합 Holm 보정 (`s10_zone.py` → `s10_holm15.py`)**
+   - **상태**: GPU 학습(60개)은 모두 끝났고, 오늘 07:06 KST(`464f516`)에 `s10_zone.py`의 구역 3 `pride` 정지 원인이 해소되었다. CPU에서 10,000회 영상 단위 부트스트랩을 돌려 `[사전] 처음 보는 장면` p값을 생성한 뒤 `s10_holm15.py`에 합류시키면 된다.
+2. **`S6 D` 묶음(`D-1`~`D-4`) 완료 확인 및 검증 $r$ 병합 (`s6_merge_lr.py --conditions DE`)**
+   - **이유**: 사전 등록 가설 `[사전] 2-3(바)`(`C-1` 공용 인코더 대 `D-1` 분리 인코더 비교)의 필수 입력이다. Perlmutter `sbatch` 작업이 이미 끝났는지, 일부 fold가 남아 있는지 확인이 필요하다.
+3. **`S8 6-4a` 13개 네트워크 단독 학습(`156회`, `seed 0`) 완료 확인 및 `s10_network.py` 산출**
+   - **이유**: 사전 등록 가설 `[사전] 1-3` 세 항목(`Visual1`, `Visual2`, `Default` 네트워크 단독 예측이 순열 기준을 넘는지)이 `s10_holm15.py`의 15개 필수 입력에 포함된다.
+4. **`S8 6-3` MindCaptioning 외부 데이터셋(`mc_test72`, 참가자 6명) 전이 실험 완결**
+   - **내용**: `final_for_mc`(`A-1`, `C-1`, `seed 0,1,2`) 공유 가중치를 고정하고 MC 6명의 선형 입력층(`W, b`)만 `input_train`/`input_val`로 맞춘 뒤, 개발 전 과정에서 격리해 둔 72개 시험 영상 반복 평균에 대해 단 1회(`1-shot`) 전이 성능을 산출한다(`s8_mc_transfer.py` → `s10_mc.py`).
+
+### 2-2. 필수 범위는 아니나 문석진 선생님 결정에 따라 달라지는 선택·보류 항목 3가지
+
+1. **`S4 Stimulus Model` 재학습 여부 (`11/17 a8a5532` 비판 에이전트 점검)**
+   - 같은 `Vision + Caption` 특징으로 맞춘 닫힌 해 `Ridge`가 신경망 `S4 Stimulus Model`보다 34개 정서 전부에서 시험 $r$이 높았다. `S4 Stimulus Model`은 `A-2`/`C-2`의 distillation teacher이자 `K1` 고정 head이므로, 재학습 없이 본문에 *"teacher가 선형 해보다 덜 맞춰졌을 가능성"*을 한계로 명시할지, teacher를 보완해 관련 조건만 재점검할지 결정이 열려 있다.
+2. **`A-1 encoder 4-block` 민감도 실행 여부 (`11/16 182f781`)**
+   - 본 설계(`1-block`) 대비 `2-block` 민감도는 이미 완료되었고, `4-block`(`run_config_depth4.json`)은 코드·단위 시험 준비만 마친 채 실행 승인 대기 중이다.
+3. **다중 시드(`seed 1, 2`) 확장 및 후순위 보류 조건**
+   - 본 실험·`6-4a`의 `seed 1, 2` 추가 학습(현재 `seed 0` 기준이며 다중 시드 p값 결합 규칙은 미정), 보류된 보조 조건(`D-3 짝`, `C-1 손실 흐름 허용판`, `평균 pooling판`), `MC 회상(recall)` 보조 분석은 필수 마감 범위 밖으로 분리되어 있다.
 
 ---
 
-## 3. 정선된 핵심 4단계 실행 계획 (`Essential 4-Step Plan`)
+## 3. 마스터 실행 로드맵 (`Perlmutter` ↔ `B300` 협업 및 최종 마감)
 
-### Step 0 — 코드 안전장치 확립 및 정품 `roi_voxels` 반입 (완료/진행 중)
-- 합성 구형 생성 스크립트 삭제 및 정품 SHA256 검증기 [`scripts/b300/verify_s2_roi_voxels.py`](../scripts/b300/verify_s2_roi_voxels.py) 도입 (`manifests/s2/provenance.json` 내 11개 파일 SHA256 대조; 불일치 시 모든 GPU sbatch 자동 차단).
-- Perlmutter 원본 `/pscratch/sd/s/sjmoon/EmoBrain/project/output/final_2026-11/s2_manifest/roi_voxels/{hk_sub-01..05,mc_sub-01..06}.npz` (총 ~15 MB)를 `b300-01:/scratch/emobrain/outputs/s2_manifest/roi_voxels/`에 복사 후 `verify_s2_roi_voxels.py` 통과(`exit 0`) 확인.
+### Phase 0 — 정본 코드·단위 시험 동기화 및 조율 채널 가동 (완료)
+- PR #14(`feat/b300-s1-s10-onboarding`) 및 `b300-01:/scratch/emobrain/code`를 원격 정본 최신 커밋(`464f516` → 병합 커밋 `925a143`)에 동기화 완료 (`src/` 차이 `0` 바이트).
+- `b300-01`에서 `s4`(`133`), `s5`(`166`), `s8`(`14`), `s9`(`17+8`), `s10`(`76`), `s10b`(`64`), `geometry/rating_parts/beyond_scene` 단위 시험 전수 통과 확인.
+- 문석진 선생님 1:1 및 단체방으로 완료된 `s10_stats/` 요약표 공유 및 잔여 GPU 과업 분담 요청 발송 완료.
 
-### Step 1 — 전뇌 선형 핵심 사슬 정품 갱신 + 비순환·구역·네트워크 보강 (1 GPU `< 1시간`)
-- **실행 명령**:
-  ```bash
-  sbatch scripts/b300/step1_linear_core_b300.sbatch
-  ```
-- **포함 내용**:
-  1. 기존 v1 합성 산출물 `/scratch/emobrain/outputs_v1_synthetic_roi/` 무손실 백업.
-  2. 정품 `roi_voxels` 기준 `s2_roi_cells.py` → `s5_decoding`(64개 층) → `s5_baselines`(`ridge`, `soft_bce`, `signal`, `zone`, `h2020`, `mlp`, `video`) → `s5_collect.py` → `s9_pathway_k1_k1a.py` 일괄 실행.
-  3. [`scripts/s9_s10/step1_linear_enrichments.py`](../scripts/s9_s10/step1_linear_enrichments.py) 자동 실행:
-     - **비순환성 검증 (`K1_noemo` & `K1_clip`)**: 캡션에서 정서 단어 181개를 제거한 `DeBERTa_noemo`를 뇌에서 해독해 고정 `S4 noemo` head에 통과시켜도 `K1` 경로가 성립하는지 검증.
-     - **미시청 장면 구역 일반화 (`K1_zone`)**: 5개 내용 구역 × 6 fold × (`excluded` vs `control`)에서 선형 의미 매개 경로의 구역 외 일반화 검증.
-     - **교란 없는 13개 뇌 묶음 분석 (`LONO` & `SNO`)**: `CAB-NP` 12개 피질 네트워크 + `Subcortex`(피질하 해부학적 묶음) 각각을 제외한 전뇌 `S5 Ridge` 하락폭(`LONO Δr`, 복셀 수 정규화 병기) 및 단일 묶음 예측력(`SNO r`) 산출.
+### Phase 1 — 완료 통계표(`s10_stats/`) 반입 및 잔여 GPU 과업 확정 (현재 대기 구간)
+- **경로 A (기본, 협업 분담)**: 문석진 선생님께서 Perlmutter에서 이미 끝난 `s10_stats/` 결과표를 공유해 주시면 즉시 반입하고, 2-1절 핵심 4항목 중 Perlmutter 미완료 GPU 과업(`D` 묶음 잔여분, `6-4a`, `MC 6-3` 등)만 정본 `roi_voxels` 11개와 함께 `b300` 유휴 슬롯(`sbatch`)에서 분담 실행한다.
+- **경로 B (비상 단독 전환, 지시 시 즉시 가동)**: Perlmutter 할당 소진이나 연락 지연 시, `connectome` 서버에 확인된 원본 `T1w`·`Schaefer`·`aseg`·`roiInf.mat`와 공개 아틀라스(`Figshare 11988351/25808179`, `PickAtlas`, `CAB-NP`)로 정본 `roi_voxels` 11개를 40분 내 자체 생성하여 `b300`에서 잔여 실험을 독립 완결한다.
 
-### Step 2 — `S6` 핵심 11개 조건 압축 재실행 + `S9/S10` 통합 갱신 (6 GPUs `~5시간`)
-- **실행 명령**:
-  ```bash
-  # Fold 1~6 병렬 학습 (타 사용자 점유 시 --array=1-6%4 등으로 조절)
-  STEP2_JID=$(sbatch --parsable scripts/b300/step2_s6_core_b300.sbatch)
-  # 학습 완료 직후 S9·S10 전체 표·판정표·벡터 그림 6종 자동 재생성
-  sbatch --dependency=afterok:${STEP2_JID} scripts/b300/step2_post_s9_s10_b300.sbatch
-  ```
-- **핵심 11개 조건 (`S.ORDER` 의존성 닫힘)**:
-  `brain_only`(`A-1`), `brain_only_featdec`(`B-1`), `brain_decoded`(`C-1`), `brain_decoded_additive`(`C-1_add`), `brain_only_distill`(`A-2`), `brain_decoded_distill`(`C-2`), `feature_encoder`(`encoder_2`), `brain_decoded_sep`(`D-1`), `control_label_smoothing`(`[사전] 2-3(라)` 대조군), `brain_only_pool`(`A-1_pool`), `brain_decoded_pool`(`C-1_pool`).
-- 이로써 사전등록 `[2-1]`(2개), `[2-2]`(3개), `[2-3(가)~(바)]`(6개 전체) **총 11개 HK 사전등록 검정 전수**와 `1-2(가)/(나)`, `O33`, `K1/K1a`, `6-4b`, `F7/N22`가 단 하나의 누락 없이 정품 ROI 위에서 완결된다.
+### Phase 2 — 사전 등록 15개 가설 통합 검증 및 과학적 감사 (`S10` 완결)
+- `s10_holm15.py` 출력(`mean5` 및 `sub-01~05` 묶음별 15개 가설 `p_raw`, `p_holm`, 보정 전후 유의 참가자 수) 전수 검증.
+- 3대 방법론 감사 포인트 점검:
+  1. `6-2` 구역 3 `pride` 5명 전원 제외(`rating_constant_in_participant`) 기록 및 단일 영상 부트스트랩 혼합 제거 확인.
+  2. `2-2` 뇌 교체 효과와 실제 특징 `Stimulus swap` 기준선의 병렬 대조(시각 대 캡션 교체 효과 크기 차이가 특징 공간 자체의 성질인지 분리).
+  3. `S4 Stimulus Model` 대비 `Ridge` 우위 현상이 `A-2`/`C-2` 및 `K1` 해석에 미치는 영향 명시.
 
-### Step 3 — `MindCaptioning` 외부 데이터셋(`mc_test72`) 단판 전이 검증 (`6-3`, 1 GPU `< 1.5시간`)
-- **엄수 규칙 (`L10`, `O28`~`O30`)**:
-  - `final_for_mc` 공유 가중치 학습 시 새 하이퍼파라미터 탐색 없이 6개 바깥 fold 선택값의 최빈/중앙 설정(`--fixed-selected`)으로 고정한다(`L10`).
-  - MC 참가자 6명(`mc_sub-01..06`)의 학습 영상(`manifests/s2/mc_blocks.tsv`)에서는 참가자별 선형 입력 어댑터만 맞추고, 시험 영상 72개는 반복 제시 평균(`manifests/s2/mc_test_repeats.tsv`) 후 **단 1회(`1-shot`) 채점**한다(`O28`~`O30`; 시험 결과 확인 후 수정 금지).
-  - 전이 대상은 ① 전뇌 선형 `S5 Ridge + K1/K1a`, ② `A-1_pool`, ③ Step 2 최우수 특징 결합 모델(`C-1`/`C-2` 또는 `D-1`) 3종으로 한정한다.
+### Phase 3 — 논문 표·그림 최종 생성 및 산출물 감사 마감
+- 정본 `s10_stats/` 수치 기반 본문·부록 결과표, 벡터 그림(`s10_figures.py`), `MASTER_RESULTS_SUMMARY.md` 최종 갱신 및 수치 일치성 전수 감사 수행.
