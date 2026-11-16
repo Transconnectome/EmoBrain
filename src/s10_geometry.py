@@ -32,7 +32,7 @@ import s5_common as d5
 
 N_BLOCKS = 5
 KINDS = ("excluded", "control")
-VAD = ("valence", "arousal", "dominance")
+VA = ("valence", "arousal")  # 11/16 석진 님. 처음 판의 VAD에서 dominance를 뺐다(core affect의 두 축)
 
 
 def targets(split, video_id):
@@ -119,9 +119,9 @@ def colr(a, b):
     return out
 
 
-def vad_pairs(split, D, dnames):
-    """같은 바깥 fold 안에서 표준화한 VAD 공간의 최근접 영상(자기 자신 뺌). 순서 없는 쌍으로 겹침을 지운다. 사람 평정만 쓰고 모델 결과는 보지 않는다."""
-    idx = [dnames.index(v) for v in VAD]
+def va_pairs(split, D, dnames):
+    """같은 바깥 fold 안에서 표준화한 VA 공간의 최근접 영상(자기 자신 뺌). 순서 없는 쌍으로 겹침을 지운다. 사람 평정만 쓰고 모델 결과는 보지 않는다."""
+    idx = [dnames.index(v) for v in VA]
     z = (D[:, idx] - D[:, idx].mean(0)) / D[:, idx].std(0)
     vid = split.video_id.to_numpy()
     pairs = set()
@@ -139,9 +139,11 @@ def vad_pairs(split, D, dnames):
 def summarize(out, split):
     """(a) 내용을 넘는 일반화: 방식마다 구역별로 영상에 걸친 r을 내고 구역 5개를 평균한다. 일반화 비율 = r(구역 제외) / r(학습량 대조), 차이도 낸다.
     (b) 차원 환원성: 바깥 fold마다 학습 fold 4개 + 검증 fold의 실제 평정으로 차원 → 정서 선형 규칙(최소제곱)을 맞추고, 그 fold의 뇌에서 읽은
-        차원 예측(보정 없음)에 적용한다. 정서별 r(직접) − r(차원 경유). 차원은 14개판과 VAD 3개판.
-    (c) 정서가 비슷한 영상 사이의 범주 구분: VAD 최근접 쌍과 이름표 73개 최근접 쌍(S2 pairs_unordered)에서 r(직접 예측의 차이, 실제 평정의 차이).
-    모두 참가자, 네트워크, 정서마다 내고 5명 평균을 더한다. 구간과 검정은 아직 없다(탐색)."""
+        차원 예측(보정 없음)에 적용한다. 정서별 r(직접) − r(차원 경유). 차원은 14개판과 VA 2개판.
+    (c) 정서가 비슷한 영상 사이의 범주 구분: VA 최근접 쌍과 이름표 73개 최근접 쌍(S2 pairs_unordered)에서 r(직접 예측의 차이, 실제 평정의 차이).
+    평정만의 기준(rating_reference.tsv, 뇌 자료를 쓰지 않음): 같은 fold 규칙을 실제 평정 차원에 적용한 r(차원 경유 길의 상한)과,
+    짝 안 정서 차이의 크기(RMS)를 같은 fold 안 무작위 짝(seed 고정)의 크기로 나눈 값.
+    모두 참가자, 네트워크, 정서마다 내고 5명 평균을 더한다. 구간과 검정은 없다(탐색)."""
     out = Path(out)
     fits = {}
     for s in d5.HK:
@@ -151,13 +153,13 @@ def summarize(out, split):
     nets = fits[d5.HK[0]]["networks"].tolist()
     ne = 34
     names, dnames = tnames[:ne], tnames[ne:]
-    vadi = [dnames.index(v) for v in VAD]
+    vai = [dnames.index(v) for v in VA]
     Tall, _, _ = targets(split, split.video_id.to_numpy())
     blocks = pd.read_csv(c.S2 / "content_blocks_assignment.tsv", sep="\t")
     block_of = dict(zip(blocks.video_id, blocks.block))
     fold_of = dict(zip(split.video_id, split.fold))
     pos_all = {v: i for i, v in enumerate(split.video_id.tolist())}
-    vpairs = vad_pairs(split, Tall[:, ne:], dnames)
+    vpairs = va_pairs(split, Tall[:, ne:], dnames)
     cpairs = pd.read_csv(c.S2 / "pairs_unordered.tsv", sep="\t")
     rows_a, rows_b, rows_c = [], [], []
     for s, f in fits.items():
@@ -175,7 +177,7 @@ def summarize(out, split):
             # (b)
             P = f["outer_pred"][j].astype(np.float64)
             r_direct = colr(T[:, :ne], P[:, :ne])
-            for label, di in (("dims14", list(range(len(dnames)))), ("vad3", vadi)):
+            for label, di in (("dims14", list(range(len(dnames)))), ("va2", vai)):
                 via = np.full((len(vid), ne), np.nan)
                 for k in range(1, c.N_FOLDS + 1):
                     te = np.array([fold_of[v] == k for v in vid])
@@ -191,7 +193,7 @@ def summarize(out, split):
                 for e, nm in enumerate(names):
                     rows_b.append(dict(participant=f"sub-{s}", network=g, dims=label, emotion=nm, r_direct=r_direct[e], r_via=r_via[e], loss=r_direct[e] - r_via[e]))
             # (c)
-            for label, pt in (("vad", vpairs), ("content", cpairs)):
+            for label, pt in (("va", vpairs), ("content", cpairs)):
                 keep = [(a, b) for a, b in zip(pt.video_a, pt.video_b) if a in row and b in row]
                 ia, ib = np.array([row[a] for a, _ in keep]), np.array([row[b] for _, b in keep])
                 dy, dp = T[ib, :ne] - T[ia, :ne], P[ib, :ne] - P[ia, :ne]
@@ -202,8 +204,36 @@ def summarize(out, split):
     A.to_csv(out / "a_content_generalization.tsv", sep="\t", index=False)
     B.to_csv(out / "b_dimension_route.tsv", sep="\t", index=False)
     C.to_csv(out / "c_matched_pairs.tsv", sep="\t", index=False)
-    vpairs.to_csv(out / "vad_pairs.tsv", sep="\t", index=False)
+    vpairs.to_csv(out / "va_pairs.tsv", sep="\t", index=False)
+    rating_reference(split, Tall, ne, dnames, vai, vpairs, cpairs, names).to_csv(out / "rating_reference.tsv", sep="\t", index=False)
     return A, B, C
+
+
+def rating_reference(split, Tall, ne, dnames, vai, vpairs, cpairs, names):
+    """평정만의 기준(summarize 머리말). 뇌 자료와 모델 결과를 쓰지 않는다."""
+    fold_all = split.fold.to_numpy()
+    out = dict(emotion=names)
+    for label, di in (("dims14", list(range(len(dnames)))), ("va2", vai)):
+        via = np.full((len(Tall), ne), np.nan)
+        for k in range(1, c.N_FOLDS + 1):
+            te = fold_all == k
+            A = np.c_[np.ones((~te).sum()), Tall[~te][:, ne:][:, di]]
+            beta = np.linalg.lstsq(A, Tall[~te][:, :ne], rcond=None)[0]
+            via[te] = np.c_[np.ones(te.sum()), Tall[te][:, ne:][:, di]] @ beta
+        out[f"r_{label}_route_ratings"] = colr(Tall[:, :ne], via)
+    pos = {v: i for i, v in enumerate(split.video_id.tolist())}
+    rng = np.random.default_rng(20261116)
+    ra, rb = [], []
+    for k in range(1, c.N_FOLDS + 1):
+        perm = rng.permutation(np.flatnonzero(fold_all == k))
+        m = len(perm) // 2
+        ra.extend(perm[:m]), rb.extend(perm[m:2 * m])
+    rms = lambda ia, ib: np.sqrt(((Tall[ib, :ne] - Tall[ia, :ne]) ** 2).mean(0))  # noqa: E731
+    base = rms(np.array(ra), np.array(rb))
+    for label, pt in (("va", vpairs), ("content", cpairs)):
+        ia, ib = np.array([pos[v] for v in pt.video_a]), np.array([pos[v] for v in pt.video_b])
+        out[f"dy_rms_ratio_{label}_pairs"] = rms(ia, ib) / base
+    return pd.DataFrame(out)
 
 
 def main(argv=None):
