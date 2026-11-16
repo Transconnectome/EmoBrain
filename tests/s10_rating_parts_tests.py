@@ -43,6 +43,6 @@ d = d5.DualRidge(x, tr, dict(val=va))
 fitted = d.fit(y[tr])
 cands = [d.predict("val", fitted, lam).numpy() for lam in d5.LAMBDAS]
 check("D_k 값은 그 겹을 뺀 규칙의 예측", all(any(np.allclose(a[va][:, t], cc[:, t]) for cc in cands) for t in range(3)))
-check("부분 이름 3 + 34 × 4개", len(S.part_names([f"e{i}" for i in range(34)])) == 3 + 34 * 4)
+check("부분 이름 6 + 34 × 4개", len(S.part_names([f"e{i}" for i in range(34)])) == 6 + 34 * 4)
 print(f"s10_rating_parts 시험 {'통과' if not fails else '실패 ' + str(len(fails)) + '개'}")
 sys.exit(1 if fails else 0)

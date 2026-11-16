@@ -9,6 +9,7 @@
   - V부분: Vision feature(S3 vjepa2 target)로 예측한 valence. "보이는 것만으로 알 수 있는 valence"
   - 나머지: valence − V부분
   - 나머지의 C부분: Caption feature(S3 정서어 181개를 지운 deberta target)로 예측한 나머지. "의미를 알아야 알 수 있는 valence"
+- arousal: valence와 같은 세 부분(11/16 석진 님 지적으로 첫 실행 뒤에 더함. 처음 판은 valence만 나눴다)
 - 정서 범주 34개
   - VA부분: 사람 valence, arousal 평정으로 예측한 범주 평정(절편 있는 최소제곱, D_k로 맞춤)
   - 나머지: 범주 평정 − VA부분
@@ -77,8 +78,11 @@ def crossfit(x, y, fold, k):
     return out.numpy()
 
 
+DIMS = ("valence", "arousal")
+
+
 def part_names(names):
-    return (["valence|V", "valence|rest", "valence|rest_C"] + [f"{e}|VA" for e in names] + [f"{e}|rest" for e in names]
+    return ([f"{d}|{p}" for d in DIMS for p in ("V", "rest", "rest_C")] + [f"{e}|VA" for e in names] + [f"{e}|rest" for e in names]
             + [f"{e}|rest_C" for e in names] + [f"{e}|rest_V" for e in names])
 
 
@@ -87,7 +91,7 @@ def parts(out, split, threads):
     torch.set_num_threads(threads)
     vid, fold = split.video_id.to_numpy(), split.fold.to_numpy()
     T, names, dnames = geo.targets(split, vid)
-    E, val = T[:, :NE], T[:, NE + dnames.index("valence")]
+    E = T[:, :NE]
     VA = T[:, [NE + dnames.index("valence"), NE + dnames.index("arousal")]]
     xv = d5.as_tensor(c.load_rows(c.VISUAL_TARGET, vid, split), "cpu")
     xc = d5.as_tensor(c.load_rows(c.CAPTION_NO_EMOTION, vid, split), "cpu")
@@ -95,16 +99,18 @@ def parts(out, split, threads):
     P = np.full((c.N_FOLDS, len(vid), len(pn)), np.nan)
     for k in range(1, c.N_FOLDS + 1):
         dk = fold != k
-        v_part = crossfit(xv, d5.as_tensor(val[:, None], "cpu"), fold, k)[:, 0]
-        v_rest = val - v_part
-        v_rest_c = crossfit(xc, d5.as_tensor(v_rest[:, None], "cpu"), fold, k)[:, 0]
+        dimv = T[:, [NE + dnames.index(d) for d in DIMS]]
+        v_part = crossfit(xv, d5.as_tensor(dimv, "cpu"), fold, k)
+        v_rest = dimv - v_part
+        v_rest_c = crossfit(xc, d5.as_tensor(v_rest, "cpu"), fold, k)
+        dim_parts = np.concatenate([np.c_[v_part[:, i], v_rest[:, i], v_rest_c[:, i]] for i in range(len(DIMS))], 1)
         A = np.c_[np.ones(dk.sum()), VA[dk]]
         beta = np.linalg.lstsq(A, E[dk], rcond=None)[0]
         e_va = np.c_[np.ones(len(vid)), VA] @ beta
         e_rest = E - e_va
         rt = d5.as_tensor(e_rest, "cpu")
         e_rest_c, e_rest_v = crossfit(xc, rt, fold, k), crossfit(xv, rt, fold, k)
-        P[k - 1] = np.c_[v_part, v_rest, v_rest_c, e_va, e_rest, e_rest_c, e_rest_v]
+        P[k - 1] = np.c_[dim_parts, e_va, e_rest, e_rest_c, e_rest_v]
         print(f"부분 fold {k} 끝", flush=True)
     if not np.isfinite(P).all():
         raise ValueError("부분 값에 NaN이 있다")
@@ -117,8 +123,8 @@ def parts(out, split, threads):
         te = fold == k
         for i, p in enumerate(pn):
             te_vals.setdefault(p, np.zeros(len(vid)))[te] = P[k - 1, te, i]
-    rows = [dict(target="valence", r_V_of_whole=np.corrcoef(te_vals["valence|V"], val)[0, 1],
-                 r_C_of_rest=np.corrcoef(te_vals["valence|rest_C"], te_vals["valence|rest"])[0, 1])]
+    rows = [dict(target=d, r_V_of_whole=np.corrcoef(te_vals[f"{d}|V"], T[:, NE + dnames.index(d)])[0, 1],
+                 r_C_of_rest=np.corrcoef(te_vals[f"{d}|rest_C"], te_vals[f"{d}|rest"])[0, 1]) for d in DIMS]
     for j, e in enumerate(names):
         rows.append(dict(target=e, r_VA_of_whole=np.corrcoef(te_vals[f"{e}|VA"], E[:, j])[0, 1],
                          r_C_of_rest=np.corrcoef(te_vals[f"{e}|rest_C"], te_vals[f"{e}|rest"])[0, 1],
@@ -191,7 +197,7 @@ def summarize(out):
         a, b = st.basic_ci(con_p[i], con_b[:, i])
         rows.append(dict(target=t, part=part, assoc_minus_visual=con_p[i], lo=float(a), hi=float(b), p=float(st.centered_p(con_p[i], con_b[:, i]))))
     for part in ("VA", "rest", "rest_C", "rest_V"):
-        idx = [i for i, p in enumerate(pn) if p.endswith(f"|{part}") and not p.startswith("valence|")]
+        idx = [i for i, p in enumerate(pn) if p.endswith(f"|{part}") and p.split("|")[0] not in DIMS]
         cp, cb = con_p[idx].mean(), con_b[:, idx].mean(1)
         a, b = st.basic_ci(cp, cb)
         rows.append(dict(target="emotion_mean34", part=part, assoc_minus_visual=cp, lo=float(a), hi=float(b), p=float(st.centered_p(cp, cb))))
@@ -199,7 +205,7 @@ def summarize(out):
     mean_rows = []
     for j, g in enumerate(nets):
         for part in ("VA", "rest", "rest_C", "rest_V"):
-            idx = [i for i, p in enumerate(pn) if p.endswith(f"|{part}") and not p.startswith("valence|")]
+            idx = [i for i, p in enumerate(pn) if p.endswith(f"|{part}") and p.split("|")[0] not in DIMS]
             v = m[j, idx].mean()
             a, b = st.basic_ci(v, bt[:, j, idx].mean(1))
             mean_rows.append(dict(network=g, part=part, r_mean34=v, lo=float(a), hi=float(b)))
