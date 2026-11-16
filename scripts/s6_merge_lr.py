@@ -10,10 +10,10 @@
   두 번째 실행에서 0 후보(그 실행의 A-1, G10)가 골렸으면 그 실행의 0이 아닌 후보 가운데 가장 높은 것을 쓴다. 0 후보는 고른 A-1(본 실행)만 인정한다.
   따라가는 조건의 0 후보(α = 0)는 같은 실행의 앞 조건 모델이다(ex) C-2의 0 = 그 실행이 고른 C-1). 합친 폴더의 앞 조건이 같은 후보를 가리킬 때만 인정한다.
 - 검증 r은 후보 폴더의 done.json(val_score)에서 읽는다. 짝 학습(D-4)은 후보 폴더에 done.json이 없으므로 selected.json의 선택표에 적힌 네 짝 평균을 읽는다.
-- --conditions AC(기본)는 A~C, DE는 D, E를 합친다. 이미 만든 폴더에 더할 수 있고, merge_record.tsv는 이번에 합친 조건의 행만 바꾼다.
+- --conditions AC(기본)는 A~C, DE는 D, E를 합친다. E는 E만 합친다(D 학습이 끝나기 전, 11/16). 이미 만든 폴더에 더할 수 있고, merge_record.tsv는 이번에 합친 조건의 행만 바꾼다.
 - 결과 폴더는 원래 결과를 옮기지 않고 symlink로 만든다. 조건마다 selected.json(고른 후보, 출처 실행, 비교한 값)과 merge_record.tsv를 남긴다.
 - 학습한 결과만 읽고 시험 fold의 정답은 읽지 않는다. 고르는 값은 검증 r뿐이다.
-사용: python scripts/s6_merge_lr.py --main <본 실행 폴더> --second <1e-4 실행 폴더> --out <합친 폴더> [--folds 1-6] [--conditions AC|DE]
+사용: python scripts/s6_merge_lr.py --main <본 실행 폴더> --second <1e-4 실행 폴더> --out <합친 폴더> [--folds 1-6] [--conditions AC|DE|E]
 """
 import argparse
 import json
@@ -28,6 +28,7 @@ GROUPS = dict(
             follow={"brain_decoded_distill": "brain_decoded"}),
     DE=dict(merged=("brain_decoded_sep", "brain_features_only", "brain_frozen_feature_encoder", "brain_only_repr_frozen", "brain_only_repr_trained"),
             follow={"brain_decoded_sep_distill": "brain_decoded_sep"}),
+    E=dict(merged=("brain_only_repr_frozen", "brain_only_repr_trained"), follow={}),  # 11/16. D 학습이 끝나기 전에 E만 먼저 합친다
 )
 MERGED = GROUPS["AC"]["merged"]  # 이전 이름(시험과 다른 스크립트가 읽는다)
 
