@@ -29,9 +29,9 @@
   - ROI판: seed, 참가자(5명 평균 따로), 값(A-1 하락, C-1 하락, 하락폭 차이)마다 ROI 370개(01 6-4 ROI판의 "참가자와 목표마다 ROI 370개").
   - 묶음 안 정서별: seed, 참가자(5명 평균 따로), 묶음, 값마다 34개 정서(01 6-4).
 문서가 정하지 않아 기본값 없이 받는 것(04 기록 칸에 올릴 것)
-- --repeat-handling fixed|resample. fixed는 배정표를 고정하고 재표집마다 20회를 모두 다시 낸 뒤 평균한다(2-2의 대조 100회와 같은 방식. 구간은 배정표 조건부다).
+- --repeat-handling fixed|resample(본 설정 fixed, 11/16 석진 님). fixed는 배정표를 고정하고 재표집마다 20회를 모두 다시 낸 뒤 평균한다(2-2의 대조 100회와 같은 방식. 구간은 배정표 조건부다).
   resample은 재표집마다 20회도 복원 추출해 뽑힌 횟수로 평균한다(배정 변동을 구간에 넣음). 관찰 값은 둘 다 20회 평균이다.
-- --drop-bh-family by_model|pooled
+- --drop-bh-family by_model|pooled(본 설정 by_model, 11/16 석진 님)
 - --partial-check에서는 둘을 비워도 된다. --repeat-handling이 없으면 재표집 없이 점추정만 낸다.
 실행 시간: 재표집이 단위 383 × 모델 2 × 참가자 5번이다. --workers로 단위를 나눠 돌린다(결과는 workers 수와 무관하다). 시간은 scripts/s10_perturb.sh 머리말.
 출력(레포 밖 --out): network_drops.tsv, network_drops_per_emotion.tsv, network_confirmed.tsv, roi_drops.tsv, coverage.tsv, arrays.npz(단위 × 참가자 × 정서의 하락 점추정), run_info.json
@@ -455,8 +455,8 @@ def main(argv=None):
     ap.add_argument("--s6-dir", default=None, help="원래 예측의 합을 S6 시험 예측과 대조할 S6 결과 폴더(선택)")
     ap.add_argument("--out", required=True)
     ap.add_argument("--design-freeze", required=True)
-    ap.add_argument("--repeat-handling", choices=REPEAT_HANDLING, default=None, help="20회 반복이 재표집에 들어가는 방식. 문서가 정하지 않아 기본값이 없다")
-    ap.add_argument("--drop-bh-family", choices=DROP_BH_FAMILIES, default=None, help="묶음별 각 모델 하락의 탐색 BH 묶음. 문서가 정하지 않아 기본값이 없다")
+    ap.add_argument("--repeat-handling", choices=REPEAT_HANDLING, default="fixed", help="20회 반복이 재표집에 들어가는 방식. fixed(배정표 고정, 2-2의 대조 100회와 같은 방식)가 본 설정(11/16 석진 님), resample은 민감도")
+    ap.add_argument("--drop-bh-family", choices=DROP_BH_FAMILIES, default="by_model", help="묶음별 각 모델 하락의 탐색 BH 묶음. by_model(모델마다 13개, 6-4a와 같게)이 본 설정(11/16 석진 님), pooled는 민감도")
     ap.add_argument("--n-boot", type=int, default=st.N_RESAMPLE)
     ap.add_argument("--workers", type=int, default=1, help="단위를 나눠 계산할 프로세스 수. 결과와 무관하다")
     ap.add_argument("--alpha", type=float, default=ALPHA, help="확인된 참가자 수를 셀 유의수준. 0.05(11/15 석진 님)")
