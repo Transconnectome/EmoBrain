@@ -526,6 +526,17 @@ def t_zone():
     check("6-2 [사전] 처음 보는 장면의 p", set(pre.test_id) == {"처음 보는 장면"} and set(pre.family) == set(PIDS + ["mean5"]) and pre.p_raw.between(0, 1).all())
     dec = pd.read_csv(TMP / "zone_out" / "c1_zone_decoding.tsv", sep="\t")
     check("6-2 C-1 decoded features의 2-1 지표를 원래 척도로 낸다", len(dec) and np.isclose(dec[(dec.feature == "caption") & (dec.participant == "sub-01")].mean_dim_r, 1.0).all())
+    yp = YZ.copy()
+    miss = [v for v in MISSING_02 if ZBLOCKS.set_index("video_id").block[v] == 2]
+    blk2 = (ZBLOCKS.block == 2).to_numpy()
+    yp[blk2, 8] = 0.0
+    yp[SPLIT.video_id.to_numpy() == miss[0], 8] = 0.5  # 구역 2에서 sub-02에 없는 영상 하나만 0이 아님
+    zn.run(root, TMP / "zone_p", SPLIT, yp, EMOTIONS, **kw)
+    zp = pd.read_csv(TMP / "zone_p" / "zone_emotions.tsv", sep="\t").set_index("block")
+    ep = pd.read_csv(TMP / "zone_p" / "zone_per_emotion.tsv", sep="\t")
+    s8 = ep[(ep.block == 2) & (ep.emotion == EMOTIONS[8])]
+    check("6-2 한 참가자에서만 평정이 상수인 정서는 모든 참가자에서 뺀다(11/17)", zp.loc[2, "rating_constant_in_participant"] == EMOTIONS[8]
+          and (~s8.used_in_mean).all() and (s8.reason == "rating_constant_in_participant").all() and zp.loc[2, "n_used_sub-01"] == zp.loc[2, "n_used_sub-02"])
     root_c = TMP / "zone_c"
     build_zone(root_c, const=(2, "excluded", "brain_decoded", "sub-01"))
     check("6-2 상수 예측이 있으면 범위 옵션 없이 멈춘다", raises(lambda: zn.run(root_c, TMP / "zone_c1", SPLIT, YZ, EMOTIONS, **kw), text="--constant-prediction-scope"))
