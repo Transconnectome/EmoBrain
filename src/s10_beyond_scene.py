@@ -27,7 +27,8 @@
 2단계 fit(참가자마다): 네트워크 13개(s10_geometry.network_positions)와 뇌 전체(모든 ROI의 voxel)로 T, R_Sw, R_V, R_C, R_Sall을
   ridge(s5_common.main_version, H2: 학습 fold 4개로 학습, 검증 fold로 목표마다 λ)로 읽는다. 6 fold 시험 예측을 모아 r을 한 번 낸다.
 3단계 summarize: 5명 평균 r, bootstrap 95% 구간(같은 내용 영상 묶음 canonical_id, BOOT_SEED, 10,000회, 5명 같은 무게),
-  한쪽 순열 p(시험 fold와 원래 run 안에서 영상과 목표 벡터의 대응을 섞음, 1,000회, PERM_SEED, 5명 같은 순열, 예측은 그대로), 5명 부호 일치.
+  한쪽 순열 p(시험 fold와 원래 run 안에서 영상과 목표 벡터의 대응을 섞음, 10,000회(I5), PERM_SEED, 5명 같은 순열, 예측은 그대로), 5명 부호 일치.
+  11/17 첫 실행은 순열 1,000회로 적어 Holm 보정 p의 최솟값이 0.108이었다. 판정 규칙(구간, r, 부호)과 예측은 바꾸지 않고 횟수만 프로젝트 기준으로 고쳐 다시 돌렸다.
 - 확인 묶음: Visual1, Visual2, Default × 목표 36개를 목표 판(T, R_Sw, R_V, R_C, R_Sall)마다 Holm. 나머지 네트워크와 뇌 전체는 탐색(BH).
 
 미리 적는 판정 규칙과 예측(11/17, 계산 전. 결과를 보고 바꾸지 않는다)
@@ -71,7 +72,7 @@ WHOLE = "whole_brain"
 SURVIVE_R = 0.05
 SANITY_R = 0.05
 PERM_SEED = 20261116  # s10_performance.PERM_SEED와 같은 값
-N_PERM = 1000
+N_PERM = st.N_RESAMPLE  # I5. 11/17 첫 실행은 1,000회였다. Holm 108개에서 보정 p가 0.108 아래로 내려갈 수 없어, 판정 규칙은 그대로 두고 프로젝트 기준으로 고쳤다
 PERM_CHUNK = 100
 
 
