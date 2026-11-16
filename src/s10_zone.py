@@ -8,7 +8,8 @@
 계산(01 6-2, 04 S10)
 - 구역마다 6 fold의 시험 예측을 모아 참가자별, 정서별 r을 낸다. 다섯 구역을 섞은 r 하나로 대신하지 않는다.
 - 평가 정서 목록: 구역마다 그 구역 시험 영상에서 사람 평정이 모두 같은 정서만 뺀다. 네 설정에 같은 목록을 쓰고 구역마다 정서 수를 낸다.
-  어느 참가자의 구역 영상에서만 평정이 상수가 되는 정서는 규칙이 없어 멈춘다.
+  어느 참가자의 구역 영상에서만 평정이 상수가 되는 정서는 그 구역에서 모든 참가자의 평가 목록에서 뺀다(11/17 석진 님 결정. 참가자 사이 목록을 같게 둔다).
+  뺀 정서는 zone_emotions.tsv의 rating_constant_in_participant에, 정서별 표의 reason에 적는다.
 - 모델이 상수만 예측한 정서는 사람 평정이 상수인 경우와 따로 세고, 그 구역에서 네 설정 모두의 평균에서 뺀다. 어느 모델, 어느 정서인지 적는다.
   뺄 범위(그 참가자만, 모든 참가자)는 문서가 정하지 않아 --constant-prediction-scope로 받고 기본값이 없다. 상수 예측이 없으면 묻지 않는다.
 - 요약값: 구역마다 평가 정서의 r 평균, 다섯 구역을 같은 무게로 평균한 "다섯 내용 구역의 평균 성능". 5명 평균은 참가자 값의 평균이다.
@@ -119,18 +120,20 @@ def analyze_seed(seed, preds, split, y, emotions, blocks_table, W, codes, upos, 
             continue
         zv = zone_videos(blocks_table, split, b)
         yz = y[[ypos[v] for v in zv]]
-        evaluated = ~st.constant_columns(yz)
-        list_rows.append(dict(seed=seed, block=b, n_test_videos=len(zv), n_evaluated=int(evaluated.sum()), rating_constant=",".join(emotions[e] for e in np.flatnonzero(~evaluated)),
-                              settings_found=",".join(f"{SHORT[m]} {k}" for m, k in have)))
+        zone_ok = ~st.constant_columns(yz)
         pids = sorted(pooled[have[0]])
         for s in have:
             if sorted(pooled[s]) != pids or any(not np.array_equal(pooled[s][q][0], pooled[have[0]][q][0]) for q in pids):
                 raise ValueError(f"구역 {b}: 설정 {s}의 참가자별 영상이 다른 설정과 다르다(N11)")
+        part_const = np.zeros(len(emotions), bool)  # 11/17 석진 님 결정: 어느 참가자의 구역 영상에서만 상수인 정서는 모든 참가자에서 뺀다
+        for q in pids:
+            part_const |= st.constant_columns(y[[ypos[int(v)] for v in pooled[have[0]][q][0]]]) & zone_ok
+        evaluated = zone_ok & ~part_const
+        list_rows.append(dict(seed=seed, block=b, n_test_videos=len(zv), n_evaluated=int(evaluated.sum()), rating_constant=",".join(emotions[e] for e in np.flatnonzero(~zone_ok)),
+                              rating_constant_in_participant=",".join(emotions[e] for e in np.flatnonzero(part_const)),
+                              settings_found=",".join(f"{SHORT[m]} {k}" for m, k in have)))
         drop = {q: np.zeros(len(emotions), bool) for q in pids}
         for q in pids:
-            vq = pooled[have[0]][q][0]
-            if (st.constant_columns(y[[ypos[int(v)] for v in vq]]) & evaluated).any():
-                raise SystemExit(f"구역 {b} {q}: 구역 전체에서는 평정이 변하지만 이 참가자의 영상에서는 상수인 정서가 있다. 이 경우의 규칙은 문서에 없다")
             for s in have:
                 cp = st.constant_columns(pooled[s][q][1]) & evaluated
                 for e in np.flatnonzero(cp):
@@ -155,7 +158,8 @@ def analyze_seed(seed, preds, split, y, emotions, blocks_table, W, codes, upos, 
                 lo, hi = st.basic_ci(r, rb[s])
                 for e in range(len(emotions)):
                     emo_rows.append(dict(seed=seed, block=b, participant=q, model=SHORT[s[0]], kind=s[1], emotion=emotions[e], r=r[e], ci_low=lo[e], ci_high=hi[e],
-                                         evaluated=bool(evaluated[e]), used_in_mean=bool(keep[e]), reason="rating_constant" if not evaluated[e] else ("constant_prediction_excluded" if drop[q][e] else "")))
+                                         evaluated=bool(evaluated[e]), used_in_mean=bool(keep[e]),
+                                         reason="rating_constant" if not zone_ok[e] else ("rating_constant_in_participant" if part_const[e] else ("constant_prediction_excluded" if drop[q][e] else ""))))
             list_rows[-1][f"n_used_{q}"] = int(keep.sum())
     return score, sboot, dict(zone_per_emotion=pd.DataFrame(emo_rows), zone_emotions=pd.DataFrame(list_rows), constant_predictions=pd.DataFrame(const_rows, columns=["seed", "block", "participant", "model", "kind", "emotion"]))
 
