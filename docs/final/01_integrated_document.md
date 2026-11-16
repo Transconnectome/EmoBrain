@@ -1778,6 +1778,18 @@ r, R², MAE를 정서별로 함께 보고, 셋이 같은 방향을 가리킬 때
     - ROI별 decoding(6-4a의 ROI판): ROI마다 그 ROI의 voxel만으로 정서 34개, Vision feature, Caption feature를 ridge로 decoding한다. 분할은 H2(학습 fold 4개로 학습, 검증 fold로 λ 선택, 시험 fold 예측), λ 후보는 O18의 LAMBDAS다. 정서는 정서마다 그 정서의 검증 r로(N15와 같음), Vision feature와 Caption feature는 묶음마다 검증 fold의 차원별 r 평균으로 하나를 고른다. 지표는 O19와 같이 6 fold를 모은 시험 영상의 r이다. 뇌 모델을 ROI마다 다시 학습하는 것은 횟수(370 × 6 fold)가 많아 하지 않고 ridge로 한다. Horikawa 외(2020)의 영역별 decoding을 우리 분할과 규칙으로 다시 하고 Vision feature와 Caption feature로 넓힌 것이다. 해석은 6-4a와 같이 "그 ROI의 신호만으로 예측할 수 있었다"까지다.
     - ROI별 교란(6-4b의 ROI판): 6-4b의 교란을 ROI 하나씩에도 적용한다. ROI 하나만 바꾸면 비슷한 정보가 다른 ROI에 남아 효과가 작게 나올 수 있으므로, 작은 효과를 "쓰지 않는다"로 읽지 않는다.
     - 네트워크 13묶음의 분석(1-3, 2-4의 미리 정한 검정)은 그대로 둔다. ROI판은 탐색이고 BH-FDR을 쓴다(보정 묶음은 참가자와 목표마다 ROI 370개).
+- 6-4c. 네트워크마다 정서 정보가 어떤 형식으로 있는가 [탐색, 11/16 석진 님. 결과를 본 뒤 더한 분석. [사전] 15개와 Holm 묶음에 넣지 않음]
+    - Question: 네트워크의 정서 관련 정보가 장면 내용을 넘어 같은 방향으로 읽히는 축으로 있는가, 내용에 묶인 구분으로 있는가?
+    - Why?: 6-4a, 6-4b는 어디에서 읽히고 모델이 어디에 기대는지를 본다. 같은 양의 정보라도 형식이 다를 수 있다. 표현에는 처음 보는 조건으로의 일반화(generalizability)와 많은 구분을 가능하게 하는 분리(separability) 사이의 절충이 있고(Badre 외, 2021), 두 성질이 함께 높을 수도 있다(Bernardi 외, 2020).
+    - 입력과 decoder: 네트워크 13묶음마다 그 ROI들의 voxel 합집합. ridge(s5 main_version, H2 분할, O18의 λ 후보). 뇌 모델은 쓰지 않는다. 코드는 src/s10_geometry.py와 src/s10_geometry_checks.py.
+    - 차원은 valence와 arousal 두 개만 쓴다(11/16 석진 님). core affect의 두 축(Russell, 1980)이라 이론 기준이 분명하다. 처음 판에는 dominance도 넣었고, 11/16에 뺐다.
+    - (a) 내용을 넘는 일반화: 6-2의 구역 분할(구역 하나를 학습에서 빼고 그 구역을 시험)과 학습량 대조에서 valence, arousal을 decoding하고 r의 차이를 본다. 기준선은 이름표 73개로 같은 계산을 한 값이다.
+    - (a)의 확인: 6-1과 같은 단위(같은 내용 영상 묶음), 같은 seed, 10,000회의 bootstrap 구간. 뇌 전체 평균과 voxel 간 표준편차(I7 정의)를 voxel마다 회귀로 뺀 판. 네트워크마다 voxel을 가장 작은 네트워크 크기만큼 무작위로 세 번 뽑은 판.
+    - CCGP와 shattering dimensionality(SD)(Bernardi 외, 2020): 조건은 내용 구역 5개 × 차원의 높음, 낮음(구역 안에서 사람 평정 순위로 반씩) = 10개다. 조건을 5개씩 나누는 dichotomy 126개 가운데 하나가 차원 자체다. SD는 126개 dichotomy의 decoding 성능 평균이다. CCGP는 양쪽에서 조건을 하나씩 빼고 학습해 뺀 두 조건을 시험한 성능이고, 가능한 25가지 방법의 평균이다. 학습, λ 선택, 시험은 바깥 fold 구조를 지킨다.
+        - Bernardi 외(2020)와 다른 점: 정확도 대신 AUC(조건 크기가 서로 달라 문턱값에 기대지 않으려고), 신경 집단 대신 voxel, 시행 대신 영상, 선형 SVM 대신 ridge.
+    - (b) VA를 거치는 길(뇌 → VA → 정서 규칙)과 직접 길의 차이, (c) VA 최근접 짝과 이름표 최근접 짝(O33)에서 짝 안 정서 차이를 읽는지. 기술로만 쓴다.
+    - 평정만의 기준: 뇌 자료 없이 실제 VA 평정으로 34개를 맞히는 선형 규칙의 r과, VA 짝 안의 정서 차이 크기(무작위 짝 대비). 네트워크 사이의 차이는 같은 평정을 쓰므로 평정 구조만으로 생기지 않는다. 정서별 차이는 평정 구조(어떤 정서가 VA로 설명되는가)를 따른다.
+    - 해석 범위: "그 장면에 대한 사람들의 평정을 예측하는 뇌 신호가 이런 형식으로 있다"까지다. 같은 자료를 보고 세운 사후 분석이고, 처리 순서(저차원에서 고차원으로)는 영상마다 반응이 하나라 볼 수 없다. 다중비교 보정 없이 탐색으로 표시한다.
 
 
 ## 7단계. 구현 세부(결정 항목 표) [정함, 11/3. 석진 님 결정 없음]
@@ -2345,7 +2357,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 
 ## 부록 4. 참고문헌(APA, 11/3 원문 확인)
 
-- 부록 1, proposal 부록 A, thesis의 문헌 113개를 원문 출처(DOI, PubMed, arXiv, 학회 proceedings)로 확인한 서지다. 본문 인용은 [ ] 안의 저자-연도를 쓴다. biblatex 파일은 같은 폴더의 references.bib.
+- 부록 1, proposal 부록 A, thesis의 문헌 113개를 원문 출처(DOI, PubMed, arXiv, 학회 proceedings)로 확인한 서지다. 11/16에 6-4c의 세 편(Badre 외, 2021; Bernardi 외, 2020; Russell, 1980)을 원문 서지(Crossref, PubMed)로 확인해 더했다(116개). 본문 인용은 [ ] 안의 저자-연도를 쓴다. biblatex 파일은 같은 폴더의 references.bib.
 - 쪽이나 권 번호가 비어 있는 것은 원문에서 확인하지 못한 칸이다(ICLR 논문은 원래 쪽이 없음).
 
 - [AboHassan 외, 2026] AboHassan, A., Elshazly, E., Ogawa, T., & Fares, A. (2026). Beyond human captions: Semantic supervision and PCA-regularized decoding for stable-diffusion-based fMRI reconstruction. *Proceedings of the 23rd International Conference on Informatics in Control, Automation and Robotics (ICINCO 2026), SCITEPRESS*, 760–771. https://doi.org/10.5220/0015245000004979
@@ -2354,11 +2366,13 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 - [Assran 외, 2025] Assran, M., Bardes, A., Fan, D., Garrido, Q., Howes, R., Komeili, M., Muckley, M., Rizvi, A., Roberts, C., Sinha, K., Zholus, A., Arnaud, S., Gejji, A., Martin, A., Hogan, F. R., Dugas, D., Bojanowski, P., Khalidov, V., Labatut, P., Massa, F., Szafraniec, M., Krishnakumar, K., Li, Y., Ma, X., Chandar, S., Meier, F., LeCun, Y., Rabbat, M., & Ballas, N. (2025). V-JEPA 2: Self-supervised video models enable understanding, prediction and planning. *arXiv preprint*, arXiv:2506.09985. https://arxiv.org/abs/2506.09985
 - [Au 외, 2022] Au, Q., Herbinger, J., Stachl, C., Bischl, B., & Casalicchio, G. (2022). Grouped feature importance and combined features effect plot. *Data Mining and Knowledge Discovery*, 36(4), 1401–1450. https://doi.org/10.1007/s10618-022-00840-5
 - [Azari 외, 2020] Azari, B., Westlin, C., Satpute, A. B., Hutchinson, J. B., Kragel, P. A., Hoemann, K., Khan, Z., Wormwood, J. B., Quigley, K. S., Erdogmus, D., Dy, J., Brooks, D. H., & Barrett, L. F. (2020). Comparing supervised and unsupervised approaches to emotion categorization in the human brain, body, and subjective experience. *Scientific Reports*, 10(1), 20284. https://doi.org/10.1038/s41598-020-77117-8
+- [Badre 외, 2021] Badre, D., Bhandari, A., Keglovits, H., & Kikumoto, A. (2021). The dimensionality of neural representations for control. *Current Opinion in Behavioral Sciences*, 38, 20–28. https://doi.org/10.1016/j.cobeha.2020.07.002
 - [Barrett 외, 2011] Barrett, L. F., Mesquita, B., & Gendron, M. (2011). Context in emotion perception. *Current Directions in Psychological Science*, 20(5), 286–290. https://doi.org/10.1177/0963721411422522
 - [Bartnik 외, 2025] Bartnik, C. G., Sartzetaki, C., Puigseslloses Sanchez, A., Molenkamp, E., Bommer, S., Vukšić, N., & Groen, I. I. A. (2025). Representation of locomotive action affordances in human behavior, brains, and deep neural networks. *Proceedings of the National Academy of Sciences of the United States of America*, 122(24), e2414005122. https://doi.org/10.1073/pnas.2414005122
 - [Bates 외, 2024] Bates, S., Hastie, T., & Tibshirani, R. (2024). Cross-validation: What does it estimate and how well does it do it?. *Journal of the American Statistical Association*, 119(546), 1434–1445. https://doi.org/10.1080/01621459.2023.2197686
 - [Belinkov, 2022] Belinkov, Y. (2022). Probing classifiers: Promises, shortcomings, and advances. *Computational Linguistics*, 48(1), 207–219. https://doi.org/10.1162/coli_a_00422
 - [Beliy 외, 2026] Beliy, R., Zalcher, A., Kogman, J., Wasserman, N., & Irani, M. (2026). Brain-IT: Image reconstruction from fMRI via brain-interaction transformer. *International Conference on Learning Representations (ICLR 2026)*, 124487–124521. https://proceedings.iclr.cc/paper_files/paper/2026/hash/c9fd326fd03eaf52f672c31cde9658af-Abstract-Conference.html
+- [Bernardi 외, 2020] Bernardi, S., Benna, M. K., Rigotti, M., Munuera, J., Fusi, S., & Salzman, C. D. (2020). The geometry of abstraction in the hippocampus and prefrontal cortex. *Cell*, 183(4), 954–967.e21. https://doi.org/10.1016/j.cell.2020.09.031
 - [Bennett 외, 2000] Bennett, K. P., Bradley, P. S., & Demiriz, A. (2000). Constrained k-means clustering (Technical Report MSR-TR-2000-65). *Microsoft Research*. https://www.microsoft.com/en-us/research/publication/constrained-k-means-clustering/
 - [Bertasius 외, 2021] Bertasius, G., Wang, H., & Torresani, L. (2021). Is space-time attention all you need for video understanding?. *Proceedings of the 38th International Conference on Machine Learning (PMLR 139)*, 813–824. https://proceedings.mlr.press/v139/bertasius21a.html
 - [Bilenko & Gallant, 2016] Bilenko, N. Y., & Gallant, J. L. (2016). Pyrcca: Regularized kernel canonical correlation analysis in Python and its applications to neuroimaging. *Frontiers in Neuroinformatics*, 10, 49. https://doi.org/10.3389/fninf.2016.00049
@@ -2435,6 +2449,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 - [Roberts 외, 2017] Roberts, D. R., Bahn, V., Ciuti, S., Boyce, M. S., Elith, J., Guillera-Arroita, G., Hauenstein, S., Lahoz-Monfort, J. J., Schröder, B., Thuiller, W., Warton, D. I., Wintle, B. A., Hartig, F., & Dormann, C. F. (2017). Cross-validation strategies for data with temporal, spatial, hierarchical, or phylogenetic structure. *Ecography*, 40(8), 913–929. https://doi.org/10.1111/ecog.02881
 - [Romero 외, 2015] Romero, A., Ballas, N., Kahou, S. E., Chassang, A., Gatta, C., & Bengio, Y. (2015). FitNets: Hints for thin deep nets. *International Conference on Learning Representations (ICLR 2015)*, arXiv:1412.6550. https://arxiv.org/abs/1412.6550
 - [Rousseeuw, 1987] Rousseeuw, P. J. (1987). Silhouettes: A graphical aid to the interpretation and validation of cluster analysis. *Journal of Computational and Applied Mathematics*, 20, 53–65. https://doi.org/10.1016/0377-0427(87)90125-7
+- [Russell, 1980] Russell, J. A. (1980). A circumplex model of affect. *Journal of Personality and Social Psychology*, 39(6), 1161–1178. https://doi.org/10.1037/h0077714
 - [Sartzetaki 외, 2025] Sartzetaki, C., Roig, G., Snoek, C. G., & Groen, I. (2025). One hundred neural networks and brains watching videos: Lessons from alignment. *International Conference on Learning Representations (ICLR 2025)*, 43956–43982. https://proceedings.iclr.cc/paper_files/paper/2025/hash/6ceb6c2150bbf46fd75528a6cd6be793-Abstract-Conference.html
 - [Satpute & Lindquist, 2019] Satpute, A. B., & Lindquist, K. A. (2019). The default mode network's role in discrete emotion. *Trends in Cognitive Sciences*, 23(10), 851–864. https://doi.org/10.1016/j.tics.2019.07.003
 - [Scotti 외, 2023] Scotti, P., Banerjee, A., Goode, J., Shabalin, S., Nguyen, A., Cohen, E., Dempster, A., Verlinde, N., Yundler, E., Weisberg, D., Norman, K. A., & Abraham, T. (2023). Reconstructing the mind's eye: fMRI-to-image with contrastive learning and diffusion priors. *Advances in Neural Information Processing Systems 36 (NeurIPS 2023)*, 24705–24728. https://proceedings.neurips.cc/paper_files/paper/2023/hash/4ddab70bf41ffe5d423840644d3357f4-Abstract.html
