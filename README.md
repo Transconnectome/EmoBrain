@@ -25,6 +25,15 @@ external/            외부 레포 (git submodule)
 
 큰 산출물(특징, 학습 결과, 로그)은 `configs/paths.yaml`의 `output_root`에 쓴다. 기본값은 레포의 `outputs/`이고 git에 올리지 않는다.
 
+### 결과 폴더
+
+`output_root`의 폴더 이름은 코드의 단계 번호(s1~s10)를 따르고, 폴더마다 README.md가 그 폴더가 무슨 분석인지, 무엇이 저장되는지, 안쪽 구조를 설명한다. README와 정리는 `bash scripts/output_layout.sh [--dry-run]`가 만든다(GPU 없음, 몇 초).
+
+- `s6_brain_model/`: 뇌 모델 결과를 조건 이름으로 찾는 폴더. 주 비교(`main/`), 대조군(`control/`), 모델 한 부분만 바꾼 판(`ablation/`), 질문 하나를 위해 다시 학습한 것(`analysis/`)으로 나누고, 안의 fold 폴더는 학습 결과 폴더로 가는 상대 링크다
+- `s9_saved_model_tests/`, `s10_stats/`: 질문마다 폴더 하나(ex) `6-4b_perturb/`)
+- `checks/`: 논문에 쓰지 않는 점검 실행, `notes/`: 메모, `logs/`: 실행 기록
+- 학습 결과 원본(`s6_brain_*`)과 s1~s5 폴더는 학습이 모두 끝난 뒤 같은 스크립트의 2단계로 옮긴다. 돌고 있는 학습이 그 경로를 읽고 쓰기 때문이다
+
 ## 설치와 설정
 
 1. Python 3.11과 아래 패키지. 확인한 판은 괄호 안이다.
@@ -84,7 +93,7 @@ external/            외부 레포 (git submodule)
 | S10 | `s10_network.sh <S6 작업 TSV> <출력 폴더> <커밋> --network-bh-family by_model\|pooled` | 6-4a 묶음만으로 학습한 A-1, C-1의 성능과 순열 p, 1-3 [사전] 3개(Visual1, Visual2, Default), 나머지 탐색 BH, C-1 decoded features, 묶음 일치도. BH 묶음은 문서가 정하지 않아 기본값이 없다 (CPU, 몇 분) | `<출력 폴더>/network_scores.tsv`, `prereg_pvalues.tsv` |
 | S10 | `s10_perturb.sh <S9 perturb 폴더> <출력 폴더> <커밋> --repeat-handling fixed\|resample --drop-bh-family by_model\|pooled [--s6-dir <S6 결과 폴더>]` | 6-4b 13묶음과 ROI 370개 교란의 모델별 성능 하락과 하락폭 차이(C-1 − A-1). S9의 영상별 예측으로 1부와 같은 영상 단위 bootstrap 구간과 중심 맞춘 p, 13묶음 하락폭 차이 Holm(5명 평균, 참가자마다), 나머지 탐색 BH(ROI판, 묶음 안 정서별, 각 모델 하락)와 보정 묶음. 두 선택은 문서가 정하지 않아 기본값이 없다. 6 fold가 모두 있어야 최종 표를 낸다 (CPU node 권장, sbatch) | `<출력 폴더>/network_drops.tsv`, `network_confirmed.tsv`, `roi_drops.tsv` |
 | S10 | `s10_mc.sh <S8 결과 폴더> <출력 폴더> <커밋> [--constant-prediction-scope unit\|all]` | 6-3 MC 시청 전이. 참가자, seed마다 72개 영상의 정서별 r, 평정 상수 정서 제외, 순열 기준과 두 모델 차이(보정 없음), seed 평균과 표준편차, C-1 decoded features. S8 확인용 실행은 거절한다 (CPU, 몇 초) | `<출력 폴더>/mc_scores.tsv`, `mc_comparison.tsv` |
-| S10 | `s10_sensitivity.sh <출력 폴더> <커밋> --pair "이름\|A 폴더\|A 조건\|B 폴더\|B 조건" ...` | 다른 S6 결과 폴더의 두 모델을 같은 시험 행에서 비교한다(F7 평균 pooling판 대 query판, F3 block 2개 대 1개). 정서별 r의 차이, 참가자 점수 차이, 영상 단위 bootstrap 구간과 중심 맞춘 p, 정서별 BH(탐색). Holm 15개에 넣지 않는다 (CPU, 몇 분) | `<출력 폴더>/per_emotion.tsv`, `scores.tsv` |
+| S10 | `s10_sensitivity.sh <출력 폴더> <커밋> --pair "이름\|A 폴더\|A 조건\|B 폴더\|B 조건" ...` | 다른 S6 결과 폴더의 두 모델을 같은 시험 행에서 비교한다(F7 ROI token 평균판 대 emotion query판, F3 block 2개, 4개 대 1개). 정서별 r의 차이, 참가자 점수 차이, 영상 단위 bootstrap 구간과 중심 맞춘 p, 정서별 BH(탐색). Holm 15개에 넣지 않는다 (CPU, 몇 분) | `<출력 폴더>/per_emotion.tsv`, `scores.tsv` |
 | S10 | `s10_k1.sh <S9 경로 평가 폴더> <S6 결과 폴더> <S5 ridge 폴더> <출력 폴더> <커밋>` | K1: A-1과 경로 평가(ridge판, C-1판 × head 둘 × 보정 전과 보정판)의 정서별 r과 참가자 점수, 경로 평가 − A-1의 차이와 구간(p와 비율 없음). 14개 차원 표 하나: (1) B4 ridge, (2) 실제 특징 Stimulus Model, (3) decoded features Stimulus Model과 (3) − (1)의 차이, 구간, BH(14개), 평정 신뢰도 [미확인]. seed는 selected.json이 적은 것(A-1과 C-1이 같아야 함), seed 평균과 표준편차(2개 이상일 때). fold나 seed가 아닌 입력이 빠지면 최종 표를 내지 않는다 (CPU, 1분 안팎) | `<출력 폴더>/k1_*.tsv`, `dimensions14.tsv` |
 | S10 | `s10_holm15.sh <출력 파일> <p 파일>... [--seed 0] [--alpha <값>]` | [사전] 15개의 Holm 보정(5명 평균, 참가자마다). 15개가 다 모이지 않으면 없는 것을 적고 보정 값을 내지 않는다 (CPU, 몇 초) | `<출력 파일>`, `*_missing.tsv`, `*_counts.tsv` |
 
@@ -114,7 +123,7 @@ S6의 결과 폴더 구조와 저장 형식은 [src/s6_train.py](src/s6_train.py
 | 이름 | 코드 이름 |
 |---|---|
 | C-1 더하기 head, C-1 손실 흐름 허용판(stop-gradient 없음, 성능 비교에만) | `brain_decoded_additive`, `brain_decoded_grad` |
-| A-1, C-1 평균 pooling판 | `brain_only_pool`, `brain_decoded_pool` |
+| A-1, C-1 ROI token 평균판(emotion query 34개 대신 ROI token 370개 평균. 정서마다 그 평균 벡터의 선형 함수) | `brain_only_pool`, `brain_decoded_pool` |
 | A-2 대조군(label smoothing, Stimulus 예측 섞기), B-1 대조군(feature 짝 섞기) | `control_label_smoothing`, `control_stimulus_shuffle`, `control_feature_shuffle` |
 | encoder 2(feature만 학습. D 묶음이 같이 씀). 학습 fold 하나씩 뺀 fold 밖 encoder 2 넷은 `feature_encoder_oof/`에 저장 | `feature_encoder` |
 | Multimodal Model(Brain + Vision + Caption → Emotion. E의 준비) | `multimodal` |

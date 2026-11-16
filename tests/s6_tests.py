@@ -1828,13 +1828,23 @@ def t_depth_1115():
         check("block 2개 체크포인트를 되살리면 같은 예측이다", torch.allclose(back(batch).z, two(batch).z, atol=1e-6))
         check("예전 spec(n_blocks 없음) 체크포인트는 block 1개로 되살린다", hasattr(back_old.encoder, "block") and torch.allclose(back_old(batch).z, old(batch).z, atol=1e-6))
     check("block 수 민감도는 A-1에만 쓴다", stops(lambda: S.build_model("brain_decoded", S._cand(lam=1.0, rank=2), counts, n_blocks=2)))
-    check("block 수는 1 또는 2다", stops(lambda: M.Encoder(8, 3)))
+    check("block 수는 1, 2, 4다(3은 멈춘다)", stops(lambda: M.Encoder(8, 3)))
+    four = M.BrainModel(counts, 8, n_blocks=4).eval()
+    check("block 4개는 encoder.blocks.0~3을 두고 spec에 남긴다", {k.split(".")[2] for k in four.state_dict() if k.startswith("encoder.blocks.")} == {"0", "1", "2", "3"} and four.spec["n_blocks"] == 4)
+    with tempfile.TemporaryDirectory() as td:
+        M.save_checkpoint(Path(td) / "m4.pt", four, condition="brain_only")
+        back4, _ = M.load_checkpoint(Path(td) / "m4.pt")
+    with torch.no_grad():
+        check("block 4개 체크포인트를 되살리면 같은 예측이다", torch.allclose(back4(batch).z, four(batch).z, atol=1e-6))
+    check("block 4개도 A-1에만 쓴다", stops(lambda: S.build_model("brain_decoded", S._cand(lam=1.0, rank=2), counts, n_blocks=4)))
     with tempfile.TemporaryDirectory() as td:
         f = Path(td) / "c.json"
         f.write_text(json.dumps(dict(k_candidates=[[64, 100.0]], learning_rates=[1e-3], seeds=[0], tokenizer="linear", voxel_sampling=0.375, n_blocks=2)))
         check("설정의 n_blocks를 읽는다", S.load_config(f).n_blocks == 2)
         f.write_text(json.dumps(dict(k_candidates=[[64, 100.0]], n_blocks=4)))
-        check("n_blocks 1, 2 밖은 멈춘다", stops(lambda: S.load_config(f)))
+        check("설정의 n_blocks 4를 읽는다", S.load_config(f).n_blocks == 4)
+        f.write_text(json.dumps(dict(k_candidates=[[64, 100.0]], n_blocks=3)))
+        check("n_blocks 1, 2, 4 밖은 멈춘다", stops(lambda: S.load_config(f)))
 
 
 def main():

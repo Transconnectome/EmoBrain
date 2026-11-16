@@ -291,7 +291,7 @@ def make_input_layer(voxel_counts, d, tokenizer="linear", voxel_sampling=0.0, ce
     raise ValueError(f"알 수 없는 tokenizer: {tokenizer}")
 
 
-ENCODER_BLOCKS = (1, 2)  # F3 본 설계는 1. 2는 11/15 A-1 민감도
+ENCODER_BLOCKS = (1, 2, 4)  # F3 본 설계는 1. 2(11/15)와 4(11/16)는 A-1 민감도
 
 
 class Encoder(nn.Module):
@@ -301,12 +301,12 @@ class Encoder(nn.Module):
         super().__init__()
         _check_d(d)
         if n_blocks not in ENCODER_BLOCKS:
-            raise ValueError(f"encoder block 수는 {ENCODER_BLOCKS} 가운데 하나다(F3 본 설계 1, 11/15 민감도 2)")
+            raise ValueError(f"encoder block 수는 {ENCODER_BLOCKS} 가운데 하나다(F3 본 설계 1, 민감도 2(11/15)와 4(11/16))")
         layer = lambda: nn.TransformerEncoderLayer(d, 4, 2 * d, dropout=0.1, activation="gelu", batch_first=True, norm_first=True)
         if n_blocks == 1:
             self.block = layer()  # 본 설계. 이름을 그대로 두어 저장한 체크포인트를 그대로 읽는다
         else:
-            self.blocks = nn.ModuleList(layer() for _ in range(n_blocks))  # 11/15 석진 님. A-1 block 수 민감도(보고만, 설계는 바꾸지 않음)
+            self.blocks = nn.ModuleList(layer() for _ in range(n_blocks))  # 11/15, 11/16 석진 님. A-1 block 수 민감도(보고만, 설계는 바꾸지 않음)
         self.final_norm = nn.LayerNorm(d)
 
     def forward(self, tokens):
@@ -389,7 +389,7 @@ class AuditionReadout(Readout):
 
 
 class BrainModel(nn.Module):
-    """시험 입력이 Brain뿐인 모델(01 5-A의 A~C, E 묶음, 대조군, 평균 pooling판)."""
+    """시험 입력이 Brain뿐인 모델(01 5-A의 A~C, E 묶음, 대조군, ROI token 평균판)."""
 
     def __init__(self, voxel_counts, d, *, feature_head=False, decoded=False, rank=None, pooling=False, stop_gradient=True, tokenizer="linear", voxel_sampling=0.0, cells=None, n_blocks=1):
         super().__init__()

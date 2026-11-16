@@ -2,8 +2,8 @@
 """S10 구조 비교와 민감도 (11/16 석진 님). 서로 다른 S6 결과 폴더에 있는 두 모델을 같은 시험 행에서 비교한다. GPU 없음.
 
 쓰임
-- F7(N22): 평균 pooling판 대 query판. A-1 평균 pooling판 대 A-1, C-1 평균 pooling판 대 C-1.
-- F3: A-1 encoder block 2개 대 1개(11/15 민감도. 본 설계는 결과와 상관없이 바꾸지 않는다).
+- F7(N22): ROI token 평균판(emotion query 대신 ROI token 370개 평균) 대 emotion query판. A-1 ROI token 평균판 대 A-1, C-1 ROI token 평균판 대 C-1.
+- F3: A-1 encoder block 2개, 4개 대 1개(11/15, 11/16 민감도. 본 설계는 결과와 상관없이 바꾸지 않는다).
 
 계산(s10_stats와 s10_performance의 읽기, 계산을 그대로 쓴다)
 - 쌍 하나 = (이름, A 폴더, A 조건, B 폴더, B 조건). 차이는 A − B.

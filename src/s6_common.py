@@ -93,7 +93,7 @@ DISPLAY = {
     "brain_features_only": "D-3", "brain_features_only_paired": "D-3 짝", "brain_frozen_feature_encoder": "D-4",
     "brain_only_repr_frozen": "E-고정", "brain_only_repr_trained": "E-학습",
     "brain_decoded_additive": "C-1 더하기 head", "brain_decoded_grad": "C-1 손실 흐름 허용판",
-    "brain_only_pool": "A-1 평균 pooling판", "brain_decoded_pool": "C-1 평균 pooling판",
+    "brain_only_pool": "A-1 ROI token 평균판", "brain_decoded_pool": "C-1 ROI token 평균판",  # emotion query 대신 ROI token 370개 평균(11/16 이름)
     "control_label_smoothing": "A-2 대조군(label smoothing)", "control_stimulus_shuffle": "A-2 대조군(Stimulus 예측 섞기)",
     "control_feature_shuffle": "B-1 대조군(feature 짝 섞기)",
     "feature_encoder": "encoder 2", "multimodal": "Multimodal Model",
@@ -137,7 +137,7 @@ class Config:
     lr_by_condition: tuple = ()  # 11/15. ((조건, (learning rate, ...)), ...). 있으면 그 조건은 learning_rates 대신 이 값을 쓴다(조건마다 고른 learning rate를 6-2, 6-4a, 최종 모델에 옮김)
     roi_group: str = ""  # 11/15. 6-4a. CAB-NP 13묶음 가운데 하나만 입력으로 쓴다(manifests/s2/cabnp_groups.tsv). 비면 ROI 370개 전부
     fixed_candidates: tuple = ()  # 11/15. 6-4a(L10). ((조건, 바깥 fold, ((키, 값), ...)), ...). 그 fold의 그 조건은 이 값과 같은 후보만 학습한다
-    n_blocks: int = 1  # 11/15 석진 님. encoder block 수(F3 본 설계 1). 2는 A-1 민감도 전용이다
+    n_blocks: int = 1  # 11/15 석진 님. encoder block 수(F3 본 설계 1). 2(11/15)와 4(11/16)는 A-1 민감도 전용이다
 
 
 def load_config(path):
@@ -178,7 +178,7 @@ def load_config(path):
     fixed = tuple(fixed)
     n_blocks = raw.get("n_blocks", 1)
     if isinstance(n_blocks, bool) or n_blocks not in M.ENCODER_BLOCKS:
-        raise ValueError(f"n_blocks는 {M.ENCODER_BLOCKS} 가운데 하나다(F3 본 설계 1, 11/15 민감도 2)")
+        raise ValueError(f"n_blocks는 {M.ENCODER_BLOCKS} 가운데 하나다(F3 본 설계 1, 민감도 2(11/15)와 4(11/16))")
     return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds, tokenizer, sampling, input_lr_scale, lr_by_condition, roi_group, fixed, int(n_blocks))
 
 
@@ -731,7 +731,7 @@ def shuffle_plan(split, plan, seed, mc_ids=None):
 def build_model(condition, cand, voxel_counts, tokenizer="linear", voxel_sampling=0.0, cells=None, n_blocks=1):
     """조건의 구조를 만든다. 구조는 조건 이름으로만 정해지고 부르는 쪽이 바꿀 수 없다. tokenizer는 설정 파일의 입력층(11/9 점검)이다."""
     if n_blocks != 1 and condition != "brain_only":
-        raise ValueError("encoder block 수 민감도(11/15)는 A-1(brain_only)에만 쓴다")
+        raise ValueError("encoder block 수 민감도(11/15, 11/16)는 A-1(brain_only)에만 쓴다")
     cfg = CONDITIONS[condition]
     if tokenizer in ("roi_mean", "roi_cells") and (cfg.multimodal or cfg.head_only or cfg.frozen_encoder or cfg.separate or cfg.feature_only or cfg.representation):
         raise ValueError("입력층 점검(roi_mean, roi_cells)은 encoder 하나인 뇌 모델 조건에서만 돌린다")  # 11/10. brainit은 본 실행의 두 번째 입력층이라 모든 조건에 쓴다
