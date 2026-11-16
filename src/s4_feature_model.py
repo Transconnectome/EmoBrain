@@ -42,6 +42,22 @@ LEARNING_RATES = (1e-5, 1e-4, 1e-3)  # O16. 11/8 석진 님이 뇌 모델과 같
 BATCH, MAX_EPOCHS, SEED = 64, c.MAX_EPOCHS, 0  # O16, G13
 CANDIDATES = [(r, wd, lr) for r in RANKS for wd in WEIGHT_DECAYS for lr in LEARNING_RATES]  # 이 순서가 O6의 동점 규칙이다(rank, weight decay, learning rate의 작은 값)
 SELECTED = ("r", "weight_decay", "lr", "epochs", "val_r")
+ALLOWED_LEARNING_RATES = (1e-5, 1e-4, 1e-3, 1e-2)  # 11/14. 11/8 전의 원래 후보(1e-4, 1e-3, 1e-2)와 지금 후보를 합친 범위. 이 밖의 값은 받지 않는다
+
+
+def lr_list(text):
+    """--learning-rates. 비우면 LEARNING_RATES. 겹치거나 범위 밖이면 멈춘다."""
+    if not text:
+        return LEARNING_RATES
+    lrs = tuple(sorted(float(x) for x in text.split(",") if x))
+    if not lrs or len(set(lrs)) != len(lrs) or not set(lrs) <= set(ALLOWED_LEARNING_RATES):
+        raise SystemExit(f"learning rate 후보는 {ALLOWED_LEARNING_RATES} 안에서 겹치지 않게 준다")
+    return lrs
+
+
+def candidates_with(lrs):
+    """CANDIDATES와 같은 순서(rank, weight decay, learning rate의 작은 값 먼저, O6)로 learning rate만 바꾼다."""
+    return [(r, wd, lr) for r in RANKS for wd in WEIGHT_DECAYS for lr in lrs]
 torch.use_deterministic_algorithms(True)
 
 
@@ -362,9 +378,10 @@ def main():
     ap.add_argument("--design-freeze", default="")
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--part", default="0/1", help="나눠 돌릴 때 i/n. 끝난 과제는 건너뛴다")
+    ap.add_argument("--learning-rates", default="", help="11/14 석진 님. learning rate 후보를 바꿔 돌린다(ex) 1e-4,1e-3,1e-2). 비우면 LEARNING_RATES. 실행 번호에 후보 목록이 들어간다. 결과는 S4_OUT으로 다른 폴더에 둔다")
     a = ap.parse_args()
     c.guard(a.design_freeze)
-    spec = Spec(kind="dimensions" if a.task == "k1a" else "emotions")
+    spec = Spec(kind="dimensions" if a.task == "k1a" else "emotions", candidates=tuple(candidates_with(lr_list(a.learning_rates))))
     i, n = (int(x) for x in a.part.split("/"))
     tasks = enumerate_tasks(a.task)[i::n]
     split = None

@@ -93,7 +93,7 @@ DISPLAY = {
     "brain_features_only": "D-3", "brain_features_only_paired": "D-3 짝", "brain_frozen_feature_encoder": "D-4",
     "brain_only_repr_frozen": "E-고정", "brain_only_repr_trained": "E-학습",
     "brain_decoded_additive": "C-1 더하기 head", "brain_decoded_grad": "C-1 손실 흐름 허용판",
-    "brain_only_pool": "A-1 평균 pooling판", "brain_decoded_pool": "C-1 평균 pooling판",
+    "brain_only_pool": "A-1 ROI token 평균판", "brain_decoded_pool": "C-1 ROI token 평균판",  # emotion query 대신 ROI token 370개 평균(11/16 이름)
     "control_label_smoothing": "A-2 대조군(label smoothing)", "control_stimulus_shuffle": "A-2 대조군(Stimulus 예측 섞기)",
     "control_feature_shuffle": "B-1 대조군(feature 짝 섞기)",
     "feature_encoder": "encoder 2", "multimodal": "Multimodal Model",
@@ -107,7 +107,7 @@ POOLED = {"brain_only_pool": "brain_only", "brain_decoded_pool": "brain_decoded"
 ZERO_SOURCE = {"brain_only_distill": ("brain_only", "alpha"), "brain_only_featdec": ("brain_only", "lam"), "brain_decoded_distill": ("brain_decoded", "alpha"), "brain_decoded_sep_distill": ("brain_decoded_sep", "alpha")}  # G9. 0 후보는 앞 조건의 학습이다
 
 
-TOKENIZERS = ("linear", "brainit", "roi_mean", "roi_cells")  # 입력층. linear만 본 설계, 나머지는 11/9 점검
+TOKENIZERS = ("linear", "brainit", "roi_mean", "roi_cells", "linear_bernoulli", "dense", "linear_mean")  # 입력층. linear가 본 설계, brainit은 11/10 본 실행의 두 번째 입력층(모든 조건), roi_mean과 roi_cells는 11/9 점검
 
 @dataclass(frozen=True)
 class Spec:
@@ -116,6 +116,10 @@ class Spec:
     max_epochs: int = MAX_EPOCHS
     patience: int = PATIENCE
     seeds: tuple = SEEDS
+    input_lr_scale: float = 1.0  # 11/15 점검. 입력층 W의 learning rate = lr × 이 값(설정의 input_lr_scale)
+
+
+INPUT_LR_SCALES = (0.1, 1.0)  # 11/15 석진 님 점검. 0.1은 입력층만 10배 천천히(Codex 제안), 1은 지금과 같음
 
 
 @dataclass(frozen=True)
@@ -128,13 +132,18 @@ class Config:
     keep_candidate_checkpoints: bool = False
     seeds: tuple = SEEDS  # L9. 발표용 예비 실행처럼 seed를 줄일 때만 SEEDS의 앞부분으로 준다(11/8)
     tokenizer: str = "linear"  # 입력층. linear가 본 설계(5-5). 11/9 점검용: brainit(s6_model.BrainItRoiInput), roi_mean, roi_cells(s6_model.RoiCellInput)
-    voxel_sampling: float = 0.0  # brainit에서 학습 때 예시마다 뽑는 voxel 비율(Brain-IT 부록 D.1은 약 1.5만 / 4만)
+    voxel_sampling: float = 0.0  # 학습 때 예시마다 뽑는 voxel 비율(Brain-IT 부록 D.1은 약 1.5만 / 4만). brainit, 그리고 11/12부터 linear(원인 분리 점검)
+    input_lr_scale: float = 1.0  # 11/15 점검. INPUT_LR_SCALES 가운데 하나
+    lr_by_condition: tuple = ()  # 11/15. ((조건, (learning rate, ...)), ...). 있으면 그 조건은 learning_rates 대신 이 값을 쓴다(조건마다 고른 learning rate를 6-2, 6-4a, 최종 모델에 옮김)
+    roi_group: str = ""  # 11/15. 6-4a. CAB-NP 13묶음 가운데 하나만 입력으로 쓴다(manifests/s2/cabnp_groups.tsv). 비면 ROI 370개 전부
+    fixed_candidates: tuple = ()  # 11/15. 6-4a(L10). ((조건, 바깥 fold, ((키, 값), ...)), ...). 그 fold의 그 조건은 이 값과 같은 후보만 학습한다
+    n_blocks: int = 1  # 11/15 석진 님. encoder block 수(F3 본 설계 1). 2(11/15)와 4(11/16)는 A-1 민감도 전용이다
 
 
 def load_config(path):
     """configs/s6의 JSON을 읽는다. 알 수 없는 키, S7 전의 빈 후보, G13 밖의 learning rate는 멈춘다."""
     raw = json.loads(Path(path).read_text())
-    extra = set(raw) - {"k_candidates", "learning_rates", "lr_follows_brain_only", "keep_candidate_checkpoints", "seeds", "tokenizer", "voxel_sampling", "note"}
+    extra = set(raw) - {"k_candidates", "learning_rates", "lr_follows_brain_only", "keep_candidate_checkpoints", "seeds", "tokenizer", "voxel_sampling", "input_lr_scale", "learning_rates_by_condition", "roi_group", "fixed_candidates", "n_blocks", "note"}
     if extra:
         raise ValueError(f"설정에 알 수 없는 키가 있다: {sorted(extra)}")
     if not raw.get("k_candidates"):
@@ -143,9 +152,67 @@ def load_config(path):
     if not seeds or seeds != SEEDS[:len(seeds)]:
         raise ValueError("seed는 SEEDS의 앞부분이어야 한다(L9). 후보 고르기는 항상 seed 0이다")
     tokenizer, sampling = str(raw.get("tokenizer", "linear")), float(raw.get("voxel_sampling", 0.0))
-    if tokenizer not in TOKENIZERS or not 0.0 <= sampling < 1.0 or (tokenizer != "brainit" and sampling):
-        raise ValueError(f"tokenizer는 {TOKENIZERS} 가운데 하나이고, voxel 뽑기 비율(0 이상 1 미만)은 brainit에만 준다")
-    return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds, tokenizer, sampling)
+    if tokenizer not in TOKENIZERS or not 0.0 <= sampling < 1.0 or (tokenizer not in ("brainit", "linear", "linear_bernoulli", "dense", "linear_mean") and sampling):
+        raise ValueError(f"tokenizer는 {TOKENIZERS} 가운데 하나이고, voxel 뽑기 비율(0 이상 1 미만)은 brainit과 linear 계열에만 준다(linear는 11/12 원인 분리 점검)")
+    input_lr_scale = float(raw.get("input_lr_scale", 1.0))
+    if input_lr_scale not in INPUT_LR_SCALES:
+        raise ValueError(f"input_lr_scale은 {INPUT_LR_SCALES} 가운데 하나다(11/15 점검)")
+    lr_by_condition = []
+    for cond, lrs in sorted(dict(raw.get("learning_rates_by_condition", {})).items()):
+        if cond not in CONDITIONS:
+            raise ValueError(f"learning_rates_by_condition: 알 수 없는 조건 {cond}")
+        lr_by_condition.append((cond, tuple(_check_lrs(tuple(float(x) for x in lrs)))))
+    lr_by_condition = tuple(lr_by_condition)
+    roi_group = str(raw.get("roi_group", ""))
+    if roi_group and roi_group not in network_groups():
+        raise ValueError(f"roi_group은 {network_groups()} 가운데 하나다(6-4a)")
+    fixed = []
+    for cond, by_fold in sorted(dict(raw.get("fixed_candidates", {})).items()):
+        if cond not in CONDITIONS:
+            raise ValueError(f"fixed_candidates: 알 수 없는 조건 {cond}")
+        for fold, values in sorted(by_fold.items(), key=lambda t: int(t[0])):
+            bad = set(values) - {"lam", "rank", "alpha", "feature_wd"}
+            if bad or not values:
+                raise ValueError(f"fixed_candidates: {cond} fold {fold}의 키가 잘못됐다 {sorted(bad)}")
+            fixed.append((cond, int(fold), tuple(sorted((k, None if v is None else (int(v) if k == "rank" else float(v))) for k, v in values.items()))))
+    fixed = tuple(fixed)
+    n_blocks = raw.get("n_blocks", 1)
+    if isinstance(n_blocks, bool) or n_blocks not in M.ENCODER_BLOCKS:
+        raise ValueError(f"n_blocks는 {M.ENCODER_BLOCKS} 가운데 하나다(F3 본 설계 1, 민감도 2(11/15)와 4(11/16))")
+    return Config(tuple((int(d), float(w)) for d, w in raw["k_candidates"]), tuple(float(x) for x in raw.get("learning_rates", LEARNING_RATES)), bool(raw.get("lr_follows_brain_only", False)), bool(raw.get("keep_candidate_checkpoints", False)), seeds, tokenizer, sampling, input_lr_scale, lr_by_condition, roi_group, fixed, int(n_blocks))
+
+
+def condition_lrs(config, condition):
+    """11/15. 그 조건의 learning rate 후보. lr_by_condition에 있으면 그 값, 없으면 learning_rates."""
+    return dict(config.lr_by_condition).get(condition, config.learning_rates)
+
+
+def network_groups():
+    """6-4a의 13묶음 이름(CAB-NP 피질 12 + 피질하 1)."""
+    return tuple(pd.read_csv(c.S2 / "cabnp_groups.tsv", sep="\t").group)
+
+
+def roi_keep(config):
+    """6-4a. roi_group의 ROI 위치(입력층 순서, roi_table). 비면 None(370개 전부)."""
+    if not config.roi_group:
+        return None
+    roi = pd.read_csv(c.S2 / "roi_table.tsv", sep="\t")
+    keep = np.flatnonzero(roi.group.to_numpy() == config.roi_group)
+    if not len(keep):
+        raise ValueError(f"{config.roi_group}: ROI가 없다")
+    return keep
+
+
+def fixed_filter(config, condition, fold, cands):
+    """6-4a(L10). fixed_candidates에 그 조건과 fold가 있으면 그 값과 같은 후보만 남긴다. 맞는 후보가 정확히 하나가 아니면 멈춘다."""
+    rows = [dict(v) for cnd, k, v in config.fixed_candidates if cnd == condition and k == int(fold)]
+    if not rows:
+        return cands
+    want = rows[0]
+    kept = [x for x in cands if all(x.get(key) == val for key, val in want.items())]
+    if not kept:
+        raise ValueError(f"{condition} fold {fold}: 고정 후보 {want}가 후보 목록에 없다")
+    return kept
 
 
 def _cand(**kw):
@@ -180,8 +247,8 @@ def candidates(condition, *, k_candidates=None, base=None, decoded=None, learnin
     if condition not in CONDITIONS:
         raise ValueError(condition)
     lrs = _check_lrs(learning_rates)
-    if condition == "brain_only":
-        return [_cand(d=d, input_wd=wd, lr=lr) for d, wd in _check_k(k_candidates) for lr in lrs]
+    if condition == "brain_only":  # 11/13. learning rate × 입력층 weight decay가 1 이상이면 AdamW가 step마다 가중치를 0으로 만들거나 부호를 뒤집으므로 후보에서 뺀다
+        return [_cand(d=d, input_wd=wd, lr=lr) for d, wd in _check_k(k_candidates) for lr in lrs if lr * wd < 1.0]
     if base is None:
         raise ValueError(f"{condition}: 그 fold의 brain_only 선택이 먼저 있어야 한다(5-5)")
     if lr_follows_brain_only:
@@ -544,7 +611,7 @@ class FoldData:
         return self.test_vision[at], self.test_caption[at]
 
 
-def prepare_fold(brains, split, y, vision, caption, plan, *, stimulus=None, include_test_features=False, device="cpu", mc_ids=None, stats_videos=None):
+def prepare_fold(brains, split, y, vision, caption, plan, *, stimulus=None, include_test_features=False, device="cpu", mc_ids=None, stats_videos=None, roi_keep=None):
     """brains: 참가자 -> s5_common.BrainSet. y, vision, caption은 split 순서이고 원래 값이다. 실제 실행은 시험 행을 읽지 않고 NaN으로 넘긴다(s6_train.load_known).
     표준화는 학습 자료로만 한다(N3). 돌려주는 자료에는 시험 영상의 정답과(기본값에서) feature가 없다.
     stats_videos: 짝 학습(11/9)에서 head j의 입력을 encoder j와 같은 기준으로 표준화한다. encoder j의 학습 영상이어야 하고 시험, 검증 영상이 들어 있으면 멈춘다."""
@@ -570,8 +637,9 @@ def prepare_fold(brains, split, y, vision, caption, plan, *, stimulus=None, incl
         z = (np.asarray(b.X[used], np.float64) - m) / s
         z[:, constant] = 0.0  # G13(11/8). 학습 행에서 값이 변하지 않는 voxel은 모든 행에서 0이다
         x[pid] = torch.as_tensor(z.astype(np.float32), device=device)
-        columns[pid] = torch.as_tensor(np.concatenate(b.roi_positions), dtype=torch.long, device=device)
-        counts[pid] = [len(p) for p in b.roi_positions]
+        positions = b.roi_positions if roi_keep is None else [b.roi_positions[r] for r in roi_keep]  # 11/15 6-4a. 고른 묶음의 ROI만(입력층 순서 그대로)
+        columns[pid] = torch.as_tensor(np.concatenate(positions), dtype=torch.long, device=device)
+        counts[pid] = [len(p) for p in positions]
         stats[pid] = dict(mean=m, std=s, constant=constant)
         rp.append(np.full(len(used), i)), rl.append(np.arange(len(used))), rv.append(b.video_id[used]), rr.append(role[used])
     row_video, row_role = np.concatenate(rv), np.concatenate(rr)
@@ -660,20 +728,22 @@ def shuffle_plan(split, plan, seed, mc_ids=None):
     return s
 
 
-def build_model(condition, cand, voxel_counts, tokenizer="linear", voxel_sampling=0.0, cells=None):
+def build_model(condition, cand, voxel_counts, tokenizer="linear", voxel_sampling=0.0, cells=None, n_blocks=1):
     """조건의 구조를 만든다. 구조는 조건 이름으로만 정해지고 부르는 쪽이 바꿀 수 없다. tokenizer는 설정 파일의 입력층(11/9 점검)이다."""
+    if n_blocks != 1 and condition != "brain_only":
+        raise ValueError("encoder block 수 민감도(11/15, 11/16)는 A-1(brain_only)에만 쓴다")
     cfg = CONDITIONS[condition]
-    if tokenizer != "linear" and (cfg.multimodal or cfg.head_only or cfg.frozen_encoder or cfg.separate or cfg.feature_only or cfg.representation):
-        raise ValueError("입력층 점검(brainit, roi_mean, roi_cells)은 encoder 하나인 뇌 모델 조건에서만 돌린다")
+    if tokenizer in ("roi_mean", "roi_cells") and (cfg.multimodal or cfg.head_only or cfg.frozen_encoder or cfg.separate or cfg.feature_only or cfg.representation):
+        raise ValueError("입력층 점검(roi_mean, roi_cells)은 encoder 하나인 뇌 모델 조건에서만 돌린다")  # 11/10. brainit은 본 실행의 두 번째 입력층이라 모든 조건에 쓴다
     if tokenizer == "roi_cells" and cells is None:
         raise ValueError("roi_cells는 칸 번호(s2_roi_cells.py의 파일)가 있어야 한다")
     if cfg.multimodal:
-        return M.MultimodalModel(voxel_counts, cand["d"])
-    if cfg.frozen_encoder:  # D-4. 입력층과 encoder 자리는 학습 때 고정한 encoder 2의 가중치로 채운다
-        return M.FrozenEncoderModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True))
-    if cfg.head_only:  # D-3. encoder 2 자리는 학습 때 고정한 encoder 2의 가중치로 채운다
-        return M.FeatureHeadModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True), cand["rank"])
-    return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling, stop_gradient=cfg.stop_gradient, tokenizer=tokenizer, voxel_sampling=voxel_sampling, cells=cells)
+        return M.MultimodalModel(voxel_counts, cand["d"], tokenizer, voxel_sampling)
+    if cfg.frozen_encoder:  # D-4. 입력층과 encoder 자리는 학습 때 고정한 encoder 2의 가중치로 채운다(encoder 2와 같은 입력층)
+        return M.FrozenEncoderModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True, tokenizer=tokenizer, voxel_sampling=voxel_sampling))
+    if cfg.head_only:  # D-3. encoder 2 자리는 학습 때 고정한 encoder 2의 가중치로 채운다(encoder 2와 같은 입력층)
+        return M.FeatureHeadModel(M.BrainModel(voxel_counts, cand["d"], feature_head=True, tokenizer=tokenizer, voxel_sampling=voxel_sampling), cand["rank"])
+    return M.BrainModel(voxel_counts, cand["d"], feature_head=cfg.feature_head, decoded=cfg.decoded, rank=cand["rank"] if cfg.decoded else None, pooling=cfg.pooling, stop_gradient=cfg.stop_gradient, tokenizer=tokenizer, voxel_sampling=voxel_sampling, cells=cells, n_blocks=n_blocks)
 
 
 def to_k1_head(v_hat, c_hat, feature_stats, coordinates):

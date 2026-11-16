@@ -14,4 +14,4 @@ set -euo pipefail
 HERE="${SLURM_SUBMIT_DIR:+$SLURM_SUBMIT_DIR/scripts}"; source "${HERE:-$(dirname "$0")}/_env.sh"
 PLAN="${1:?분할}"; CONDITIONS="${2:?조건}"; CONFIG="${3:?설정 JSON}"; FREEZE="${4:?설계 동결 커밋}"
 export OMP_NUM_THREADS=8
-"$PY" s6_train.py --plan "$PLAN" --conditions "$CONDITIONS" --config "$CONFIG" --design-freeze "$FREEZE" --device cuda
+"$PY" s6_train.py --plan "$PLAN" --conditions "$CONDITIONS" --config "$CONFIG" --design-freeze "$FREEZE" --device cuda "${@:5}"  # 11/13. 다섯째 인자부터는 그대로 넘긴다(ex) --only-candidates)

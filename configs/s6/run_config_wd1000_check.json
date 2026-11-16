@@ -1,0 +1,8 @@
+{
+  "note": "11/13 석진 님. 본 실행(run_config_sampling_main.json)의 A-1이 6 fold 모두 입력층 weight decay 후보의 끝값 100을 골랐다. 1000에서 검증 r이 더 높은지 점검한다. A-1(brain_only)만 돌리고 나머지 설정은 본 실행과 같다. fold마다 자기 검증 fold의 r을 본 실행의 100과 비교하고, 1000이 높은 fold가 하나라도 있으면 그 fold의 선택이 바뀌므로 후보를 넓혀 다시 돌릴지 석진 님이 정한다. 10000은 learning rate 1e-4에서 AdamW가 매 step 가중치를 0으로 만들어 후보가 될 수 없다. 결과는 S6_OUT=s6_brain_wd1000_check",
+  "k_candidates": [[64, 1000.0]],
+  "learning_rates": [0.0001],
+  "seeds": [0],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375
+}

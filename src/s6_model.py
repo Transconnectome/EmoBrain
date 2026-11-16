@@ -75,9 +75,17 @@ class SeparateOutput(ModelOutput):
 class RoiInput(nn.Module):
     """C4. W는 참가자마다 ROI 순서로 이어 붙여 하나의 Parameter로 둔다. bounds가 ROI 경계이고, 곱은 ROI마다 따로 한다."""
 
-    def __init__(self, voxel_counts, d):
+    def __init__(self, voxel_counts, d, voxel_sampling=0.0, aggregate="sum"):
         super().__init__()
         _check_d(d)
+        if not 0.0 <= float(voxel_sampling) < 1.0:
+            raise ValueError("voxel 뽑기 비율은 0 이상 1 미만이다(0이면 뽑지 않는다)")
+        if aggregate not in ("sum", "mean"):
+            raise ValueError("ROI token은 voxel의 합(sum)이나 평균(mean)으로 만든다")
+        self.voxel_sampling = float(voxel_sampling)  # 11/12. 선형 입력층의 voxel 뽑기(Brain-IT 입력층과 같은 복원 추출). 원인 분리 점검용
+        # 11/15 석진 님 점검. mean이면 token을 voxel 수 n으로 나눈다(W'/n). 처음 token 크기는 sum과 같게 W'의 초기 범위를 n배로 둔다.
+        # Adam은 가중치마다 비슷한 폭으로 움직이므로, 합으로 모으면 voxel이 많은 ROI의 token이 한 step에 크게 바뀐다. 평균은 ROI마다 그 폭을 같게 한다
+        self.aggregate = aggregate
         if len({len(v) for v in voxel_counts.values()}) != 1:
             raise ValueError("참가자마다 ROI 수가 같아야 한다(공통 ROI, C6)")
         self.d = d
@@ -98,19 +106,37 @@ class RoiInput(nn.Module):
             w, b = torch.empty(bounds[-1], d), torch.empty(self.n_roi, d)
             for r, n in enumerate(counts):
                 limit = n ** -0.5
-                nn.init.uniform_(w[bounds[r]:bounds[r + 1]], -limit, limit)
+                nn.init.uniform_(w[bounds[r]:bounds[r + 1]], -limit * (n if aggregate == "mean" else 1), limit * (n if aggregate == "mean" else 1))
                 nn.init.uniform_(b[r], -limit, limit)
             self.weights[pid], self.input_bias[pid] = nn.Parameter(w), nn.Parameter(b)
         self.roi_embedding = nn.Parameter(torch.empty(self.n_roi, d))
         nn.init.normal_(self.roi_embedding, std=d ** -0.5)
+
+    def sample(self, x):
+        """학습 때만 voxel을 고른다. 평가 때는 모든 voxel을 쓴다.
+        - 11/12(replace): Brain-IT 입력층과 같은 방식으로 예시마다 voxel을 복원 추출한다(전체의 voxel_sampling 비율만큼 뽑음). 선형 합이라
+          뽑힌 횟수에 1/비율을 곱해 기댓값이 모든 voxel을 쓸 때와 같게 한다.
+        - 11/14(bernoulli, 석진 님): voxel마다 voxel_sampling 확률로 빼고(0) 남은 값에 1/(1 − 확률)을 곱한다(입력 dropout, Srivastava 외 2014. 0.2면 80%를 남김)."""
+        if not self.training or self.voxel_sampling <= 0:
+            return x
+        if getattr(self, "sampling_mode", "replace") == "bernoulli":
+            keep = 1.0 - self.voxel_sampling
+            return x * (torch.rand_like(x) < keep).to(x.dtype) / keep
+        n_draw = max(1, round(self.voxel_sampling * x.shape[1]))
+        draws = torch.randint(0, x.shape[1], (x.shape[0], n_draw), device=x.device)
+        hits = torch.zeros_like(x).scatter_add_(1, draws, torch.ones_like(draws, dtype=x.dtype))
+        return x * hits * (x.shape[1] / n_draw)
 
     def token(self, pid, x):
         """x: 행 × 그 참가자의 voxel 열. ROI token은 그 ROI의 voxel만으로 만든다(5-5). 칸 평균은 쓰지 않는다."""
         counts = self.voxel_counts[pid]
         if x.shape[1] != sum(counts):
             raise ValueError(f"{pid}: 입력 열 수가 입력층과 다르다")
+        x = self.sample(x)
         # split을 쓴다. ROI마다 slice하면 역전파가 ROI마다 W 전체 크기의 텐서를 만들어 수백 배 느려진다
         out = [a @ b for a, b in zip(x.split(counts, 1), self.weights[pid].split(counts, 0))]
+        if getattr(self, "aggregate", "sum") == "mean":
+            out = [o / n for o, n in zip(out, counts)]
         return torch.stack(out, 1) + self.input_bias[pid] + self.roi_embedding
 
     def forward(self, batch):
@@ -125,6 +151,28 @@ class RoiInput(nn.Module):
             raise ValueError("묶음의 행 위치가 맞지 않다")
         return torch.cat(parts)[order.argsort()]
 
+
+
+class DenseVoxelInput(RoiInput):
+    """11/14 석진 님. MindEye2 형식 입력층(Scotti 외 2024의 참가자별 선형층과 같은 형식). ROI로 묶지 않고 그 참가자의 모든 voxel 열을
+    참가자별 선형층 하나로 d차원 token 하나에 보낸다. 가중치는 RoiInput과 같은 크기(열 수 × d)이고, RoiInput은 이 행렬에서 ROI 밖 가중치를 0으로 둔
+    특수한 경우다. 그래서 가중치 수를 같게 둔 채 ROI 구조의 효과를 비교한다. voxel 뽑기는 RoiInput과 같다."""
+
+    def __init__(self, voxel_counts, d, voxel_sampling=0.0):
+        super().__init__(voxel_counts, d, voxel_sampling)
+        self.input_bias = nn.ParameterDict({pid: nn.Parameter(b[:1].clone()) for pid, b in self.input_bias.items()})
+        self.roi_embedding = nn.Parameter(self.roi_embedding[:1].detach().clone())
+        for pid, counts in self.voxel_counts.items():  # 열 전체를 한 번에 받으므로 초기값 범위도 열 전체 수로 맞춘다
+            limit = sum(counts) ** -0.5
+            with torch.no_grad():
+                self.weights[pid].uniform_(-limit, limit)
+                self.input_bias[pid].uniform_(-limit, limit)
+
+    def token(self, pid, x):
+        if x.shape[1] != sum(self.voxel_counts[pid]):
+            raise ValueError(f"{pid}: 입력 열 수가 입력층과 다르다")
+        x = self.sample(x)
+        return (x @ self.weights[pid])[:, None, :] + self.input_bias[pid] + self.roi_embedding
 
 
 class BrainItRoiInput(RoiInput):
@@ -224,10 +272,18 @@ CELL_TOKENIZERS = {"roi_mean": 1, "roi_cells": 8}  # 11/9 입력층 점검. 칸 
 
 def make_input_layer(voxel_counts, d, tokenizer="linear", voxel_sampling=0.0, cells=None):
     """linear는 5-5의 입력층(본 설계). 11/9 점검용: brainit(Brain-IT tokenizer), roi_mean(ROI 평균), roi_cells(ROI 8칸 평균)."""
-    if voxel_sampling and tokenizer != "brainit":
-        raise ValueError("voxel 뽑기는 brainit tokenizer에만 있다")
+    if voxel_sampling and tokenizer not in ("brainit", "linear", "linear_bernoulli", "dense", "linear_mean"):
+        raise ValueError("voxel 뽑기는 brainit, linear, linear_bernoulli, dense, linear_mean 입력층에만 있다")
     if tokenizer == "linear":
-        return RoiInput(voxel_counts, d)
+        return RoiInput(voxel_counts, d, voxel_sampling)  # 11/12. linear의 voxel 뽑기는 원인 분리 점검용
+    if tokenizer == "linear_mean":  # 11/15. ROI token을 voxel 평균으로(RoiInput.aggregate)
+        return RoiInput(voxel_counts, d, voxel_sampling, aggregate="mean")
+    if tokenizer == "linear_bernoulli":  # 11/14. voxel_sampling은 voxel마다 빼는 확률
+        layer = RoiInput(voxel_counts, d, voxel_sampling)
+        layer.sampling_mode = "bernoulli"
+        return layer
+    if tokenizer == "dense":  # 11/14. MindEye2 형식, token 하나
+        return DenseVoxelInput(voxel_counts, d, voxel_sampling)
     if tokenizer == "brainit":
         return BrainItRoiInput(voxel_counts, d, voxel_sampling)
     if tokenizer in CELL_TOKENIZERS:
@@ -235,17 +291,30 @@ def make_input_layer(voxel_counts, d, tokenizer="linear", voxel_sampling=0.0, ce
     raise ValueError(f"알 수 없는 tokenizer: {tokenizer}")
 
 
+ENCODER_BLOCKS = (1, 2, 4)  # F3 본 설계는 1. 2(11/15)와 4(11/16)는 A-1 민감도
+
+
 class Encoder(nn.Module):
     """F3, O26."""
 
-    def __init__(self, d):
+    def __init__(self, d, n_blocks=1):
         super().__init__()
         _check_d(d)
-        self.block = nn.TransformerEncoderLayer(d, 4, 2 * d, dropout=0.1, activation="gelu", batch_first=True, norm_first=True)
+        if n_blocks not in ENCODER_BLOCKS:
+            raise ValueError(f"encoder block 수는 {ENCODER_BLOCKS} 가운데 하나다(F3 본 설계 1, 민감도 2(11/15)와 4(11/16))")
+        layer = lambda: nn.TransformerEncoderLayer(d, 4, 2 * d, dropout=0.1, activation="gelu", batch_first=True, norm_first=True)
+        if n_blocks == 1:
+            self.block = layer()  # 본 설계. 이름을 그대로 두어 저장한 체크포인트를 그대로 읽는다
+        else:
+            self.blocks = nn.ModuleList(layer() for _ in range(n_blocks))  # 11/15, 11/16 석진 님. A-1 block 수 민감도(보고만, 설계는 바꾸지 않음)
         self.final_norm = nn.LayerNorm(d)
 
     def forward(self, tokens):
-        return self.final_norm(self.block(tokens))
+        if hasattr(self, "block"):
+            return self.final_norm(self.block(tokens))
+        for block in self.blocks:
+            tokens = block(tokens)
+        return self.final_norm(tokens)
 
 
 class Readout(nn.Module):
@@ -320,13 +389,15 @@ class AuditionReadout(Readout):
 
 
 class BrainModel(nn.Module):
-    """시험 입력이 Brain뿐인 모델(01 5-A의 A~C, E 묶음, 대조군, 평균 pooling판)."""
+    """시험 입력이 Brain뿐인 모델(01 5-A의 A~C, E 묶음, 대조군, ROI token 평균판)."""
 
-    def __init__(self, voxel_counts, d, *, feature_head=False, decoded=False, rank=None, pooling=False, stop_gradient=True, tokenizer="linear", voxel_sampling=0.0, cells=None):
+    def __init__(self, voxel_counts, d, *, feature_head=False, decoded=False, rank=None, pooling=False, stop_gradient=True, tokenizer="linear", voxel_sampling=0.0, cells=None, n_blocks=1):
         super().__init__()
         self.spec = dict(kind="brain", voxel_counts=voxel_counts, d=d, feature_head=feature_head, decoded=decoded, rank=rank, pooling=pooling, stop_gradient=stop_gradient, tokenizer=tokenizer, voxel_sampling=voxel_sampling)
+        if n_blocks != 1:
+            self.spec["n_blocks"] = n_blocks  # 본 설계(1)의 spec은 예전과 같게 둔다
         self.input_layer = make_input_layer(voxel_counts, d, tokenizer, voxel_sampling, cells)  # cells는 spec에 넣지 않는다. 체크포인트는 buffer로 되살린다
-        self.encoder = Encoder(d)
+        self.encoder = Encoder(d, n_blocks)
         self.readout = Readout(d, feature_head=feature_head, decoded=decoded, rank=rank, pooling=pooling, stop_gradient=stop_gradient)
 
     def encode(self, brain):
@@ -356,10 +427,10 @@ class MultimodalModel(nn.Module):
     """E-고정, E-학습의 준비 모델(O5, 논문의 Multimodal Model). 뇌 모델과 같은 입력층, encoder, emotion query에 Vision, Caption token을 더한다.
     중간 표현은 emotion query 34개의 출력이고, head는 정서별 선형층이다."""
 
-    def __init__(self, voxel_counts, d):
+    def __init__(self, voxel_counts, d, tokenizer="linear", voxel_sampling=0.0):
         super().__init__()
-        self.spec = dict(kind="multimodal", voxel_counts=voxel_counts, d=d)
-        self.input_layer = RoiInput(voxel_counts, d)
+        self.spec = dict(kind="multimodal", voxel_counts=voxel_counts, d=d, tokenizer=tokenizer, voxel_sampling=voxel_sampling)
+        self.input_layer = make_input_layer(voxel_counts, d, tokenizer, voxel_sampling)  # 11/10. 뇌 모델과 같은 입력층(선형 또는 Brain-IT)
         self.vision_token = nn.Linear(VISUAL_DIM, d)
         self.caption_token = nn.Linear(CAPTION_DIM, d)
         self.encoder = Encoder(d)
@@ -534,10 +605,13 @@ def parameter_assignment(model):
     return out
 
 
-def parameter_groups(model, lr, input_weight_decay, feature_token_decay=None):
-    """AdamW에 넘길 묶음(G13). 학습하는 파라미터가 빠지거나 겹치면 멈춘다."""
+def parameter_groups(model, lr, input_weight_decay, feature_token_decay=None, input_lr=None):
+    """AdamW에 넘길 묶음(G13). 학습하는 파라미터가 빠지거나 겹치면 멈춘다.
+    input_lr: 11/15 점검. 입력층 W만 다른 learning rate로 학습한다(없으면 lr). bias와 ROI embedding은 lr을 쓴다."""
     if not isinstance(lr, float) or lr <= 0:
         raise ValueError("learning rate가 잘못됐다")
+    if input_lr is not None and (not isinstance(input_lr, float) or input_lr <= 0):
+        raise ValueError("입력층 learning rate가 잘못됐다")
     if not isinstance(input_weight_decay, float) or input_weight_decay < 0:
         raise ValueError("입력층 weight decay가 잘못됐다")
     assignment = parameter_assignment(model)
@@ -549,7 +623,7 @@ def parameter_groups(model, lr, input_weight_decay, feature_token_decay=None):
         if params:
             if decay is None:
                 raise ValueError(f"{group} 묶음의 weight decay가 없다")
-            groups.append(dict(params=params, weight_decay=decay, lr=lr, name=group))
+            groups.append(dict(params=params, weight_decay=decay, lr=input_lr if group == "input_weight" and input_lr is not None else lr, name=group))
     trainable = {id(p) for p in model.parameters() if p.requires_grad}
     placed = [id(p) for g in groups for p in g["params"]]
     if len(placed) != len(set(placed)) or set(placed) != trainable:
@@ -590,7 +664,7 @@ def build_from_spec(spec):
     if kind == "frozen_encoder":
         return FrozenEncoderModel(build_from_spec(spec["feature_model"]))
     voxel_counts, d = spec.pop("voxel_counts"), spec.pop("d")
-    return MultimodalModel(voxel_counts, d) if kind == "multimodal" else BrainModel(voxel_counts, d, **spec)
+    return MultimodalModel(voxel_counts, d, **spec) if kind == "multimodal" else BrainModel(voxel_counts, d, **spec)  # 11/10 전 체크포인트는 tokenizer 키가 없어 선형으로 되살린다
 
 
 def load_checkpoint(path, device="cpu"):

@@ -1,5 +1,10 @@
 # EmoBrain 핵심 연구 완결 로드맵 (`FUTURE_RESEARCH_PLAN.md`)
 
+> **[2026-11-16 정본 단일화 업데이트 (`origin/design/emobrain-final-2026-11-03 @ 431c1bc`)]**
+> - 공식 브랜치 `design/emobrain-final-2026-11-03`(`431c1bc`)에서 Perlmutter 정품 `roi_voxels` 기반 주 모델 개선(`voxel_sampling = 0.375`, `weight_decay = 100`, 조건별 `{1e-4, 1e-3}` 검증 $r$ 병합 `s6_merge_lr.py`) 및 공식 `S5(370-ROI map)`·`S8(MC transfer)`·`S9(swap, stimulus_swap, per-video perturb, path_eval)`·`S10(Part 1/2, K1/K1a, sensitivity, 6-4c geometry & rating_parts)` 구현이 완료됨을 확인했다.
+> - 이에 따라 `b300-01`의 구버전(`f5c8569`) 독자 재학습 대기는 종료하고, 로컬 및 `b300-01:/scratch/emobrain/code`의 `src/` 전체를 `431c1bc` 정본과 100% 일치시켰다.
+> - 후속 진행은 ① Perlmutter 완료 `s10_stats/` 요약표 반입·검증 및 그림/요약 통합, ② Perlmutter 잔여 미완료 GPU 과업(`D·E` 묶음, `S8 6-2 / 6-4a / MC 6-3`, `A-1 depth4` 등) 확인 시 정품 `roi_voxels` 11개와 함께 `b300-01`에서 동일 `431c1bc` 코드로 분담 실행하는 단일 트랙으로 운영한다.
+
 본 문서는 `b300-01` 서버의 데이터 정합성 감사 결과와 3중 비평(신경과학 인과식별·실행 함정·신규 합류자 관점)을 반영하여, **불필요하거나 교란된 가지치기 실험을 전면 배제하고 논문 핵심 주장에 직결되는 4단계 실행만 남긴 공식 로드맵**이다.
 
 ---

@@ -12,13 +12,12 @@ import sys
 import numpy as np
 from PIL import Image
 
-import paths as P
-
 sys.path.insert(0, P.need("pymoten_dir"))
 import moten  # noqa: E402
 from moten.colorspace import rgb2lab  # noqa: E402
 
 import s3_common as c  # noqa: E402
+import paths as P
 
 PYMOTEN_VERSION = "0.1.3"
 SPATIAL, TEMPORAL, DIRECTIONS = [0, 2, 4, 8, 16, 32], [0, 2, 4], [0, 45, 90, 135, 180, 225, 270, 315]

@@ -423,7 +423,18 @@ def t_brainit_tokenizer():
     tt = tiny.token("a", torch.randn(50, 2))
     check("한 ROI의 voxel이 하나도 뽑히지 않아도 값이 유한하다(root 항만 남음)", torch.isfinite(tt).all())
     check("voxel 뽑기 비율이 1 이상이면 멈춘다", stops(lambda: M.BrainItRoiInput(dict(a=[2]), 8, voxel_sampling=1.0)))
-    check("linear tokenizer에 voxel 뽑기를 주면 멈춘다", stops(lambda: M.make_input_layer(dict(a=[2]), 8, "linear", 0.5)))
+    check("roi_mean, roi_cells에 voxel 뽑기를 주면 멈춘다", stops(lambda: M.make_input_layer(dict(a=[8]), 8, "roi_mean", 0.5)))
+    # 11/12. 선형 입력층의 voxel 뽑기(원인 분리 점검). 평가 때는 모든 voxel, 학습 때는 예시마다 복원 추출하고 1/비율로 맞춘다
+    torch.manual_seed(0)
+    lin = M.make_input_layer(dict(a=[40, 60]), 8, "linear", 0.375)
+    xl = torch.randn(3, 100)
+    lin.eval(); ev1, ev2 = lin.token("a", xl), lin.token("a", xl)
+    full = M.make_input_layer(dict(a=[40, 60]), 8, "linear"); full.load_state_dict(lin.state_dict()); full.eval()
+    check("선형 voxel 뽑기: 평가 때는 뽑지 않고 뽑기 없는 입력층과 같은 값이다", torch.equal(ev1, ev2) and torch.allclose(ev1, full.token("a", xl), atol=1e-6))
+    lin.train(); draws = torch.stack([lin.token("a", xl) for _ in range(3000)])
+    check("선형 voxel 뽑기: 학습 때는 예시마다 다르고, 많이 뽑아 평균하면 모든 voxel을 쓴 값에 가깝다", not torch.allclose(draws[0], draws[1]) and torch.allclose(draws.mean(0), ev1, atol=0.05))
+    lin.zero_grad(); lin.token("a", xl[:1]).sum().backward()
+    check("선형 voxel 뽑기: 뽑히지 않은 voxel의 W에는 기울기가 가지 않는다", (lin.weights["a"].grad.abs().sum(1) == 0).any() and (lin.weights["a"].grad.abs().sum(1) > 0).any())
     # 모델, 묶음, 저장
     w = World(); fd = w.fold(); rows = fd.rows("train")[:6]
     m = S.build_model("brain_only", dict(d=8, rank=None), fd.voxel_counts, "brainit", 0.375)
@@ -434,15 +445,44 @@ def t_brainit_tokenizer():
         M.save_checkpoint(Path(t) / "m.pt", m)
         back, _ = M.load_checkpoint(Path(t) / "m.pt")
         check("brainit 체크포인트를 되살리면 같은 출력이다", torch.allclose(back(fd.batch(rows)).z, m(fd.batch(rows)).z, atol=1e-6) and back.spec["tokenizer"] == "brainit")
-    check("brainit은 encoder 하나인 뇌 모델에만 쓴다", stops(lambda: S.build_model("multimodal", dict(d=8, rank=None), fd.voxel_counts, "brainit")) and stops(lambda: S.build_model("brain_decoded_sep", dict(d=8, rank=2), fd.voxel_counts, "brainit")))
+    # 11/10. brainit은 본 실행의 두 번째 입력층이라 모든 조건에 쓴다. 체크포인트를 되살려도 같은 입력층과 같은 출력이다
+    ok_kinds, ok_round = True, True
+    torch.manual_seed(0)
+    enc2 = S.build_model("feature_encoder", dict(d=8, rank=None), fd.voxel_counts, "brainit", 0.375).eval()
+    for name, cfg in S.CONDITIONS.items():
+        cand = dict(d=8, rank=2 if (cfg.decoded and not cfg.pooling) else None)
+        if cfg.pooling and cfg.decoded:
+            cand["rank"] = 2
+        mdl = S.build_model(name, cand, fd.voxel_counts, "brainit", 0.375)
+        if cfg.separate:
+            mdl = M.SeparateDecodedModel(mdl, copy.deepcopy(enc2))
+        if cfg.head_only or cfg.frozen_encoder:
+            mdl.feature_model.load_state_dict(enc2.state_dict())
+        inner = mdl.main if cfg.separate else (mdl.feature_model if (cfg.head_only or cfg.frozen_encoder) else mdl)
+        ok_kinds &= type(inner.input_layer) is M.BrainItRoiInput
+        mdl.eval()
+        with tempfile.TemporaryDirectory() as td:
+            M.save_checkpoint(Path(td) / "m.pt", mdl, condition=name)
+            back, _ = M.load_checkpoint(Path(td) / "m.pt")
+            b = fd.batch(rows)
+            if cfg.multimodal:
+                v, cap = fd.feature_targets(rows)
+                same = torch.allclose(back(b, v, cap).z, mdl(b, v, cap).z, atol=1e-6)
+            else:
+                same = torch.allclose(back(b).z, mdl(b).z, atol=1e-6)
+            ok_round &= same
+    check("brainit 입력층은 모든 조건(encoder 2, D 묶음, Multimodal Model, E 포함)에서 만들어진다(11/10)", ok_kinds)
+    check("brainit을 쓴 모든 조건의 체크포인트를 되살리면 같은 출력이다(11/10)", ok_round)
+    check("roi_mean, roi_cells는 여전히 encoder 하나인 뇌 모델에만 쓴다", stops(lambda: S.build_model("multimodal", dict(d=8, rank=None), fd.voxel_counts, "roi_mean")) and stops(lambda: S.build_model("brain_decoded_sep", dict(d=8, rank=2), fd.voxel_counts, "roi_mean")))
     check("기본 tokenizer는 지금 입력층(RoiInput)이다", type(S.build_model("brain_only", dict(d=8, rank=None), fd.voxel_counts).input_layer) is M.RoiInput)
     with tempfile.TemporaryDirectory() as t:
         good = Path(t) / "a.json"; good.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], learning_rates=[1e-4], seeds=[0], tokenizer="brainit", voxel_sampling=0.375)))
         bad = Path(t) / "b.json"; bad.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], tokenizer="voxel_mlp")))
-        bad2 = Path(t) / "c.json"; bad2.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], voxel_sampling=0.3)))
+        bad2 = Path(t) / "c.json"; bad2.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], tokenizer="roi_mean", voxel_sampling=0.3)))
+        ok_lin = Path(t) / "d.json"; ok_lin.write_text(json.dumps(dict(k_candidates=[[64, 0.01]], voxel_sampling=0.375)))
         cfg = S.load_config(good)
         check("설정 파일로 brainit과 voxel 뽑기 비율을 준다", cfg.tokenizer == "brainit" and cfg.voxel_sampling == 0.375)
-        check("알 수 없는 tokenizer와 linear의 voxel 뽑기는 멈춘다", stops(lambda: S.load_config(bad)) and stops(lambda: S.load_config(bad2)))
+        check("알 수 없는 tokenizer와 roi_mean의 voxel 뽑기는 멈추고, linear의 voxel 뽑기는 받는다(11/12)", stops(lambda: S.load_config(bad)) and stops(lambda: S.load_config(bad2)) and S.load_config(ok_lin).voxel_sampling == 0.375 and S.load_config(ok_lin).tokenizer == "linear")
     check("Stimulus 예측 평정은 그것을 쓰는 조건이 있을 때만 읽는다", not S.needs_stimulus(["brain_only", "brain_decoded", "control_feature_shuffle"]) and all(S.needs_stimulus([n]) for n in ("brain_only_distill", "brain_decoded_distill", "brain_decoded_sep_distill", "control_stimulus_shuffle")))
 
 
@@ -985,6 +1025,31 @@ def t_early_stop():
     check("다른 seed는 다른 가중치를 낸다", a[0] != z[0])
 
 
+def t_total_val_loss():
+    """11/10. 되돌리는 기준을 학습 손실과 같게(석진 님 결정). 검증 행에 학습 손실 식을 적용하고, 정서 항의 목표는 실제 y다."""
+    w = World()
+    fd = w.fold()
+    val = fd.rows("val")
+    y = fd.y(val)
+    v, cap = fd.feature_targets(val)
+    for name, mode in (("brain_decoded", "decoded_feature_readout"), ("brain_only_featdec", "auxiliary_feature_decoding"), ("control_feature_shuffle", "auxiliary_feature_decoding")):
+        m, cand = small_model(fd, name, rank=2 if S.CONDITIONS[name].decoded else None, lam=0.1)
+        m.eval()
+        fn = T.total_val_loss(name, cand, fd, T.brain_forward(fd), 7)  # 7: 검증 행을 여러 묶음으로 나눠도 같은 값
+        with torch.no_grad():
+            want = M.ac.decoding_loss(m(fd.batch(val)), y, v, cap, lambda_feat=0.1, condition=mode).L.item()
+        check(f"{name}: 검증 total loss는 학습 손실 식(정서 항 + λ × feature 항)을 실제 y와 검증 영상의 원래 feature로 계산한 값이다", abs(fn(m) - want) < 1e-5)
+    for name in ("brain_only", "brain_only_distill", "control_label_smoothing", "control_stimulus_shuffle", "brain_features_only", "feature_encoder"):
+        check(f"{name}: 정서 항만 있거나 encoder 2면 total_val_loss는 None이다(기존 기준과 같은 식)", T.total_val_loss(name, S._cand(lam=None, alpha=0.5), fd, T.brain_forward(fd), 16) is None)
+    m, cand = small_model(fd, "brain_decoded", rank=2, lam=0.1)
+    seen = []
+    fn = T.total_val_loss("brain_decoded", cand, fd, T.brain_forward(fd), 16)
+    res = T.fit(m, fd, FAST, lr=1e-3, input_wd=1e-3, feature_wd=None, loss_fn=T.make_loss("brain_decoded", cand, fd), forward=T.brain_forward(fd), seed=0, restore_fn=lambda model: seen.append(fn(model)) or seen[-1])
+    check("fit은 restore_fn의 값으로 epoch를 고르고 history의 val_loss에 남긴다", res.history.val_loss.tolist() == seen and res.best_epoch == int(np.argmin(seen)) + 1 and "val_emotion_bce" in res.history)
+    check("선택 점수는 여전히 검증 정서별 r 평균이다", abs(res.val_score - S.validation_score(T.collect(m, val, T.brain_forward(fd), 16)["z"].sigmoid().numpy(), y.cpu().numpy(), fd.participant_names(val))) < 1e-6)
+    check("val_fn과 restore_fn은 함께 주지 않는다", stops(lambda: T.fit(m, fd, FAST, lr=1e-3, input_wd=1e-3, feature_wd=None, loss_fn=T.make_loss("brain_decoded", cand, fd), forward=T.brain_forward(fd), seed=0, val_fn=fn, restore_fn=fn)))
+
+
 def t_input_only():
     sig = list(inspect.signature(M.BrainModel.forward).parameters)
     check("BrainModel.forward의 입력은 brain 하나다", sig == ["self", "brain"])
@@ -1255,10 +1320,14 @@ def t_pipeline():
                 vp = np.load(path / "val_pred.npz")
                 loss = F.binary_cross_entropy_with_logits(torch.as_tensor(vp["logit"]), torch.as_tensor(y_val)).item()
                 hist = pd.read_csv(path / "history.tsv", sep="\t")
-                ok_loss &= abs(loss - done["val_loss"]) < 1e-5
+                at = hist.iloc[done["best_epoch"] - 1]
+                cfg_n = S.CONDITIONS[n]
+                total_cond = cfg_n.features != "none" or bool(cfg_n.representation)  # 11/10. feature 항, representation 항이 있는 조건
+                ok_loss &= abs(loss - at.val_emotion_bce) < 1e-5  # 되돌린 epoch의 검증 예측이 저장된 값이다
+                ok_loss &= (at.val_loss >= at.val_emotion_bce - 1e-9) if total_cond else abs(at.val_loss - at.val_emotion_bce) < 1e-12
                 ok_hist &= abs(hist.val_loss.min() - done["val_loss"]) < 1e-9 and hist.val_loss.argmin() + 1 == done["best_epoch"]
                 ok_score &= abs(S.validation_score(vp["p"], y_val, vp["participant"]) - done["val_score"]) < 1e-5
-        check("조기 종료 값이 정서를 내는 모든 조건에서 실제 y의 정서 soft BCE다", ok_loss)
+        check("조기 종료 값은 검증 total loss다(정서 항만 있으면 실제 y의 정서 soft BCE, feature나 representation 항이 있으면 그 이상), 되돌린 epoch의 검증 예측과 맞는다(11/10)", ok_loss)
         check("encoder 2는 검증 feature MSE로 멈추고 그 값으로 고른다", ok_fe)
         check("고른 epoch는 그 값이 가장 낮은 epoch다", ok_hist)
         check("선택 점수가 모든 조건에서 실제 y의 r 평균이다", ok_score)
@@ -1604,12 +1673,186 @@ def t_stimulus_shape():
     check("영상 ID가 정수가 아니면 멈춘다", stops(lambda: S.stimulus_bank(dict(video_id=ids.astype(float), p_clipped=np.full((16, 34), 0.3)), ids.tolist(), pos, (16, 34))))
 
 
+def t_grid_1113():
+    """11/13. learning rate × 입력층 weight decay가 1 이상인 A-1 후보는 빠지고, --only-candidates는 이 설정의 A-1 후보만 받는다."""
+    cands = S.candidates("brain_only", k_candidates=[(64, w) for w in (0.01, 0.1, 1.0, 10.0, 100.0, 1000.0)], learning_rates=[1e-5, 1e-4, 1e-3])
+    check("grid: 18개 가운데 (1e-3, 1000) 하나가 빠져 17개", len(cands) == 17 and not any(c["lr"] * c["input_wd"] >= 1 for c in cands))
+    config = S.load_config(Path(__file__).resolve().parents[1] / "configs/s6/run_config_grid_main.json")
+    ids = [S.candidate_id(c) for c in S.candidates("brain_only", k_candidates=config.k_candidates, learning_rates=config.learning_rates)]
+    picked = T.only_candidates(",".join(ids[:3]), config)
+    check("--only-candidates는 고른 후보를 그대로 돌려준다", [S.candidate_id(c) for c in picked] == ids[:3])
+    for bad in ("zzz", ids[0] + "," + ids[0], ""):
+        try:
+            T.only_candidates(bad, config)
+            check(f"--only-candidates가 잘못된 입력 {bad!r}을 막는다", False)
+        except SystemExit:
+            check(f"--only-candidates가 잘못된 입력 {bad!r}을 막는다", True)
+    base = S.candidates("brain_only", k_candidates=config.k_candidates, learning_rates=config.learning_rates)[0]
+    follow = S.candidates("brain_decoded", k_candidates=config.k_candidates, base=base, learning_rates=config.learning_rates, lr_follows_brain_only=True)
+    check("나머지 조건은 A-1이 고른 learning rate와 입력층 weight decay를 따른다(G13 예산 규칙)", len(follow) == 8 and all(c["lr"] == base["lr"] and c["input_wd"] == base["input_wd"] for c in follow))
+
+
+def t_input_1114():
+    """11/14. linear_bernoulli(voxel마다 빼는 dropout)와 dense(MindEye2 형식, token 하나) 입력층."""
+    counts = {"sub-01": [5, 7, 3], "sub-02": [4, 6, 5]}
+    torch.manual_seed(0)
+    layer = M.make_input_layer(counts, 8, "linear_bernoulli", 0.2)
+    x = torch.ones(4000, sum(counts["sub-01"]))
+    layer.train()
+    z = layer.sample(x)
+    check("bernoulli: 학습 때 약 80%를 남긴다", abs(float((z != 0).float().mean()) - 0.8) < 0.01)
+    check("bernoulli: 남긴 값에 1/0.8을 곱해 평균이 그대로다", abs(float(z.mean()) - 1.0) < 0.02 and torch.allclose(z[z != 0], torch.full_like(z[z != 0], 1 / 0.8)))
+    layer.eval()
+    check("bernoulli: 평가 때는 모든 voxel을 그대로 쓴다", torch.equal(layer.sample(x), x))
+    dense = M.make_input_layer(counts, 8, "dense", 0.0)
+    roi = M.make_input_layer(counts, 8, "linear", 0.0)
+    check("dense: 입력 가중치 수가 ROI 입력층과 같다", all(dense.weights[p].shape == roi.weights[p].shape for p in counts))
+    xs = {p: torch.randn(3, sum(c)) for p, c in counts.items()}
+    batch = M.BrainBatch(xs, {"sub-01": torch.tensor([0, 2, 4]), "sub-02": torch.tensor([1, 3, 5])}, 6)
+    dense.eval()
+    out = dense(batch)
+    want = xs["sub-01"] @ dense.weights["sub-01"] + dense.input_bias["sub-01"][0] + dense.roi_embedding[0]
+    check("dense: token 하나이고 모든 voxel을 한 선형층으로 받는다", tuple(out.shape) == (6, 1, 8) and torch.allclose(out[[0, 2, 4], 0], want, atol=1e-5))
+    for tok in ("dense", "linear_bernoulli"):
+        model = M.BrainModel(counts, 8, tokenizer=tok, voxel_sampling=0.2).eval()
+        with tempfile.TemporaryDirectory() as td:
+            M.save_checkpoint(Path(td) / "m.pt", model, condition="brain_only")
+            back, _ = M.load_checkpoint(Path(td) / "m.pt")
+        same = all(torch.equal(a, b) for a, b in zip(model.state_dict().values(), back.state_dict().values()))
+        check(f"{tok}: 체크포인트를 되살리면 같다", same and type(back.input_layer) is type(model.input_layer) and getattr(back.input_layer, "sampling_mode", "replace") == getattr(model.input_layer, "sampling_mode", "replace"))
+    for tok in ("dense", "linear_bernoulli"):
+        with tempfile.TemporaryDirectory() as td:
+            pth = Path(td) / "c.json"
+            pth.write_text(json.dumps(dict(k_candidates=[[64, 10.0]], learning_rates=[1e-3], seeds=[0], tokenizer=tok, voxel_sampling=0.2)))
+            cfg = S.load_config(pth)
+        check(f"{tok}: 설정을 읽는다", cfg.tokenizer == tok and cfg.voxel_sampling == 0.2)
+
+
+def t_inputstep_1115():
+    """11/15. linear_mean(ROI token을 voxel 평균으로)과 입력층만 다른 learning rate(input_lr_scale)."""
+    counts = {"sub-01": [5, 40, 3], "sub-02": [4, 6, 50]}
+    torch.manual_seed(0)
+    mean = M.make_input_layer(counts, 8, "linear_mean", 0.0)
+    total = M.make_input_layer(counts, 8, "linear", 0.0)
+    with torch.no_grad():
+        for p, c in counts.items():
+            n = torch.cat([torch.full((k, 1), float(k)) for k in c])
+            mean.weights[p].copy_(total.weights[p] * n)  # W' = n W 이면 같은 함수다
+            mean.input_bias[p].copy_(total.input_bias[p])
+        mean.roi_embedding.copy_(total.roi_embedding)
+    xs = {p: torch.randn(3, sum(c)) for p, c in counts.items()}
+    batch = M.BrainBatch(xs, {"sub-01": torch.tensor([0, 2, 4]), "sub-02": torch.tensor([1, 3, 5])}, 6)
+    mean.eval(), total.eval()
+    check("linear_mean: W'를 n W로 두면 linear와 같은 token이다", torch.allclose(mean(batch), total(batch), atol=1e-5))
+    torch.manual_seed(1)
+    fresh_mean, fresh_sum = M.make_input_layer(counts, 64, "linear_mean", 0.0), M.make_input_layer(counts, 64, "linear", 0.0)
+    xb = {p: torch.randn(2000, sum(c)) for p, c in counts.items()}
+    big = M.BrainBatch(xb, {"sub-01": torch.arange(0, 4000, 2), "sub-02": torch.arange(1, 4000, 2)}, 4000)
+    with torch.no_grad():
+        a = (fresh_mean(big) - fresh_mean.input_bias["sub-01"] - fresh_mean.roi_embedding).std(0).mean(1)
+        b = (fresh_sum(big) - fresh_sum.input_bias["sub-01"] - fresh_sum.roi_embedding).std(0).mean(1)
+    check("linear_mean: 처음 token의 뇌 부분 크기가 linear와 비슷하다(ROI마다 0.7~1.4배)", bool(((a / b) > 0.7).all() and ((a / b) < 1.4).all()))
+    model = M.BrainModel(counts, 8, tokenizer="linear_mean", voxel_sampling=0.375).eval()
+    with tempfile.TemporaryDirectory() as td:
+        M.save_checkpoint(Path(td) / "m.pt", model, condition="brain_only")
+        back, _ = M.load_checkpoint(Path(td) / "m.pt")
+    check("linear_mean: 체크포인트를 되살리면 평균 입력층이다", back.input_layer.aggregate == "mean" and all(torch.equal(x, y) for x, y in zip(model.state_dict().values(), back.state_dict().values())))
+    groups = M.parameter_groups(M.BrainModel(counts, 8), 1e-3, 100.0, input_lr=1e-4)
+    lrs = {g["name"]: g["lr"] for g in groups}
+    check("input_lr: 입력층 W만 다른 learning rate다", lrs["input_weight"] == 1e-4 and all(v == 1e-3 for k, v in lrs.items() if k != "input_weight"))
+    same = M.parameter_groups(M.BrainModel(counts, 8), 1e-3, 100.0, input_lr=1e-3 * 1.0)
+    check("input_lr: 배율 1이면 모든 묶음이 같은 learning rate다", all(g["lr"] == 1e-3 for g in same))
+    for scale, ok in ((0.1, True), (1.0, True), (0.5, False)):
+        with tempfile.TemporaryDirectory() as td:
+            pth = Path(td) / "c.json"
+            pth.write_text(json.dumps(dict(k_candidates=[[64, 10.0]], learning_rates=[1e-3], seeds=[0], tokenizer="linear_mean", voxel_sampling=0.375, input_lr_scale=scale)))
+            try:
+                cfg = S.load_config(pth)
+                got = cfg.input_lr_scale == scale and cfg.tokenizer == "linear_mean"
+            except ValueError:
+                got = False
+        check(f"input_lr_scale {scale}: {'읽는다' if ok else '멈춘다'}", got == ok)
+    check("Spec이 입력층 배율을 담는다(기본 1)", S.Spec().input_lr_scale == 1.0 and S.Spec(input_lr_scale=0.1).input_lr_scale == 0.1)
+
+
+def t_runs_1115():
+    """11/15. 조건마다 learning rate(lr_by_condition), 6-4a의 묶음 하나만 입력(roi_group), fold별 고정 후보(fixed_candidates)."""
+    with tempfile.TemporaryDirectory() as td:
+        pth = Path(td) / "c.json"
+        raw = dict(k_candidates=[[64, 100.0]], learning_rates=[1e-3], seeds=[0], tokenizer="linear", voxel_sampling=0.375,
+                   learning_rates_by_condition={"brain_only": [1e-3], "brain_decoded": [1e-4]}, roi_group="Visual1",
+                   fixed_candidates={"brain_decoded": {"1": {"lam": 1.0, "rank": 2}, "5": {"lam": 0.1, "rank": 2}}})
+        pth.write_text(json.dumps(raw))
+        cfg = S.load_config(pth)
+        for bad in (dict(raw, roi_group="Nowhere"), dict(raw, learning_rates_by_condition={"nope": [1e-3]}), dict(raw, fixed_candidates={"brain_decoded": {"1": {"d": 32}}})):
+            pth.write_text(json.dumps(bad))
+            check(f"설정 오류는 멈춘다 {sorted(set(bad.items()) - set(raw.items())) if False else ''}".strip(), stops(lambda: S.load_config(pth)))
+    check("조건마다 learning rate를 읽는다", S.condition_lrs(cfg, "brain_only") == (1e-3,) and S.condition_lrs(cfg, "brain_decoded") == (1e-4,) and S.condition_lrs(cfg, "brain_only_distill") == (1e-3,))
+    base = dict(d=64, input_wd=100.0, lr=1e-3)
+    c1 = S.candidates("brain_decoded", base=base, learning_rates=S.condition_lrs(cfg, "brain_decoded"))
+    kept1, kept5, kept2 = S.fixed_filter(cfg, "brain_decoded", 1, c1), S.fixed_filter(cfg, "brain_decoded", 5, c1), S.fixed_filter(cfg, "brain_decoded", 2, c1)
+    check("고정 후보는 fold마다 하나만 남는다", len(c1) == 8 and len(kept1) == 1 and kept1[0]["lam"] == 1.0 and kept1[0]["rank"] == 2 and kept1[0]["lr"] == 1e-4 and len(kept5) == 1 and kept5[0]["lam"] == 0.1)
+    check("고정이 없는 fold는 후보를 그대로 둔다", kept2 == c1)
+    check("A-1 후보는 learning rate 1e-3, weight decay 100 하나다", S.candidates("brain_only", k_candidates=cfg.k_candidates, learning_rates=S.condition_lrs(cfg, "brain_only")) == [S._cand(d=64, input_wd=100.0, lr=1e-3)])
+    keep = S.roi_keep(cfg)
+    groups = pd.read_csv(c.S2 / "cabnp_groups.tsv", sep="\t").set_index("group").n_roi
+    check("roi_group은 그 묶음의 ROI 위치를 낸다", len(keep) == int(groups["Visual1"]) and len(S.network_groups()) == 13)
+    w = World()
+    full, sub = w.fold(), w.fold(roi_keep=np.array([0, 2]))
+    pid = full.participants[0]
+    ok = sub.voxel_counts[pid] == [full.voxel_counts[pid][0], full.voxel_counts[pid][2]]
+    a, b = np.cumsum([0] + full.voxel_counts[pid])[[0, 2]], np.cumsum([0] + full.voxel_counts[pid])[[1, 3]]
+    want = torch.cat([full.columns[pid][a[0]:b[0]], full.columns[pid][a[1]:b[1]]])
+    check("묶음만 넣으면 그 ROI의 voxel 열만 남는다(순서 그대로)", ok and torch.equal(sub.columns[pid], want))
+    model = S.build_model("brain_only", dict(d=8, input_wd=1.0, lr=1e-3, lam=None, alpha=None, rank=None, feature_wd=None), sub.voxel_counts)
+    check("묶음 입력으로 모델의 token 수가 줄어든다", model.input_layer.n_roi == 2)
+
+
+def t_depth_1115():
+    """11/15 석진 님. encoder block 수 민감도(A-1만). 본 설계(1)의 키와 spec은 예전과 같다."""
+    counts = {"sub-01": [5, 7, 3], "sub-02": [4, 6, 5]}
+    one, two = M.BrainModel(counts, 8), M.BrainModel(counts, 8, n_blocks=2)
+    check("block 1개는 예전과 같은 이름(encoder.block)과 spec(n_blocks 키 없음)이다", any(k.startswith("encoder.block.") for k in one.state_dict()) and "n_blocks" not in one.spec)
+    check("block 2개는 encoder.blocks.0, 1을 두고 spec에 남긴다", {k.split(".")[2] for k in two.state_dict() if k.startswith("encoder.blocks.")} == {"0", "1"} and two.spec["n_blocks"] == 2)
+    xs = {p: torch.randn(3, sum(c)) for p, c in counts.items()}
+    batch = M.BrainBatch(xs, {"sub-01": torch.tensor([0, 2, 4]), "sub-02": torch.tensor([1, 3, 5])}, 6)
+    two.eval()
+    with tempfile.TemporaryDirectory() as td:
+        M.save_checkpoint(Path(td) / "m.pt", two, condition="brain_only")
+        back, _ = M.load_checkpoint(Path(td) / "m.pt")
+        old = M.BrainModel(counts, 8).eval()
+        saved = dict(spec={k: v for k, v in old.spec.items()}, state_dict=old.state_dict(), meta={})
+        torch.save(saved, Path(td) / "old.pt")
+        back_old, _ = M.load_checkpoint(Path(td) / "old.pt")
+    with torch.no_grad():
+        check("block 2개 체크포인트를 되살리면 같은 예측이다", torch.allclose(back(batch).z, two(batch).z, atol=1e-6))
+        check("예전 spec(n_blocks 없음) 체크포인트는 block 1개로 되살린다", hasattr(back_old.encoder, "block") and torch.allclose(back_old(batch).z, old(batch).z, atol=1e-6))
+    check("block 수 민감도는 A-1에만 쓴다", stops(lambda: S.build_model("brain_decoded", S._cand(lam=1.0, rank=2), counts, n_blocks=2)))
+    check("block 수는 1, 2, 4다(3은 멈춘다)", stops(lambda: M.Encoder(8, 3)))
+    four = M.BrainModel(counts, 8, n_blocks=4).eval()
+    check("block 4개는 encoder.blocks.0~3을 두고 spec에 남긴다", {k.split(".")[2] for k in four.state_dict() if k.startswith("encoder.blocks.")} == {"0", "1", "2", "3"} and four.spec["n_blocks"] == 4)
+    with tempfile.TemporaryDirectory() as td:
+        M.save_checkpoint(Path(td) / "m4.pt", four, condition="brain_only")
+        back4, _ = M.load_checkpoint(Path(td) / "m4.pt")
+    with torch.no_grad():
+        check("block 4개 체크포인트를 되살리면 같은 예측이다", torch.allclose(back4(batch).z, four(batch).z, atol=1e-6))
+    check("block 4개도 A-1에만 쓴다", stops(lambda: S.build_model("brain_decoded", S._cand(lam=1.0, rank=2), counts, n_blocks=4)))
+    with tempfile.TemporaryDirectory() as td:
+        f = Path(td) / "c.json"
+        f.write_text(json.dumps(dict(k_candidates=[[64, 100.0]], learning_rates=[1e-3], seeds=[0], tokenizer="linear", voxel_sampling=0.375, n_blocks=2)))
+        check("설정의 n_blocks를 읽는다", S.load_config(f).n_blocks == 2)
+        f.write_text(json.dumps(dict(k_candidates=[[64, 100.0]], n_blocks=4)))
+        check("설정의 n_blocks 4를 읽는다", S.load_config(f).n_blocks == 4)
+        f.write_text(json.dumps(dict(k_candidates=[[64, 100.0]], n_blocks=3)))
+        check("n_blocks 1, 2, 4 밖은 멈춘다", stops(lambda: S.load_config(f)))
+
+
 def main():
     if "--timing" in sys.argv:
         timing()
         return
     started = time.time()
-    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard):
+    for f in (t_read_boundary, t_split_files, t_stimulus_source, t_stimulus_shape, t_audition, t_structure, t_stop_gradient, t_gradient_allowed, t_s6_rules_1108, t_numeric_divergence, t_separate_encoder, t_display_names, t_brainit_tokenizer, t_roi_cell_input, t_frozen_encoder, t_oof, t_prelim_config, t_featdec_independent, t_interaction_index, t_distill_formula, t_boundaries, t_load_known, t_shuffle, t_standardization, t_early_stop, t_total_val_loss, t_input_only, t_weight_groups, t_candidates, t_selection, t_representation_unit, t_pipeline, t_zero_selected, t_guard, t_grid_1113, t_input_1114, t_inputstep_1115, t_runs_1115, t_depth_1115):
         t0 = time.time()
         try:
             f()
