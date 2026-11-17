@@ -1839,6 +1839,7 @@ r, R², MAE를 정서별로 함께 보고, 셋이 같은 방향을 가리킬 때
         - 기준: A-1과 A-1 depth2, depth4(같은 설정, encoder block 수만 다름)의 CKA. 판정: 5명 모두 CKA(A-1, 모델)가 그 참가자의 두 기준 가운데 낮은 값보다 낮으면 "A-1과 다른 표현", 5명 모두 그 이상이면 "A-1 변형 수준", 나머지 보류.
         - 예측: D-4는 A-1과 다른 표현, B-1, E-고정, E-학습은 A-1 변형 수준, C-1은 예측 없음. 한계: seed가 하나라 같은 설정의 seed 사이 CKA가 없다.
         - D-1, D-3 더함(11/17 석진 님 요청): ablation(입력 바꿔치기)은 방향 예측 없이 Holm p < .05인 묶음을 보고한다. 표현은 D-1만(D-3은 정서 query가 없음) 비교하고 예측은 "A-1과 다른 표현"이다. 같은 실행을 8개 모델로 다시 돌린다.
+            - 결과(11/17): D-1, D-3의 ablation 양상은 C-1, D-4와 같았다. 장면 정보를 정서 계산 경로에 넣는 네 모델(C-1, D-1, D-3, D-4)이 모두 A-1보다 Visual2, Cingulo-Opercular, Default, Language, Visual1에 덜 기댔다. D-1의 표현은 A-1과 달랐다(예측 맞음). 앞선 6개 모델의 값은 그대로 재현됐다.
         - 결과(11/17, 수치는 산출물 6-4e_perturb_models의 README). A-1, C-1의 ablation 예측은 6-4b 저장 값과 같았다.
             - ablation: D-4 예측은 반대로 판정됐다. D-4는 Visual2에도 A-1보다 덜 기댔다(Default, Cingulo-Opercular는 예측 방향). D-4와 C-1의 ablation 양상은 거의 같았다(둘 다 Visual2, Cingulo-Opercular, Default, Language에 덜 기댐). B-1은 Visual2에 더 기댔고, E-고정, E-학습은 A-1과 거의 같았다.
             - 표현: B-1은 A-1 변형 수준(예측 맞음), D-4는 A-1과 다른 표현(예측 맞음), E-고정과 E-학습은 5명 모두 기준보다 낮아 다른 표현으로 판정됐다(예측 틀림. 두 E 모델끼리는 서로 가깝다). C-1이 A-1과 가장 달랐다.
