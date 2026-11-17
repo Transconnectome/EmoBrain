@@ -60,7 +60,7 @@ def hk_roimean_model(split):
         fold = np.asarray(b.fold)
         tr = np.isin(fold, r["train"])
         x = zscore(x, np.flatnonzero(tr | (fold == r["val"])))
-        T, _, _ = c.load_scores(split, "emotions")
+        T, _ = c.load_scores(split, "emotions")
         y = d5.align(np.asarray(T, np.float64), split, b.video_id)
         xs.append(x), ys.append(y), roles.append(np.where(tr, 0, np.where(fold == r["val"], 1, -1)))
     x, y, role = np.concatenate(xs), np.concatenate(ys), np.concatenate(roles)
