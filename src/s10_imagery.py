@@ -14,12 +14,14 @@
   순열은 6-3과 같다(72개 영상 안에서 사람 평정 벡터를 섞음, st.block_permutations, PERM_SEED 20261116, 10,000회, 6명과 seed에 같은 순열).
 - Q2 회상에서도 C-1 > A-1인가: 6명 평균 차이의 구간이 0 위(72개 영상 bootstrap, BOOT_SEED 20261115, 10,000회, basic 95%), seed 3개 모두 6명 평균 차이 > 0,
   6명 가운데 5명 이상이 양수(seed 평균).
+- Q2a 회상에서 C-1의 이득이 시청보다 큰가(01 6-3 2a, 55c077a. 회상 결과를 보기 전에 적음): (C-1 − A-1)회상 − (C-1 − A-1)시청의 6명 평균(seed 평균)의 basic 95% 구간이 0 위이고
+  6명 가운데 5명 이상 양수. 같은 72개 영상, 같은 bootstrap 재표집이다. 시청 값도 이 코드가 같은 모델로 다시 낸 예측(저장 예측과 같음을 확인)으로 계산한다.
 - Q3 어떤 정서가 남는가: 정서마다 V/C 지수(imagery_prereg)와 "시청 r − 회상 r"(6명 평균, seed 평균)의 Spearman ρ가 음수이고,
   34개 정서 이름표 순열(PERM_SEED, 10,000회) 한쪽 p < .05. 01이 모델을 정하지 않아, 회상 자료를 보기 전에(11/17) A-1을 판정에 쓰고 C-1은 같은 계산을 보고한다.
   판정에 쓰지 않고 함께 적는 것: 시청 r 순위를 통제한 편상관(시청에서 높았던 정서일수록 떨어질 폭이 크다는 것만으로 생기는 관계인지 보기 위함).
 - Q4(보조) 어디에 남는가: 6-3의 MC 개인 모델 교란과 같은 네트워크 ablation(CAB-NP 13개 입력 열을 같은 참가자의 다른 시험 영상 값으로 바꿈, 20회,
   자기 자신으로 가지 않는 순열, seed 0)을 시청 입력과 회상 입력에 각각 걸어 하락을 비교한다. 판정 없음.
-출력(레포 밖 --out): scores.tsv(단위마다 점수), q1.tsv, q2.tsv, q3.tsv, per_emotion.tsv, cue.tsv, ablation.tsv, repeats.tsv, verification.tsv, run_info.json
+출력(레포 밖 --out): scores.tsv(단위마다 점수), q1.tsv, q2.tsv(Q2와 Q2a), q3.tsv, per_emotion.tsv, cue.tsv, ablation.tsv, repeats.tsv, verification.tsv, run_info.json
 사용: s10_imagery.py --final <s6_brain_final_for_mc> --mc-dir <s8_mc> --imagery-dir <회상 반응 폴더> --vc-index <vision_over_caption_index.tsv> --out <폴더> --design-freeze <커밋>
 """
 import argparse
@@ -193,6 +195,14 @@ def run(final, mc_dir, imagery_dir, vc_path, out, n_boot, n_perm):
     q2 = pd.DataFrame([dict(question="Q2", comparison="C-1 − A-1 (회상)", estimate=d_q["mean"], ci_low=float(lo), ci_high=float(hi), p=float(st.centered_p(d_q["mean"], db)),
                             seed0=per_seed[0], seed1=per_seed[1], seed2=per_seed[2], n_positive=int(n_pos), per_participant=json.dumps({q: round(d_q[q], 4) for q in pids}),
                             decision="C-1 > A-1" if ok else "아님")])
+    # Q2a(01 6-3 2a): 차이의 차이. 같은 재표집
+    dd_q = {q: d_q[q] - (sc["perception", "brain_decoded", q] - sc["perception", "brain_only", q]) for q in pids + ["mean"]}
+    dbb = db - (sb["perception", "brain_decoded", "mean"] - sb["perception", "brain_only", "mean"])
+    lo2, hi2 = st.basic_ci(dd_q["mean"], dbb)
+    n_pos2 = sum(dd_q[q] > 0 for q in pids)
+    q2 = pd.concat([q2, pd.DataFrame([dict(question="Q2a", comparison="(C-1 − A-1) 회상 − (C-1 − A-1) 시청", estimate=dd_q["mean"], ci_low=float(lo2), ci_high=float(hi2),
+                                           p=float(st.centered_p(dd_q["mean"], dbb)), n_positive=int(n_pos2), per_participant=json.dumps({q: round(dd_q[q], 4) for q in pids}),
+                                           decision="회상에서 더 큼" if (lo2 > 0 and n_pos2 >= 5) else "아님")])], ignore_index=True)
 
     # Q3
     vc = pd.read_csv(vc_path, sep="\t").set_index("emotion").loc[names, "vision_over_caption"].to_numpy(np.float64)
