@@ -1,0 +1,20 @@
+{
+  "note": "11/17 석진 님. MC 전이를 B-1, D-1, D-3, D-4로 넓히려고 HK 전체 모델(final_for_mc, 개발 영상 전체, 검증 O7)을 새로 학습한다. A-1은 앞 조건이라 같은 폴더에 다시 학습한다(MC 전이에는 기존 s6_brain_final_for_mc의 A-1을 쓴다). 규칙은 기존 final_for_mc와 같다: 표준 실행이 6 fold 모두 같은 값을 고른 설정은 고정하고(A-1, B-1의 lr과 λ, D-1의 lr), 나머지(D-1의 λ와 r, D-3의 lr과 r, D-4의 lr, encoder 2의 lr)는 이 분할의 검증으로 고른다. encoder 2(fold 밖)는 학습 fold 5개를 하나씩 빼 다섯을 만든다. seed 0만(석진 님 11/17, seed는 보류). 결과는 S6_OUT=s6_brain_final_for_mc_b1_d",
+  "k_candidates": [[64, 100.0]],
+  "learning_rates": [0.001],
+  "learning_rates_by_condition": {
+    "brain_only": [0.001],
+    "brain_only_featdec": [0.001],
+    "feature_encoder": [0.001, 0.0001],
+    "brain_decoded_sep": [0.0001],
+    "brain_features_only": [0.001, 0.0001],
+    "brain_frozen_feature_encoder": [0.001, 0.0001]
+  },
+  "fixed_candidates": {
+    "brain_only_featdec": {"0": {"lam": 0.1}}
+  },
+  "keep_candidate_checkpoints": true,
+  "seeds": [0],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375
+}

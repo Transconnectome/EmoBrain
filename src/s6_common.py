@@ -100,6 +100,7 @@ DISPLAY = {
 }
 ORDER = list(CONDITIONS)  # 앞 조건의 선택을 뒤 조건이 쓴다(5-5, G9, O5, O31)
 ZONE_CONDITIONS = {"brain_only", "brain_decoded"}  # 6-2(4-3). 다른 조건으로 넓히지 않는다
+FINAL_FOR_MC_CONDITIONS = ZONE_CONDITIONS | {"brain_only_featdec", "feature_encoder", "brain_decoded_sep", "brain_features_only", "brain_frozen_feature_encoder"}  # 11/17 석진 님. MC 전이를 A-1, B-1, C-1, D-1, D-3, D-4로 넓힘
 NEEDS_STIMULUS = {"brain_only_distill", "brain_decoded_distill", "brain_decoded_sep_distill", "control_stimulus_shuffle"}
 DECODED_SOURCE = {"brain_decoded_distill": "brain_decoded", "brain_decoded_sep_distill": "brain_decoded_sep"}  # λ와 r을 이어 받는 조건(G9)
 NEEDS_SHUFFLE = {"control_stimulus_shuffle", "control_feature_shuffle"}
@@ -299,15 +300,19 @@ def check_candidate(condition, cand):
 
 
 N_PAIRS = 4  # 학습 fold 4개를 하나씩 뺀 encoder 2의 수(11/9). 짝 조건은 짝마다 학습한다
+N_PAIRS_FINAL = 5  # 11/17. MC 전이용 HK 전체 모델(final_for_mc, 학습 fold 5개)에서 같은 규칙으로 만드는 encoder 2의 수
 
 
 def inner_plans(plan, split):
     """11/9. 바깥 fold의 학습 fold 4개를 하나씩 뺀다. j번째: encoder 2 학습 = 나머지 3개 fold, 검증 = 바깥 검증 fold, held = j번째 fold.
     돌려주는 값: [(fold 번호, encoder 2용 Plan(test = held), head용 Plan(train = held, test = 바깥 시험), encoder 2 학습 영상)]."""
     fold_of = dict(zip(split.video_id.tolist(), split.fold.tolist()))
-    train_folds = c.roles(plan.outer_fold)["train"]
-    if len(train_folds) != N_PAIRS or {fold_of[v] for v in plan.train} != set(train_folds):
-        raise ValueError("바깥 fold의 학습 fold 4개로만 나눈다")
+    if plan.name == "final_for_mc":  # 11/17 석진 님. MC 전이용 HK 전체 모델은 학습 fold가 5개라 같은 규칙(하나씩 뺌)으로 encoder 2 다섯을 만든다
+        train_folds, n_expected = c.final_roles()["train"], N_PAIRS_FINAL
+    else:
+        train_folds, n_expected = c.roles(plan.outer_fold)["train"], N_PAIRS
+    if len(train_folds) != n_expected or {fold_of[v] for v in plan.train} != set(train_folds):
+        raise ValueError(f"학습 fold {n_expected}개로만 나눈다")
     out = []
     for j in train_folds:
         held = [v for v in plan.train if fold_of[v] == j]
@@ -493,7 +498,8 @@ def check_conditions(plan_name, conditions):
     for name in conditions:
         if name not in CONDITIONS:
             raise SystemExit(f"알 수 없는 조건: {name}")
-        if not plan_name.startswith(("outer_fold", "pilot_fold")) and name not in ZONE_CONDITIONS:
+        allowed = FINAL_FOR_MC_CONDITIONS if plan_name == "final_for_mc" else ZONE_CONDITIONS
+        if not plan_name.startswith(("outer_fold", "pilot_fold")) and name not in allowed:
             raise SystemExit(f"{name}: 기본 run 분할에서만 돌리는 조건이다(G6, G16, O31)")
 
 

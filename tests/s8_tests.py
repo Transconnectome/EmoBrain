@@ -2,6 +2,8 @@
 """src/s8_mc_transfer.py 합성 시험 (2026-11-15). 실제 MC 반응, 사람 평정, GPU를 쓰지 않는다.
 시험: 공유 가중치 고정과 입력층만 학습, 후보와 lr × weight decay 제외, 시험 반응의 반복 평균, 빠진 run 행을 읽지 않음,
 MC 72개가 학습에 섞이면 멈춤, 반복 수가 표와 다르면 멈춤, 검증 r로 고르고 후보별 시험 예측 저장.
+11/17: D 묶음(D-1, D-3, D-4). encoder 2 입력층만 feature 손실로 맞추고 검증 feature MSE로 고름, 정서 head는 HK 값 그대로, encoder 2 캐시를 D-1과 D-3이 함께 씀,
+D-4는 짝 예측 평균, D-1은 정서 encoder 입력층만 맞춤, encoder 2가 다르면 캐시에서 멈춤.
 사용(src에서): python ../tests/s8_tests.py
 """
 import sys as _sys
@@ -62,6 +64,62 @@ def tables():
     return blocks, repeats, idmap, q
 
 
+def encoder2(seed):
+    torch.manual_seed(seed)
+    return M.BrainModel({"sub-01": [5, 7, 3], "sub-02": [4, 6, 5]}, 8, feature_head=True, decoded=False, rank=None, tokenizer="linear", voxel_sampling=0.375).eval()
+
+
+def d_group(fd, spec, tmp, g):
+    """11/17. D-1, D-3, D-4의 MC 전이."""
+    import copy
+    fe_cand = dict(d=8, input_wd=100.0, lr=1e-3, lam=None, alpha=None, rank=None, feature_wd=None)
+    fe = encoder2(1)
+    out = tmp / "enc"
+    out.mkdir()
+    fitted, wd = X.fit_encoder2(fe, fe_cand, 0, "mc-01", fd, spec, out, log=lambda m: None)
+    sel = pd.read_csv(out / "selection.tsv", sep="\t").dropna(subset=["val_score"])
+    check("encoder 2 입력층 후보 다섯, 검증 feature MSE가 가장 낮은 값을 고른다", len(pd.read_csv(out / "selection.tsv", sep="\t")) == 5 and wd == sel.sort_values(["val_score", "input_wd"], ascending=[False, True]).input_wd.iloc[0])
+    check("encoder 2는 MC 입력층 W, b만 바뀌고 나머지는 HK 값이다", set(torch.load(out / "input_layer.pt")) == {"input_layer.weights.mc-01", "input_layer.input_bias.mc-01"}
+          and all(torch.equal(v, fe.state_dict()[k]) for k, v in fitted.state_dict().items() if not k.startswith(X.SHARED_SKIP)))
+    check("맞춘 encoder 2는 고정 상태다", not any(q.requires_grad for q in fitted.parameters()) and not fitted.training)
+    d3 = M.FeatureHeadModel(copy.deepcopy(fe), 1).eval()
+    for q in (d3.a.weight, d3.b.weight, d3.U.weight):
+        torch.nn.init.normal_(q)
+    mc3 = X.copy_head(M.FeatureHeadModel(fitted, 1), d3, "feature_model.")
+    check("D-3 정서 head는 HK 값 그대로다", all(torch.equal(mc3.state_dict()[k], d3.state_dict()[k]) for k in d3.state_dict() if not k.startswith("feature_model.")))
+    root = tmp / "root"
+    m3 = dict(candidate=dict(d=8, input_wd=100.0, lr=1e-3, lam=None, alpha=None, rank=1, feature_wd=None))
+    u3 = tmp / "u3"
+    u3.mkdir()
+    X.run_unit_dgroup("brain_features_only", [d3], m3, fe_cand, 0, "mc-01", fd, spec, u3, root, "test", {}, log=lambda m: None)
+    z3 = np.load(u3 / "test_pred_final.npz")
+    enc_dir = root / "encoder2" / "seed0" / "mc-01"
+    check("D-3 시험 예측 72 × 34와 encoder 2 캐시", z3["p"].shape == (72, 34) and (enc_dir / "done.json").exists())
+    stamp = (enc_dir / "input_layer.pt").stat().st_mtime_ns
+    main = hk_model(True)
+    d1 = M.SeparateDecodedModel(copy.deepcopy(main), copy.deepcopy(fe)).eval()
+    m1 = dict(candidate=dict(d=8, input_wd=100.0, lr=1e-3, lam=1.0, alpha=None, rank=1, feature_wd=None))
+    u1 = tmp / "u1"
+    u1.mkdir()
+    X.run_unit_dgroup("brain_decoded_sep", [d1], m1, fe_cand, 0, "mc-01", fd, spec, u1, root, "test", {}, log=lambda m: None)
+    check("D-1과 D-3은 같은 encoder 2 캐시를 쓴다(다시 맞추지 않음)", (enc_dir / "input_layer.pt").stat().st_mtime_ns == stamp)
+    check("D-1은 정서 encoder 입력층만 저장한다", set(torch.load(u1 / "input_layer_main.pt")) == {"main.input_layer.weights.mc-01", "main.input_layer.input_bias.mc-01"}
+          and np.load(u1 / "test_pred_final.npz")["p"].shape == (72, 34))
+    other = M.SeparateDecodedModel(copy.deepcopy(main), encoder2(7)).eval()
+    u1b = tmp / "u1b"
+    u1b.mkdir()
+    check("encoder 2가 다르면 캐시에서 멈춘다", stops(lambda: X.run_unit_dgroup("brain_decoded_sep", [other], m1, fe_cand, 0, "mc-01", fd, spec, u1b, root, "test", {}, log=lambda m: None)))
+    pairs = [(2, M.FrozenEncoderModel(encoder2(2)).eval()), (3, M.FrozenEncoderModel(encoder2(3)).eval())]
+    u4 = tmp / "u4"
+    u4.mkdir()
+    _, extra = X.run_unit_dgroup("brain_frozen_feature_encoder", pairs, dict(candidate=dict(d=8, input_wd=100.0, lr=1e-3, lam=None, alpha=None, rank=None, feature_wd=None)), fe_cand, 0, "mc-01", fd, spec, u4, root, "test", {}, log=lambda m: None)
+    each = []
+    for j, hk in pairs:
+        fe_j = X.load_encoder2(hk.feature_model, "mc-01", fd, root / f"encoder2_pair{j}" / "seed0" / "mc-01")
+        each.append(torch.sigmoid(X.predict_z(X.copy_head(M.FrozenEncoderModel(fe_j), hk, "feature_model."), fd, spec)).numpy())
+    check("D-4는 짝마다 encoder 2를 맞추고 예측 평정을 평균한다", np.allclose(np.load(u4 / "test_pred_final.npz")["p"], np.mean(each, 0), atol=1e-5) and extra["n_pairs"] == 2)
+
+
 def main():
     check("후보는 lr × weight decay < 1", X.wds_for(1e-3) == [0.01, 0.1, 1.0, 10.0, 100.0] and X.wds_for(1e-4) == list(X.INPUT_WDS))
     hk = hk_model(True)
@@ -117,6 +175,7 @@ def main():
         check("시험 예측은 72개 영상, decoded features 포함", z["p"].shape == (72, 34) and z["v_hat"].shape == (72, M.VISUAL_DIM))
         saved = torch.load(out / "input_layer.pt")
         check("저장한 입력층은 MC 참가자의 W, b뿐이다", set(saved) == {"input_layer.weights.mc-01", "input_layer.input_bias.mc-01"})
+        d_group(fd, spec, tmp, g)
     bad = [n for n, ok in RESULTS if not ok]
     print("통과", len(RESULTS) - len(bad), "실패", len(bad), bad)
     sys.exit(1 if bad else 0)

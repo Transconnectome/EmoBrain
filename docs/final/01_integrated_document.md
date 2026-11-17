@@ -15,7 +15,7 @@
 
 ## 0. 이미 정해진 것
 
-- 정서 범주는 Horikawa를 따른 34개다. 학습과 주 결과는 34개로 한다. 평가에서는 7개를 뺀 27개판도 함께 내서 결과가 어떻게 달라지는지 본다 [11/8 석진 님]. 7개는 평정의 출처인 Cowen & Keltner(2017, PNAS) 본문이 별도 차원으로 남지 않았다고 쓴 pride, triumph, contempt, disappointment, sympathy, guilt, envy다(다른 정서와 함께 움직이거나 평정자들이 일관되게 쓰지 않음). 같은 논문의 그림 설명은 pride 대신 relief를 넣어 본문을 따른다. 우리 결과를 보고 고른 정서가 아니다. 학습을 34개로 하므로 27개판은 저장된 예측표에서 7개 열을 빼고 채점한다. 값은 평정자 비율(0~1)이다. 14개 정서 차원은 1~9점 평정의 평균이고, 뇌 모델 학습에는 쓰지 않으며 보조 분석(B4, K1a)에서만 다룬다. [고정 사실. 분석 범위는 정함, 11/5 석진 님]
+- 정서 범주는 Horikawa를 따른 34개다. 학습과 주 결과는 34개로 한다. 평가에서는 7개를 뺀 27개판도 함께 내서 결과가 어떻게 달라지는지 본다 [11/8 석진 님]. 7개는 평정의 출처인 Cowen & Keltner(2017, PNAS) 본문이 별도 차원으로 남지 않았다고 쓴 pride, triumph, contempt, disappointment, sympathy, guilt, envy다(다른 정서와 함께 움직이거나 평정자들이 일관되게 쓰지 않음). 같은 논문의 그림 설명은 pride 대신 relief를 넣어 본문을 따른다. 우리 결과를 보고 고른 정서가 아니다. 학습을 34개로 하므로 27개판은 저장된 예측표에서 7개 열을 빼고 채점한다. 11/17부터 결과의 해석과 이후 분석(정서별 ablation, 회상, 외부 자료 등)은 27개판으로 한다 [석진 님 결정, 11/17]. 이미 34개로 낸 사전 검정(Holm 15 등)은 그대로 보고한다. 값은 평정자 비율(0~1)이다. 14개 정서 차원은 1~9점 평정의 평균이고, 뇌 모델 학습에는 쓰지 않으며 보조 분석(B4, K1a)에서만 다룬다. [고정 사실. 분석 범위는 정함, 11/5 석진 님]
 - 자료는 Horikawa 2020의 5명, 분석 영상 2,181개다. MindCaptioning(MC) 최종 시험 영상 72개는 Horikawa 개발의 모든 단계에서 뺀다. [정함, 레포 D03]
     - 영상 수를 적을 때는 어느 집합인지 밝힌다(11/2 GPT 지적).
         - 파일 2,196개: 제시한 자극 파일 전체. 같은 내용의 중복 15개를 포함한다(레포 horikawa_rungroup6_v1.tsv). 거의 같은 내용인 1349와 1363은 중복으로 빼지 않고 같은 fold에 묶는다(B2, 11/3 사용자).
@@ -95,7 +95,7 @@
 | 더하기 head, 상호작용 head | additive head, interaction head | 수식으로 정의(5-4) | Kim 외 2017 |
 | 내용 구역 제외 시험 | evaluation on held-out content blocks | | Roberts 외 2017 |
 | 이름표 73개 | 73 semantic labels | 값은 평정자 비율이고 이진 라벨이 아님. caption features와 구별 | Horikawa 2020 |
-| 네트워크 단독 학습, 교란 | network-restricted training, network input perturbation | network는 모델이 아니라 brain network | |
+| 네트워크 단독 학습, 네트워크 ablation(입력 바꿔치기) | network-restricted training, network ablation by input replacement | network는 모델이 아니라 brain network | |
 | E-고정(Brain → Emotion [representation, frozen head]) | frozen-head distillation | Multimodal Model의 중간 표현을 맞히며 고정한 head를 재사용 | Chen 외 2022(SimKD) |
 | D-3(Decoded Feature → Emotion [separate feature encoder, no direct path]) | sequential concept bottleneck | 장면 특징으로만 학습해 고정한 encoder의 decoded features로 정서 계산을 학습 | Koh 외 2020 |
 | D-4(Brain → Emotion [frozen feature encoder]) | Brain → Emotion [frozen feature encoder] | 장면 특징으로만 학습해 고정한 encoder의 token 위에 정서 head만 학습 | Ortega Caro 외 2024 |
@@ -210,8 +210,8 @@
         - 가설 [11/3 사용자 고침, GPT 11/3 합의]: 나아지고, 처음 보는 종류의 장면에서도 Brain + Decoded Feature → Emotion이 Brain → Emotion보다 높다. 처음 보는 장면에서 이득이 더 커지는지(하락폭이 더 작은지)는 하락폭 차이를 직접 비교해 보고하되 방향은 정하지 않는다.
         - 근거: 처음 보는 장면 부분은 Horikawa & Kamitani 2017(decoder 학습에 없던 사물 범주를 decoded features로 식별)에 우리 설계의 논리를 더한 사전 가설이다(6-2). 그 논문은 우리 Brain + Decoded Feature → Emotion이 Brain → Emotion보다 낫다는 것까지 보이지 않았다. Vapnik & Vashist 2009와 Lopez-Paz 2016은 학습 때만 있는 정보를 쓰는 틀의 근거이고, 새 내용으로의 일반화의 근거는 아니다. MindCaptioning은 회상 일반화의 근거로 6-3에서 쓴다.
     - 2-4. 영역: 모델은 어느 영역에 기대는가? 장면 정보를 배우면 기대는 영역이 바뀌는가?
-        - 가설 [11/3 사용자 고침, GPT 11/3 합의]: 같은 네트워크 입력을 교란했을 때, Brain + Decoded Feature → Emotion과 Brain → Emotion의 정서 예측 성능 하락폭이 다른지 검정한다. 어느 네트워크에서 어느 모델의 하락폭이 더 클지는 미리 예상하지 않는다. 보조 목표가 모델이 기대는 영역을 어떻게 바꾸는지 보인 선행 연구를 찾지 못해 방향을 정하지 않는다.
-        - 확인: 학습을 마친 모델에서 영역 입력을 교란한다. 모델이 어디를 쓰는지를 본다. 1-3의 다시 학습(정보가 어디에 있나)과 다른 질문이다.
+        - 가설 [11/3 사용자 고침, GPT 11/3 합의]: 같은 네트워크 입력을 ablation했을 때, Brain + Decoded Feature → Emotion과 Brain → Emotion의 정서 예측 성능 하락폭이 다른지 검정한다. 어느 네트워크에서 어느 모델의 하락폭이 더 클지는 미리 예상하지 않는다. 보조 목표가 모델이 기대는 영역을 어떻게 바꾸는지 보인 선행 연구를 찾지 못해 방향을 정하지 않는다.
+        - 확인: 학습을 마친 모델에서 영역 입력을 ablation한다. 모델이 어디를 쓰는지를 본다. 1-3의 다시 학습(정보가 어디에 있나)과 다른 질문이다.
 - 질문 1의 답은 세 근거를 이어서 낸다. 평가 영상의 뇌에서 두 특징을 실제로 맞힐 수 있는가(2-1). 맞힌 특징을 정서 예측에 쓰며, 함께 쓰는 방식은 어떤가(2-2, 1-2). 그 대응과 사용이 어느 영역에서 읽히고, 처음 보는 장면에서도 유지되는가(1-3, 1-4). [GPT 11/1 정리 반영]
 - 두 질문의 관계: 모델은 질문 1을 검토하는 도구이고, 질문 2는 그 도구가 실제로 무엇을 읽고 쓰는지 확인하는 질문이다. 질문 2의 모델 분석이 질문 1의 답을 준다. 2-2의 바꿔 끼우기를 정서별로 보면 1-1, head 비교가 1-2, 영역 다시 학습이 1-3, 일반화 시험이 1-4의 답이다. 주장은 뇌 신호에 담긴 정보에 대한 것이고, 뇌 안의 계산 방식에 대한 것이 아니다.
 
@@ -732,7 +732,7 @@
 
 ### 5-A. 모델과 학습 흐름 한눈에 [정함, 11/7 석진 님. GPT 정리를 이 문서의 용어로 옮김. 11/9 묶음 이름으로 다시 정리]
 
-뇌 모델 학습 조건은 다섯 묶음(A~E)의 11개다. 묶음은 장면 정보(Vision feature, Caption feature)를 쓰는 정도로 나눈다. A는 쓰지 않고, B는 학습 신호로만 쓰고, C는 뇌 경로와 함께 정서 계산에 넣는다. D는 장면 특징으로만 학습해 고정한 encoder 2를 쓴다. D-1, D-2는 C와 같은 계산에 encoder 2의 v̂₂, ĉ₂를 넣고, D-3은 v̂₂, ĉ₂만으로, D-4는 encoder 2의 token H 전체로 정서를 낸다. E는 장면 정보를 Multimodal Model의 중간 표현을 거쳐 전달한다. 묶음 안에서 -1은 사람 평정으로 학습하고, -2는 같은 구조에 distillation(Stimulus 예측 평정)을 더한다. D-3, D-4는 사람 평정으로만 학습한다. E는 두 조건이 head를 고정하느냐로 갈려 -1, -2 대신 E-고정, E-학습이라 부른다. 주 조건은 따로 정하지 않는다 [정함, 11/9 석진 님]. 11/9에 옛 E-1을 D-3으로 옮기고(encoder 2를 D-1과 같이 씀), D-4를 더하고, 옛 F를 E로 당겼다 [정함, 11/9 석진 님. 예비 실행(11/8) 뒤의 변경이라 04에 기록하고 방법에 밝힌다].
+뇌 모델 학습 조건은 다섯 묶음(A~E)의 11개다. 묶음은 장면 정보(Vision feature, Caption feature)를 쓰는 정도로 나눈다. A는 쓰지 않고, B는 학습 신호로만 쓰고, C는 뇌 경로와 함께 정서 계산에 넣는다. D는 장면 특징으로만 학습해 고정한 encoder 2를 쓴다. D-1, D-2는 C와 같은 계산에 encoder 2의 v̂₂, ĉ₂를 넣고, D-3은 v̂₂, ĉ₂만으로, D-4는 encoder 2의 token H 전체로 정서를 낸다. E는 장면 정보를 Multimodal Model의 중간 표현을 거쳐 전달한다. 묶음 안에서 -1은 사람 평정으로 학습하고, -2는 같은 구조에 distillation(Stimulus 예측 평정)을 더한다. D-3, D-4는 사람 평정으로만 학습한다. E는 두 조건이 head를 고정하느냐로 갈려 -1, -2 대신 E-고정, E-학습이라 부른다. 주 조건은 따로 정하지 않는다 [정함, 11/9 석진 님]. 11/17부터 이후 분석과 MC 전이에 쓰는 모델은 A-1, B-1, C-1, D-1, D-3(D-3 짝 포함), D-4다. distillation 조건(A-2, C-2, D-2)과 중간 표현을 쓰는 E(E-고정, E-학습)는 넣지 않는다 [석진 님 결정, 11/17]. 이미 낸 결과는 지우지 않고 기록으로 둔다. 11/9에 옛 E-1을 D-3으로 옮기고(encoder 2를 D-1과 같이 씀), D-4를 더하고, 옛 F를 E로 당겼다 [정함, 11/9 석진 님. 예비 실행(11/8) 뒤의 변경이라 04에 기록하고 방법에 밝힌다].
 
 조건과 별도로 학습하는 모델이 셋 있다. Stimulus Model(Vision + Caption → Emotion, 뇌 없음), encoder 2(Brain → Vision + Caption만 학습), Multimodal Model(Brain + Vision + Caption → Emotion)이다. 이 11개에는 더하기 head와 상호작용 head의 비교, baseline, 대조군, fold와 seed별 반복 학습을 넣지 않았다.
 
@@ -766,6 +766,8 @@
 | Stimulus Model | S4 `stimulus` | Vision + Caption → Emotion. A-2, C-2, D-2의 distillation 목표와 경로 평가(K1)의 head |
 | encoder 2 | `feature_encoder` | Brain → Vision + Caption만 학습. D-1~D-4가 같은 것을 고정해 쓴다 |
 | Multimodal Model | `multimodal` | Brain + Vision + Caption → Emotion. E-고정, E-학습이 맞히는 중간 표현과 head의 출처 |
+
+- distillation 조건은 더 쓰지 않는다 [석진 님 결정, 11/17]: A-2, C-2, D-2의 학습은 모두 끝났다. A-2, C-2는 [사전] 15개의 2-3 (다), (바)이므로 결과를 그대로 보고한다. D-2는 SI로 둔다. 이후 확장(회상 등)과 추가 실행에는 distillation 조건을 넣지 않는다. 결과를 해석할 때 S4 Stimulus Model이 같은 feature의 ridge보다 덜 맞춰졌다는 점(04 기록 칸 11/17)을 한계로 적는다.
 
 #### 1부. 모델 설명
 
@@ -1166,7 +1168,7 @@ C-2에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder�
     - ROI token 경로: 한계가 아니라 설계다. emotion head가 ROI token 경로와 decoded features 경로를 함께 더하므로(5-4) 모든 예측이 특징을 거쳤다고 쓰지 않는다. 바꿔 끼우기가 보여 주는 것은 모델이 맞힌 특징에 얼마나 기대는지다.
     - 학습 영상과 시험 영상의 decoding 정확도 차이: 위의 "남는 주의". 한계로 적는다.
 - 조건과 분석의 구분 [정함, 11/2]: 1-3의 질문에 걸리는 것만 본문에 둔다.
-    - 본문: Brain → Emotion부터 Brain + Decoded Feature → Emotion까지 네 조건의 비교(Brain → Emotion [distillation] 대 Brain → Emotion, Brain → Emotion + Vision + Caption 대 Brain → Emotion, Brain + Decoded Feature → Emotion 대 Brain → Emotion + Vision + Caption, Brain → Emotion + Vision + Caption 대 Brain → Emotion [distillation], 2-3), decoded features와 실제 Vision feature와 Caption feature의 대응(2-1), 40개 block ridge 층별 분석(2-1), 바꿔 끼우기(시각만, 캡션만, 둘 다)와 같은 크기의 무작위 변경 대조(2-2, 1-1), 더하기 head 대 상호작용 head와 결합 계산의 지표(1-2), 영역 다시 학습(1-3), 영역 교란(2-4), 내용 구역 제외 시험과 MC 시청 전이(1-4, 2-3. 회상은 필수 실행 범위 밖, 6-3)
+    - 본문: Brain → Emotion부터 Brain + Decoded Feature → Emotion까지 네 조건의 비교(Brain → Emotion [distillation] 대 Brain → Emotion, Brain → Emotion + Vision + Caption 대 Brain → Emotion, Brain + Decoded Feature → Emotion 대 Brain → Emotion + Vision + Caption, Brain → Emotion + Vision + Caption 대 Brain → Emotion [distillation], 2-3), decoded features와 실제 Vision feature와 Caption feature의 대응(2-1), 40개 block ridge 층별 분석(2-1), 바꿔 끼우기(시각만, 캡션만, 둘 다)와 같은 크기의 무작위 변경 대조(2-2, 1-1), 더하기 head 대 상호작용 head와 결합 계산의 지표(1-2), 영역 다시 학습(1-3), 영역 ablation(2-4), 내용 구역 제외 시험과 MC 시청 전이(1-4, 2-3. 회상은 필수 실행 범위 밖, 6-3)
     - Brain + Decoded Feature → Emotion [distillation] 조건과 그 조건 대 Brain + Decoded Feature → Emotion 비교: 돌리는 것은 핵심 조건이고 해석은 보조다 [정함, 11/7 석진 님]. 이 비교는 6-1 2-3의 (바)로 [사전] 15개와 Holm 보정에 그대로 든다. 보조라고 그 묶음에서 빼지 않는다.
     - 보조와 SI: 쌍 비교(4-2의 보조 점검), 뇌를 받는 모델의 점검(T_BVS 대 Stimulus Model, 뇌 바꿔 끼우기, T_BVS_SHUF, 프로젝트 규칙상 확인용), emotion query 대 평균 pooling(F7), baseline Stimulus Model(3-1, 3-3), 실제 Vision feature와 Caption feature를 head에 넣는 개입, 출력 distillation-시각과 -캡션(E5, 필수 실행 범위 밖), E-고정, E-학습(G16), 경로 평가의 14개 차원판(K1a)
     - 하지 않음: CCA 공통 성분 교체(위)
@@ -1293,7 +1295,7 @@ C-2에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder�
     - Stimulus Model(5-3)과의 관계: 결합 원리만 같다. 가중치를 공유하거나 Stimulus Model의 head를 복사하지 않는다. 경로 평가(K1)에서 Stimulus Model의 head를 decoded features에 얹을 수 있는 조건은 꼴이 같아서가 아니라, decoded features가 Stimulus Model이 학습한 실제 Vision feature와 Caption feature와 같은 차원, 좌표, 전처리에 있기 때문이다(GPT 11/2 정정). PCA를 쓰지 않으므로 두 쪽 모두 같은 표준화를 거친 원래 특징 공간에 있다. 이때 얹는 것은 Stimulus Model의 head이고, ROI 경로까지 포함한 Brain Model의 head가 아니다.
     - 랭크 [정함, 11/3 사용자]: 상호작용 head의 r은 Stimulus Model의 후보 {0, 1, 2, 4, 8}에서 0을 뺀 1, 2, 4, 8 가운데 학습 fold 안 검증으로 고른다. r = 0은 더하기 head이고, 더하기 head는 1-2의 별도 비교 조건이기 때문이다. Kim 2017은 낮은 랭크 곱이라는 방법과 계산을 줄이는 이유를 뒷받침할 뿐, 이 네 값의 근거가 아니다. 상호작용의 복잡도를 제한하려고 미리 정한 탐색 범위라고 밝힌다(GPT 11/2).
     - 해석: 상호작용 head의 성능이 높고 바꿔 끼우기에서 I도 확인되면 "이번 모델과 평가 조건에서 두 decoded features를 결합하는 계산이 예측에 유용했다"고 쓴다. 성능 이득이 없으면 "추가한 상호작용의 이득을 확인하지 못했다"고 쓴다. 어느 결과도 뇌의 인과적 상호작용이나 공유 단서의 양을 뜻하지 않는다. 상호작용 head는 매개변수가 더 많으므로 "매개변수와 무관하게 상호작용이 낫다"고 쓰지 않는다.
-    - Brain + Decoded Feature → Emotion의 기본 head [정함, 11/3 사용자. GPT 11/2 추천, Claude 동의]: 상호작용 head. ROI 교란, 처음 보는 장면 시험, 경로 평가에는 이 head를 쓰고, 더하기 head는 1-2의 비교 조건으로 둔다.
+    - Brain + Decoded Feature → Emotion의 기본 head [정함, 11/3 사용자. GPT 11/2 추천, Claude 동의]: 상호작용 head. ROI ablation, 처음 보는 장면 시험, 경로 평가에는 이 head를 쓰고, 더하기 head는 1-2의 비교 조건으로 둔다.
         - 이유: 상호작용 head는 결합을 허용한 모델이고, 더하기 head는 거기서 곱 항을 뺀 제한 모델이다. 곱 항의 가중치가 0에 가까우면 상호작용 head도 사실상 더하기 계산이 된다. 제한 모델을 기본으로 두면 질문 1-2가 묻는 가능성(같은 decoded visual features의 효과가 decoded caption features에 따라 달라짐)을 처음부터 막는다. 상호작용이 있거나 성능을 높인다고 미리 결론 내리는 것은 아니다.
         - 더하기 head의 성능이 더 좋게 나오면 그 결과를 보고한다. 기본 head를 바꾸려면 0절의 결과를 본 뒤의 변경 규칙을 따른다(11/8).
         - 논문 문장(GPT 11/2안): "두 decoded features의 결합 효과를 검정하기 위해 상호작용을 허용한 head를 Brain + Decoded Feature → Emotion으로 정했다. 같은 입력 경로를 유지하면서 상호작용 항을 제외한 head를 비교 조건으로 사용했다."
@@ -1311,7 +1313,7 @@ C-2에서는 emotion 쪽 loss에 L_distillation도 들어간다. 공유 encoder�
         - 논문 문장(GPT 11/3안): "외부 특징의 일부 방향을 분산 기준으로 미리 제외하지 않고, 원래 특징 전체를 feature decoding의 목표로 사용한다. feature head는 뇌에서 이 목표를 예측하도록 학습한다. 현재 구조와 계산량 추정에서는 별도의 PCA를 추가해야 할 필요가 확인되지 않았다."
 - 5-5. 뇌 모델의 입력: ROI 단위, 지도, 영역 안 표현
     - ROI를 입력 단위로 쓰는 이유 [정함, 11/2 사용자. 11/3 영역 안 표현과 분리해 고침]
-        - 논리: 독립적으로 정의된 뇌 영역(HCP360)을 모델의 공간 사전 구조와 분석 단위로 준다. HCP360 영역은 피질의 구조, 기능, 연결, 지형이 급히 바뀌는 경계로 나뉘고, 영역 분류기가 새 사람에게서 영역의 96.6%를 찾았다(Glasser 외 2016). 그래서 5명이 함께 쓰는 encoder의 공통 단위가 되고, 영역 교란과 영역 다시 학습의 단위와도 같다.
+        - 논리: 독립적으로 정의된 뇌 영역(HCP360)을 모델의 공간 사전 구조와 분석 단위로 준다. HCP360 영역은 피질의 구조, 기능, 연결, 지형이 급히 바뀌는 경계로 나뉘고, 영역 분류기가 새 사람에게서 영역의 96.6%를 찾았다(Glasser 외 2016). 그래서 5명이 함께 쓰는 encoder의 공통 단위가 되고, 영역 ablation과 영역 다시 학습의 단위와도 같다.
         - 두 방식의 차이(GPT 11/2): 전체 voxel 모델은 3D 격자에서 voxel의 조합을 스스로 배운다. ROI 모델은 외부 연구가 독립적으로 정의한 영역으로 voxel을 먼저 묶고, 영역 안의 패턴과 여러 영역 표현의 결합을 배운다.
         - 이 선택의 약점: 중요한 패턴이 영역 경계를 가로지르면 불리하다. 하나의 구조를 고르려고 모든 대안보다 낫다는 것을 보일 필요는 없으므로, 입력 구조의 우열 비교는 이 논문의 범위에 넣지 않는다.
         - ML-BVAE 절제의 자리(11/3 고침): 같은 자료에서 전체 voxel을 깊은 모델에 넣은 판은 HCP360 영역의 칸 평균 입력보다 정서 decoding이 낮았다(5명 평균 miF1 0.462 대 0.505, maF1 0.313 대 0.398, mAP 0.386 대 0.448). 저자들은 높은 차원, 적은 표본, 낮은 신호대잡음비를 이유로 들었다("high data dimensionality, small sample size and low signal-to-noise ratio"). 이것은 ROI를 쓰는 근거가 아니라, 전체 voxel을 쓰는 방식의 일반화가 항상 유리하지는 않았다는 주의 근거다(영역 안 표현, 아래).
@@ -1676,7 +1678,7 @@ r, R², MAE를 정서별로 함께 보고, 셋이 같은 방향을 가리킬 때
 | 2-3 성능 [사전 6] | (가) Brain → Emotion + Vision + Caption 대 Brain → Emotion, (나) Brain + Decoded Feature → Emotion 대 Brain → Emotion + Vision + Caption, (다) Brain → Emotion [distillation] 대 Brain → Emotion, (라) Brain → Emotion [distillation] 대 label smoothing, (마) Brain → Emotion + Vision + Caption 대 Brain → Emotion [distillation], (바) Brain + Decoded Feature → Emotion [distillation] 대 Brain + Decoded Feature → Emotion | (가)만 방향을 예측한다: Brain → Emotion + Vision + Caption이 더 높다. 나머지는 예측하지 않는다(5-1: Brain + Decoded Feature → Emotion을 둔 이유는 성능이 아니다) | (가): "장면 특징을 decoding하게 하자 정서 예측이 나아졌다". Brain → Emotion [distillation]의 이득은 (라)가 나올 때만 Stimulus 예측 평정의 내용 효과로 쓴다(N10) | "이 자료와 조건에서 이득을 확인하지 못했다". 이득이 모든 정서에 고르면 정칙화 효과일 가능성을 함께 쓴다(N10) |
 | 처음 보는 장면 [사전 1] | 내용 구역을 뺀 학습에서 Brain + Decoded Feature → Emotion 대 Brain → Emotion의 "다섯 내용 구역의 평균 성능"(6-2) | Brain + Decoded Feature → Emotion이 더 높다. Horikawa & Kamitani 2017에 우리 설계 논리를 더한 사전 가설 | "다섯 명 중 k명에서, 학습에서 제외한 내용 구역의 평균 성능이 Brain → Emotion보다 높았다. 구역별 결과는 함께 보고했다" | "이 평가에서 추가 이득을 확인하지 못했다". 하락폭 비교는 따로 판정한다 |
 | 1-3 영역 [사전 3] | 1차 시각, 2차 시각, Default 묶음 각각만으로 학습한 Brain → Emotion 모델의 정서별 r 평균을 순열 기준과 비교(6-4a). Brain + Decoded Feature → Emotion의 결과와 나머지 10묶음도 보고 | 세 묶음 모두 순열보다 높다. 성능 순위와 경로 대응은 예상하지 않는다 | "이 묶음의 신호만으로 정서 점수를 예측할 수 있었다" | "이 묶음만으로 정서 점수를 예측한다는 근거를 확인하지 못했다". 신뢰도가 낮은 묶음의 낮은 성능을 "정보 없음"으로 읽지 않는다 |
-| 2-4 영역 [6-4b, Holm 13] | 13묶음마다 입력을 교란해 Brain + Decoded Feature → Emotion과 Brain → Emotion의 성능 하락폭 차이를 직접 검정 | 방향을 정하지 않는다 | "이번 교란 조건에서 두 모델의 해당 네트워크 입력에 대한 민감도가 달랐다" | "민감도 차이를 확인하지 못했다". 한 모델에서만 유의했다는 이유로 두 모델이 다르다고 쓰지 않는다 |
+| 2-4 영역 [6-4b, Holm 13] | 13묶음마다 입력을 바꿔치기하는 ablation으로 Brain + Decoded Feature → Emotion과 Brain → Emotion의 성능 하락폭 차이를 직접 검정 | 방향을 정하지 않는다 | "이번 ablation 조건에서 두 모델의 해당 네트워크 입력에 대한 민감도가 달랐다" | "민감도 차이를 확인하지 못했다". 한 모델에서만 유의했다는 이유로 두 모델이 다르다고 쓰지 않는다 |
 | 1-4 일반화 | 처음 보는 장면은 6-2(경로별 유지는 방향 없이 보고). MC 시청 전이는 6-3. 회상은 탐색적 보조 분석으로 보류 | | | |
 
 
@@ -1736,20 +1738,38 @@ r, R², MAE를 정서별로 함께 보고, 셋이 같은 방향을 가리킬 때
 - Figure: HK에서 가져와 고정한 부분과 MC 자료로 학습한 입력층을 색으로 구분해 그리고, 참가자별로 두 모델의 성능을 나란히 보여 준다.
 - 해석: 성공하면 "참가자별 입력층을 맞춘 뒤 HK의 공유 모델을 MC 시청 자료에도 적용할 수 있었다"고 쓴다. 적응 없는 전이, HK 학습 자체의 이득, 완전히 다른 영상 자료로의 일반화를 입증했다고 쓰지 않는다. 두 자료는 같은 영상 모음을 쓴다. 입력층 학습도 MC 자료를 쓰는 학습이므로 "MC 자료를 쓰지 않은 외부 검증"이라고 부르지 않고, 입력층은 참가자당 수백만 개 가중치이므로 "가벼운 보정"이라고도 부르지 않는다.
 - 선례와의 차이: 참가자별 선형층으로 받은 입력을 공유 모델에 잇는 방식은 MindEye2를 따랐다. MindEye2는 7명으로 미리 학습한 뒤 새 참가자 자료로 미세조정했다(초록. GPT는 방법 2.1절을 근거로 공유 모델까지 미세조정했다고 서술, Claude는 초록만 확인). 우리는 HK에서 배운 공유 부분을 유지할 수 있는지 검사하려고 그 부분을 고정한다. 공유 부분을 고정하고 참가자별 부분만 학습한 선례로 Brain-IT(Beliy 외 2026)이 있다. 새 참가자에게는 voxel embedding만 학습했고, 1시간 분량 자료로 40시간 자료로 학습한 이전 방법과 비슷한 결과를 보고했다(NSD, 이미지 재구성). 이것은 평가 목적에서 나온 선택이고, 고정하는 방식이 더 낫다는 근거가 있는 것은 아니다.
+- MC 전이를 A-1, B-1, C-1, D-1, D-3, D-4로 넓힘 [석진 님 결정, 11/17]: 6-3을 정할 때(11/3) D 묶음이 없어 A-1, C-1만 전이했다. 11/17에 남긴 모델 여섯을 모두 전이한다.
+    - HK 전체 모델: B-1, D-1, D-3, D-4를 개발 영상 전체(O7)로 seed 0만 새로 학습한다(seed는 보류). 규칙은 A-1, C-1의 HK 전체 모델과 같다. 표준 실행이 6 fold 모두 같은 값을 고른 설정은 고정하고(B-1의 learning rate와 λ, D-1의 learning rate), 나머지는 이 분할의 검증으로 고른다. fold 밖 encoder 2는 학습 fold 5개를 하나씩 빼 다섯을 만든다(바깥 fold의 넷과 같은 규칙).
+    - MC 입력층: 모든 모델에 "입력층은 HK에서 배울 때와 같은 것을 맞히게 한다"를 똑같이 적용한다. A-1, B-1, C-1은 조건의 원래 손실로 맞추고 검증 정서 r로 weight decay를 고른다. encoder 2의 입력층은 encoder 2의 원래 손실(Vision, Caption feature MSE)로 맞추고 검증 feature MSE로 고른다. 그래서 D-3, D-4는 MC 정서 평정을 쓰지 않고 정서를 예측한다. D-1은 encoder 2 쪽을 그렇게 맞춘 뒤 정서 encoder 쪽을 D-1의 원래 손실로 맞춘다.
+    - 결과를 읽는 규칙 [석진 님 질문 11/17, 결과 전]: C-1의 MC 이득이 "Caption feature를 더 넣어서" 생긴 것인지 가린다. 시험 때 C-1의 입력은 뇌뿐이지만, MC 입력층을 맞출 때 C-1은 정서 평정에 더해 feature 목표를 받는다. B-1도 같은 feature 목표를 받지만 정서 계산에는 decoded features를 넣지 않는다. 판정은 6-3과 같다(6명 평균 구간이 0을 넘지 않거나 넘음, 6명 가운데 5명 이상 같은 방향, seed 0).
+        - C-1 > B-1이고 B-1 − A-1이 0과 구별되지 않으면: MC 이득은 decoded features를 거쳐 읽는 구조에서 온다.
+        - B-1 − A-1 > 0이고 C-1 − B-1이 0과 구별되지 않으면: MC 이득은 입력층을 맞출 때 받은 feature 목표(추가 학습 신호)에서 온다.
+        - D-3, D-4는 MC 정서 평정 없이 입력층을 맞춘다. A-1과 같거나 높으면 "정서 평정을 읽는 능력이 장면 feature 경로만으로 새 사람에게 옮겨 간다"고 쓴다.
+    - 한계: D-1의 정서 encoder 입력층을 맞출 때 학습 행의 v̂₂, ĉ₂는 같은 MC 자료로 맞춘 encoder 2의 값이다(HK에서는 fold 밖 encoder 2의 값). D-3, D-4가 MC 정서 평정을 보지 않는다는 점은 A-1, C-1보다 불리한 조건으로 함께 적는다.
 - 실행 일정: MC 시청 전이 평가를 11/18 결과에 넣을지는 일정 결정에서 따로 정한다. 과학적 설계(이 절)의 확정과 별개다(11/3 사용자, GPT 11/3).
 - 회상 [정함, 11/3 사용자. GPT 11/3 합의]: 주 분석과 필수 실행 범위에서 뺀다. 추후 하게 되면 탐색적 보조 분석으로 다루며, 결과의 방향과 상관없이 결과와 해석의 한계를 기록한다. 논문에 넣을 때는 탐색적 분석임을 밝히고 예상과 다른 결과도 함께 보고한다. "방향이 맞으면 넣고 반대면 뺀다"는 기준은 쓰지 않는다. 예상과 다른 결과만 빠지면 일반화가 실제보다 넓어 보이기 때문이다(결과를 본 뒤의 발견은 탐색적 결과로 구분, Nosek 외 2018).
     - 회상을 하게 되면 쓸 설계: 시청으로 맞춘 입력층까지 모두 고정하고 회상 뇌 반응을 넣는다. 같은 참가자, 같은 72개 영상에서 시청과 회상의 성능을 나란히 본다. 사람 평정은 떠올린 영상의 규범 평정이고, 떠올린 순간 참가자가 느낀 정서를 맞혔다고 쓰지 않는다.
+    - 회상 분석을 하기로 함 [석진 님 결정, 11/17]. 탐색 분석이고, 아래 질문과 판정은 회상 자료를 보기 전에 적었다.
+        - 질문: 장면이 눈앞에 없이 떠올리기만 할 때도 뇌에서 정서 평정을 읽을 수 있는가? 그때 정서 정보는 어떤 장면 정보와 함께 남는가?
+        - 1. 회상 반응에서 정서 평정을 읽는가. 판정: 6명 평균이 순열 기준보다 높고(p < .05), 6명 가운데 4명 이상이 양수. 되면 "떠올린 뇌 반응에도 그 장면에 매긴 정서 평정을 예측하는 정보가 다시 나타난다", 안 되면 "시청으로 학습한 decoder가 회상 반응으로 옮겨 가지 않았다"(회상 중 정보가 없다고 쓰지 않음).
+        - 2. 회상에서도 C-1 > A-1인가(방향을 정함). 판정: 6명 평균 구간이 0 위, seed 3개 모두, 6명 가운데 5명 이상. 되면 "장면 정보를 거쳐 읽는 구조는 학습 범위를 벗어날수록(장면 종류, 사람, 자극 유무) 더 잘 일반화한다", 안 되면 일반화 주장의 범위를 시청으로 줄인다.
+        - 3. 어떤 정서가 회상에서 남는가(방향을 정함). 예측 변수는 정서마다 Vision feature만으로 예측한 r ÷ Caption feature만으로 예측한 r이고, 뇌 자료 없이 HK 개발 영상에서 계산해 회상 자료를 보기 전에 파일로 고정했다(산출물 imagery_prereg). 판정: 이 값과 "시청 대비 회상에서 떨어진 폭"의 순위 상관이 음수이고 34개 정서 순열 p < .05. 되면 "화면 입력이 없을 때 남는 정서 정보는 상황(의미)으로 정해지는 정서 쪽이다". 판정에 쓰는 모델은 A-1이고 C-1은 같은 계산을 보고한다(01이 모델을 정하지 않아 회상 예측을 보기 전에 정함, 11/17). 시청 r 순위를 통제한 편상관을 판정에 쓰지 않고 함께 적는다.
+        - 4. 어디에 남는가(보조): 네트워크 ablation으로 시청과 회상의 의존도를 비교한다.
+        - 2a. 회상에서 C-1의 이득이 시청보다 큰가 [Claude 추천, 비판 agent 11/17. 회상 결과를 보기 전에 적음, 석진 님 확인 필요]: 높은 수준의 특징이 낮은 수준보다 회상으로 더 잘 옮겨 간다는 보고(Horikawa & Kamitani 2017)만으로도 "회상에서는 의미 쪽이 남는다"가 예상된다. 그래서 정서에 대한 판정은 차이의 차이로 한다. 판정: (C-1 − A-1)회상 − (C-1 − A-1)시청이 6명 평균 구간에서 0보다 크고, 6명 가운데 5명 이상 양수(seed 3개 평균, 같은 72개 영상). 되면 "장면 정보를 거쳐 읽는 구조의 이득은 화면 입력이 없을 때 더 커진다", 안 되면 그 문장을 쓰지 않는다.
+        - 쓰지 않는 것: 떠올릴 때 참가자가 그 정서를 느꼈다. 정답은 떠올린 영상의 규범 평정이다.
+        - 결과(11/17, 수치는 산출물 6-3_imagery의 README). 질문 1: 읽힌다(A-1, C-1 모두 순열 기준보다 높고 6명 모두 양수, 시청의 약 2/3). 질문 2: 확인(C-1 > A-1, 구간 0 위, seed 3개, 6명 모두). 질문 2a: 확인되지 않음(C-1의 이득은 회상과 시청에서 비슷). 질문 3: 확인되지 않음. 판정 규칙의 부호(ρ < 0)가 해석 문장(상황으로 정해지는 정서가 남는다)과 반대로 적혀 있었다(규칙을 적을 때의 오류). 관찰은 해석 문장 쪽(양수)이었지만 시청 r 순위를 통제하면 사라져 어느 쪽으로도 주장하지 않는다. 단서 구간 반응으로 읽은 값은 회상 구간보다 훨씬 낮았다(보조). ablation(보조): 회상에서는 Visual2 의존이 크게 줄고 Default 의존은 늘어 둘이 비슷해졌다.
+        - 회상 전처리 [석진 님 결정, 11/17. 시청 처리의 해부 결과와 FreeSurfer가 Perlmutter에 있어 여기서 한다]: OpenNeuro ds005191에서 ses-anat과 ses-testImagery01~05(6명, run 30개씩)를 받았다. fMRIPrep 25.0.0으로 시청과 같게 처리한다(세션별 phase-difference fieldmap 보정, slice timing 보정, BBR 정합, 출력 T1w 공간). 해부 결과는 시청 처리 것을 재사용한다(--derivatives anat=, Horikawa v3와 같은 기능). 사전 점검에서 전처리된 T1w, 뇌 마스크, 조직 분할, 조직 확률 지도, MNI 변환, fsnative 변환, 피질 표면을 모두 재사용하고, fieldmap 5개로 보정이 계획됨을 확인했다. 반응 추출은 emobrain-common36-v2와 같다(처음 8초 삭제, 같은 잡음 회귀, 4초 지연, ±3 SD clipping, 블록 평균, run 안 블록 z-score, 시청의 분석 마스크와 voxel 순서). 회상 블록은 events의 회상 구간(trial_type 2) 그대로다. MC 원문은 회상 구간 길이를 시청 블록 길이에 2초를 더한 값으로 두었고("The imagery block duration matched the stimulus block duration ... with an additional 2 s"), 시청 블록 + 뒤 2초 휴지인 우리 시청 창과 길이가 같다. 그래서 회상 뒤 2초 휴지는 더하지 않는다. 4초 지연한 창의 끝 2초는 실제 영상 제시의 처음 2초와 겹친다(영상 반응이 늦게 오르므로 작다고 보지만 한계로 적는다). 같은 영상의 회상 5회를 평균한다(MC 원문과 같음). [fMRIPrep 실행은 석진 님 허락 뒤]
     - 회상 직전에 캡션을 읽는 문제(회상에만 해당): MC 회상 시행은 설명문 읽기(그 영상 캡션 20개 중 하나, 영어와 일본어), 준비되면 버튼, 눈을 감고 떠올리기, 실제 영상 보기, 정확도와 생생함 평가 순서다. 준비와 회상 사이가 1초 미만이라 느린 fMRI 신호에서 읽기 반응이 회상 구간에 남을 수 있고, MC 저자들도 둘을 완전히 구분하기 어렵다고 적었다. "모델이 캡션을 받았나"와 "참가자의 뇌가 캡션의 영향을 받았나"는 다른 문제다. 캡션은 모델 입력에 넣지 않는다. 단서 문장만으로 낸 정서 예측은 참고용 보조 결과로만 두고(사전 분석의 r 약 0.6은 캡션 전체로 낸 값이라 단서 문장 하나로는 확인 전), 뇌 예측이 이것을 넘어야 인정한다는 기준이나 이것을 빼서 "순수한 회상 효과"를 만드는 절차로 쓰지 않는다. 준비 구간과 회상 구간의 비교(MC는 준비 구간에서 대부분의 참가자가 우연 수준에 가까웠음)와 사건 시각 기록으로 반응을 얼마나 나눠 추정할 수 있는지 점검한다. 이 항목들은 회상을 할 때 함께 한다.
 
 ### 6-4. 어느 영역 묶음에서 읽히고, 모델은 어느 영역에 기대는가 [정함, 11/3 사용자. GPT 11/3 합의]
 
 - 묶음과 ROI의 관계: ROI 370개(5-5)는 모델의 입력 단위이고 그대로다. 묶음은 분석할 때만 여러 ROI를 한꺼번에 다루는 단위다. 질문(1-3의 "시각망", "transmodal 영역")이 네트워크 수준이고, ROI마다 다시 학습하는 것은 비용이 크며, ROI 하나만 바꾸면 비슷한 정보가 다른 ROI에 남아 효과가 거의 보이지 않기 때문에 묶는다.
 - 묶음: CAB-NP(Ji 외 2019)의 피질 12개 기능 네트워크(1차 시각, 2차 시각, 청각, 체성감각운동, cingulo-opercular, dorsal attention, frontoparietal, Default, 언어, posterior multimodal, ventral multimodal, orbito-affective)와 피질하 해부학적 1묶음(Horikawa 2020의 10개 영역). 모두 13묶음. 피질하 10개를 합친 것을 기능 네트워크라고 부르지 않는다.
-    - 고른 이유: 우리 입력 단위인 HCP360 영역을 단위로, 우리 결과와 독립적인 휴지기 연결성에서 정의하고 검증한 기능 네트워크다. 그래서 현재 모델의 ROI 경계를 그대로 두고 묶음별 예측 가능성과 입력 교란 효과를 볼 수 있다.
-    - Yeo 17도 타당한 대안이다. Horikawa 2020은 보충 Methods(Regions of interest)에서 HCP360과 Yeo 17개 네트워크를 썼다고 밝혔고, 그림 5C에서 네트워크별 평균 encoding 정확도를 모델끼리 비교했다(GPT 11/3 원문 확인. Claude는 본문의 "salience network (8) ... default mode network (16 and 17)" 서술까지 확인). Yeo를 쓰려면 경계가 일치하지 않는 두 지도 사이에서 HCP360 영역마다 네트워크를 배정해야 하고, 겹치는 면적으로 대응을 계산하는 공개 도구도 있다(CBIG network correspondence). 이번 분석은 Horikawa의 네트워크별 encoding 결과를 직접 재현하는 분석이 아니므로 Yeo를 반드시 따라야 하는 경우는 아니다. Horikawa는 네트워크마다 모델을 다시 학습하거나 입력을 교란하지 않았다.
+    - 고른 이유: 우리 입력 단위인 HCP360 영역을 단위로, 우리 결과와 독립적인 휴지기 연결성에서 정의하고 검증한 기능 네트워크다. 그래서 현재 모델의 ROI 경계를 그대로 두고 묶음별 예측 가능성과 입력 ablation 효과를 볼 수 있다.
+    - Yeo 17도 타당한 대안이다. Horikawa 2020은 보충 Methods(Regions of interest)에서 HCP360과 Yeo 17개 네트워크를 썼다고 밝혔고, 그림 5C에서 네트워크별 평균 encoding 정확도를 모델끼리 비교했다(GPT 11/3 원문 확인. Claude는 본문의 "salience network (8) ... default mode network (16 and 17)" 서술까지 확인). Yeo를 쓰려면 경계가 일치하지 않는 두 지도 사이에서 HCP360 영역마다 네트워크를 배정해야 하고, 겹치는 면적으로 대응을 계산하는 공개 도구도 있다(CBIG network correspondence). 이번 분석은 Horikawa의 네트워크별 encoding 결과를 직접 재현하는 분석이 아니므로 Yeo를 반드시 따라야 하는 경우는 아니다. Horikawa는 네트워크마다 모델을 다시 학습하거나 입력을 ablation하지 않았다.
     - 고르는 근거로 쓰지 않는 것: 0단계의 Yeo 7 네트워크별 참가자 간 일치도. 우리 사전 결과로 지도를 고르지 않고(결정 규칙), Yeo 7의 결과로 Yeo 17이나 CAB-NP의 신뢰도를 판단할 수도 없다(GPT 11/3).
-    - Yeo 대응표와 Yeo로 다시 한 분석은 현재 필수 범위에 넣지 않는다. 대응표는 두 지도의 공간적 겹침을 보여 줄 뿐이고, CAB-NP 묶음으로 낸 성능이나 교란 효과를 Yeo 묶음의 결과로 바꿀 수 없다(GPT 11/3).
-- Horikawa 2020과의 관계(본문 확인): Horikawa는 370개 영역마다 그 영역의 voxel만으로 선형 decoder를 따로 학습했다(영역별 decoding, 순열 검정과 영역 수 Bonferroni). 우리의 "그 묶음만으로 학습"은 이것을 네트워크 묶음 단위로 넓히고 딥러닝 모델로 한 것이다. 학습된 모델에서의 입력 교란은 Horikawa에 없는 분석이다.
+    - Yeo 대응표와 Yeo로 다시 한 분석은 현재 필수 범위에 넣지 않는다. 대응표는 두 지도의 공간적 겹침을 보여 줄 뿐이고, CAB-NP 묶음으로 낸 성능이나 ablation 효과를 Yeo 묶음의 결과로 바꿀 수 없다(GPT 11/3).
+- Horikawa 2020과의 관계(본문 확인): Horikawa는 370개 영역마다 그 영역의 voxel만으로 선형 decoder를 따로 학습했다(영역별 decoding, 순열 검정과 영역 수 Bonferroni). 우리의 "그 묶음만으로 학습"은 이것을 네트워크 묶음 단위로 넓히고 딥러닝 모델로 한 것이다. 학습된 모델에서의 입력 ablation은 Horikawa에 없는 분석이다.
 - 6-4a. 어느 영역 묶음에서 정서와 Vision feature와 Caption feature를 읽을 수 있는가 (질문 1-3)
     - Question: 각 묶음의 뇌 반응만으로 사람 평정과 Vision feature, Caption feature를 얼마나 예측할 수 있는가?
     - Why?: 전체 뇌로 잘 예측된다는 결과만으로는 어느 영역의 신호에서 그 예측이 가능한지 알 수 없다. 사람 평정만 보면, 그 영역의 정서 예측이 Vision feature와 Caption feature와 어떻게 이어지는지에 대한 질문이 빠진다.
@@ -1757,27 +1777,27 @@ r, R², MAE를 정서별로 함께 보고, 셋이 같은 방향을 가리킬 때
     - Analysis: Brain → Emotion과 Brain + Decoded Feature → Emotion을 묶음마다 학습한다(13묶음 × 6 fold × seed 3 × 2조건 = 468회). 평가 정서 목록은 2-3과 같이 34개 정서 모두이고, 시험 영상 전체에서 사람 평정이나 예측이 상수라 r을 계산할 수 없는 정서만 빼고 그 수를 보고한다(2-6). 정서 예측을 평가하고, Brain + Decoded Feature → Emotion에서는 이미 나오는 decoded visual features와 decoded caption features도 함께 채점한다(2-1의 지표). 학습 조건은 늘지 않는다. 검정은 6-1의 규칙을 따른다.
     - Figure: 묶음별 정서 예측 성능과 두 특징의 decoding 성능을 나란히 놓는다. 네트워크 이름만 보고 "여기는 시각, 여기는 의미"라고 미리 단정하지 않는다.
     - 해석: "이 묶음의 신호만으로 해당 값을 예측할 수 있었다"까지다. 그 정보가 그곳에만 있거나, 그곳에서 만들어지거나, 다른 영역보다 생물학적으로 중요하다는 뜻이 아니다. 성능은 영역 크기, 신호 품질, 다른 영역과 겹치는 정보의 영향을 받는다(1-3). 신뢰도가 낮은 묶음의 낮은 성능을 "정보 없음"으로 읽지 않는다(K7).
-    - "빼고 다시 학습"은 이번 범위에서 보류한다. "나머지 영역으로 다시 배워도 성능을 유지할 수 있는가"는 단독 학습이나 교란과 다른 질문이고, 중복 정보 때문에 유지되는 것도 해석할 수 있는 결과다(Au 외 2022). 보류하는 이유는 이번에는 묶음별 예측 가능성과 현재 모델의 입력 의존성을 먼저 보기 때문이다(GPT 11/3 정정).
+    - "빼고 다시 학습"은 이번 범위에서 보류한다. "나머지 영역으로 다시 배워도 성능을 유지할 수 있는가"는 단독 학습이나 ablation과 다른 질문이고, 중복 정보 때문에 유지되는 것도 해석할 수 있는 결과다(Au 외 2022). 보류하는 이유는 이번에는 묶음별 예측 가능성과 현재 모델의 입력 의존성을 먼저 보기 때문이다(GPT 11/3 정정).
 - 6-4b. Vision feature와 Caption feature를 학습한 모델은 어느 영역 입력에 더 민감한가 (질문 2-4)
-    - Question: 같은 묶음을 교란했을 때, Brain → Emotion과 Brain + Decoded Feature → Emotion의 정서 예측 성능은 얼마나 달라지는가?
+    - Question: 같은 묶음을 ablation했을 때, Brain → Emotion과 Brain + Decoded Feature → Emotion의 정서 예측 성능은 얼마나 달라지는가?
     - Why?: 어떤 묶음만으로 예측할 수 있더라도, 전체 뇌를 받는 모델이 실제로 그 묶음에 기대는지는 별개의 문제다.
-    - Input: 전체 뇌로 학습한 모델을 고정하고, 고른 묶음의 입력만 같은 참가자의 다른 영상 값으로 바꾼다(0으로 지우지 않음). 교체는 shared self-attention 전에 한다. 그 뒤의 token에는 다른 ROI의 정보도 섞여 있기 때문이다. 한 묶음 안의 ROI들은 같은 참가자의 같은 다른 영상에서 함께 가져와 묶음 안의 대응을 유지한다. 논문 이름은 "네트워크 단위 입력 교란(ROI perturbation)"이다.
+    - Input: 전체 뇌로 학습한 모델을 고정하고, 고른 묶음의 입력만 같은 참가자의 다른 영상 값으로 바꾼다(0으로 지우지 않음). 교체는 shared self-attention 전에 한다. 그 뒤의 token에는 다른 ROI의 정보도 섞여 있기 때문이다. 한 묶음 안의 ROI들은 같은 참가자의 같은 다른 영상에서 함께 가져와 묶음 안의 대응을 유지한다. 논문 이름은 "네트워크 ablation(입력 바꿔치기)"이다. 학습은 다시 하지 않는다. 묶음만으로 다시 학습하는 6-4a, 묶음을 빼고 다시 학습하는 것(보류)과 다른 ablation이다.
     - Analysis: 두 모델에 같은 교체를 적용하고, 각각의 성능 하락과 두 모델 사이의 하락폭 차이를 직접 비교한다. 다시 학습하지 않는다.
     - Figure: 네트워크마다 두 모델의 성능 하락을 나란히 놓고, 하락폭 차이의 불확실성을 함께 보여 준다.
     - 해석: "이번 교체 조건에서 이 모델이 그 묶음의 입력에 더 민감했다"고 쓴다. 교체한 묶음과 나머지 뇌 사이에 부자연스러운 조합이 생길 수 있으므로, 순수한 정보 기여량이나 실제 뇌 손상의 효과로 읽지 않는다(Hooker 외 2021).
 - 보조(필수 아님)
-    - 같은 ROI 수의 무작위 묶음 대조(교란): "ROI 수를 맞춘 대조"라고만 쓴다. ROI 수가 같아도 voxel 수, 신호 품질, 영역 사이 상관은 다르므로 크기와 신호 품질의 영향을 모두 지웠다고 쓰지 않는다. 몇 번 뽑으면 충분한지는 확인하지 않았다.
-    - 피질하 10개의 개별 교란: 특정 피질하 영역에 관한 사전 질문이 생기면 그 질문에 잇고, 아니면 보조로 둔다.
+    - 같은 ROI 수의 무작위 묶음 대조(ablation): "ROI 수를 맞춘 대조"라고만 쓴다. ROI 수가 같아도 voxel 수, 신호 품질, 영역 사이 상관은 다르므로 크기와 신호 품질의 영향을 모두 지웠다고 쓰지 않는다. 몇 번 뽑으면 충분한지는 확인하지 않았다.
+    - 피질하 10개의 개별 ablation: 특정 피질하 영역에 관한 사전 질문이 생기면 그 질문에 잇고, 아니면 보조로 둔다.
     - 주 경사(Margulies 외 2016): 피질 묶음 결과의 위치를 보여 주는 보조 그림으로 둔다. Horikawa 2020은 voxel을 주 경사 위에 놓고 비교했고, GPT에 따르면 voxel 수가 비슷한 10개 구간으로 나눴다(그림 5H와 보충 Methods. Claude는 본문의 "level"까지 확인). 묶음 평균 경사에 우리 decoding 결과를 놓는 것은 Horikawa의 voxel 분석을 재현하는 것이 아니다. 피질하 묶음은 피질 경사에 놓지 않는다.
 - 가설과 결과 문장 [정함, 11/3 사용자. GPT 11/3 합의]
     - 1-3: CAB-NP의 1차 시각, 2차 시각, Default 네트워크 각각의 뇌 반응만으로도 사람 평정을 예측할 수 있으며, 정서별 예측 상관의 평균(6-4의 평가 정서 목록)은 순열 기준보다 높을 것으로 예상한다. 네트워크 사이의 성능 순위와, 정서별로 시각, 캡션 경로 가운데 어느 쪽과 대응하는지는 미리 예상하지 않는다. 일차 확인은 Brain → Emotion 모델로 하고(Vision feature와 Caption feature를 보조 목표로 주기 전에도 그 묶음에서 정서를 읽을 수 있는지), Brain + Decoded Feature → Emotion의 결과도 함께 보고한다. 평균에 대한 예상이고, 어떤 정서에서 나타나는지는 따로 보고한다. Horikawa 2020의 영역별 decoding을 확장한 가설이다. 나머지 10묶음도 계획대로 평가하되 방향을 정하지 않는다. "transmodal 네트워크" 대신 Default를 명시한 것은 다른 네트워크를 포함할지를 결과를 본 뒤 정하지 않기 위해서다.
-    - 2-4: 같은 네트워크 입력을 교란했을 때, Brain + Decoded Feature → Emotion과 Brain → Emotion의 정서 예측 성능 하락폭이 다른지 검정한다. 어느 네트워크에서 어느 모델의 하락폭이 더 클지는 미리 예상하지 않는다. 하락폭 차이 자체를 검정하고, 한 모델에서만 유의했다는 이유로 두 모델이 다르다고 판정하지 않는다.
+    - 2-4: 같은 네트워크 입력을 ablation했을 때, Brain + Decoded Feature → Emotion과 Brain → Emotion의 정서 예측 성능 하락폭이 다른지 검정한다. 어느 네트워크에서 어느 모델의 하락폭이 더 클지는 미리 예상하지 않는다. 하락폭 차이 자체를 검정하고, 한 모델에서만 유의했다는 이유로 두 모델이 다르다고 판정하지 않는다.
     - 결과 문장은 6-1 표의 "1-3 영역", "2-4 영역" 행을 따른다.
 - 두 특징의 decoding 성능은 feature head가 있는 Brain + Decoded Feature → Emotion에서만 평가한다. Brain → Emotion 모델에는 그 출력이 없다.
 - 다중비교: 1-3의 세 검정(1차 시각, 2차 시각, Default)은 6-1의 미리 정한 비교 묶음(Holm, 모두 15개)에 넣는다. 2-4는 13묶음의 하락폭 차이 검정을 한 묶음으로 Holm 보정한다. 나머지 10묶음의 단독 학습 결과, Brain + Decoded Feature → Emotion의 결과, 묶음 안의 정서별 결과는 탐색으로 표시하고 BH-FDR을 쓰며, 보정 묶음(참가자, 묶음, 비교마다 34개 정서 등)을 결과와 함께 밝힌다.
 - 370개 ROI 지도 [정함, 11/13 석진 님. 11/3의 "필수 범위에서 뺌"을 바꿈]: 뇌 그림을 네트워크 13묶음이 아니라 ROI 370개 단위로 낸다. 두 가지다.
     - ROI별 decoding(6-4a의 ROI판): ROI마다 그 ROI의 voxel만으로 정서 34개, Vision feature, Caption feature를 ridge로 decoding한다. 분할은 H2(학습 fold 4개로 학습, 검증 fold로 λ 선택, 시험 fold 예측), λ 후보는 O18의 LAMBDAS다. 정서는 정서마다 그 정서의 검증 r로(N15와 같음), Vision feature와 Caption feature는 묶음마다 검증 fold의 차원별 r 평균으로 하나를 고른다. 지표는 O19와 같이 6 fold를 모은 시험 영상의 r이다. 뇌 모델을 ROI마다 다시 학습하는 것은 횟수(370 × 6 fold)가 많아 하지 않고 ridge로 한다. Horikawa 외(2020)의 영역별 decoding을 우리 분할과 규칙으로 다시 하고 Vision feature와 Caption feature로 넓힌 것이다. 해석은 6-4a와 같이 "그 ROI의 신호만으로 예측할 수 있었다"까지다.
-    - ROI별 교란(6-4b의 ROI판): 6-4b의 교란을 ROI 하나씩에도 적용한다. ROI 하나만 바꾸면 비슷한 정보가 다른 ROI에 남아 효과가 작게 나올 수 있으므로, 작은 효과를 "쓰지 않는다"로 읽지 않는다.
+    - ROI별 ablation(6-4b의 ROI판): 6-4b의 ablation을 ROI 하나씩에도 적용한다. ROI 하나만 바꾸면 비슷한 정보가 다른 ROI에 남아 효과가 작게 나올 수 있으므로, 작은 효과를 "쓰지 않는다"로 읽지 않는다.
     - 네트워크 13묶음의 분석(1-3, 2-4의 미리 정한 검정)은 그대로 둔다. ROI판은 탐색이고 BH-FDR을 쓴다(보정 묶음은 참가자와 목표마다 ROI 370개).
 - 6-4c. 네트워크마다 정서 정보가 어떤 형식으로 있는가 [탐색, 11/16 석진 님. 결과를 본 뒤 더한 분석. [사전] 15개와 Holm 묶음에 넣지 않음]
     - Question: 네트워크의 정서 관련 정보가 장면 내용을 넘어 같은 방향으로 읽히는 축으로 있는가, 내용에 묶인 구분으로 있는가?
@@ -1809,6 +1829,29 @@ r, R², MAE를 정서별로 함께 보고, 셋이 같은 방향을 가리킬 때
     - 해석 범위: 남는 정보는 이 feature가 선형으로 담지 못한 장면 정보(빠진 feature, 비선형 조합)일 수 있다. 정서 경험과 장면 affordance를 구별하지 못한다. 질문 2의 null과는 "맞는다"까지만 쓴다.
     - 함께 확인할 것(비판 agent 11/17): Caption feature 하나로 맞춘 ridge가 범주 평정을 S4 Stimulus Model보다 잘 예측하는 점검 결과가 있다. 같은 지표인지 확인하고, 맞으면 Stimulus Model이 덜 맞춰졌을 수 있다(A-2의 teacher와 K1 head에 영향).
 
+
+- 6-4e. 34개 평균 성능이 비슷한 모델들은 같은 방식으로 정서를 읽는가 [석진 님 요청, 11/17. 결과를 본 뒤 더한 탐색 분석. [사전] 15개와 Holm 묶음에 넣지 않음]
+    - 질문(석진 님 11/17): 성능 자체는 거의 같아도, 모델마다 쓰는 뇌 영역이나 배운 표현이 다르거나, 잘 맞히는 정서가 다를 수 있다.
+    - (가) 정서별 비교(src/s10_per_emotion.py, 저장된 시험 예측만 씀): A-1에 대해 B-1, C-1, D-1, D-3, D-4, E-고정, E-학습의 정서별 차이(HK seed 0, 5명). MC는 C-1 − A-1(seed 3개). distillation 조건은 넣지 않는다(5-A, 11/17).
+        - Q1(판정 있음): C-1 − A-1의 정서별 차이가 HK와 MC에서 같은 정서에서 나타나는가. 34개 정서에서 두 자료의 차이의 Spearman ρ, 정서 이름표 순열 10,000회, 단측. ρ > 0이고 p < .05면 "차이가 큰 정서는 사람과 영상이 바뀌어도 같은 정서다", 아니면 "정서별 차이의 양상은 재현되지 않아 34개 평균 차이 밖의 주장을 하지 않는다".
+          판정에 쓰지 않고 함께 적는 것은 A-1 r을 통제한 편상관이다("A-1이 잘 맞히는 정서일수록 차이가 크다"만으로 재현되는지 보기 위함).
+        - Q2(탐색): 모델마다 BH q < .05인 정서의 수와 방향.
+        - Q3(탐색, 방향 없음): 정서마다 Vision 대 Caption 지수(imagery_prereg, 뇌 없이 고정)와 차이의 Spearman ρ, 양측 순열 p.
+        - 한계: 정서들이 서로 상관되어 있는데 이름표 순열은 정서를 바꿔 쓸 수 있다고 가정한다.
+        - 표에 Cowen & Keltner 2017에서 별도 차원으로 남지 않은 7개(0절, 27개판에서 빼는 정서)를 표시한다.
+    - (나) 네트워크 ablation의 모델 확장(src/s9_perturb_models.py, src/s10_perturb_models.py, 11/17 석진 님 승인): A-1, C-1, B-1, D-4, E-고정, E-학습(seed 0)에 6-4b와 같은 ablation(묶음 13개, 다른 시험 영상 값으로 바꿈, 20회, 같은 배정표)을 건다. A-1, C-1은 6-4b 저장 값과 같아야 한다(확인). 하락폭 차이(모델 − A-1)를 6-4b와 같은 bootstrap으로, Holm은 모델마다 13묶음.
+        - 예측과 판정: D-4는 A-1보다 Visual2 ablation에 더 떨어지고 Default ablation에는 덜 떨어진다. 둘 다 예측 방향이고 Holm p < .05면 맞음, 하나라도 반대 방향으로 Holm p < .05면 반대, 나머지 보류. Visual1(더 떨어짐)과 Cingulo-Opercular(덜 떨어짐)는 함께 보고한다. B-1, E-고정, E-학습은 방향 예측 없이 Holm p < .05인 묶음을 보고한다.
+    - (다) 표현 유사도(같은 실행): 정서 query의 출력 o(정서마다의 선형층에 들어가는 값, E가 Multimodal Model에 맞춘 그 표현)를 같은 fold, 같은 참가자의 시험 영상에서 모델 쌍마다 linear CKA(Kornblith 외 2019)로 비교한다. 참가자마다 6 fold 평균.
+        - 기준: A-1과 A-1 depth2, depth4(같은 설정, encoder block 수만 다름)의 CKA. 판정: 5명 모두 CKA(A-1, 모델)가 그 참가자의 두 기준 가운데 낮은 값보다 낮으면 "A-1과 다른 표현", 5명 모두 그 이상이면 "A-1 변형 수준", 나머지 보류.
+        - 예측: D-4는 A-1과 다른 표현, B-1, E-고정, E-학습은 A-1 변형 수준, C-1은 예측 없음. 한계: seed가 하나라 같은 설정의 seed 사이 CKA가 없다.
+        - D-1, D-3 더함(11/17 석진 님 요청): ablation(입력 바꿔치기)은 방향 예측 없이 Holm p < .05인 묶음을 보고한다. 표현은 D-1만(D-3은 정서 query가 없음) 비교하고 예측은 "A-1과 다른 표현"이다. 같은 실행을 8개 모델로 다시 돌린다.
+            - 결과(11/17): D-1, D-3의 ablation 양상은 C-1, D-4와 같았다. 장면 정보를 정서 계산 경로에 넣는 네 모델(C-1, D-1, D-3, D-4)이 모두 A-1보다 Visual2, Cingulo-Opercular, Default, Language, Visual1에 덜 기댔다. D-1의 표현은 A-1과 달랐다(예측 맞음). 앞선 6개 모델의 값은 그대로 재현됐다.
+        - 결과(11/17, 수치는 산출물 6-4e_perturb_models의 README). A-1, C-1의 ablation 예측은 6-4b 저장 값과 같았다.
+            - ablation: D-4 예측은 반대로 판정됐다. D-4는 Visual2에도 A-1보다 덜 기댔다(Default, Cingulo-Opercular는 예측 방향). D-4와 C-1의 ablation 양상은 거의 같았다(둘 다 Visual2, Cingulo-Opercular, Default, Language에 덜 기댐). B-1은 Visual2에 더 기댔고, E-고정, E-학습은 A-1과 거의 같았다.
+            - 표현: B-1은 A-1 변형 수준(예측 맞음), D-4는 A-1과 다른 표현(예측 맞음), E-고정과 E-학습은 5명 모두 기준보다 낮아 다른 표현으로 판정됐다(예측 틀림. 두 E 모델끼리는 서로 가깝다). C-1이 A-1과 가장 달랐다.
+            - 쓰는 문장: "34개 평균 성능이 비슷해도, 장면 feature decoding을 거쳐 정서를 읽는 모델(C-1, D-4)은 정서 head에 들어가는 표현이 A-1과 다르고 특정 네트워크 하나에 덜 기댔다. 보조 손실만 더한 모델(B-1)과 표현 정렬 모델(E)은 A-1에 가까웠다". seed가 하나라는 점을 함께 쓴다.
+    - (라) MC 개인 모델(src/s8_mc_individual.py, 11/17): 같은 구조를 MC 한 사람의 시청 자료로만 학습한 모델과 6-3 공유 전이 모델을 네트워크 ablation으로 비교한다. 실행 전에 적은 예측은 "개인 모델이 공유 전이보다 연합 영역(Default, Frontoparietal, Cingulo-Opercular, Language)에 더 기대고 시각 영역(Visual1, Visual2)에는 덜 기댄다, 6명 가운데 5명 이상"이다.
+        - 결과(11/17): 예측은 판정 기준에 맞지 않았다. 두 조건(A-1, C-1) 모두 예측 방향인 참가자가 6명 가운데 5명에 못 미쳤다. 네트워크별 차이는 작고 A-1과 C-1에서 방향이 서로 달랐다(ex) Cingulo-Opercular은 A-1에서 개인 모델이 덜 기대고 C-1에서는 더 기댐). 두 모델 모두 가장 크게 기대는 곳은 Visual2였다. 개인 모델의 성능은 공유 전이와 비슷했다. 수치는 산출물 s8_mc_individual의 README에 있다. 판정 규칙의 bootstrap 구간은 코드에 들어가지 않았다. 참가자 수 조건에서 이미 맞지 않아 판정은 같다. 쓰는 문장: "같은 구조를 한 사람의 자료로만 학습해도 공유 전이와 비슷한 성능이 나왔고, 두 모델이 기대는 네트워크의 차이는 작고 사람마다 방향이 달라 개인차가 나오는 네트워크를 이 방법으로 특정하지 못했다".
 
 ## 7단계. 구현 세부(결정 항목 표) [정함, 11/3. 석진 님 결정 없음]
 
@@ -1901,7 +1944,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | 번호 | 정할 것 | 추천 | 이유와 근거 | 상태 |
 | --- | --- | --- | --- | --- |
 | F1 | 왜 딥러닝 | 딥러닝으로 답한다. 선형은 "선형으로도 읽히나"의 기준선 | 사용자 결정. 구조적 이유 둘: 정서마다 다른 영역 구성을 골라 읽기(Horikawa 2020), 시각과 Caption feature의 조합적 결합(Kragel 2019). master R11 | 정함 |
-| F2 | 왜 ROI token과 Transformer | 5-5로 옮김. 370개 ROI token과 공유 self-attention encoder. 이 구조가 다른 구조보다 낫다고는 주장하지 않는다 | token이 필요한 이유: emotion query와 feature query가 영역을 골라 읽고, 네트워크 교란(6-4b)을 token 단위로 한다. 옛 기준선 subroi4 MLP는 칸 평균 입력이라 5-5에 따라 쓰지 않는다(I7, N22). BALE에서 Transformer와 MLP의 차이가 없었다는 점은 구조 주장을 하지 않는 이유로 적는다. brain token, token 사이 self-attention, 학습하는 query의 cross-attention으로 특징을 맞히는 구조는 Brain-IT(Beliy 외 2026)에 선례가 있다. 그 token은 기능 군집 128개이고 우리는 HCP360 + 피질하 10개다(5-5). 선례와 같거나 더 낫다고 쓰지 않는다 | 대체(5-5) |
+| F2 | 왜 ROI token과 Transformer | 5-5로 옮김. 370개 ROI token과 공유 self-attention encoder. 이 구조가 다른 구조보다 낫다고는 주장하지 않는다 | token이 필요한 이유: emotion query와 feature query가 영역을 골라 읽고, 네트워크 ablation(6-4b)을 token 단위로 한다. 옛 기준선 subroi4 MLP는 칸 평균 입력이라 5-5에 따라 쓰지 않는다(I7, N22). BALE에서 Transformer와 MLP의 차이가 없었다는 점은 구조 주장을 하지 않는 이유로 적는다. brain token, token 사이 self-attention, 학습하는 query의 cross-attention으로 특징을 맞히는 구조는 Brain-IT(Beliy 외 2026)에 선례가 있다. 그 token은 기능 군집 128개이고 우리는 HCP360 + 피질하 10개다(5-5). 선례와 같거나 더 낫다고 쓰지 않는다 | 대체(5-5) |
 | F3 | self-attention block | block 1개, pre-LN, head 4, FFN d → 2d → d(GELU), dropout 0.1. 폭 d는 5-5에서 검증 fold로 고른다. block 2개 판을 A-1에서만 민감도로 돌려 보고한다. 본 설계는 결과와 상관없이 바꾸지 않는다 [정함, 11/15 석진 님] | 출처는 GPT 10/30안(implementation_decision 91~95행)이고, 그때의 이유는 "참가자당 학습 영상 약 1,750개에서 키울 근거가 없어 작게 둠"뿐이었다(master R13). 11/9 정정: 가중치를 학습하는 영상은 참가자당 약 1,390개(학습 fold 4개)이고, 검증 fold까지 합치면 약 1,750개다. 11/3 확인한 같은 자료의 선례: GED는 영역마다 64차원 embedding(코드 기본 n = 4의 4³, 우리 ROI token과 같은 자리), ML-BVAE와 EmoGrowth는 뇌 전체의 잠재 표현을 64차원으로 뒀다. 셋 다 64를 고른 이유는 밝히지 않았다. 5-5의 (나)에서는 입력층 가중치가 이 폭에 비례하므로(폭 × 참가자의 voxel 수) 폭의 근거가 더 중요해졌다(11/3 사용자 지적) | 추천 |
 | F4 | emotion query | 학습하는 query 34개, 교차 주의 1층(head 4), 정서마다 선형층과 sigmoid. query끼리 self-attention은 두지 않음(GPT A222 합의) | Horikawa 2020(정서마다 영역 구성이 다름), Query2Label. master R14 | 정함 |
 | F5 | feature head | 학습하는 query 2개(시각, 캡션)가 ROI token을 교차 주의 1층(head 4)로 읽고, 각자 선형층으로 목표 차원(D9)을 decoding | 뇌에서 계층별 Vision feature와 Caption feature를 decoding한 선례(Horikawa & Kamitani 2017, MindCaptioning). 학습하는 query가 brain token을 cross-attention으로 읽어 특징을 맞히는 구조의 선례(Beliy 외 2026). decoding을 어느 영역에서 읽는지 해석할 수 있음. 11/2: 3-2에 따라 시각 query가 둘에서 하나로 | 정함 |
@@ -1981,7 +2024,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | K1a | 경로 평가의 14개 차원판 | 보조 분석. Stimulus Model의 입력은 실제 Vision feature(V-JEPA 2, 5,632차원)와 Caption feature(DeBERTa-large, 4,096차원)이고 표준화는 D9를 따른다. head 꼴은 K1의 Stimulus Model과 같고, 더하기판(a(v) + b(c))과 상호작용판(a(v) + b(c) + U[(Av) ⊙ (Bc)])을 둘 다 학습한다. 랭크 후보는 E2이고 판은 O17처럼 나눈다(더하기판 r = 0, 상호작용판 r ∈ {1, 2, 4, 8}). 출력은 14개 차원의 연속값이고 sigmoid를 쓰지 않으며 손실은 MSE다. 사람 평정은 D_k의 평균과 표준편차로 차원마다 표준화한다(N3). 학습 설정과 선택 경로는 범주를 맞히는 K1의 Stimulus Model과 같다(H3, O16, O17, E3. 04 정할 것 10). AdamW, learning rate와 weight decay 후보(E3), batch 64, 최대 300 epoch로, D_k의 run fold 5개를 안쪽 5겹으로 쓴다. 후보마다 안쪽 검증 MSE의 5겹 평균 곡선이 가장 낮은 epoch를 정하고, 그 epoch에서 14개 차원 Pearson r 평균의 5겹 평균으로 후보를 고른 뒤, 고른 후보와 epoch 수로 D_k 전체에서 다시 학습한다. 손실과 출력만 다른 이유는 사람 평정이 비율이 아니라 1~9점 평균이기 때문이다. 평가에는 K1과 같은 decoded features(ridge와 Brain + Decoded Feature → Emotion, 같은 모델, 같은 fold, 같은 seed)를 넣는다. ROI token 경로는 넣지 않고 뇌 모델은 더 학습하지 않는다. N8 보정은 K1과 같게 보정 전 판과 보정판을 함께 내고, 입력 쪽 통계이므로 K1의 통계를 그대로 쓴다(O34, O35). 보고는 차원마다 시험 영상에 걸친 Pearson r로 세 성능을 나란히 둔다. (1) B4 ridge의 뇌 직접 decoding(주 비교판). (2) 실제 Vision feature와 Caption feature를 넣은 Stimulus Model. 참고값이고 상한이 아니다. (3) decoded features를 넣은 Stimulus Model. ridge판과 Brain + Decoded Feature → Emotion판, 더하기판과 상호작용판, 보정 전과 보정판이다. Stimulus Model의 예측은 fold마다 사람 평정 표준화를 되돌린 뒤 6 fold를 모은다(O20과 같은 이유). K1과 같이 (3)의 판마다 (1)과의 차이와 구간을 같은 시험 영상에서 낸다(O4). 비율("몇 %를 설명했다")은 쓰지 않는다. 차원별 검정은 정서별 결과와 같은 규칙(6-1)으로 탐색으로 표시하고 BH-FDR을 쓰며, 보정 묶음은 참가자마다, 비교마다 14개 차원이다. Holm을 적용하는 [사전] 15개에는 넣지 않는다. 차원별 평정 신뢰도는 [미확인]이다. 개별 평정을 구할 수 없어 계산할 수 없고(2-6), Cowen & Keltner(2017) 본문에서 값을 찾지 못했으며 보충자료는 확인하지 못했다. 신뢰도 값을 분석에 넣거나 빼는 조건으로 쓰지 않는다 | 쓸 수 있는 문장은 "뇌에서 decoding한 장면 특징으로 일부 정서 차원도 예측할 수 있었다"이다. "뇌 모델이 정서 차원 예측에 장면 정보 경로를 썼다"는 쓰지 않는다. 경로 사용은 34개 범주의 교체 분석만 답한다. "범주 결과가 valence나 arousal로 설명된다"와 "설명되지 않는다"도 쓰지 않는다. 보조 분석으로 시작했다. 결과를 보고 지위를 바꾸면 0절의 결과를 본 뒤의 변경 규칙대로 처음에 보조 분석이었다고 밝힌다(11/8). 아직 실행하지 않은 분석은 초록과 본문에서 계획으로만 쓴다. Brain + Decoded Feature → Emotion의 decoded features는 정서 손실의 기울기를 직접 받지 않지만(stop-gradient), 공유 encoder는 34개 정서 학습의 영향을 받으므로 34개 학습과 완전히 무관하다고 쓰지 않는다. ridge판은 정서를 보지 않았다. 다만 두 판은 모델 구조와 학습 자료의 양도 달라서, 두 판의 성능 차이를 34개 학습의 영향으로 읽지 않는다. 뇌 모델을 새로 학습하지 않는 이유는 B4에 있다 | 정함, 11/5 석진 님 |
 | K2 | 다시 학습한 head의 학습 자료 | 학습 fold 안에서 만든 fold 밖 decoded features로 학습 | 학습 영상의 decoded features는 과적합되어 시험 때와 분포가 다름 | 추천 |
 | K3 | 바꿔 끼우기 | 4-2와 5-0으로 옮김. 짝은 같은 시험 fold의 이름표 73개 최근접 영상, 네 조건(원래, 시각만, 캡션만, 둘 다), 결합 지표 I, 같은 크기 무작위 변경 대조. 캡션 TF-IDF 0.4 쌍은 쓰지 않음 |  | 대체(4-2) |
-| K4 | ROI 교란 | 6-4로 옮김(11/3) |  | 대체(6-4) |
+| K4 | ROI ablation | 6-4로 옮김(11/3) |  | 대체(6-4) |
 | K5 | 빼고 다시 학습, 그것만으로 학습 | 6-4로 옮김(11/3) |  | 대체(6-4) |
 | K6 | 크기를 맞춘 무작위 묶음 | 6-4로 옮김(11/3) |  | 대체(6-4) |
 | K7 | 출력별 보고와 신뢰도 | 6-4로 옮김. 6-4a에서 예측 평정과 두 decoded features를 따로 보고. 참가자 간 일치도는 CAB-NP 13묶음으로 다시 계산해 함께 적고, 신뢰도가 낮은 묶음의 낮은 성능을 "정보 없음"으로 읽지 않음 | 0단계의 Yeo 7 값(시각 0.49, Default 0.24, Limbic 0.07)은 지도 선택이나 해석의 근거로 쓰지 않음(6-4) | 대체(6-4) |
@@ -2012,7 +2055,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 5. ridge: Vision feature와 Caption feature decoding(40개 block, 24개 층), 정서 기준선(I7), 14개 차원 ridge(B4)
 6. 뇌 모델 구현, fold 1의 안쪽 자료로 실행 시간 측정(N34), K 확정
 7. 사다리와 필수 대조군 본 실행
-8. 저장된 모델로 하는 분석: 바꿔 끼우기와 쌍 비교(4-2), 경로 평가(K1, K1a), 네트워크 교란(6-4b)
+8. 저장된 모델로 하는 분석: 바꿔 끼우기와 쌍 비교(4-2), 경로 평가(K1, K1a), 네트워크 ablation(6-4b)
 9. 처음 보는 장면(6-2)
 10. 네트워크 단독 학습(6-4a)
 11. MC 시청 전이(6-3, 시점은 일정 결정에서)
@@ -2038,7 +2081,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | Multimodal Model의 중간 표현 비교(G16, E-고정, E-학습) | 162 | fold마다 Multimodal Model 11(후보 3 × learning rate 3 + seed 2), E-고정과 E-학습 각각 8(λ 2 × learning rate 3 + seed 2) × 6 fold. 뇌 표현 복사 대조는 넣지 않음 |
 
 - 가장 큰 묶음은 처음 보는 장면(6-2)이다. 구역마다 설정을 다시 고르기 때문이다(4-3의 규칙: 빠진 구역은 설정 선택에도 쓰지 않음). 시간이 모자라면 L3의 순서로 줄이고, 이 규칙은 바꾸지 않는다.
-- 복셀 압축 비교는 0회다(5-5, 11/3에 뺌). 저장된 모델로 하는 분석(바꿔 끼우기, 쌍 비교, 교란, 경로 평가)은 학습을 더하지 않는다.
+- 복셀 압축 비교는 0회다(5-5, 11/3에 뺌). 저장된 모델로 하는 분석(바꿔 끼우기, 쌍 비교, ablation, 경로 평가)은 학습을 더하지 않는다.
 - 14개 차원 보조 분석(B4, K1a)은 뇌 모델의 GPU 학습을 늘리지 않아 위 표에 넣지 않는다. B4 ridge는 14개 목표 × 5명 × 6 fold = 420개 회귀이고, 주 비교판과 안쪽 5겹판을 각각 낸다. 같은 뇌 입력의 분해를 다시 쓰므로 목표가 늘어도 행렬 곱만 는다(3-2). K1a의 Stimulus Model은 뇌를 받지 않아 fold마다 하나씩이고, 학습 수는 1,362회(후보 45개 × 안쪽 5겹 × 6 fold + 최종 모델 2개 × 6 fold)다(H3, O16). 평가는 학습 없이 실제 Vision feature와 Caption feature 12회(판 2 × 6 fold), ridge decoded features 120회(5명 × 6 fold × 판 2 × 보정 전후 2), Brain + Decoded Feature → Emotion decoded features 360회(ridge의 수 × seed 3)다.
 
 | 번호 | 정할 것 | 추천 | 이유와 근거 | 상태 |
@@ -2059,7 +2102,7 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 
 | 번호 | 정할 것 | 추천 | 이유와 근거 | 상태 |
 | --- | --- | --- | --- | --- |
-| M1 | 실행마다 저장할 것 | config, git commit, 특징 파일 체크섬, split manifest, 체크포인트, 안쪽 선택 기록(d, 입력층 weight decay, 특징 선형층 weight decay, λ, α, r, learning rate, epoch), 시험 예측, decoded features, emotion query와 feature query의 attention 값 | 교란, 바꿔 끼우기, 경로 평가를 저장된 모델로 하기 위해(GPT 대화에서 Perlmutter 지시에 넣기로 한 항목) | 추천 |
+| M1 | 실행마다 저장할 것 | config, git commit, 특징 파일 체크섬, split manifest, 체크포인트, 안쪽 선택 기록(d, 입력층 weight decay, 특징 선형층 weight decay, λ, α, r, learning rate, epoch), 시험 예측, decoded features, emotion query와 feature query의 attention 값 | ablation, 바꿔 끼우기, 경로 평가를 저장된 모델로 하기 위해(GPT 대화에서 Perlmutter 지시에 넣기로 한 항목) | 추천 |
 | M2 | 특징 추출 기록 | V-JEPA 2 checkpoint 해시, 코드 commit, 해상도, 초당 프레임, 클립 길이와 간격, 짧은 영상 처리, 층 번호를 manifest에 | 기존 캐시는 이 기록이 없어 다시 뽑게 됐음(막힘 4, 레포 01 문서 394행) | 추천 |
 | M3 | 결과 폴더 | git에 올리지 않는 project/output/ 아래, 조건 이름 폴더. 요약 표만 커밋 | 파일럿과 같은 규칙(레포 perlmutter README) | 추천 |
 | M4 | GPU 작업 실행 | 석진 님이 실행. Claude Code는 스크립트와 지시서만 | 레포 CLAUDE.md 규칙 | 정함 |
@@ -2329,10 +2372,10 @@ Vision feature와 Caption feature는 3단계에서 모두 정했다(V-JEPA 2 ViT
 | Nosek, Ebersole, DeHaven & Mellor 2018, PNAS | 6-3 | The preregistration revolution. 결과를 보기 전에 정한 확증 분석과, 결과를 본 뒤의 탐색적 발견을 구분해 보고해야 함. 회상을 결과에 따라 넣고 빼지 않는 근거 |
 | Yeo 외 2011, Journal of Neurophysiology | 6-4 | 휴지기 연결성으로 피질을 7개, 17개 네트워크로 나눈 지도. Horikawa 2020이 17개 네트워크를 씀(그림 5C). 6-4의 대안 |
 | Margulies 외 2016, PNAS | 6-4 | 주 경사(principal gradient). 연결성에서 뽑은 첫 축이 감각 영역에서 transmodal 영역(Default)까지 이어짐. Horikawa 2020이 voxel을 이 축 위에 놓고 시각, 의미, 정서 모델을 비교 |
-| Au 외 2022, Data Mining and Knowledge Discovery | 6-4 | 특징 묶음의 중요도. 묶음만으로 학습, 빼고 다시 학습, 고정 모델에서의 교란은 서로 다른 질문에 답함 |
+| Au 외 2022, Data Mining and Knowledge Discovery | 6-4 | 특징 묶음의 중요도. 묶음만으로 학습, 빼고 다시 학습, 고정 모델에서의 ablation은 서로 다른 질문에 답함 |
 | Chen 외 2022(SimKD), CVPR, arXiv 2203.14001 | G16 | student가 teacher의 classifier 직전 표현을 ℓ2로 맞히고(차원이 다르면 projector), teacher의 classifier를 고정해 재사용. teacher와 student가 같은 이미지를 받는 설정(11/3 원문 확인) |
 | Yuan 외 2020, CVPR | G6 | knowledge distillation의 이득 일부가 label smoothing 같은 정칙화로 설명될 수 있다고 봄. 분류 설정이라 우리 연속 점수 설정과 다름(GPT 11/3 제시) |
-| Hooker, Mentch & Zhou 2021, Statistics and Computing | 6-4 | 상관된 입력을 제한 없이 바꾸는 permutation 중요도는 학습 분포 밖으로 외삽하게 만들 수 있음. 교란 결과를 순수한 정보 기여량으로 읽지 않는 근거 |
+| Hooker, Mentch & Zhou 2021, Statistics and Computing | 6-4 | 상관된 입력을 제한 없이 바꾸는 permutation 중요도는 학습 분포 밖으로 외삽하게 만들 수 있음. ablation 결과를 순수한 정보 기여량으로 읽지 않는 근거 |
 
 ## 부록 2. 사전 분석 결과 (10월, 논문 결과에는 쓰지 않고 새 분할로 다시 낸다)
 
