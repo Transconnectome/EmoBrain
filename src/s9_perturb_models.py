@@ -7,6 +7,8 @@
   배정표는 s9_saved_models.donor_table(같은 seed 규칙)이라 6-4b의 A-1, C-1과 같은 배정이다. ROI 370개판은 하지 않는다.
   선형 입력층에서는 입력을 바꾼 것과 ROI token을 바꾼 것이 같다(s9_saved_models 머리말). 모델마다 첫 묶음, 첫 반복에서 입력을 직접 바꾼 결과와 같은지 확인한다.
   D-4는 짝 모델마다 그 모델의 token을 바꾸고 네 예측을 평균한다(S6 ensemble과 같은 평균).
+  D-4 짝 j의 입력은 S6 짝 학습과 같게 encoder 2 j의 학습 영상으로 표준화한 자료(S.prepare_fold의 stats_videos, s6_train._inner_fold_head)에서 만든다.
+  행은 바깥 fold 시험 행과 같은 (참가자, 영상)이고 같은 순서로 맞춘다. 그래서 배정표가 모든 모델에 같다.
 확인: 다시 낸 원래 예측이 S6이 저장한 test_pred.npz와 같다(D-4는 짝마다, 그리고 네 짝 평균이 ensemble과 같다).
 표현: 정서 query의 출력 o(행 × 34 × d, 정서마다의 선형층에 들어가는 값. E-고정, E-학습이 Multimodal Model에 맞춘 그 표현)를 행 × (34·d)로 저장한다.
 저장(--out/outer_fold<k>_seed0/)
@@ -26,6 +28,7 @@ import torch
 import s4_common as c
 import s6_common as S
 import s6_model as M
+import s6_train as T
 import s9_saved_models as S9
 
 CONDS = ("brain_only", "brain_decoded", "brain_only_featdec", "brain_frozen_feature_encoder", "brain_only_repr_frozen", "brain_only_repr_trained")
@@ -102,9 +105,37 @@ def check_direct(m, fd, rows, donors, Tk, idx):
         raise ValueError("token 교체가 입력 교체와 다르다")
 
 
+def load_all(k, s6_dir, device):
+    """s9_saved_models.load_fold와 같은 준비. 짝 모델의 자료를 다시 만들 원자료도 돌려준다."""
+    split = c.load_split()
+    plan = S.load_plan(f"outer_fold{k}", split)
+    y, v, cap = T.load_known(split, plan)
+    brains = S.load_brains(split, list(plan.train) + list(plan.val) + list(plan.test))
+    fd = S.prepare_fold(brains, split, y, v, cap, plan, device=device)
+    saved = np.load(Path(s6_dir) / f"outer_fold{k}" / "plan" / "standardization.npz")
+    for pid, s in fd.voxel_stats.items():
+        if not (np.array_equal(saved[f"voxel_mean:{pid}"], s["mean"]) and np.array_equal(saved[f"voxel_std:{pid}"], s["std"])):
+            raise ValueError(f"fold {k} {pid}: 다시 만든 voxel 표준화가 S6에 저장한 것과 다르다")
+    return split, plan, (brains, y, v, cap), fd
+
+
+def pair_data(split, plan, raw, j, device, fd, rows):
+    """D-4 짝 j의 자료(S6 _inner_fold_head와 같음)와, 바깥 시험 행 순서에 맞춘 그 자료의 행 번호."""
+    brains, y, v, cap = raw
+    hit = [(enc, head, rest) for jj, enc, head, rest in S.inner_plans(plan, split) if jj == j]
+    if len(hit) != 1:
+        raise ValueError(f"짝 {j}의 계획이 없다")
+    _, head_plan, rest = hit[0]
+    fdj = S.prepare_fold(brains, split, y, v, cap, head_plan, device=device, stats_videos=rest)
+    rj = fdj.rows("test")
+    pos = {key: i for i, key in enumerate(zip(fdj.participant_names(rj), fdj.row_video[rj].tolist()))}
+    order = [pos[key] for key in zip(fd.participant_names(rows), fd.row_video[rows].tolist())]
+    return fdj, rj[order]
+
+
 @torch.no_grad()
 def run_fold(k, s6_dir, ref_dirs, device, tmp):
-    split, fd = S9.load_fold(k, s6_dir, device)
+    split, plan, raw, fd = load_all(k, s6_dir, device)
     rows = fd.rows("test")
     donors = S9.donor_table(fd, rows, k, REPEATS)
     units = [u for u in S9.units_table() if u[0] == "group"]
@@ -117,11 +148,18 @@ def run_fold(k, s6_dir, ref_dirs, device, tmp):
         toks, base = [], []
         for d, m in subs:
             inputs[f"{cond}|{d.name}"] = c.sha256(d / "model.pt")
-            Tk = tokens(m, fd, rows)
+            if S.CONDITIONS[cond].paired:
+                fdu, ru = pair_data(split, plan, raw, int(d.name.removeprefix("pair")), device, fd, rows)
+            else:
+                fdu, ru = fd, rows
+            Tk = tokens(m, fdu, ru)
             p, o = head(m, Tk, want_o=True)
-            if len(subs) > 1 and not np.allclose(p.double().cpu().numpy(), saved_p(d / "test_pred.npz", fd, rows), atol=1e-4):
+            if len(subs) > 1 and not np.allclose(p.double().cpu().numpy(), saved_p(d / "test_pred.npz", fdu, ru), atol=1e-4):
                 raise ValueError(f"{d}: 다시 낸 예측이 저장한 짝 예측과 다르다")
-            check_direct(m, fd, rows, donors, Tk, units[0][2])
+            check_direct(m, fdu, ru, donors, Tk, units[0][2])
+            if fdu is not fd:
+                del fdu
+                torch.cuda.empty_cache()
             reprs[cond if len(subs) == 1 else f"{cond}|{d.name}"] = o.float().cpu().numpy()
             toks.append(Tk)
             base.append(p)
