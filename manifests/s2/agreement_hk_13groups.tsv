@@ -1,0 +1,14 @@
+group	group_ko	median	min	max	count
+Posterior-Multimodal	posterior multimodal	0.528434	0.403233	0.577938	7
+Visual2	2차 시각	0.509324	0.297116	0.608652	54
+Visual1	1차 시각	0.483068	0.335219	0.603623	6
+Dorsal-Attention	dorsal attention	0.463259	0.221269	0.595317	23
+Somatomotor	체성감각운동	0.322884	0.151076	0.594883	39
+Language	언어	0.299068	0.0470119	0.575099	23
+Cingulo-Opercular	cingulo-opercular	0.248827	0.0794823	0.617485	56
+Default	Default	0.245592	0.0191534	0.550618	77
+Frontoparietal	frontoparietal	0.206952	0.0785939	0.37777	50
+Auditory	청각	0.182056	0.12412	0.331572	15
+Ventral-Multimodal	ventral multimodal	0.147075	0.0553548	0.224416	4
+Orbito-Affective	orbito-affective	0.141768	0.011903	0.188771	6
+Subcortex	피질하 해부학적 묶음	0.114313	-0.00351185	0.1754	10

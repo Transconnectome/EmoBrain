@@ -1,0 +1,58 @@
+section	item	label	metric_1_name	metric_1_value	metric_2_name	metric_2_value	metric_3_name	metric_3_value	detail
+S6_zero_selected_and_weights	brain_only	A-1: Brain → Emotion	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	57423266.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_only_featdec	B-1: Brain → Emotion + Vision + Caption	n_zero_selected_of_6	1.0	n_lam_or_alpha_zero_of_6	1.0	trainable_params_max_F8	58072610.0	zero_folds=3; lam0_folds=3; d32=0,d64=6
+S6_zero_selected_and_weights	brain_decoded	C-1: Brain + Decoded Feature → Emotion	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	58481526.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_decoded_additive	C-1 (더하기 head): Brain + Decoded Feature → Emotion	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	58403430.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_decoded_grad	C-1 (손실 흐름 허용판): Brain + Decoded Feature → Emotion	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	58481526.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_only_distill	A-2: Brain → Emotion [distillation]	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	57423266.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_decoded_distill	C-2: Brain + Decoded Feature → Emotion [distillation]	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	58481526.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	feature_encoder	Feature Encoder 단독 (Brain → Vision + Caption, encoder 2)	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	58072610.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_frozen_feature_encoder	D-4 (짝 앙상블): 고정 encoder 2 + 정서 head	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	21282.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_decoded_sep	D-1: Brain + Decoded Feature → Emotion (별도 encoder)	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	58481526.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_decoded_sep_distill	D-2: Brain + Decoded Feature → Emotion [distillation] (별도 encoder)	n_zero_selected_of_6	4.0	n_lam_or_alpha_zero_of_6	4.0	trainable_params_max_F8	58481526.0	zero_folds=1,2,3,4; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_features_only	D-3: Decoded Feature → Emotion (OOF)	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	408916.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_features_only_paired	D-3 (짝 앙상블): Decoded Feature → Emotion	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	408916.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	multimodal	Multimodal Model [참고: 실제 Vision+Caption 시험 입력 포함, G16]	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	58045986.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_only_repr_frozen	E-고정: Brain → Emotion [표현 전달, 고정]	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	57421056.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_only_repr_trained	E-학습: Brain → Emotion [표현 전달, 함께 학습]	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	57423266.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	control_label_smoothing	대조군: Brain → Emotion [label smoothing]	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	57423266.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	control_stimulus_shuffle	대조군: Brain → Emotion [섞은 예측 평정]	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	57423266.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	control_feature_shuffle	대조군: Brain → Emotion + Vision + Caption [섞은 특징]	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	58072610.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_only_pool	A-1 (평균 pooling판): Brain → Emotion	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	57404194.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+S6_zero_selected_and_weights	brain_decoded_pool	C-1 (평균 pooling판): Brain + Decoded Feature → Emotion	n_zero_selected_of_6	0.0	n_lam_or_alpha_zero_of_6	0.0	trainable_params_max_F8	58462454.0	zero_folds=none; lam0_folds=none; d32=0,d64=6
+O18_lambda_boundary_counts	s5_decoding:all_64layers_5sub_6fold	logspace(1,6,10)	at_low_end	0.0	at_high_end	0.0	total	1920.0	frac_either_end=0.000000
+O18_lambda_boundary_counts	s5_decoding:vjepa2	logspace(1,6,10)	at_low_end	0.0	at_high_end	0.0	total	1200.0	frac_either_end=0.000000
+O18_lambda_boundary_counts	s5_decoding:deberta	logspace(1,6,10)	at_low_end	0.0	at_high_end	0.0	total	720.0	frac_either_end=0.000000
+O18_lambda_boundary_counts	s5_ridge:emotion_main_34	logspace(1,6,10)	at_low_end	8.0	at_high_end	132.0	total	1020.0	frac_either_end=0.137255
+O18_lambda_boundary_counts	s5_ridge:dimension_main_14	logspace(1,6,10)	at_low_end	0.0	at_high_end	24.0	total	420.0	frac_either_end=0.057143
+O18_lambda_boundary_counts	s5_ridge:emotion_literature_34	logspace(1,6,10)	at_low_end	0.0	at_high_end	89.0	total	1020.0	frac_either_end=0.087255
+O18_lambda_boundary_counts	s5_ridge:dimension_literature_14	logspace(1,6,10)	at_low_end	0.0	at_high_end	6.0	total	420.0	frac_either_end=0.014286
+O18_lambda_boundary_counts	s5_h2020:370roi_x_34emotions	logspace(1,4,20)	at_low_end	17788.0	at_high_end	144154.0	total	377400.0	frac_either_end=0.429099
+O18_lambda_boundary_counts	s5_signal:34emotions	logspace(1,6,10)	at_low_end	523.0	at_high_end	481.0	total	1020.0	frac_either_end=0.984314
+O18_lambda_boundary_counts	s5_zone:excluded_5blocks	logspace(1,6,10)	at_low_end	191.0	at_high_end	757.0	total	5100.0	frac_either_end=0.185882
+O18_lambda_boundary_counts	s5_zone:control_5blocks	logspace(1,6,10)	at_low_end	141.0	at_high_end	731.0	total	5100.0	frac_either_end=0.170980
+O18_lambda_boundary_counts	s5_video:length	logspace(1,6,10)	at_low_end	32.0	at_high_end	91.0	total	204.0	frac_either_end=0.602941
+O18_lambda_boundary_counts	s5_video:lowlevel	logspace(1,6,10)	at_low_end	5.0	at_high_end	22.0	total	204.0	frac_either_end=0.132353
+O18_lambda_boundary_counts	s4_ridge_d12:vjepa2_40blocks_caption_and_lowlevel	8-point ridge grid (S4)	at_low_end	0.0	at_high_end	0.0	total	480.0	frac_either_end=0.000000
+O18_lambda_boundary_counts	s4_ridge_noemo:original_and_no_emotion_words_34emotions	8-point ridge grid (S4)	at_low_end	0.0	at_high_end	0.0	total	408.0	frac_either_end=0.000000
+S4_O16_at_cap_counts	K1a:additive:lr=1e-05	K1a (additive)	n_at_cap	0.0	n_runs	6.0	mean_val_r	0.6097346666666666	mean_epochs=115.0, max_epochs=120
+S4_O16_at_cap_counts	K1a:interaction:lr=1e-05	K1a (interaction)	n_at_cap	0.0	n_runs	6.0	mean_val_r	0.6038051666666667	mean_epochs=105.0, max_epochs=115
+S4_O16_at_cap_counts	Stimulus Model:additive:lr=0.001	Stimulus Model (additive)	n_at_cap	0.0	n_runs	6.0	mean_val_r	0.5340821666666666	mean_epochs=158.2, max_epochs=166
+S4_O16_at_cap_counts	Stimulus Model:all_ranks:lr=0.001	Stimulus Model (all_ranks)	n_at_cap	0.0	n_runs	6.0	mean_val_r	0.5340821666666666	mean_epochs=158.2, max_epochs=166
+S4_O16_at_cap_counts	Stimulus Model:interaction:lr=0.001	Stimulus Model (interaction)	n_at_cap	0.0	n_runs	6.0	mean_val_r	0.4072803333333333	mean_epochs=40.2, max_epochs=46
+S4_O16_at_cap_counts	Stimulus Model:nested_oof:lr=0.001	Stimulus Model (nested_oof)	n_at_cap	0.0	n_runs	6.0	mean_val_r	0.522805	mean_epochs=199.3, max_epochs=209
+S4_O16_at_cap_counts	baseline:all_ranks:lr=0.001	baseline (all_ranks)	n_at_cap	0.0	n_runs	24.0	mean_val_r	0.5334629583333333	mean_epochs=162.9, max_epochs=172
+S4_O16_at_cap_counts	noemo:all_ranks:lr=0.001	noemo (all_ranks)	n_at_cap	0.0	n_runs	6.0	mean_val_r	0.5345989999999999	mean_epochs=154.0, max_epochs=161
+S4_O16_at_cap_counts	zone:all_ranks:lr=0.001	zone (all_ranks)	n_at_cap	0.0	n_runs	60.0	mean_val_r	0.5187977833333333	mean_epochs=197.2, max_epochs=250
+Zone_5block_summary_6_2	s4_stimulus_zone:all_dev_2109	S4 Stimulus Model (5개 내용 구역 제외 vs 대조)	five_block_mean_excluded	0.3287790188231939	five_block_mean_control	0.3759494434016386	diff_excluded_minus_control	-0.04717042457844474	equal-weight mean across 5 content blocks
+Zone_5block_summary_6_2	s4_stimulus_zone:mean_5sub	S4 Stimulus Model (참가자 영상 정합, N11)	five_block_mean_excluded	0.32883031667940565	five_block_mean_control	0.3758321718085035	diff_excluded_minus_control	-0.04700185512909784	equal-weight mean across 5 content blocks
+Zone_5block_summary_6_2	s5_ridge_zone:mean_5sub	S5 Ridge (5개 내용 구역 제외 vs 대조)	five_block_mean_excluded	0.1807166197776077	five_block_mean_control	0.20433783908785713	diff_excluded_minus_control	-0.02362121931024941	equal-weight mean across 5 content blocks
+S4_auxiliary_summaries	s4_ridge_noemo:no_emotion_words	s4_ridge_noemo	metric_primary	0.6351875882352942	metric_secondary	0.662258	n_items	34.0	mean_34emo_r=0.635188, max_frac_lambda_at_ends=0.0000
+S4_auxiliary_summaries	s4_ridge_noemo:original	s4_ridge_noemo	metric_primary	0.6363136470588234	metric_secondary	0.661724	n_items	34.0	mean_34emo_r=0.636314, max_frac_lambda_at_ends=0.0000
+S4_auxiliary_summaries	s4_ridge_noemo_diff:no_emotion_words_minus_original	s4_ridge_noemo_diff	metric_primary	-0.0011260588235294114	metric_secondary	-0.0009709999999999996	n_items	34.0	min_diff=-0.010182, max_diff=0.003593
+S4_auxiliary_summaries	s4_ridge_d12:caption	s4_ridge_d12	metric_primary	0.38916	metric_secondary	0.27039875	n_items	40.0	peak_block=31, min_mean_r2=0.047389 (block 1), mean_r2_blocks_10_20_30_40=0.270399
+S4_auxiliary_summaries	s4_ridge_d12:lowlevel	s4_ridge_d12	metric_primary	0.524368	metric_secondary	0.47976	n_items	40.0	peak_block=17, min_mean_r2=0.250027 (block 1), mean_r2_blocks_10_20_30_40=0.479760
+S4_auxiliary_summaries	s4_window_change_80videos:vjepa2_block_10	s4_window_change_80videos	metric_primary	0.0289663	metric_secondary	0.0282777	n_items	80.0	to_mean=0.007420, other_video=0.999941, n_not_computable=0
+S4_auxiliary_summaries	s4_window_change_80videos:vjepa2_block_20	s4_window_change_80videos	metric_primary	0.0518609	metric_secondary	0.0521585	n_items	80.0	to_mean=0.013637, other_video=1.006450, n_not_computable=0
+S4_auxiliary_summaries	s4_window_change_80videos:vjepa2_block_30	s4_window_change_80videos	metric_primary	0.0286325	metric_secondary	0.0293915	n_items	80.0	to_mean=0.008384, other_video=0.996804, n_not_computable=0
+S4_auxiliary_summaries	s4_window_change_80videos:vjepa2_block_40	s4_window_change_80videos	metric_primary	0.0731088	metric_secondary	0.073439	n_items	80.0	to_mean=0.019414, other_video=1.000970, n_not_computable=0

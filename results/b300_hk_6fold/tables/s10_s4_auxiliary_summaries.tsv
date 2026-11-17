@@ -1,0 +1,10 @@
+analysis	key	metric_primary	metric_secondary	n_items	detail
+s4_ridge_noemo	no_emotion_words	0.6351875882352942	0.662258	34	mean_34emo_r=0.635188, max_frac_lambda_at_ends=0.0000
+s4_ridge_noemo	original	0.6363136470588234	0.661724	34	mean_34emo_r=0.636314, max_frac_lambda_at_ends=0.0000
+s4_ridge_noemo_diff	no_emotion_words_minus_original	-0.0011260588235294114	-0.0009709999999999996	34	min_diff=-0.010182, max_diff=0.003593
+s4_ridge_d12	caption	0.38916	0.27039875	40	peak_block=31, min_mean_r2=0.047389 (block 1), mean_r2_blocks_10_20_30_40=0.270399
+s4_ridge_d12	lowlevel	0.524368	0.47976	40	peak_block=17, min_mean_r2=0.250027 (block 1), mean_r2_blocks_10_20_30_40=0.479760
+s4_window_change_80videos	vjepa2_block_10	0.0289663	0.0282777	80	to_mean=0.007420, other_video=0.999941, n_not_computable=0
+s4_window_change_80videos	vjepa2_block_20	0.0518609	0.0521585	80	to_mean=0.013637, other_video=1.006450, n_not_computable=0
+s4_window_change_80videos	vjepa2_block_30	0.0286325	0.0293915	80	to_mean=0.008384, other_video=0.996804, n_not_computable=0
+s4_window_change_80videos	vjepa2_block_40	0.0731088	0.073439	80	to_mean=0.019414, other_video=1.000970, n_not_computable=0

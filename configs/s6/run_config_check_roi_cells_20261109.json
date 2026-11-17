@@ -1,0 +1,7 @@
+{
+  "note": "11/9 입력층 점검. A-1(brain_only)만, 예비 실행(run_config_prelim_20261108.json)과 같은 d 64, 입력층 weight decay 0.01, learning rate 1e-4, seed 0. 입력층만 ROI마다 좌표 범위를 축마다 둘로 나눈 8칸의 평균(EmoGrowth와 같은 칸 수, 칸 번호는 scripts/s2_roi_cells.sh)을 참가자, ROI마다 선형으로 d차원 token으로 바꾸는 것으로 둔다(s6_model.RoiCellInput). 결과는 S6_OUT=s6_check_roi_cells에 따로 둔다",
+  "k_candidates": [[64, 0.01]],
+  "learning_rates": [0.0001],
+  "seeds": [0],
+  "tokenizer": "roi_cells"
+}

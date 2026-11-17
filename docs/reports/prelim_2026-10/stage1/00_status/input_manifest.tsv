@@ -1,0 +1,12 @@
+input	path	version	status	note
+뇌 B (영역 평균)	/storage/bigdata/EmoBrain_response/prelim/roi_blocks/Horikawa_sub-XX_roi469_*	v3_qc runz → 469 영역 평균 (2026-10-22)	ready	voxel 패턴과 다른 입력. 유효 영역 467~469개
+뇌 B (voxel)	/storage/bigdata/Horikawa/response_t1w/sub-XX/v3_qc/	v3_qc	ready	이번 기준선은 영역 평균부터
+A34	/storage/bigdata/Horikawa/metadata/horikawa_meta_data_with_dimension_binary.csv	2026-01-19	ready	[0,1] 비율 확인
+A14	/scratch/connectome/seokjin14/EmoBrain/project/shared/data/cowen_horikawa_labels.csv	2,185행	ready	분석 영상 결측 7개
+분할	/storage/bigdata/EmoBrain_response/splits/horikawa_rungroup6_v1.tsv	horikawa_rungroup6_v1	ready	기존 무작위 split 은 삭제
+영상 길이	response_t1w/sub-XX/v3/sub-XX_samples.tsv duration_sec		ready	72%가 10초
+저수준 시각 L	/storage/bigdata/EmoBrain_response/prelim/lowlevel_video_features.tsv	33개 (2026-10-22)	ready	
+뇌 전역 요약	/storage/bigdata/EmoBrain_response/prelim/block_stats_Horikawa_sub-XX.tsv	voxel 원자료에서 계산	ready	영역 평균의 평균 아님
+영상 표현 V	없음 (Perlmutter EmoViS 결과 미확인)		blocked	핵심 4·5 보류
+caption 원문	/scratch/connectome/seokjin14/EmoBrain/project/shared/data/caption_ck20.csv	영상당 약 20개	conditional	생성 출처·평정 접근 여부 미확인
+caption 표현 S	없음 (Perlmutter 미확인)		blocked	핵심 4·5 보류

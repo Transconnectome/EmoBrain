@@ -1,0 +1,25 @@
+{
+ "n_rows": 2070,
+ "n_roi_valid": 469,
+ "n_roi_total": 469,
+ "n_a14_observed": 2063,
+ "fold_sizes": {
+  "0": 373,
+  "1": 340,
+  "2": 337,
+  "3": 344,
+  "4": 338,
+  "5": 338
+ },
+ "seconds": 246,
+ "conditions": [
+  "train_mean",
+  "duration",
+  "lowlevel_L",
+  "brain_global",
+  "brain_roi469"
+ ],
+ "split_id": "horikawa_rungroup6_v1",
+ "preprocessing_version": "Horikawa v3_qc (common36, fieldmap 없는 보정, QC D22)",
+ "target_version": "A34=horikawa_meta_data_with_dimension_binary.csv score_0-33 (cowen34_order.txt); A14=cowen_horikawa_labels.csv *_score"
+}

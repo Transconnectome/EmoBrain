@@ -1,0 +1,8 @@
+task	included
+decoding	True
+ridge	True
+soft_bce	True
+signal	True
+zone	True
+video	True
+h2020	True

@@ -1,0 +1,127 @@
+fold,condition,code,display_name,d,input_wd,lr,lam,alpha,rank,feature_wd,zero_selected,lam_is_zero,alpha_is_zero,source_condition,val_score,trainable_params_F8,shared_params_F8,frozen_params_F8,input_weight_params_F8
+1,brain_only,A-1,A-1: Brain → Emotion,64,10.0,0.001,,,,,False,False,False,,0.25949654160193025,57423266.0,54882.0,0.0,57226304.0
+2,brain_only,A-1,A-1: Brain → Emotion,64,10.0,0.001,,,,,False,False,False,,0.25457979057773306,57423266.0,54882.0,0.0,57226304.0
+3,brain_only,A-1,A-1: Brain → Emotion,64,10.0,0.001,,,,,False,False,False,,0.26932249816451237,57423266.0,54882.0,0.0,57226304.0
+4,brain_only,A-1,A-1: Brain → Emotion,64,0.1,0.001,,,,,False,False,False,,0.2442552499894207,57423266.0,54882.0,0.0,57226304.0
+5,brain_only,A-1,A-1: Brain → Emotion,64,1.0,0.001,,,,,False,False,False,,0.2389130843971714,57423266.0,54882.0,0.0,57226304.0
+6,brain_only,A-1,A-1: Brain → Emotion,64,10.0,0.001,,,,,False,False,False,,0.267352898056284,57423266.0,54882.0,0.0,57226304.0
+1,brain_only_featdec,B-1,B-1: Brain → Emotion + Vision + Caption,64,10.0,0.001,0.1,,,,False,False,False,,0.26852100225437825,58072610.0,704226.0,0.0,57226304.0
+2,brain_only_featdec,B-1,B-1: Brain → Emotion + Vision + Caption,64,10.0,0.001,0.1,,,,False,False,False,,0.2595407209439238,58072610.0,704226.0,0.0,57226304.0
+3,brain_only_featdec,B-1,B-1: Brain → Emotion + Vision + Caption,64,10.0,0.001,0.0,,,,True,True,False,brain_only,,58072610.0,704226.0,0.0,57226304.0
+4,brain_only_featdec,B-1,B-1: Brain → Emotion + Vision + Caption,64,0.1,0.001,0.1,,,,False,False,False,,0.24669731481282406,58072610.0,704226.0,0.0,57226304.0
+5,brain_only_featdec,B-1,B-1: Brain → Emotion + Vision + Caption,64,1.0,0.001,0.1,,,,False,False,False,,0.23918231823491834,58072610.0,704226.0,0.0,57226304.0
+6,brain_only_featdec,B-1,B-1: Brain → Emotion + Vision + Caption,64,10.0,0.001,1.0,,,,False,False,False,,0.3244030487928792,58072610.0,704226.0,0.0,57226304.0
+1,brain_decoded,C-1,C-1: Brain + Decoded Feature → Emotion,64,10.0,0.0001,1.0,,2.0,,False,False,False,,0.26242518268926274,58422954.0,1054570.0,0.0,57226304.0
+2,brain_decoded,C-1,C-1: Brain + Decoded Feature → Emotion,64,10.0,0.001,0.1,,8.0,,False,False,False,,0.26669794469130215,58481526.0,1113142.0,0.0,57226304.0
+3,brain_decoded,C-1,C-1: Brain + Decoded Feature → Emotion,64,10.0,0.001,1.0,,1.0,,False,False,False,,0.26665912089571875,58413192.0,1044808.0,0.0,57226304.0
+4,brain_decoded,C-1,C-1: Brain + Decoded Feature → Emotion,64,0.1,0.001,0.1,,8.0,,False,False,False,,0.2630881240842821,58481526.0,1113142.0,0.0,57226304.0
+5,brain_decoded,C-1,C-1: Brain + Decoded Feature → Emotion,64,1.0,0.001,0.1,,8.0,,False,False,False,,0.2319077594840966,58481526.0,1113142.0,0.0,57226304.0
+6,brain_decoded,C-1,C-1: Brain + Decoded Feature → Emotion,64,10.0,0.001,0.1,,1.0,,False,False,False,,0.2671627956369702,58413192.0,1044808.0,0.0,57226304.0
+1,brain_decoded_additive,C-1_additive,C-1 (더하기 head): Brain + Decoded Feature → Emotion,64,10.0,0.0001,1.0,,0.0,,False,False,False,,0.26221673760999903,58403430.0,1035046.0,0.0,57226304.0
+2,brain_decoded_additive,C-1_additive,C-1 (더하기 head): Brain + Decoded Feature → Emotion,64,10.0,0.001,0.1,,0.0,,False,False,False,,0.26407012371291555,58403430.0,1035046.0,0.0,57226304.0
+3,brain_decoded_additive,C-1_additive,C-1 (더하기 head): Brain + Decoded Feature → Emotion,64,10.0,0.001,1.0,,0.0,,False,False,False,,0.26559334242984545,58403430.0,1035046.0,0.0,57226304.0
+4,brain_decoded_additive,C-1_additive,C-1 (더하기 head): Brain + Decoded Feature → Emotion,64,0.1,0.001,0.1,,0.0,,False,False,False,,0.2604795832721126,58403430.0,1035046.0,0.0,57226304.0
+5,brain_decoded_additive,C-1_additive,C-1 (더하기 head): Brain + Decoded Feature → Emotion,64,1.0,0.001,0.1,,0.0,,False,False,False,,0.22808918552911997,58403430.0,1035046.0,0.0,57226304.0
+6,brain_decoded_additive,C-1_additive,C-1 (더하기 head): Brain + Decoded Feature → Emotion,64,10.0,0.001,0.1,,0.0,,False,False,False,,0.26473143639376023,58403430.0,1035046.0,0.0,57226304.0
+1,brain_decoded_grad,C-1_grad,C-1 (손실 흐름 허용판): Brain + Decoded Feature → Emotion,64,10.0,0.001,0.1,,8.0,,False,False,False,,0.2947001927637425,58481526.0,1113142.0,0.0,57226304.0
+2,brain_decoded_grad,C-1_grad,C-1 (손실 흐름 허용판): Brain + Decoded Feature → Emotion,64,10.0,0.001,1.0,,1.0,,False,False,False,,0.2881827772079054,58413192.0,1044808.0,0.0,57226304.0
+3,brain_decoded_grad,C-1_grad,C-1 (손실 흐름 허용판): Brain + Decoded Feature → Emotion,64,10.0,0.001,0.1,,1.0,,False,False,False,,0.30875723988631776,58413192.0,1044808.0,0.0,57226304.0
+4,brain_decoded_grad,C-1_grad,C-1 (손실 흐름 허용판): Brain + Decoded Feature → Emotion,64,0.1,0.001,0.1,,8.0,,False,False,False,,0.29049574876902506,58481526.0,1113142.0,0.0,57226304.0
+5,brain_decoded_grad,C-1_grad,C-1 (손실 흐름 허용판): Brain + Decoded Feature → Emotion,64,1.0,0.001,0.1,,8.0,,False,False,False,,0.27407480235195497,58481526.0,1113142.0,0.0,57226304.0
+6,brain_decoded_grad,C-1_grad,C-1 (손실 흐름 허용판): Brain + Decoded Feature → Emotion,64,10.0,0.001,0.1,,1.0,,False,False,False,,0.2930093083810373,58413192.0,1044808.0,0.0,57226304.0
+1,brain_only_distill,A-2,A-2: Brain → Emotion [distillation],64,10.0,0.0001,,0.5,,,False,False,False,,0.3064694558853689,57423266.0,54882.0,0.0,57226304.0
+2,brain_only_distill,A-2,A-2: Brain → Emotion [distillation],64,10.0,0.0001,,0.5,,,False,False,False,,0.28523273658000714,57423266.0,54882.0,0.0,57226304.0
+3,brain_only_distill,A-2,A-2: Brain → Emotion [distillation],64,10.0,0.0001,,0.5,,,False,False,False,,0.3050807894259385,57423266.0,54882.0,0.0,57226304.0
+4,brain_only_distill,A-2,A-2: Brain → Emotion [distillation],64,0.1,0.001,,0.25,,,False,False,False,,0.2508100100223985,57423266.0,54882.0,0.0,57226304.0
+5,brain_only_distill,A-2,A-2: Brain → Emotion [distillation],64,1.0,0.001,,0.25,,,False,False,False,,0.24409102990334713,57423266.0,54882.0,0.0,57226304.0
+6,brain_only_distill,A-2,A-2: Brain → Emotion [distillation],64,10.0,0.0001,,0.5,,,False,False,False,,0.3071444572263438,57423266.0,54882.0,0.0,57226304.0
+1,brain_decoded_distill,C-2,C-2: Brain + Decoded Feature → Emotion [distillation],64,10.0,0.0001,1.0,0.5,2.0,,False,False,False,,0.3055635102813884,58422954.0,1054570.0,0.0,57226304.0
+2,brain_decoded_distill,C-2,C-2: Brain + Decoded Feature → Emotion [distillation],64,10.0,0.0001,0.1,0.5,8.0,,False,False,False,,0.29114488359312,58481526.0,1113142.0,0.0,57226304.0
+3,brain_decoded_distill,C-2,C-2: Brain + Decoded Feature → Emotion [distillation],64,10.0,0.0001,1.0,0.5,1.0,,False,False,False,,0.3023332357238111,58413192.0,1044808.0,0.0,57226304.0
+4,brain_decoded_distill,C-2,C-2: Brain + Decoded Feature → Emotion [distillation],64,0.1,0.001,0.1,0.5,8.0,,False,False,False,,0.26701303883741045,58481526.0,1113142.0,0.0,57226304.0
+5,brain_decoded_distill,C-2,C-2: Brain + Decoded Feature → Emotion [distillation],64,1.0,0.001,0.1,0.5,8.0,,False,False,False,,0.2594564049817203,58481526.0,1113142.0,0.0,57226304.0
+6,brain_decoded_distill,C-2,C-2: Brain + Decoded Feature → Emotion [distillation],64,10.0,0.0001,0.1,0.5,1.0,,False,False,False,,0.3096722503562046,58413192.0,1044808.0,0.0,57226304.0
+1,feature_encoder,encoder_2,"Feature Encoder 단독 (Brain → Vision + Caption, encoder 2)",64,10.0,0.0001,,,,,False,False,False,,-0.9561585187911987,58072610.0,704226.0,0.0,57226304.0
+2,feature_encoder,encoder_2,"Feature Encoder 단독 (Brain → Vision + Caption, encoder 2)",64,10.0,0.0001,,,,,False,False,False,,-0.920714259147644,58072610.0,704226.0,0.0,57226304.0
+3,feature_encoder,encoder_2,"Feature Encoder 단독 (Brain → Vision + Caption, encoder 2)",64,10.0,0.0001,,,,,False,False,False,,-0.9133270978927612,58072610.0,704226.0,0.0,57226304.0
+4,feature_encoder,encoder_2,"Feature Encoder 단독 (Brain → Vision + Caption, encoder 2)",64,0.1,0.001,,,,,False,False,False,,-0.9102092385292053,58072610.0,704226.0,0.0,57226304.0
+5,feature_encoder,encoder_2,"Feature Encoder 단독 (Brain → Vision + Caption, encoder 2)",64,1.0,0.001,,,,,False,False,False,,-0.9513182640075684,58072610.0,704226.0,0.0,57226304.0
+6,feature_encoder,encoder_2,"Feature Encoder 단독 (Brain → Vision + Caption, encoder 2)",64,10.0,0.0001,,,,,False,False,False,,-0.9281328320503235,58072610.0,704226.0,0.0,57226304.0
+1,brain_frozen_feature_encoder,D-4,D-4 (짝 앙상블): 고정 encoder 2 + 정서 head,64,10.0,0.001,,,,,False,False,False,,0.2750250580375828,21282.0,21282.0,58072610.0,0.0
+2,brain_frozen_feature_encoder,D-4,D-4 (짝 앙상블): 고정 encoder 2 + 정서 head,64,10.0,0.001,,,,,False,False,False,,0.25609943765380255,21282.0,21282.0,58072610.0,0.0
+3,brain_frozen_feature_encoder,D-4,D-4 (짝 앙상블): 고정 encoder 2 + 정서 head,64,10.0,0.001,,,,,False,False,False,,0.2667237700971965,21282.0,21282.0,58072610.0,0.0
+4,brain_frozen_feature_encoder,D-4,D-4 (짝 앙상블): 고정 encoder 2 + 정서 head,64,0.1,0.0001,,,,,False,False,False,,0.2521737805438204,21282.0,21282.0,58072610.0,0.0
+5,brain_frozen_feature_encoder,D-4,D-4 (짝 앙상블): 고정 encoder 2 + 정서 head,64,1.0,0.001,,,,,False,False,False,,0.24269918041848343,21282.0,21282.0,58072610.0,0.0
+6,brain_frozen_feature_encoder,D-4,D-4 (짝 앙상블): 고정 encoder 2 + 정서 head,64,10.0,0.0001,,,,,False,False,False,,0.2585825205741864,21282.0,21282.0,58072610.0,0.0
+1,brain_decoded_sep,D-1,D-1: Brain + Decoded Feature → Emotion (별도 encoder),64,10.0,1e-05,1.0,,1.0,,False,False,False,,0.3165382469921088,58413192.0,1044808.0,0.0,57226304.0
+2,brain_decoded_sep,D-1,D-1: Brain + Decoded Feature → Emotion (별도 encoder),64,10.0,1e-05,1.0,,2.0,,False,False,False,,0.2894011164800988,58422954.0,1054570.0,0.0,57226304.0
+3,brain_decoded_sep,D-1,D-1: Brain + Decoded Feature → Emotion (별도 encoder),64,10.0,1e-05,1.0,,4.0,,False,False,False,,0.309682689416115,58442478.0,1074094.0,0.0,57226304.0
+4,brain_decoded_sep,D-1,D-1: Brain + Decoded Feature → Emotion (별도 encoder),64,0.1,1e-05,1.0,,2.0,,False,False,False,,0.29874235913458336,58422954.0,1054570.0,0.0,57226304.0
+5,brain_decoded_sep,D-1,D-1: Brain + Decoded Feature → Emotion (별도 encoder),64,1.0,1e-05,1.0,,4.0,,False,False,False,,0.2675661254681271,58442478.0,1074094.0,0.0,57226304.0
+6,brain_decoded_sep,D-1,D-1: Brain + Decoded Feature → Emotion (별도 encoder),64,10.0,1e-05,1.0,,8.0,,False,False,False,,0.29622420320603987,58481526.0,1113142.0,0.0,57226304.0
+1,brain_decoded_sep_distill,D-2,D-2: Brain + Decoded Feature → Emotion [distillation] (별도 encoder),64,10.0,1e-05,1.0,0.0,1.0,,True,False,True,brain_decoded_sep,,58413192.0,1044808.0,0.0,57226304.0
+2,brain_decoded_sep_distill,D-2,D-2: Brain + Decoded Feature → Emotion [distillation] (별도 encoder),64,10.0,1e-05,1.0,0.0,2.0,,True,False,True,brain_decoded_sep,,58422954.0,1054570.0,0.0,57226304.0
+3,brain_decoded_sep_distill,D-2,D-2: Brain + Decoded Feature → Emotion [distillation] (별도 encoder),64,10.0,1e-05,1.0,0.0,4.0,,True,False,True,brain_decoded_sep,,58442478.0,1074094.0,0.0,57226304.0
+4,brain_decoded_sep_distill,D-2,D-2: Brain + Decoded Feature → Emotion [distillation] (별도 encoder),64,0.1,1e-05,1.0,0.0,2.0,,True,False,True,brain_decoded_sep,,58422954.0,1054570.0,0.0,57226304.0
+5,brain_decoded_sep_distill,D-2,D-2: Brain + Decoded Feature → Emotion [distillation] (별도 encoder),64,1.0,0.0001,1.0,0.25,4.0,,False,False,False,,0.2705557730953329,58442478.0,1074094.0,0.0,57226304.0
+6,brain_decoded_sep_distill,D-2,D-2: Brain + Decoded Feature → Emotion [distillation] (별도 encoder),64,10.0,0.0001,1.0,0.25,8.0,,False,False,False,,0.29660066034476895,58481526.0,1113142.0,0.0,57226304.0
+1,brain_features_only,D-3,D-3: Decoded Feature → Emotion (OOF),64,10.0,0.0001,,,1.0,,False,False,False,,0.307547513112979,340582.0,340582.0,58072610.0,0.0
+2,brain_features_only,D-3,D-3: Decoded Feature → Emotion (OOF),64,10.0,0.0001,,,8.0,,False,False,False,,0.2848765976044601,408916.0,408916.0,58072610.0,0.0
+3,brain_features_only,D-3,D-3: Decoded Feature → Emotion (OOF),64,10.0,0.0001,,,1.0,,False,False,False,,0.3073278101157561,340582.0,340582.0,58072610.0,0.0
+4,brain_features_only,D-3,D-3: Decoded Feature → Emotion (OOF),64,0.1,1e-05,,,8.0,,False,False,False,,0.2860066133662447,408916.0,408916.0,58072610.0,0.0
+5,brain_features_only,D-3,D-3: Decoded Feature → Emotion (OOF),64,1.0,1e-05,,,8.0,,False,False,False,,0.2624497295602153,408916.0,408916.0,58072610.0,0.0
+6,brain_features_only,D-3,D-3: Decoded Feature → Emotion (OOF),64,10.0,0.0001,,,8.0,,False,False,False,,0.28802794553626476,408916.0,408916.0,58072610.0,0.0
+1,brain_features_only_paired,D-3_paired,D-3 (짝 앙상블): Decoded Feature → Emotion,64,10.0,0.0001,,,8.0,,False,False,False,,0.25681339657769553,408916.0,408916.0,58072610.0,0.0
+2,brain_features_only_paired,D-3_paired,D-3 (짝 앙상블): Decoded Feature → Emotion,64,10.0,0.0001,,,8.0,,False,False,False,,0.24276361692264534,408916.0,408916.0,58072610.0,0.0
+3,brain_features_only_paired,D-3_paired,D-3 (짝 앙상블): Decoded Feature → Emotion,64,10.0,0.0001,,,4.0,,False,False,False,,0.2565572231326595,369868.0,369868.0,58072610.0,0.0
+4,brain_features_only_paired,D-3_paired,D-3 (짝 앙상블): Decoded Feature → Emotion,64,0.1,0.0001,,,0.0,,False,False,False,,0.26943300360086764,,,,
+5,brain_features_only_paired,D-3_paired,D-3 (짝 앙상블): Decoded Feature → Emotion,64,1.0,0.0001,,,0.0,,False,False,False,,0.25621595438642686,,,,
+6,brain_features_only_paired,D-3_paired,D-3 (짝 앙상블): Decoded Feature → Emotion,64,10.0,0.0001,,,8.0,,False,False,False,,0.2596678461729577,408916.0,408916.0,58072610.0,0.0
+1,multimodal,Multimodal_ref,"Multimodal Model [참고: 실제 Vision+Caption 시험 입력 포함, G16]",64,10.0,0.001,,,,0.01,False,False,False,,0.5719124506736406,58045986.0,677602.0,0.0,57226304.0
+2,multimodal,Multimodal_ref,"Multimodal Model [참고: 실제 Vision+Caption 시험 입력 포함, G16]",64,10.0,0.001,,,,0.0001,False,False,False,,0.5537653564925644,58045986.0,677602.0,0.0,57226304.0
+3,multimodal,Multimodal_ref,"Multimodal Model [참고: 실제 Vision+Caption 시험 입력 포함, G16]",64,10.0,0.001,,,,0.001,False,False,False,,0.563128784336092,58045986.0,677602.0,0.0,57226304.0
+4,multimodal,Multimodal_ref,"Multimodal Model [참고: 실제 Vision+Caption 시험 입력 포함, G16]",64,0.1,0.0001,,,,0.01,False,False,False,,0.335453427766813,58045986.0,677602.0,0.0,57226304.0
+5,multimodal,Multimodal_ref,"Multimodal Model [참고: 실제 Vision+Caption 시험 입력 포함, G16]",64,1.0,0.001,,,,0.01,False,False,False,,0.3250366394287766,58045986.0,677602.0,0.0,57226304.0
+6,multimodal,Multimodal_ref,"Multimodal Model [참고: 실제 Vision+Caption 시험 입력 포함, G16]",64,10.0,0.001,,,,0.0001,False,False,False,,0.5582334269115251,58045986.0,677602.0,0.0,57226304.0
+1,brain_only_repr_frozen,E-고정,"E-고정: Brain → Emotion [표현 전달, 고정]",64,10.0,0.001,0.1,,,,False,False,False,,0.2753161428401557,57421056.0,52672.0,2210.0,57226304.0
+2,brain_only_repr_frozen,E-고정,"E-고정: Brain → Emotion [표현 전달, 고정]",64,10.0,0.001,0.1,,,,False,False,False,,0.2582179949961767,57421056.0,52672.0,2210.0,57226304.0
+3,brain_only_repr_frozen,E-고정,"E-고정: Brain → Emotion [표현 전달, 고정]",64,10.0,0.001,0.1,,,,False,False,False,,0.27402795487265996,57421056.0,52672.0,2210.0,57226304.0
+4,brain_only_repr_frozen,E-고정,"E-고정: Brain → Emotion [표현 전달, 고정]",64,0.1,0.001,0.1,,,,False,False,False,,0.24566280380650554,57421056.0,52672.0,2210.0,57226304.0
+5,brain_only_repr_frozen,E-고정,"E-고정: Brain → Emotion [표현 전달, 고정]",64,1.0,0.001,1.0,,,,False,False,False,,0.23315547078898077,57421056.0,52672.0,2210.0,57226304.0
+6,brain_only_repr_frozen,E-고정,"E-고정: Brain → Emotion [표현 전달, 고정]",64,10.0,0.001,0.1,,,,False,False,False,,0.27045517376305156,57421056.0,52672.0,2210.0,57226304.0
+1,brain_only_repr_trained,E-학습,"E-학습: Brain → Emotion [표현 전달, 함께 학습]",64,10.0,0.001,0.1,,,,False,False,False,,0.28213859407117675,57423266.0,54882.0,0.0,57226304.0
+2,brain_only_repr_trained,E-학습,"E-학습: Brain → Emotion [표현 전달, 함께 학습]",64,10.0,0.001,0.1,,,,False,False,False,,0.2658184447175167,57423266.0,54882.0,0.0,57226304.0
+3,brain_only_repr_trained,E-학습,"E-학습: Brain → Emotion [표현 전달, 함께 학습]",64,10.0,0.001,0.1,,,,False,False,False,,0.27806216215410967,57423266.0,54882.0,0.0,57226304.0
+4,brain_only_repr_trained,E-학습,"E-학습: Brain → Emotion [표현 전달, 함께 학습]",64,0.1,0.001,1.0,,,,False,False,False,,0.24912346944783276,57423266.0,54882.0,0.0,57226304.0
+5,brain_only_repr_trained,E-학습,"E-학습: Brain → Emotion [표현 전달, 함께 학습]",64,1.0,0.001,1.0,,,,False,False,False,,0.23991438216186803,57423266.0,54882.0,0.0,57226304.0
+6,brain_only_repr_trained,E-학습,"E-학습: Brain → Emotion [표현 전달, 함께 학습]",64,10.0,0.001,0.1,,,,False,False,False,,0.2732882724071562,57423266.0,54882.0,0.0,57226304.0
+1,control_label_smoothing,ctrl_label_smoothing,대조군: Brain → Emotion [label smoothing],64,10.0,0.0001,,0.5,,,False,False,False,,0.2933044775717053,57423266.0,54882.0,0.0,57226304.0
+2,control_label_smoothing,ctrl_label_smoothing,대조군: Brain → Emotion [label smoothing],64,10.0,0.0001,,0.5,,,False,False,False,,0.27298737453525496,57423266.0,54882.0,0.0,57226304.0
+3,control_label_smoothing,ctrl_label_smoothing,대조군: Brain → Emotion [label smoothing],64,10.0,0.0001,,0.5,,,False,False,False,,0.3017107766967461,57423266.0,54882.0,0.0,57226304.0
+4,control_label_smoothing,ctrl_label_smoothing,대조군: Brain → Emotion [label smoothing],64,0.1,0.001,,0.25,,,False,False,False,,0.2425067216737959,57423266.0,54882.0,0.0,57226304.0
+5,control_label_smoothing,ctrl_label_smoothing,대조군: Brain → Emotion [label smoothing],64,1.0,0.001,,0.25,,,False,False,False,,0.23882586741253373,57423266.0,54882.0,0.0,57226304.0
+6,control_label_smoothing,ctrl_label_smoothing,대조군: Brain → Emotion [label smoothing],64,10.0,0.0001,,0.5,,,False,False,False,,0.28878889232294325,57423266.0,54882.0,0.0,57226304.0
+1,control_stimulus_shuffle,ctrl_stimulus_shuffle,대조군: Brain → Emotion [섞은 예측 평정],64,10.0,0.001,,0.25,,,False,False,False,,0.25828706898915155,57423266.0,54882.0,0.0,57226304.0
+2,control_stimulus_shuffle,ctrl_stimulus_shuffle,대조군: Brain → Emotion [섞은 예측 평정],64,10.0,0.001,,0.25,,,False,False,False,,0.2515362281924801,57423266.0,54882.0,0.0,57226304.0
+3,control_stimulus_shuffle,ctrl_stimulus_shuffle,대조군: Brain → Emotion [섞은 예측 평정],64,10.0,0.001,,0.25,,,False,False,False,,0.2610543959574264,57423266.0,54882.0,0.0,57226304.0
+4,control_stimulus_shuffle,ctrl_stimulus_shuffle,대조군: Brain → Emotion [섞은 예측 평정],64,0.1,0.001,,0.25,,,False,False,False,,0.23673043766607432,57423266.0,54882.0,0.0,57226304.0
+5,control_stimulus_shuffle,ctrl_stimulus_shuffle,대조군: Brain → Emotion [섞은 예측 평정],64,1.0,0.001,,0.25,,,False,False,False,,0.2357441582344102,57423266.0,54882.0,0.0,57226304.0
+6,control_stimulus_shuffle,ctrl_stimulus_shuffle,대조군: Brain → Emotion [섞은 예측 평정],64,10.0,0.001,,0.25,,,False,False,False,,0.2601199293436133,57423266.0,54882.0,0.0,57226304.0
+1,control_feature_shuffle,ctrl_feature_shuffle,대조군: Brain → Emotion + Vision + Caption [섞은 특징],64,10.0,0.001,0.1,,,,False,False,False,,0.2603708043070263,58072610.0,704226.0,0.0,57226304.0
+2,control_feature_shuffle,ctrl_feature_shuffle,대조군: Brain → Emotion + Vision + Caption [섞은 특징],64,10.0,0.001,0.1,,,,False,False,False,,0.25335246359160934,58072610.0,704226.0,0.0,57226304.0
+3,control_feature_shuffle,ctrl_feature_shuffle,대조군: Brain → Emotion + Vision + Caption [섞은 특징],64,10.0,0.001,0.1,,,,False,False,False,,0.26641779094512785,58072610.0,704226.0,0.0,57226304.0
+4,control_feature_shuffle,ctrl_feature_shuffle,대조군: Brain → Emotion + Vision + Caption [섞은 특징],64,0.1,0.001,0.1,,,,False,False,False,,0.24381730802826573,58072610.0,704226.0,0.0,57226304.0
+5,control_feature_shuffle,ctrl_feature_shuffle,대조군: Brain → Emotion + Vision + Caption [섞은 특징],64,1.0,0.001,0.1,,,,False,False,False,,0.23702332474684318,58072610.0,704226.0,0.0,57226304.0
+6,control_feature_shuffle,ctrl_feature_shuffle,대조군: Brain → Emotion + Vision + Caption [섞은 특징],64,10.0,0.001,0.1,,,,False,False,False,,0.26503749373049446,58072610.0,704226.0,0.0,57226304.0
+1,brain_only_pool,A-1_pool,A-1 (평균 pooling판): Brain → Emotion,64,10.0,0.001,,,,,False,False,False,,,57404194.0,35810.0,0.0,57226304.0
+2,brain_only_pool,A-1_pool,A-1 (평균 pooling판): Brain → Emotion,64,10.0,0.001,,,,,False,False,False,,,57404194.0,35810.0,0.0,57226304.0
+3,brain_only_pool,A-1_pool,A-1 (평균 pooling판): Brain → Emotion,64,10.0,0.001,,,,,False,False,False,,,57404194.0,35810.0,0.0,57226304.0
+4,brain_only_pool,A-1_pool,A-1 (평균 pooling판): Brain → Emotion,64,0.1,0.001,,,,,False,False,False,,,57404194.0,35810.0,0.0,57226304.0
+5,brain_only_pool,A-1_pool,A-1 (평균 pooling판): Brain → Emotion,64,1.0,0.001,,,,,False,False,False,,,57404194.0,35810.0,0.0,57226304.0
+6,brain_only_pool,A-1_pool,A-1 (평균 pooling판): Brain → Emotion,64,10.0,0.001,,,,,False,False,False,,,57404194.0,35810.0,0.0,57226304.0
+1,brain_decoded_pool,C-1_pool,C-1 (평균 pooling판): Brain + Decoded Feature → Emotion,64,10.0,0.0001,1.0,,2.0,,False,False,False,,,58403882.0,1035498.0,0.0,57226304.0
+2,brain_decoded_pool,C-1_pool,C-1 (평균 pooling판): Brain + Decoded Feature → Emotion,64,10.0,0.001,0.1,,8.0,,False,False,False,,,58462454.0,1094070.0,0.0,57226304.0
+3,brain_decoded_pool,C-1_pool,C-1 (평균 pooling판): Brain + Decoded Feature → Emotion,64,10.0,0.001,1.0,,1.0,,False,False,False,,,58394120.0,1025736.0,0.0,57226304.0
+4,brain_decoded_pool,C-1_pool,C-1 (평균 pooling판): Brain + Decoded Feature → Emotion,64,0.1,0.001,0.1,,8.0,,False,False,False,,,58462454.0,1094070.0,0.0,57226304.0
+5,brain_decoded_pool,C-1_pool,C-1 (평균 pooling판): Brain + Decoded Feature → Emotion,64,1.0,0.001,0.1,,8.0,,False,False,False,,,58462454.0,1094070.0,0.0,57226304.0
+6,brain_decoded_pool,C-1_pool,C-1 (평균 pooling판): Brain + Decoded Feature → Emotion,64,10.0,0.001,0.1,,1.0,,False,False,False,,,58394120.0,1025736.0,0.0,57226304.0

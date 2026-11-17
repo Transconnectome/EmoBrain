@@ -1,0 +1,9 @@
+{
+  "note": "11/15 석진 님 점검. 입력층 weight decay가 아주 크게 선택되는 원인 확인. ROI token을 voxel의 합 대신 평균으로 만든다(tokenizer linear_mean, ROI마다 한 step의 token 변화 폭을 같게 함. Brain-IT의 attention 가중 평균, µP의 입력 수 반비례 원리). weight decay는 MindEye2, Brain-IT와 같은 0.01, learning rate {1e-4, 1e-3}. A-1만, seed 0, voxel 뽑기는 본 실행과 같음. 판정 규칙은 01의 11/15 결정. 결과는 S6_OUT=s6_brain_inputstep_mean",
+  "k_candidates": [[64, 0.01]],
+  "learning_rates": [0.0001, 0.001],
+  "keep_candidate_checkpoints": true,
+  "seeds": [0],
+  "tokenizer": "linear_mean",
+  "voxel_sampling": 0.375
+}

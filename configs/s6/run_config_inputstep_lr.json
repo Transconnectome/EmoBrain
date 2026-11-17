@@ -1,0 +1,10 @@
+{
+  "note": "11/15 석진 님 점검(Codex 제안). 입력층 W만 learning rate를 10배 낮추고(input_lr_scale 0.1, 입력층 1e-4, 나머지 1e-3) 입력층 weight decay {10, 100}을 본다. 본 실행 A-1의 같은 weight decay(입력층 learning rate 1e-3) 결과와 비교한다. A-1만, seed 0, voxel 뽑기는 본 실행과 같음. 판정 규칙은 01의 11/15 결정. 결과는 S6_OUT=s6_brain_inputstep_lr",
+  "k_candidates": [[64, 10.0], [64, 100.0]],
+  "learning_rates": [0.001],
+  "keep_candidate_checkpoints": true,
+  "seeds": [0],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375,
+  "input_lr_scale": 0.1
+}

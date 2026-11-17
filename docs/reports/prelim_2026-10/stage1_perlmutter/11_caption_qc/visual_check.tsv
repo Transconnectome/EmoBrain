@@ -1,0 +1,55 @@
+video_id	group	verdict	cause	affect_relevant	note
+62	gross	major	visible_misread	yes	subway push and train; VLM reads highlight circle as a white bucket filled from a hose
+240	gross	major	visible_misread	yes	shooting-range booth shooting; VLM says three people in an elevator adjusting the wall
+414	gross	major	visible_misread	yes	officers assault a woman on a cell floor; VLM says a man assisting another on a toilet
+513	gross	major	visible_misread	yes	emaciated sick dog on sofa; VLM says toad on red brick
+632	gross	major	visible_misread	yes	child fires a gun (visible at 75%); VLM describes dining area and tunnel, no gun
+727	gross	major	visible_misread	yes	spider on wall (small, visible); VLM says wiping with a cloth
+790	gross	major	visible_misread	yes	person set on fire (flames at 75%); VLM says people standing in a street
+971	gross	major	visible_misread	yes	man slams a woman to the floor; VLM says man kneeling holding a white object
+990	gross	major	visible_misread	partly	men dancing on roller skates; VLM says two men standing and gesturing
+1054	gross	major	visible_misread	yes	silhouette of two lips kissing; VLM says sand sculpture resembling a bird
+1206	gross	major	visible_misread	yes	hole-in-the-wall show fall into water; VLM says stage performance
+1292	gross	major	visible_misread	yes	plane crash; VLM reads the plane as a person hanging from a pole
+1301	gross	major	visible_misread	yes	three women doing backflips; VLM says physical altercation
+1723	gross	major	visible_misread	yes	push-ups with polar bear behind glass; VLM invents shattering glass
+1786	gross	major	visible_misread	yes	emaciated people helped by nurses (historical); VLM says men moving a cow or horse
+1790	gross	major	visible_misread	yes	defecation accident; VLM says hand holding small object over grass
+1875	gross	major	visible_misread	yes	birth in a pool; VLM says a man holding his penis
+1922	gross	major	visible_misread	yes	shooting a body on the ground (body, blood, gun visible); VLM says picking up a glowing object
+1951	gross	major	visible_misread	yes	childbirth on bed; VLM says person in underwear, no action
+1899	substitution	major	not_in_frames	yes	polar bear appears only at 90%; VLM invents dog jumping into water
+1580	substitution	minor	visible_misread	partly	cat puts head in woman's mouth; VLM says cat sniffs near nose
+252	substitution	major	visible_misread	yes	conductor kicks seated passenger (kick visible at 50%); VLM says man adjusting position
+172	substitution	minor	motion	partly	cat watching its tail move; VLM says cat lying still
+220	substitution	minor	visible_misread	no	water balloon popping slow motion; VLM says fluffy white substance spilling
+1818	substitution	major	visible_misread	partly	dog with stick stuck at door; VLM says black cat on a leash
+1465	substitution	minor	not_in_frames	no	mirror only at 10%; baby described correctly
+356	substitution	minor	not_in_frames	partly	lion cub lift only at 10%; VLM correct for its frames but misses bowing and animation
+444	substitution	major	visible_misread	yes	tennis ball hits testicles (ball visible); VLM says close-up of buttocks, no action
+1334	substitution	minor	visible_misread	partly	rat holding its own tail; VLM reads tail as a stick
+1103	substitution	major	visible_misread	yes	tarantulas crawl out of a mouth (visible); VLM says man holding a tarantula
+22	audit_random	correct	ok	no	boxing match; knockout not mentioned
+412	audit_random	correct	ok	no	bags stacked on head; throwing not mentioned
+430	audit_random	correct	ok	no	man and child skateboarding
+438	audit_random	correct	ok	no	kitten in bucket with hat
+508	audit_random	sexual_omitted	sexual	yes	masturbation under sheet; VLM says lying in bed, no action
+601	audit_random	correct	ok	no	desert landscape from moving car
+652	audit_random	minor	visible_misread	partly	painting of woman in river; VLM says person lying on leaves outdoors
+748	audit_random	correct	ok	no	speech on aircraft carrier
+856	audit_random	major	visible_misread	yes	motorcycle crash hits pedestrian (visible at 50%); VLM says car waiting at crosswalk
+893	audit_random	minor	visible_misread	partly	chocolate egg opened; VLM invents a lit cigarette
+921	audit_random	correct	ok	no	basketball trick dunk
+946	audit_random	correct	ok	no	Ghostbusters ghost and screaming man
+1073	audit_random	correct	ok	no	tightrope over valley
+1074	audit_random	correct	ok	no	couple lying in bed hugging
+1188	audit_random	correct	ok	no	hamster eating
+1238	audit_random	correct	ok	no	man caring for elderly woman in hospital; kiss not mentioned
+1266	audit_random	major	visible_misread	yes	woman underwater removes bikini top; VLM says man in bathtub drinking water
+1684	audit_random	sexual_omitted	sexual	yes	masturbation while on phone; VLM says topless woman on phone, hand on lap
+1745	audit_random	correct	ok	no	soldier petting dog
+1854	audit_random	correct	ok	no	thin cheese slicing
+1870	audit_random	major	visible_misread	yes	tornado visible at 50-75%; VLM says snow on windshield, overcast sky
+2080	audit_random	major	visible_misread	yes	diving board fall (slip visible at 50%); VLM says preparing to jump
+2120	audit_random	major	visible_misread	yes	car stuck on tracks, near miss; VLM says car waiting at gate while train passes
+2137	audit_random	correct	ok	no	sloth with light flare

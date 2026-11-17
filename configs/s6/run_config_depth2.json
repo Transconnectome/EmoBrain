@@ -1,0 +1,9 @@
+{
+  "note": "11/15 석진 님. A-1 encoder block 수 민감도. 본 설계(F3, block 1개)는 바꾸지 않고 보고만 한다. 다른 설정은 A-1이 6 fold 모두 고른 값(d 64, 입력층 weight decay 100, learning rate 1e-3, 선형 입력층 + Voxel subsampling 0.375)을 그대로 쓰고 block만 2개로 둔다. seed 0. 결과는 S6_OUT=s6_brain_depth2",
+  "k_candidates": [[64, 100.0]],
+  "learning_rates": [0.001],
+  "seeds": [0],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375,
+  "n_blocks": 2
+}

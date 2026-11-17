@@ -1,0 +1,865 @@
+{
+  "analysis": "S9-4 Network-Unit Input Perturbation (6-4b, 2-4, O3, O4(3))",
+  "created_at_utc": "2026-11-14T06:13:54.175236+00:00",
+  "elapsed_seconds": 408.306,
+  "git_head": "a0a3c8f1aa7a7bd8b9d69fa4cba5bc58c75aa534",
+  "tracked_repo_clean_before_and_after": true,
+  "environment": {
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "torch": "2.15.0+cu132",
+    "numpy": "2.5.4",
+    "pandas": "3.1.0",
+    "cuda_visible_devices": "0",
+    "cuda_is_available": true,
+    "torch_num_threads": 16,
+    "device": "cuda",
+    "slurm_job_id": "3247",
+    "tf32_allowed": false
+  },
+  "design_parameters": {
+    "conditions": [
+      "brain_only",
+      "brain_decoded"
+    ],
+    "display_names": {
+      "brain_only": "A-1 (Brain -> Emotion)",
+      "brain_decoded": "C-1 (Brain + Decoded Feature -> Emotion, interaction head)"
+    },
+    "outer_folds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "seed_sd_ddof": 1,
+    "n_cabnp_groups": 13,
+    "subcortex_note": "10 subcortical ROIs form 1 anatomical group (Subcortex / 피질하 해부학적 묶음), not called a functional network (6-4).",
+    "n_perturbation_repeats_O3": 20,
+    "n_bootstrap_draws_O4": 10000,
+    "bootstrap_unit": "video canonical_id cluster (2,108 clusters across 2,109 dev videos; 1349 & 1363 co-sampled)",
+    "bootstrap_seed_string": "EmoBrain/O4/video_canonical_bootstrap",
+    "bootstrap_seed_uint64": 3673850584945034991,
+    "ci_method": "Basic bootstrap 95% CI: [2*theta - q(0.975), 2*theta - q(0.025)]",
+    "p_value_method": "Centered two-sided Hall & Wilson (1991): (1 + sum(|Delta_boot - Delta| >= |Delta|)) / 10001",
+    "multiple_comparisons_primary": "Holm-13 across 13 groups on diff_drop = drop(C-1) - drop(A-1), separately per family (mean_5 and each participant)",
+    "multiple_comparisons_exploratory": "BH-FDR across 34 emotions within each (participant, group, comparison) family [탐색]"
+  },
+  "selected_candidates": {
+    "outer_fold1:brain_only": {
+      "d": 64,
+      "input_wd": 10.0,
+      "lr": 0.001,
+      "lam": null,
+      "alpha": null,
+      "rank": null,
+      "feature_wd": null
+    },
+    "outer_fold1:brain_decoded": {
+      "d": 64,
+      "input_wd": 10.0,
+      "lr": 0.0001,
+      "lam": 1.0,
+      "alpha": null,
+      "rank": 2,
+      "feature_wd": null
+    },
+    "outer_fold2:brain_only": {
+      "d": 64,
+      "input_wd": 10.0,
+      "lr": 0.001,
+      "lam": null,
+      "alpha": null,
+      "rank": null,
+      "feature_wd": null
+    },
+    "outer_fold2:brain_decoded": {
+      "d": 64,
+      "input_wd": 10.0,
+      "lr": 0.001,
+      "lam": 0.1,
+      "alpha": null,
+      "rank": 8,
+      "feature_wd": null
+    },
+    "outer_fold3:brain_only": {
+      "d": 64,
+      "input_wd": 10.0,
+      "lr": 0.001,
+      "lam": null,
+      "alpha": null,
+      "rank": null,
+      "feature_wd": null
+    },
+    "outer_fold3:brain_decoded": {
+      "d": 64,
+      "input_wd": 10.0,
+      "lr": 0.001,
+      "lam": 1.0,
+      "alpha": null,
+      "rank": 1,
+      "feature_wd": null
+    },
+    "outer_fold4:brain_only": {
+      "d": 64,
+      "input_wd": 0.1,
+      "lr": 0.001,
+      "lam": null,
+      "alpha": null,
+      "rank": null,
+      "feature_wd": null
+    },
+    "outer_fold4:brain_decoded": {
+      "d": 64,
+      "input_wd": 0.1,
+      "lr": 0.001,
+      "lam": 0.1,
+      "alpha": null,
+      "rank": 8,
+      "feature_wd": null
+    },
+    "outer_fold5:brain_only": {
+      "d": 64,
+      "input_wd": 1.0,
+      "lr": 0.001,
+      "lam": null,
+      "alpha": null,
+      "rank": null,
+      "feature_wd": null
+    },
+    "outer_fold5:brain_decoded": {
+      "d": 64,
+      "input_wd": 1.0,
+      "lr": 0.001,
+      "lam": 0.1,
+      "alpha": null,
+      "rank": 8,
+      "feature_wd": null
+    },
+    "outer_fold6:brain_only": {
+      "d": 64,
+      "input_wd": 10.0,
+      "lr": 0.001,
+      "lam": null,
+      "alpha": null,
+      "rank": null,
+      "feature_wd": null
+    },
+    "outer_fold6:brain_decoded": {
+      "d": 64,
+      "input_wd": 10.0,
+      "lr": 0.001,
+      "lam": 0.1,
+      "alpha": null,
+      "rank": 1,
+      "feature_wd": null
+    }
+  },
+  "voxels_by_participant_and_group": {
+    "sub-01": {
+      "Default": 32628,
+      "Cingulo-Opercular": 20872,
+      "Visual2": 21598,
+      "Frontoparietal": 21846,
+      "Somatomotor": 19829,
+      "Language": 8755,
+      "Dorsal-Attention": 9192,
+      "Auditory": 4258,
+      "Subcortex": 36166,
+      "Posterior-Multimodal": 2770,
+      "Orbito-Affective": 1440,
+      "Visual1": 5197,
+      "Ventral-Multimodal": 3207
+    },
+    "sub-02": {
+      "Default": 30949,
+      "Cingulo-Opercular": 20474,
+      "Visual2": 20900,
+      "Frontoparietal": 21903,
+      "Somatomotor": 19061,
+      "Language": 8236,
+      "Dorsal-Attention": 8221,
+      "Auditory": 4071,
+      "Subcortex": 32202,
+      "Posterior-Multimodal": 2094,
+      "Orbito-Affective": 1203,
+      "Visual1": 5656,
+      "Ventral-Multimodal": 3143
+    },
+    "sub-03": {
+      "Default": 28991,
+      "Cingulo-Opercular": 17498,
+      "Visual2": 19393,
+      "Frontoparietal": 19403,
+      "Somatomotor": 18764,
+      "Language": 7470,
+      "Dorsal-Attention": 7467,
+      "Auditory": 3705,
+      "Subcortex": 29595,
+      "Posterior-Multimodal": 2217,
+      "Orbito-Affective": 1223,
+      "Visual1": 4378,
+      "Ventral-Multimodal": 3516
+    },
+    "sub-04": {
+      "Default": 32293,
+      "Cingulo-Opercular": 21665,
+      "Visual2": 22915,
+      "Frontoparietal": 22770,
+      "Somatomotor": 18804,
+      "Language": 8173,
+      "Dorsal-Attention": 8734,
+      "Auditory": 3752,
+      "Subcortex": 33853,
+      "Posterior-Multimodal": 2449,
+      "Orbito-Affective": 1499,
+      "Visual1": 5511,
+      "Ventral-Multimodal": 2629
+    },
+    "sub-05": {
+      "Default": 29443,
+      "Cingulo-Opercular": 21018,
+      "Visual2": 20747,
+      "Frontoparietal": 20745,
+      "Somatomotor": 20065,
+      "Language": 8135,
+      "Dorsal-Attention": 8394,
+      "Auditory": 4181,
+      "Subcortex": 35373,
+      "Posterior-Multimodal": 2196,
+      "Orbito-Affective": 1468,
+      "Visual1": 4408,
+      "Ventral-Multimodal": 3450
+    }
+  },
+  "unique_voxels_by_participant_and_group": {
+    "sub-01": {
+      "Default": 27142,
+      "Cingulo-Opercular": 18887,
+      "Visual2": 18461,
+      "Frontoparietal": 19426,
+      "Somatomotor": 17679,
+      "Language": 8210,
+      "Dorsal-Attention": 8926,
+      "Auditory": 4192,
+      "Subcortex": 29153,
+      "Posterior-Multimodal": 2707,
+      "Orbito-Affective": 1440,
+      "Visual1": 5197,
+      "Ventral-Multimodal": 3131
+    },
+    "sub-02": {
+      "Default": 21958,
+      "Cingulo-Opercular": 16158,
+      "Visual2": 13790,
+      "Frontoparietal": 17177,
+      "Somatomotor": 16055,
+      "Language": 7740,
+      "Dorsal-Attention": 7228,
+      "Auditory": 3666,
+      "Subcortex": 27102,
+      "Posterior-Multimodal": 2080,
+      "Orbito-Affective": 1203,
+      "Visual1": 5636,
+      "Ventral-Multimodal": 3109
+    },
+    "sub-03": {
+      "Default": 23285,
+      "Cingulo-Opercular": 15957,
+      "Visual2": 15146,
+      "Frontoparietal": 16559,
+      "Somatomotor": 16666,
+      "Language": 6902,
+      "Dorsal-Attention": 7252,
+      "Auditory": 3673,
+      "Subcortex": 22162,
+      "Posterior-Multimodal": 2133,
+      "Orbito-Affective": 1223,
+      "Visual1": 4378,
+      "Ventral-Multimodal": 3426
+    },
+    "sub-04": {
+      "Default": 22161,
+      "Cingulo-Opercular": 15222,
+      "Visual2": 13346,
+      "Frontoparietal": 16912,
+      "Somatomotor": 14646,
+      "Language": 7559,
+      "Dorsal-Attention": 6820,
+      "Auditory": 3206,
+      "Subcortex": 27903,
+      "Posterior-Multimodal": 2434,
+      "Orbito-Affective": 1498,
+      "Visual1": 5423,
+      "Ventral-Multimodal": 2629
+    },
+    "sub-05": {
+      "Default": 24907,
+      "Cingulo-Opercular": 19168,
+      "Visual2": 17061,
+      "Frontoparietal": 18382,
+      "Somatomotor": 17984,
+      "Language": 7681,
+      "Dorsal-Attention": 8234,
+      "Auditory": 4124,
+      "Subcortex": 27864,
+      "Posterior-Multimodal": 2142,
+      "Orbito-Affective": 1468,
+      "Visual1": 4408,
+      "Ventral-Multimodal": 3338
+    }
+  },
+  "donor_seeds": {
+    "fold1:sub-01": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-01/fold1",
+      "seed_uint64": 14889916958942105135,
+      "n_test_videos": 337
+    },
+    "fold1:sub-02": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-02/fold1",
+      "seed_uint64": 17746779777104186696,
+      "n_test_videos": 337
+    },
+    "fold1:sub-03": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-03/fold1",
+      "seed_uint64": 14343212643683244447,
+      "n_test_videos": 337
+    },
+    "fold1:sub-04": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-04/fold1",
+      "seed_uint64": 2337383211003463029,
+      "n_test_videos": 335
+    },
+    "fold1:sub-05": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-05/fold1",
+      "seed_uint64": 2079862768770014875,
+      "n_test_videos": 322
+    },
+    "fold2:sub-01": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-01/fold2",
+      "seed_uint64": 11569473003848924809,
+      "n_test_videos": 380
+    },
+    "fold2:sub-02": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-02/fold2",
+      "seed_uint64": 11473534828292211268,
+      "n_test_videos": 380
+    },
+    "fold2:sub-03": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-03/fold2",
+      "seed_uint64": 8663669168875216934,
+      "n_test_videos": 376
+    },
+    "fold2:sub-04": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-04/fold2",
+      "seed_uint64": 12088120820256954741,
+      "n_test_videos": 374
+    },
+    "fold2:sub-05": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-05/fold2",
+      "seed_uint64": 2768441832412598525,
+      "n_test_videos": 360
+    },
+    "fold3:sub-01": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-01/fold3",
+      "seed_uint64": 5315139326810722613,
+      "n_test_videos": 349
+    },
+    "fold3:sub-02": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-02/fold3",
+      "seed_uint64": 18308379932793214386,
+      "n_test_videos": 348
+    },
+    "fold3:sub-03": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-03/fold3",
+      "seed_uint64": 14981556978913129779,
+      "n_test_videos": 349
+    },
+    "fold3:sub-04": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-04/fold3",
+      "seed_uint64": 4808760461786074518,
+      "n_test_videos": 347
+    },
+    "fold3:sub-05": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-05/fold3",
+      "seed_uint64": 8302529777028411290,
+      "n_test_videos": 327
+    },
+    "fold4:sub-01": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-01/fold4",
+      "seed_uint64": 17224659480353236992,
+      "n_test_videos": 348
+    },
+    "fold4:sub-02": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-02/fold4",
+      "seed_uint64": 5014844604446763659,
+      "n_test_videos": 348
+    },
+    "fold4:sub-03": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-03/fold4",
+      "seed_uint64": 12384745971911797972,
+      "n_test_videos": 346
+    },
+    "fold4:sub-04": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-04/fold4",
+      "seed_uint64": 18441105971514438891,
+      "n_test_videos": 343
+    },
+    "fold4:sub-05": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-05/fold4",
+      "seed_uint64": 5196346405664992578,
+      "n_test_videos": 324
+    },
+    "fold5:sub-01": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-01/fold5",
+      "seed_uint64": 13739049071211499188,
+      "n_test_videos": 376
+    },
+    "fold5:sub-02": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-02/fold5",
+      "seed_uint64": 157225282634758416,
+      "n_test_videos": 378
+    },
+    "fold5:sub-03": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-03/fold5",
+      "seed_uint64": 17127797052053224129,
+      "n_test_videos": 377
+    },
+    "fold5:sub-04": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-04/fold5",
+      "seed_uint64": 17596239586413175300,
+      "n_test_videos": 378
+    },
+    "fold5:sub-05": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-05/fold5",
+      "seed_uint64": 5045518550498337659,
+      "n_test_videos": 365
+    },
+    "fold6:sub-01": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-01/fold6",
+      "seed_uint64": 13248937678639120061,
+      "n_test_videos": 315
+    },
+    "fold6:sub-02": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-02/fold6",
+      "seed_uint64": 9303156881986708149,
+      "n_test_videos": 317
+    },
+    "fold6:sub-03": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-03/fold6",
+      "seed_uint64": 15359307059865621663,
+      "n_test_videos": 315
+    },
+    "fold6:sub-04": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-04/fold6",
+      "seed_uint64": 5397969199667087495,
+      "n_test_videos": 311
+    },
+    "fold6:sub-05": {
+      "seed_string": "EmoBrain/S9_6_4b/donor/sub-05/fold6",
+      "seed_uint64": 2397082293383158919,
+      "n_test_videos": 303
+    }
+  },
+  "sanity_checks": {
+    "holm_bh_unit_test": "passed",
+    "sanity0_fold1_standardization_vs_prepare_fold_max_abs_diff": {
+      "sub-01": 0.0,
+      "sub-02": 0.0,
+      "sub-03": 0.0,
+      "sub-04": 0.0,
+      "sub-05": 0.0
+    },
+    "sanity0_all6folds_voxel_standardizer_max_abs_diff": 0.0,
+    "sanity1_unperturbed_vs_saved_test_outputs_max_abs_diff_overall": 9.238719940185547e-07,
+    "sanity1_unperturbed_vs_saved_test_outputs_max_mean_abs_diff": 1.4617688393059325e-08,
+    "sanity1_note": "Saved test_outputs.npz ran on B300 GPU with TF32 Tensor Cores (10-bit mantissa); CPU runs IEEE-754 FP32 (matching FP64 within 2.43e-7). Both r_orig and r_pert in S9-4 are evaluated consistently in IEEE-754 FP32 on CPU.",
+    "sanity1_per_checkpoint_max_abs_diff": {
+      "fold1:brain_only:seed0": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.086162567138672e-07,
+        "mean_abs_diff": 7.198564855315226e-09,
+        "p99_abs_diff": 5.21540641784668e-08,
+        "cpu_fp32_vs_cpu_fp64_max_abs_diff": 4.1670098055446303e-07
+      },
+      "fold1:brain_only:seed1": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.384185791015625e-07,
+        "mean_abs_diff": 7.314003180880491e-09,
+        "p99_abs_diff": 5.21540641784668e-08
+      },
+      "fold1:brain_only:seed2": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 1.7881393432617188e-07,
+        "mean_abs_diff": 7.34116500922255e-09,
+        "p99_abs_diff": 5.960464477539063e-08
+      },
+      "fold1:brain_decoded:seed0": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 4.76837158203125e-07,
+        "mean_abs_diff": 1.199014576513946e-08,
+        "p99_abs_diff": 8.940696716308594e-08
+      },
+      "fold1:brain_decoded:seed1": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.980232238769531e-07,
+        "mean_abs_diff": 1.1947863143291215e-08,
+        "p99_abs_diff": 7.450580596923828e-08
+      },
+      "fold1:brain_decoded:seed2": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 3.5762786865234375e-07,
+        "mean_abs_diff": 1.1282557110803282e-08,
+        "p99_abs_diff": 8.940696716308594e-08
+      },
+      "fold2:brain_only:seed0": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.682209014892578e-07,
+        "mean_abs_diff": 7.605336804772378e-09,
+        "p99_abs_diff": 5.960464477539063e-08
+      },
+      "fold2:brain_only:seed1": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.384185791015625e-07,
+        "mean_abs_diff": 7.566542059578296e-09,
+        "p99_abs_diff": 5.960464477539063e-08
+      },
+      "fold2:brain_only:seed2": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.384185791015625e-07,
+        "mean_abs_diff": 7.76636710497769e-09,
+        "p99_abs_diff": 5.960464477539063e-08
+      },
+      "fold2:brain_decoded:seed0": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 4.172325134277344e-07,
+        "mean_abs_diff": 1.2498615475919905e-08,
+        "p99_abs_diff": 8.940696716308594e-08
+      },
+      "fold2:brain_decoded:seed1": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 4.76837158203125e-07,
+        "mean_abs_diff": 1.166893337511965e-08,
+        "p99_abs_diff": 8.940696716308594e-08
+      },
+      "fold2:brain_decoded:seed2": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 5.662441253662109e-07,
+        "mean_abs_diff": 1.1783974684931309e-08,
+        "p99_abs_diff": 9.097158937265704e-08
+      },
+      "fold3:brain_only:seed0": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 3.2782554626464844e-07,
+        "mean_abs_diff": 7.788885980630766e-09,
+        "p99_abs_diff": 5.960464477539063e-08
+      },
+      "fold3:brain_only:seed1": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.086162567138672e-07,
+        "mean_abs_diff": 7.387141565118327e-09,
+        "p99_abs_diff": 5.960464477539063e-08
+      },
+      "fold3:brain_only:seed2": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.2351741790771484e-07,
+        "mean_abs_diff": 7.395808854226971e-09,
+        "p99_abs_diff": 5.21540641784668e-08
+      },
+      "fold3:brain_decoded:seed0": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 7.152557373046875e-07,
+        "mean_abs_diff": 1.4617688393059325e-08,
+        "p99_abs_diff": 1.1920928955078125e-07
+      },
+      "fold3:brain_decoded:seed1": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 8.046627044677734e-07,
+        "mean_abs_diff": 1.269322158492514e-08,
+        "p99_abs_diff": 8.940696716308594e-08
+      },
+      "fold3:brain_decoded:seed2": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 9.238719940185547e-07,
+        "mean_abs_diff": 1.4076095844473002e-08,
+        "p99_abs_diff": 1.1920928955078125e-07
+      },
+      "fold4:brain_only:seed0": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.384185791015625e-07,
+        "mean_abs_diff": 8.02683075562527e-09,
+        "p99_abs_diff": 5.960464477539063e-08
+      },
+      "fold4:brain_only:seed1": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 1.7881393432617188e-07,
+        "mean_abs_diff": 7.0507382154971765e-09,
+        "p99_abs_diff": 4.470348358154297e-08
+      },
+      "fold4:brain_only:seed2": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.980232238769531e-07,
+        "mean_abs_diff": 8.074978907757213e-09,
+        "p99_abs_diff": 5.960464477539063e-08
+      },
+      "fold4:brain_decoded:seed0": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 4.76837158203125e-07,
+        "mean_abs_diff": 1.0466049360502439e-08,
+        "p99_abs_diff": 8.940696716308594e-08
+      },
+      "fold4:brain_decoded:seed1": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 3.8743019104003906e-07,
+        "mean_abs_diff": 1.0570280650767927e-08,
+        "p99_abs_diff": 8.940696716308594e-08
+      },
+      "fold4:brain_decoded:seed2": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 4.76837158203125e-07,
+        "mean_abs_diff": 1.1742544714365977e-08,
+        "p99_abs_diff": 8.940696716308594e-08
+      },
+      "fold5:brain_only:seed0": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.980232238769531e-07,
+        "mean_abs_diff": 7.832228199333713e-09,
+        "p99_abs_diff": 5.960464477539063e-08
+      },
+      "fold5:brain_only:seed1": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 1.1920928955078125e-07,
+        "mean_abs_diff": 7.0999313095398975e-09,
+        "p99_abs_diff": 4.470348358154297e-08
+      },
+      "fold5:brain_only:seed2": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.682209014892578e-07,
+        "mean_abs_diff": 8.227261538706898e-09,
+        "p99_abs_diff": 5.960464477539063e-08
+      },
+      "fold5:brain_decoded:seed0": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.980232238769531e-07,
+        "mean_abs_diff": 1.1111968234445158e-08,
+        "p99_abs_diff": 8.940696716308594e-08
+      },
+      "fold5:brain_decoded:seed1": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 5.960464477539062e-07,
+        "mean_abs_diff": 1.2072668198470637e-08,
+        "p99_abs_diff": 1.0319054410956596e-07
+      },
+      "fold5:brain_decoded:seed2": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 6.556510925292969e-07,
+        "mean_abs_diff": 1.119355719225723e-08,
+        "p99_abs_diff": 8.940696716308594e-08
+      },
+      "fold6:brain_only:seed0": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.682209014892578e-07,
+        "mean_abs_diff": 7.323606165954288e-09,
+        "p99_abs_diff": 5.21540641784668e-08
+      },
+      "fold6:brain_only:seed1": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 1.4901161193847656e-07,
+        "mean_abs_diff": 6.938848162718614e-09,
+        "p99_abs_diff": 5.21540641784668e-08
+      },
+      "fold6:brain_only:seed2": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 2.384185791015625e-07,
+        "mean_abs_diff": 7.187892503424109e-09,
+        "p99_abs_diff": 5.21540641784668e-08
+      },
+      "fold6:brain_decoded:seed0": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 4.76837158203125e-07,
+        "mean_abs_diff": 1.2850843944534063e-08,
+        "p99_abs_diff": 1.043081283569336e-07
+      },
+      "fold6:brain_decoded:seed1": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 5.066394805908203e-07,
+        "mean_abs_diff": 1.1554278422920561e-08,
+        "p99_abs_diff": 8.940696716308594e-08
+      },
+      "fold6:brain_decoded:seed2": {
+        "max_abs_diff_gpu_tf32_vs_cpu_fp32": 4.172325134277344e-07,
+        "mean_abs_diff": 1.1813209077615738e-08,
+        "p99_abs_diff": 8.940696716308594e-08
+      }
+    },
+    "sanity2_raw_voxel_vs_pre_self_attn_token_replacement_fold1_seed0_Default_rep0": {
+      "brain_only": {
+        "sub01_only_max_abs_diff": 0.0,
+        "all5_simultaneous_max_abs_diff": 0.0
+      },
+      "brain_decoded": {
+        "sub01_only_max_abs_diff": 0.0,
+        "all5_simultaneous_max_abs_diff": 0.0
+      }
+    },
+    "sanity3_blas_weighted_pearson_vs_explicit_repeat_max_abs_diff": 1.3766765505351941e-14,
+    "sanity4_donor_no_self_replacement": true,
+    "sanity4_donor_same_participant_and_fold": true,
+    "n_const_y_observed": {
+      "sub-01": 0,
+      "sub-02": 0,
+      "sub-03": 0,
+      "sub-04": 0,
+      "sub-05": 0
+    },
+    "n_const_p_orig_max": 0,
+    "n_const_p_pert_max": 0,
+    "n_nonfinite_boot_correlations": 0
+  },
+  "holm13_confirmation_summary": {
+    "mean_5": {
+      "n_confirmed_unadjusted": 4,
+      "n_confirmed_holm13": 3,
+      "confirmed_unadj_groups": [
+        "Dorsal-Attention",
+        "Subcortex",
+        "Visual1",
+        "Ventral-Multimodal"
+      ],
+      "confirmed_holm13_groups": [
+        "Dorsal-Attention",
+        "Subcortex",
+        "Ventral-Multimodal"
+      ]
+    },
+    "sub-01": {
+      "n_confirmed_unadjusted": 3,
+      "n_confirmed_holm13": 1,
+      "confirmed_unadj_groups": [
+        "Dorsal-Attention",
+        "Subcortex",
+        "Ventral-Multimodal"
+      ],
+      "confirmed_holm13_groups": [
+        "Subcortex"
+      ]
+    },
+    "sub-02": {
+      "n_confirmed_unadjusted": 4,
+      "n_confirmed_holm13": 2,
+      "confirmed_unadj_groups": [
+        "Language",
+        "Dorsal-Attention",
+        "Subcortex",
+        "Visual1"
+      ],
+      "confirmed_holm13_groups": [
+        "Dorsal-Attention",
+        "Visual1"
+      ]
+    },
+    "sub-03": {
+      "n_confirmed_unadjusted": 2,
+      "n_confirmed_holm13": 0,
+      "confirmed_unadj_groups": [
+        "Somatomotor",
+        "Ventral-Multimodal"
+      ],
+      "confirmed_holm13_groups": []
+    },
+    "sub-04": {
+      "n_confirmed_unadjusted": 4,
+      "n_confirmed_holm13": 0,
+      "confirmed_unadj_groups": [
+        "Visual2",
+        "Dorsal-Attention",
+        "Visual1",
+        "Ventral-Multimodal"
+      ],
+      "confirmed_holm13_groups": []
+    },
+    "sub-05": {
+      "n_confirmed_unadjusted": 3,
+      "n_confirmed_holm13": 0,
+      "confirmed_unadj_groups": [
+        "Frontoparietal",
+        "Language",
+        "Posterior-Multimodal"
+      ],
+      "confirmed_holm13_groups": []
+    }
+  },
+  "input_sha256": {
+    "cabnp_groups.tsv": "42c60b60e31ac0647682b1502bc86b9364ffd29dcf47919fd146b035586b5717",
+    "roi_table.tsv": "e524e71d9a7c312d703ad81ffc0a075df84fb0f1bad1c840598d32f0d70e9a29",
+    "agreement_hk_13groups.tsv": "13a641f12866ac80631dd0414cd53149b3421acc424e2627b3eaf3e467fc287d",
+    "label_map_34.tsv": "39f8358562500b4b18bdc6e2afc419912cb7f46cebce2f8392fd795eeb15a3d9",
+    "split_hk_dev.tsv": "ab652b181745199c2e5a16be2bc16d0674f9c3b1a9e6fcc203267d2b7e4b56a0",
+    "labels": "a462c851d7f8849f4a51fbc8a63097931452629bfd2b51af42b00ade85633134",
+    "outer_fold1/brain_only/selected.json": "f881854dab083011f0beeb1808295b063ee829e954cd480a51dcef4a3d3ab069",
+    "outer_fold1/brain_decoded/selected.json": "7ab91ded21972d74c0921768f0d3c45205723bb69fac015f074422ba9f4efc76",
+    "outer_fold2/brain_only/selected.json": "a127083dd045aab57f996b67d2d71f373a8be710fba7b5c5e59a05baefa1f807",
+    "outer_fold2/brain_decoded/selected.json": "a4fc58e35e5818261aaeed89946e7e9a6fa9089c26353e21243cc086d855d71b",
+    "outer_fold3/brain_only/selected.json": "23796f12907b3d31825e6f690591726fe692153606239d1436dce493e0aeb732",
+    "outer_fold3/brain_decoded/selected.json": "443a64d063e6730022a19f6afc6c0c5e021f4a6bacaffe538dff717bbd574778",
+    "outer_fold4/brain_only/selected.json": "5fb1eb38870e176e990dc0dbddeec6ae06281f9626d8c4e3050d87a7a9eb94c6",
+    "outer_fold4/brain_decoded/selected.json": "c3fb48aae8112b2300a60c511d536a94dd30ceed4cd6e6e2316340e713d1d205",
+    "outer_fold5/brain_only/selected.json": "85ad58e81a7cd958e60949f43ed21eed06ee88feeb30d000ac0ba06cd02fe1be",
+    "outer_fold5/brain_decoded/selected.json": "5c03dc0267bd1370c9bc52a543fc28fb8abfb3378fa64b7d05890991c8f6fa9c",
+    "outer_fold6/brain_only/selected.json": "a81f324cdb664930b553e7232b6f25f59d2b224af16da4c0bc30093c71ce5257",
+    "outer_fold6/brain_decoded/selected.json": "d0920ff7706cb46512ca7c6ae2b78fab692813f150f84dd0f44631dede1d93b5",
+    "outer_fold1/brain_only/53b97db7b405_seed0/model.pt": "accbab06ae2daeb2262aab3b45fa9caf3824b20fb2e859afe7310774da3ef71c",
+    "outer_fold1/brain_only/53b97db7b405_seed0/outputs/test_outputs.npz": "2bff03c4036b092da3844d0cc056cf64ffebacd8e37bc142a6991cf62b0f15b0",
+    "outer_fold1/brain_only/53b97db7b405_seed1/model.pt": "ab7b7118709ff1135198d8ee0715b33199c49c5c7d5d01568d89d96c78493c20",
+    "outer_fold1/brain_only/53b97db7b405_seed1/outputs/test_outputs.npz": "0648bb69ae3cd738c286a231d63ca499d7460c9509112da74152e36c9796a9f7",
+    "outer_fold1/brain_only/53b97db7b405_seed2/model.pt": "ab7b848c1f9e54647ac54ddcb67a7e1fdb16bbaf98aa92703e1f26968f36a70f",
+    "outer_fold1/brain_only/53b97db7b405_seed2/outputs/test_outputs.npz": "612aef9449ebd9d9c08b104b40547df7cbdb0358e33257348cc881b18a7d3b44",
+    "outer_fold1/brain_decoded/d9cdd9226509_seed0/model.pt": "e3d9f848287be9b978324c2cb3b0f410d88d01b9c438149de999ee0f91dc4e5d",
+    "outer_fold1/brain_decoded/d9cdd9226509_seed0/outputs/test_outputs.npz": "2ddb044b7f473418fe621f18dfe7962fbc66cafdf75a584a28f7d9374e33152b",
+    "outer_fold1/brain_decoded/d9cdd9226509_seed1/model.pt": "6df77afdc3895efcd6b71f79b5fb88dabb979a1587e72597e9a4cb0b360e1ee7",
+    "outer_fold1/brain_decoded/d9cdd9226509_seed1/outputs/test_outputs.npz": "a6e8d0ebb7c545894feeb45c0faeb374aa7a66e9ca34260e489ec63ab7d5897f",
+    "outer_fold1/brain_decoded/d9cdd9226509_seed2/model.pt": "d9836d56cfa9eff45952752cdb881b7ba138e0f9535ea41c221372aa5365fa01",
+    "outer_fold1/brain_decoded/d9cdd9226509_seed2/outputs/test_outputs.npz": "d6d239414b7b9f325be1c3704d5772d3f0a263af73d18cf31e038bc4bf0d2904",
+    "outer_fold2/brain_only/53b97db7b405_seed0/model.pt": "c139edc2f8005eed49675bf51dca1267dafd17ad06134e4799db3950b8df3c39",
+    "outer_fold2/brain_only/53b97db7b405_seed0/outputs/test_outputs.npz": "e2ff4c32e68f309c124f7bb6dfd5a8d1a9d06629492162eabc2a2edcc03d375c",
+    "outer_fold2/brain_only/53b97db7b405_seed1/model.pt": "1157bded78890f4d30f040b3a59f60cdbec71654f3bfbbb87416980ce04285c6",
+    "outer_fold2/brain_only/53b97db7b405_seed1/outputs/test_outputs.npz": "07392075bd097b0914916fa27439a66e8a5cdb5d7662c2a292dae1bcff858fe1",
+    "outer_fold2/brain_only/53b97db7b405_seed2/model.pt": "7f1e2ebaedc40b060399a64c73dfac329f57e01005230a4f49efbeb8ac0d483b",
+    "outer_fold2/brain_only/53b97db7b405_seed2/outputs/test_outputs.npz": "691d77dfc7cd200470cbd5768e0f4c3d774b193c331964cd44c8b5092c2fc0cd",
+    "outer_fold2/brain_decoded/955e530308b5_seed0/model.pt": "fde2fb785f9806cedffcee3618522b7212bcff0d96ee5b8fb47b0ceeb6865dbc",
+    "outer_fold2/brain_decoded/955e530308b5_seed0/outputs/test_outputs.npz": "6eb7a73261d47574a0fecdb35348abee450cb8f13ba6e51c55cab6d36ca4bf75",
+    "outer_fold2/brain_decoded/955e530308b5_seed1/model.pt": "183587386988ad86bcaffcd5c6bbfb735ea1b1f90232175967e459c80d6c16b4",
+    "outer_fold2/brain_decoded/955e530308b5_seed1/outputs/test_outputs.npz": "f4710b26dbddbb32f047b4040fbcd74afbb813a9352c4d14c9089af4d8543041",
+    "outer_fold2/brain_decoded/955e530308b5_seed2/model.pt": "b79a4aeef1fb4f806ce49934214948651ed986102924f907fa297b06554e3c5a",
+    "outer_fold2/brain_decoded/955e530308b5_seed2/outputs/test_outputs.npz": "41a9fc550b770f4c2f95f87a7e0d35ad44b233204266208de41daeca668ff74b",
+    "outer_fold3/brain_only/53b97db7b405_seed0/model.pt": "a68703205a33004efcbd42715248fad25acaddf74751deb1caa5f22cad7b1d05",
+    "outer_fold3/brain_only/53b97db7b405_seed0/outputs/test_outputs.npz": "7f3f16d69368debbffa7ea9e5d4fb4ba69f93cfc0bb896ab336583d173e9e481",
+    "outer_fold3/brain_only/53b97db7b405_seed1/model.pt": "643aea6036cc83dd8daa36020d3cce13786203edd791d784a0b056293739583d",
+    "outer_fold3/brain_only/53b97db7b405_seed1/outputs/test_outputs.npz": "738718e0c20f2f02a3b1f12f2abe8201dfaf55dc8ae9140ba79d158963ec1877",
+    "outer_fold3/brain_only/53b97db7b405_seed2/model.pt": "d83edaa0ff9c277d8eccf649b6f19f990680ed4e7bcc4986d5eff68b1be51804",
+    "outer_fold3/brain_only/53b97db7b405_seed2/outputs/test_outputs.npz": "1b9fd1c10bf295208c17756d3cc1b9d8a0ff85bf50f85b4ed57f11fd6a993df8",
+    "outer_fold3/brain_decoded/025e94e24ac7_seed0/model.pt": "12c89ebba4de3ca61a07e0cf6464d25b2c74000c55d482dd8e7ff089e94167c2",
+    "outer_fold3/brain_decoded/025e94e24ac7_seed0/outputs/test_outputs.npz": "29802f4d96521e70460d6499b0ebab2aacec6f59aba13ff8c94b3f331309e1e0",
+    "outer_fold3/brain_decoded/025e94e24ac7_seed1/model.pt": "0a512fa3ca1ecbee79437b31313aa82056ebb8c204c8b402d340fd984dc1c49f",
+    "outer_fold3/brain_decoded/025e94e24ac7_seed1/outputs/test_outputs.npz": "3a21d589e94e82379c6f05d4e4261d35947db4acf62572ad69ab5d1ac5c6f14f",
+    "outer_fold3/brain_decoded/025e94e24ac7_seed2/model.pt": "166fb6289f20a453d220bb213ea615613f334369b62889cea1c4476d170a88f8",
+    "outer_fold3/brain_decoded/025e94e24ac7_seed2/outputs/test_outputs.npz": "351e30bf2b975cc2e8752344f91c9e47d8a9cefcbdc3d47906e93a3ec88a201a",
+    "outer_fold4/brain_only/4b83b39cb43b_seed0/model.pt": "2aea4b6621829b2ef683b16349e0c752c2157916b125cfbe8452fb608a5da3dd",
+    "outer_fold4/brain_only/4b83b39cb43b_seed0/outputs/test_outputs.npz": "88067cbfacc052556c543a152a29bba99538baf2ced953a9ca7704d37f233824",
+    "outer_fold4/brain_only/4b83b39cb43b_seed1/model.pt": "0b06b497a230e842e05e446f4b36a3003418568792e3517363263102887f3f36",
+    "outer_fold4/brain_only/4b83b39cb43b_seed1/outputs/test_outputs.npz": "f55d635c5c937d6dc9f429086ca65c5437b771b2c0553e877ecb365783e6033b",
+    "outer_fold4/brain_only/4b83b39cb43b_seed2/model.pt": "e496e76eac51521e15ec5a6a79e00cbb5a24a978a81e8f24d86519c7a8540ac4",
+    "outer_fold4/brain_only/4b83b39cb43b_seed2/outputs/test_outputs.npz": "98bb787ccdb47721289bb2eecac595fe92003554a842b13665d8d992c199b110",
+    "outer_fold4/brain_decoded/86e4b226863d_seed0/model.pt": "f8eb9c5c3e115ba4b482746cc6a3b5637cc597ac95e5fe9ef4baf9e4d498de5b",
+    "outer_fold4/brain_decoded/86e4b226863d_seed0/outputs/test_outputs.npz": "8a516dbb38a18af97a070eed8923ce47bc7990fed7e36fc8748c648e7b1c1cb1",
+    "outer_fold4/brain_decoded/86e4b226863d_seed1/model.pt": "bd9eabb306c59e57012e4b79e7ddd1ba760cd5b27466431aefca211d9b14091c",
+    "outer_fold4/brain_decoded/86e4b226863d_seed1/outputs/test_outputs.npz": "4150f8deb704581b55421f422531c7e6381b1fcdc686898c39de249b05550fa3",
+    "outer_fold4/brain_decoded/86e4b226863d_seed2/model.pt": "a2d98cfd7a604b696ea814e1671450688fc730fc5d9f2b208fe73b89410953b4",
+    "outer_fold4/brain_decoded/86e4b226863d_seed2/outputs/test_outputs.npz": "94a36d0a716db7422e92d3a93abb54d9da7772103b166bb821d629dde2065311",
+    "outer_fold5/brain_only/789f4fe4f328_seed0/model.pt": "47787dca06c6d2b6f5e86af4cf9935a5c8d9049e040d16664e0eadcde496d588",
+    "outer_fold5/brain_only/789f4fe4f328_seed0/outputs/test_outputs.npz": "421bf2082daf68c5cc57d098115b5a00944b647da16d348423e33344329dcc6a",
+    "outer_fold5/brain_only/789f4fe4f328_seed1/model.pt": "cd25315057e312291b450ca38b56760226a107c4509181e2551c73c8ecbde8f3",
+    "outer_fold5/brain_only/789f4fe4f328_seed1/outputs/test_outputs.npz": "34df27c3a5c9d0c6d54ad96024a245d165d77aa94c00806a090cb88a6811a931",
+    "outer_fold5/brain_only/789f4fe4f328_seed2/model.pt": "ff5ff3f5e0bef617ecc418aa86551a1b70459842e6482268eed4efa9a6077a91",
+    "outer_fold5/brain_only/789f4fe4f328_seed2/outputs/test_outputs.npz": "e77ec2d0cc787ceea20cc20f080d06c7f4bb271912af22968444986bc6ec0507",
+    "outer_fold5/brain_decoded/822ac2512bb7_seed0/model.pt": "4aa277358b80398e7c6b2a4f1aadcc2a69497ed81e1a2a175b87bdda019d944e",
+    "outer_fold5/brain_decoded/822ac2512bb7_seed0/outputs/test_outputs.npz": "9e9c5c4c7adb5e2374a9fc8d4ce3cce1fb564ba60154f7df83b1a5525c389622",
+    "outer_fold5/brain_decoded/822ac2512bb7_seed1/model.pt": "a0db468607e058660cd56d7cc6132bd921db33557f1597038bcdf67557a86900",
+    "outer_fold5/brain_decoded/822ac2512bb7_seed1/outputs/test_outputs.npz": "514e366bb83df7cdcf3a38d4fc589cd3bfb20c4bef760595a26a658fe4fb29b3",
+    "outer_fold5/brain_decoded/822ac2512bb7_seed2/model.pt": "7cf438dc3841f074f2f217ec6c2b3106f06203ded7a715cdebf53063a10b337d",
+    "outer_fold5/brain_decoded/822ac2512bb7_seed2/outputs/test_outputs.npz": "9e85f9fbac04fdde8ec5508aff3e848fcdc0949908fba2bcac05e9054d5a6488",
+    "outer_fold6/brain_only/53b97db7b405_seed0/model.pt": "e1e1a31fe996fb0db88e13d4c189a62d35c6c1b205ba995245d39ef4abc6d7f6",
+    "outer_fold6/brain_only/53b97db7b405_seed0/outputs/test_outputs.npz": "ed70e8bb49ff158e1dfe6738ba481a946bd80f405be70ebe5f177436916e3040",
+    "outer_fold6/brain_only/53b97db7b405_seed1/model.pt": "c9ed4b4cd3f453a7915c3605046297a87f33ba355379db50f8ecd028c06c3978",
+    "outer_fold6/brain_only/53b97db7b405_seed1/outputs/test_outputs.npz": "74d1e7c3e014e8e75e596dcd02e707f0d634ed1724d230dab6f04c5f8e46f466",
+    "outer_fold6/brain_only/53b97db7b405_seed2/model.pt": "3237098346ebfc72a42da361d24b0f5b3efd045362928a1b6040d2f57dfe6081",
+    "outer_fold6/brain_only/53b97db7b405_seed2/outputs/test_outputs.npz": "ba65109cc658ba30c792f7d4fa8f9c15b48cdab78e5434573dde4809870467b2",
+    "outer_fold6/brain_decoded/336fb7680e65_seed0/model.pt": "260a69667aa56cc38770f555b3a2799d83eb0805ca2579a3cb3f068abeec0562",
+    "outer_fold6/brain_decoded/336fb7680e65_seed0/outputs/test_outputs.npz": "e7a4823a8ad12735716aa545f54ccd1623f944e68cb5639af73860436dccc680",
+    "outer_fold6/brain_decoded/336fb7680e65_seed1/model.pt": "31c2770e81e53c189d2063431e2fe1735905f43dd97447d49937f8b00c01766f",
+    "outer_fold6/brain_decoded/336fb7680e65_seed1/outputs/test_outputs.npz": "154a30e954ce1553838184f6a493a270edea0f1cea2c5cd455f8616f006ae821",
+    "outer_fold6/brain_decoded/336fb7680e65_seed2/model.pt": "87c6510dfa7757025810ca0f8b3ed1dc155a1f7c0b5c8e55a1b590802995576a",
+    "outer_fold6/brain_decoded/336fb7680e65_seed2/outputs/test_outputs.npz": "3982826c117754122dc6ef59b785bbfe6f4742198dfbae8b59223f980ec4e539"
+  },
+  "output_files": [
+    "/scratch/emobrain/outputs/s9_analysis/network_perturbation/s9_6_4b_network_perturbation_summary.tsv",
+    "/scratch/emobrain/outputs/s9_analysis/network_perturbation/s9_6_4b_network_perturbation_summary.csv",
+    "/scratch/emobrain/outputs/s9_analysis/network_perturbation/s9_6_4b_by_seed.tsv",
+    "/scratch/emobrain/outputs/s9_analysis/network_perturbation/s9_6_4b_by_seed.csv",
+    "/scratch/emobrain/outputs/s9_analysis/network_perturbation/s9_6_4b_per_emotion.tsv",
+    "/scratch/emobrain/outputs/s9_analysis/network_perturbation/donor_assignments.tsv",
+    "/scratch/emobrain/outputs/s9_analysis/network_perturbation/donor_assignments.npz",
+    "/scratch/emobrain/outputs/s9_analysis/network_perturbation/provenance.json"
+  ]
+}

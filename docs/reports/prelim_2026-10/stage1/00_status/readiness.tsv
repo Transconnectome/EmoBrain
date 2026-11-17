@@ -1,0 +1,6 @@
+analysis	status	reason
+핵심 3 뇌 단독 기준선 (A34·A14, 기준선 넷)	ready	입력·분할·계약 모두 준비
+핵심 4 V/S/V+S → 정서	blocked	V·S cache 없음. caption 출처 미확인
+핵심 5 뇌 → V/S	blocked	V·S cache 없음
+ROI 단독·제외 비교 (F-4)	conditional	핵심 3 뒤. 편도체(Tian S3)·시각(Schaefer Vis) 정의는 지도에 있음
+MindCaptioning 재현	conditional	개발 절차 고정 후. MC split 은 같은 규칙으로 그때 생성

@@ -1,0 +1,93 @@
+> **대체됨(2026-11-07).** 이 폴더는 10월까지의 옛 설계다. 지금 설계 기준은 [docs/final/01_integrated_document.md](../../final/01_integrated_document.md)다.
+
+# EmoBrain 서버 AI 인수인계
+
+_2026-10-19 · 유지·편집하는 단일 연구 기준 · 결과 보고서가 아닌 실행 계획_
+
+---
+
+## Latest framing / 최신 구성 — 2026-10-19
+
+**English.** The current paper has concise EmoViS-inspired preliminary analyses followed by **Study 1: joint brain–visual–semantic latent learning and interpretation**, and **Study 2: teacher–student transfer to brain-only prediction and validation**. Distillation is the main transfer strategy; fine-tuning is a meaningful comparator, not an already failed method. The former Analysis 1–3 identifiers in downstream specifications are method references, not three equally weighted studies. Their scientific priorities must be read through this update.
+
+D25 (dimension-wise rating QC/evaluation), D26 (conditional visual/caption contributions) and D27 (layer-wise affect probes) are documented recommendations/review candidates, **not newly approved primary analyses**. See the [decision and independent-review packet](04_DECISION_REGISTER.md#current-framing-and-preliminary-analysis-review--2026-10-19). Existing losses, splits, cohort roles and execution permissions are unchanged. Personal AI Lab must pin the updated commit for a new review; prior frozen packets do not update automatically. No review dispatch or experimental result is claimed.
+
+**한국어.** 현재 논문은 **간결한 EmoViS 기초 분석 → Study 1: brain–visual–semantic joint latent 학습·해석 → Study 2: teacher–student의 brain-only 전달·예측·검증**으로 구성한다. 증류가 주 전달 전략이고 fine-tuning은 유의미한 비교 방법이지 이미 실패한 방법이 아니다. 아래 및 다른 명세에 남은 Analysis 1–3은 방법 참조용 번호이며 동등한 연구 세 개를 뜻하지 않는다. 과학적 비중은 이번 갱신을 우선한다.
+
+D25(차원별 평정 QC·평가), D26(시각·caption 조건부 기여), D27(층별 정서 probe)은 기록된 권고/검토 후보이며 **새 primary로 승인되지 않았다**. [결정 및 독립 검토 요청](04_DECISION_REGISTER.md#current-framing-and-preliminary-analysis-review--2026-10-19)에 근거·반례·최소안이 있다. 기존 loss·split·cohort 역할·실행 권한은 바꾸지 않는다. Personal AI Lab의 다음 검토는 갱신 커밋을 고정해야 하며 과거 packet은 자동 갱신되지 않는다. 검토 전달 완료나 실험 결과를 주장하지 않는다.
+
+---
+
+## 📋 먼저 알아야 할 것
+
+이 연구는 **감정 예측 성능 경쟁이 아니라, 뇌–장면 내용 관계를 모델이 무엇으로 학습하고 실제 예측에 어떻게 사용하는지 검정하는 연구**다. Teacher는 학습 시 brain + video + caption을 받고, student는 학습·추론 시 fMRI만 입력받는다. Teacher의 출력으로 student를 안내하지만, 그 사실만으로 teacher의 joint representation이 student에 전달되었다고 간주하지 않는다.
+
+현재 구성과 기존 방법의 대응은 다음과 같다.
+
+1. **기초 분석:** EmoViS의 내용–정서 관계와 제한된 실제 뇌 대응. 기존 Analysis 1a/1b의 방법을 재사용하되 범위·통계 family는 축소 검토한다.
+2. **Study 1:** Multimodal 모델의 joint latent에서 학습된 brain–visual–semantic 관계와 입력 사용을 해석한다.
+3. **Study 2:** Teacher–student 증류가 brain-only 표상·내용 접근·정서 예측에 무엇을 전달하는지 비교·검증한다. 기존 student probe·readout은 이 단계에 연결한다.
+
+과거 1b/2d 보강 및 affect-neighborhood retrieval의 채택 이력은 결정 기록에 보존한다. 모든 기존 분석을 동일 비중으로 자동 실행하는 것은 아니다. 독립 neural validation의 구체적 배치·실행 범위와 cohort transfer/replication 설정은 추가 검토가 필요하다. 이번 갱신으로 과거 승인 이력이나 실제 사전등록을 소급 변경하지 않는다.
+
+서버의 실제 코드·데이터·로그는 직접 확인하지 않았다. 이후 GitHub main의 정적 코드 검토는 수행했으며 [구현 상태](08_IMPLEMENTATION_STATUS.md)에 범위를 기록했다. 사용자가 전달한 전처리 산출물 보고는 보고된 사실이지 서버 재검증 결과가 아니다. 기존 체크리스트의 미체크 상태를 ‘미실행’의 증거로 취급하지 말고, 먼저 서버 현황을 조사한다.
+
+## Latest training decision / 최신 학습 방향 — 2026-10-06
+
+Joint B/V/S training remains the default. Brain-first → Joint is an optional additional strategy, not a mandatory second study. A shared Affect Head auxiliary loss is still a proposal. Result-driven iteration is allowed; preserve runs and distinguish selection-exposed results from independent validation. See D20/D21 and C10/C11 in the [decision register](04_DECISION_REGISTER.md), §4 of the [specification](02_IMPLEMENTATION_SPEC.md), and P11b in the [action items](03_ACTION_ITEMS.md). This update does not launch training.
+
+Joint B/V/S 학습이 기본이다. Brain-first → Joint는 추가 전략이며 별도 연구 두 벌을 의무화하지 않는다. 공유 Affect Head 보조 loss는 아직 제안이다. 결과 기반 수정·탐색은 허용하고, 기존 run을 보존하며 선택에 사용한 결과와 독립 검증을 구분한다. 상세는 결정 기록 D20/D21·C10/C11, 구현 명세 §4, 작업 목록 P11b에 있다. 이번 문서 갱신은 학습 실행이 아니다.
+
+## 📍 읽는 순서
+
+Encoder and feature details (2026-10-08): [story §9](01_STORY_AND_DESIGN.md), [implementation §3a–3c](02_IMPLEMENTATION_SPEC.md), D22–D24 and P07b/P08b/P11c now distinguish Participant Map, train-from-scratch brain encoders, optional JEPA-style learning, explicit low-level features and multi-layer V-JEPA extraction. Numerical configurations remain development proposals.
+
+Encoder·feature 상세(2026-10-08): 위 문서에서 Participant Map, 외부 사전학습 없는 brain encoder, 선택적 JEPA-style 학습, 명시적 저수준 특징과 다층 V-JEPA 추출을 구분한다. 수치 설정은 개발안으로 남아 있다.
+
+**Pilot implementation — 2026-10-08:** Data are staged on Perlmutter according to the user; the SDC comparison is pending. Start bounded development with [10_PILOT_IMPLEMENTATION_HANDOFF.md](10_PILOT_IMPLEMENTATION_HANDOFF.md): agent-specific prompts, data contracts, baseline/model/probe implementation order, and replacement-data rules. A tested split-guard scaffold is included; a real-data trainer has not been implemented or run by this update.
+
+**예비 구현 — 2026-10-08:** 사용자 보고상 Perlmutter 데이터가 준비됐고 SDC 비교는 진행 중이다. [10_PILOT_IMPLEMENTATION_HANDOFF.md](10_PILOT_IMPLEMENTATION_HANDOFF.md)의 담당별 프롬프트·데이터 계약·기준모델/모델/probe 구현 순서·데이터 교체 규칙부터 읽는다. 검사된 split-guard 코드가 포함됐으며 이번 갱신에서 실제 데이터 trainer를 구현하거나 실행한 것은 아니다.
+
+**Coordination — 2026-10-07:** GPT coordinates research ideas and current design with the user; Claude Code and Codex verify, implement and run authorized experiments. Read the [coordination rules](../coordination/README.md) and [board](../coordination/BOARD.md) for assignments. They do not replace study specifications. `prereg_v2/design_docs/` contains audit-era snapshots, not a competing current protocol.
+
+**협업 — 2026-10-07:** GPT가 사용자와 연구 아이디어·최신 설계를 총괄하고 Claude Code와 Codex는 검증·구현·승인된 실험을 맡는다. 배정은 [협업 규칙](../coordination/README.md)과 [작업판](../coordination/BOARD.md)을 읽는다. 이들은 연구 명세를 대체하지 않는다. `prereg_v2/design_docs/`는 감사 당시 사본이며 별도의 최신 프로토콜이 아니다.
+
+**Preprocessing handoff — 2026-10-07:** Server preprocessing/QC AIs should start with [09_PREPROCESSING_HANDOFF.md](09_PREPROCESSING_HANDOFF.md). It reconciles the reported OFC/mask/SDC findings, corrects unsupported claims, and specifies evidence and next actions. It does not authorize a whole-cohort rerun or freeze D04.
+
+**전처리 전달문 — 2026-10-07:** 서버 전처리/QC AI는 [09_PREPROCESSING_HANDOFF.md](09_PREPROCESSING_HANDOFF.md)부터 읽는다. 보고된 OFC·마스크·SDC 근거와 과도한 주장을 구분하고 반환물·다음 작업을 정리했다. 전체 재실행 승인이나 D04 동결이 아니다.
+
+| 순서 | 문서 | 역할 |
+|---|---|---|
+| 1 | [연구 스토리와 설계](01_STORY_AND_DESIGN.md) | 무엇을 왜 하는가 |
+| 보강 우선 | [뇌 검증 보강과 추가 후보](06_NEURAL_VALIDATION_AMENDMENT.md) | 1b·2d 방향 승인, 내용 구별 보조 분석 채택 |
+| 전처리 검토 | [자극별 반응과 시계열 입력](07_RESPONSE_ESTIMATION_REVIEW.md) | 블록 평균 권고의 근거·정정·미확인 항목 |
+| 최신 전처리 전달 | [서버 전처리/QC 검토와 작업 지시](09_PREPROCESSING_HANDOFF.md) | 2026-10-07 보고 대조·근거 상태·표적 검증·결정 대기 |
+| 2 | [결정·정정 기록](04_DECISION_REGISTER.md) | 확정·제안·미확정 구분 |
+| 3 | [구현 명세](02_IMPLEMENTATION_SPEC.md) | 데이터·분할·모델·loss·평가 |
+| 4 | [상세 실행 목록](03_ACTION_ITEMS.md) | 순서·산출물·완료 기준 |
+| 5 | [참고문헌과 근거](05_REFERENCES.md) | 선택의 근거와 한계 |
+| 시작 지시 | [서버 AI에 전달할 프롬프트](SERVER_PROMPT.md) | 첫 작업 범위 |
+| 코드 대조 | [구현 상태와 이행 경계](08_IMPLEMENTATION_STATUS.md) | 기존 코드와 최신 설계의 차이 |
+
+저장소의 `docs/current`만 유지·편집한다. 과거 날짜별 전달 폴더, ZIP, 통합본은 당시의 export이며 독립적인 최신 원본이 아니다. 이 저장소에는 통합본·ZIP·날짜별 current 복사본을 추가하지 않는다. 작업 지침은 루트 [AGENTS.md](../../AGENTS.md)에 있다.
+
+## 📌 상태와 문서 우선순위
+
+- **유지:** 대화에서 명시한 연구 방향 또는 기존 설계의 핵심 원칙.
+- **권고:** 이번 정리에서 제안한 운영 방법. 연구책임자의 승인 또는 사전 정의된 개발 절차가 필요하다.
+- **미확정:** 데이터 확인·통계 검토·사용자 선택이 있어야 정할 수 있다.
+- **확인:** 원문 또는 로컬 문서에서 확인한 범위. 서버 데이터까지 확인했다는 뜻은 아니다.
+
+현재 사용자의 명시적 결정 → 승인된 freeze manifest → 본 패키지의 확정 원칙 → 기존 문서 순으로 해석한다. 본 패키지에서 ‘권고/미확정’인 내용은 자동 승인된 것으로 바꾸지 않는다. 기존 문서와 충돌하는 누출 방지 및 잘못된 해석은 [결정 기록](04_DECISION_REGISTER.md)에 적힌 안전 규칙을 우선한다. 기존 preregistration이 실제 등록되어 있다면 소급 변경하지 말고 amendment와 exploratory 표시를 남긴다.
+
+본 문서군은 `Server_Handoff_2026-10-06`에서 가져왔다. 그 이전 원본 `paper_v15.md`, `prereg_v2.md`, `implementation_v2.md`, `action_items_v1.md` 및 로컬 전달본은 삭제하거나 덮어쓰지 않았다. 사용자가 문서 기준 단일화를 승인함에 따라 이 브랜치에서는 `docs/current`가 후속 편집 기준이다. 과거 GitHub README·CLAUDE·H1–H4 논증·September review는 [역사 기록](../archive/README.md)으로 이동/보존했다. 이번 변경은 연구 설계 전체가 이미 동결되었거나 코드가 구현되었다는 뜻이 아니다.
+
+## ✍️ 서버의 첫 작업
+
+먼저 기존 구현과 결과의 상태를 확인하고, 데이터·분할·OOF 누출 검사를 준비한다. 이어서 개발 데이터 안에서만 작은 brain-only baseline과 encoding pilot을 실행할 수 있는지 판단한다. 미확정 통계·split·replication 규칙을 임의로 확정한 대규모 본실험은 시작하지 않는다.
+
+첫 반환물은 `server_status.md`, `data_audit.md`, `split_audit.md`, `decision_queue.md`, `next_actions.md` 또는 같은 내용을 담은 단일 보고서다. `project/output/audits/` 안에 모으고 루트에 흩어 놓지 않는다. 각 주장에 실제 경로, 로그, 설정 또는 검사 결과를 붙인다. 보고서 제목만 만들고 내용을 추측해서 채우지 않는다.
+
+## ⚠️ 전달 시 주의
+
+이 패키지에는 원본 fMRI·동영상·caption, 모델 weight가 포함되어 있지 않다. 서버의 실제 경로를 manifest로 기록하고 로컬 Mac 경로를 그대로 사용하지 않는다. 기존 model PNG에는 Student Encoder는 있지만 Teacher의 pre-fusion Encoder가 생략되어 있다. 최신 경로는 [model figure 문서](../assets/model_architecture.md)에 반영했으며 PNG는 아직 재생성하지 않았다. 이미지보다 최신 구현 명세·결정 기록을 우선한다.

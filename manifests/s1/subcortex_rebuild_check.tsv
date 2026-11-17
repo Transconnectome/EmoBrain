@@ -1,0 +1,331 @@
+cohort	participant	roi	method	n_in_grid	n_in_qc_mask	dice_vs_public	n_aseg	dice_vs_aseg	best_z_mm	dice_best_z
+hk	sub-01	thalamus	public	2605	2605	1.0	2277.0	0.791	0.0	0.791
+hk	sub-01	thalamus	nn_2mm	1468	1468	0.717	2277.0	0.723	0.0	0.723
+hk	sub-01	thalamus	overlap_2mm	1847	1847	0.803	2277.0	0.766	0.0	0.766
+hk	sub-01	hyppocampus	public	2737	2734	1.0	1203.0	0.587	0.0	0.587
+hk	sub-01	hyppocampus	nn_2mm	1762	1762	0.754	1203.0	0.685	0.0	0.685
+hk	sub-01	hyppocampus	overlap_2mm	2422	2420	0.85	1203.0	0.62	0.0	0.62
+hk	sub-01	hypothalamus	public	90	90	1.0				
+hk	sub-01	hypothalamus	nn_2mm	19	19	0.165				
+hk	sub-01	hypothalamus	overlap_2mm	40	40	0.369				
+hk	sub-01	pallidum	public	846	846	1.0	592.0	0.713	0.0	0.713
+hk	sub-01	pallidum	nn_2mm	490	490	0.621	592.0	0.566	0.0	0.566
+hk	sub-01	pallidum	overlap_2mm	693	693	0.723	592.0	0.612	0.0	0.612
+hk	sub-01	brainstem	public	5715	5715	1.0	3007.0	0.634	-2.0	0.644
+hk	sub-01	brainstem	nn_2mm	4133	4133	0.805	3007.0	0.749	-2.0	0.757
+hk	sub-01	brainstem	overlap_2mm	4912	4912	0.857	3007.0	0.708	-2.0	0.718
+hk	sub-01	caudate	public	1943	1943	1.0	836.0	0.518	-2.0	0.524
+hk	sub-01	caudate	nn_2mm	949	949	0.623	836.0	0.633	0.0	0.633
+hk	sub-01	caudate	overlap_2mm	1435	1435	0.739	836.0	0.602	0.0	0.602
+hk	sub-01	putamen	public	2314	2314	1.0	1034.0	0.487	-2.0	0.491
+hk	sub-01	putamen	nn_2mm	1440	1440	0.706	1034.0	0.357	0.0	0.357
+hk	sub-01	putamen	overlap_2mm	1931	1931	0.785	1034.0	0.387	0.0	0.387
+hk	sub-01	nuc_accum	public	590	478	1.0				
+hk	sub-01	nuc_accum	nn_2mm	265	207	0.557				
+hk	sub-01	nuc_accum	overlap_2mm	455	361	0.689				
+hk	sub-01	amygdala	public	769	755	1.0	418.0	0.628	-2.0	0.634
+hk	sub-01	amygdala	nn_2mm	484	476	0.688	418.0	0.705	0.0	0.705
+hk	sub-01	amygdala	overlap_2mm	717	685	0.769	418.0	0.659	0.0	0.659
+hk	sub-01	cerebellum	public	22169	20882	1.0	20458.0	0.864	-2.0	0.874
+hk	sub-01	cerebellum	nn_2mm	21912	20252	0.899	20458.0	0.878	0.0	0.878
+hk	sub-01	cerebellum	overlap_2mm	24209	21842	0.897	20458.0	0.867	0.0	0.867
+hk	sub-02	thalamus	public	2305	2305	1.0	1818.0	0.746	2.0	0.764
+hk	sub-02	thalamus	nn_2mm	1510	1510	0.788	1818.0	0.766	0.0	0.766
+hk	sub-02	thalamus	overlap_2mm	1885	1885	0.873	1818.0	0.789	0.0	0.789
+hk	sub-02	hyppocampus	public	2508	2508	1.0	1065.0	0.563	0.0	0.563
+hk	sub-02	hyppocampus	nn_2mm	1441	1441	0.716	1065.0	0.629	-2.0	0.695
+hk	sub-02	hyppocampus	overlap_2mm	1998	1998	0.833	1065.0	0.602	-2.0	0.633
+hk	sub-02	hypothalamus	public	84	84	1.0				
+hk	sub-02	hypothalamus	nn_2mm	15	15	0.242				
+hk	sub-02	hypothalamus	overlap_2mm	41	41	0.384				
+hk	sub-02	pallidum	public	810	810	1.0	522.0	0.67	0.0	0.67
+hk	sub-02	pallidum	nn_2mm	472	472	0.733	522.0	0.712	0.0	0.712
+hk	sub-02	pallidum	overlap_2mm	667	667	0.85	522.0	0.703	0.0	0.703
+hk	sub-02	brainstem	public	5242	5242	1.0	2475.0	0.597	-4.0	0.607
+hk	sub-02	brainstem	nn_2mm	3212	3212	0.749	2475.0	0.65	-8.0	0.712
+hk	sub-02	brainstem	overlap_2mm	3893	3893	0.817	2475.0	0.636	-6.0	0.683
+hk	sub-02	caudate	public	1940	1940	1.0	870.0	0.539	0.0	0.539
+hk	sub-02	caudate	nn_2mm	981	981	0.67	870.0	0.645	0.0	0.645
+hk	sub-02	caudate	overlap_2mm	1427	1427	0.808	870.0	0.612	0.0	0.612
+hk	sub-02	putamen	public	2251	2251	1.0	1310.0	0.566	0.0	0.566
+hk	sub-02	putamen	nn_2mm	1408	1408	0.77	1310.0	0.576	0.0	0.576
+hk	sub-02	putamen	overlap_2mm	1834	1834	0.874	1310.0	0.573	0.0	0.573
+hk	sub-02	nuc_accum	public	562	539	1.0				
+hk	sub-02	nuc_accum	nn_2mm	215	212	0.515				
+hk	sub-02	nuc_accum	overlap_2mm	407	397	0.71				
+hk	sub-02	amygdala	public	703	703	1.0	409.0	0.549	-2.0	0.565
+hk	sub-02	amygdala	nn_2mm	377	377	0.689	409.0	0.486	-2.0	0.585
+hk	sub-02	amygdala	overlap_2mm	537	537	0.808	409.0	0.539	-2.0	0.598
+hk	sub-02	cerebellum	public	22380	20430	1.0	19011.0	0.856	-2.0	0.863
+hk	sub-02	cerebellum	nn_2mm	19432	18010	0.911	19011.0	0.864	-2.0	0.869
+hk	sub-02	cerebellum	overlap_2mm	21478	19523	0.93	19011.0	0.853	-2.0	0.865
+hk	sub-03	thalamus	public	3815	3810	1.0	1869.0	0.226	20.0	0.572
+hk	sub-03	thalamus	nn_2mm	1487	1487	0.242	1869.0	0.775	0.0	0.775
+hk	sub-03	thalamus	overlap_2mm	1837	1837	0.255	1869.0	0.804	0.0	0.804
+hk	sub-03	hyppocampus	public	3572	1598	1.0	1113.0	0.0	24.0	0.261
+hk	sub-03	hyppocampus	nn_2mm	1490	1490	0.001	1113.0	0.707	0.0	0.707
+hk	sub-03	hyppocampus	overlap_2mm	2149	2149	0.003	1113.0	0.636	0.0	0.636
+hk	sub-03	hypothalamus	public	126	45	1.0				
+hk	sub-03	hypothalamus	nn_2mm	15	15	0.0				
+hk	sub-03	hypothalamus	overlap_2mm	37	37	0.0				
+hk	sub-03	pallidum	public	1160	1102	1.0	442.0	0.211	12.0	0.418
+hk	sub-03	pallidum	nn_2mm	459	459	0.175	442.0	0.686	-2.0	0.69
+hk	sub-03	pallidum	overlap_2mm	671	671	0.201	442.0	0.697	0.0	0.697
+hk	sub-03	brainstem	public	3580	2190	1.0	2212.0	0.3	20.0	0.44
+hk	sub-03	brainstem	nn_2mm	3189	3189	0.252	2212.0	0.69	-2.0	0.711
+hk	sub-03	brainstem	overlap_2mm	3741	3741	0.266	2212.0	0.664	-2.0	0.679
+hk	sub-03	caudate	public	2576	2522	1.0	795.0	0.363	4.0	0.392
+hk	sub-03	caudate	nn_2mm	952	952	0.418	795.0	0.664	0.0	0.664
+hk	sub-03	caudate	overlap_2mm	1517	1517	0.498	795.0	0.585	0.0	0.585
+hk	sub-03	putamen	public	3136	2898	1.0	1101.0	0.226	8.0	0.256
+hk	sub-03	putamen	nn_2mm	1310	1310	0.375	1101.0	0.521	-2.0	0.54
+hk	sub-03	putamen	overlap_2mm	1777	1777	0.426	1101.0	0.499	-2.0	0.518
+hk	sub-03	nuc_accum	public	692	34	1.0				
+hk	sub-03	nuc_accum	nn_2mm	224	204	0.004				
+hk	sub-03	nuc_accum	overlap_2mm	380	349	0.015				
+hk	sub-03	amygdala	public	898	284	1.0	439.0	0.045	16.0	0.277
+hk	sub-03	amygdala	nn_2mm	432	432	0.059	439.0	0.629	-2.0	0.657
+hk	sub-03	amygdala	overlap_2mm	641	635	0.087	439.0	0.619	0.0	0.619
+hk	sub-03	cerebellum	public	1870	1179	1.0	15876.0	0.048	30.0	0.136
+hk	sub-03	cerebellum	nn_2mm	16433	15543	0.039	15876.0	0.873	0.0	0.873
+hk	sub-03	cerebellum	overlap_2mm	18274	16882	0.042	15876.0	0.858	0.0	0.858
+hk	sub-04	thalamus	public	2432	2432	1.0	2073.0	0.757	2.0	0.772
+hk	sub-04	thalamus	nn_2mm	1664	1664	0.808	2073.0	0.775	0.0	0.775
+hk	sub-04	thalamus	overlap_2mm	2049	2049	0.871	2073.0	0.792	0.0	0.792
+hk	sub-04	hyppocampus	public	2461	2461	1.0	1175.0	0.611	0.0	0.611
+hk	sub-04	hyppocampus	nn_2mm	1647	1647	0.775	1175.0	0.721	0.0	0.721
+hk	sub-04	hyppocampus	overlap_2mm	2263	2262	0.856	1175.0	0.642	0.0	0.642
+hk	sub-04	hypothalamus	public	88	88	1.0				
+hk	sub-04	hypothalamus	nn_2mm	21	21	0.349				
+hk	sub-04	hypothalamus	overlap_2mm	48	48	0.456				
+hk	sub-04	pallidum	public	821	821	1.0	487.0	0.651	0.0	0.651
+hk	sub-04	pallidum	nn_2mm	532	532	0.757	487.0	0.712	0.0	0.712
+hk	sub-04	pallidum	overlap_2mm	752	752	0.802	487.0	0.678	0.0	0.678
+hk	sub-04	brainstem	public	5263	5263	1.0	2482.0	0.601	-2.0	0.61
+hk	sub-04	brainstem	nn_2mm	3636	3636	0.81	2482.0	0.702	-4.0	0.724
+hk	sub-04	brainstem	overlap_2mm	4375	4375	0.877	2482.0	0.667	-2.0	0.682
+hk	sub-04	caudate	public	1963	1963	1.0	929.0	0.516	0.0	0.516
+hk	sub-04	caudate	nn_2mm	1089	1089	0.653	929.0	0.649	0.0	0.649
+hk	sub-04	caudate	overlap_2mm	1623	1623	0.779	929.0	0.603	0.0	0.603
+hk	sub-04	putamen	public	2241	2241	1.0	1255.0	0.491	0.0	0.491
+hk	sub-04	putamen	nn_2mm	1534	1534	0.788	1255.0	0.506	0.0	0.506
+hk	sub-04	putamen	overlap_2mm	2042	2042	0.848	1255.0	0.491	0.0	0.491
+hk	sub-04	nuc_accum	public	562	519	1.0				
+hk	sub-04	nuc_accum	nn_2mm	246	221	0.488				
+hk	sub-04	nuc_accum	overlap_2mm	457	414	0.652				
+hk	sub-04	amygdala	public	720	720	1.0	444.0	0.574	0.0	0.574
+hk	sub-04	amygdala	nn_2mm	491	491	0.745	444.0	0.567	0.0	0.567
+hk	sub-04	amygdala	overlap_2mm	684	683	0.813	444.0	0.571	0.0	0.571
+hk	sub-04	cerebellum	public	21106	19861	1.0	18582.0	0.871	0.0	0.871
+hk	sub-04	cerebellum	nn_2mm	19621	18212	0.9	18582.0	0.877	2.0	0.882
+hk	sub-04	cerebellum	overlap_2mm	21645	19605	0.905	18582.0	0.864	2.0	0.868
+hk	sub-05	thalamus	public	2535	2535	1.0	2237.0	0.771	0.0	0.771
+hk	sub-05	thalamus	nn_2mm	1857	1857	0.831	2237.0	0.775	0.0	0.775
+hk	sub-05	thalamus	overlap_2mm	2328	2328	0.895	2237.0	0.78	0.0	0.78
+hk	sub-05	hyppocampus	public	2531	2531	1.0	1037.0	0.478	-2.0	0.526
+hk	sub-05	hyppocampus	nn_2mm	1835	1835	0.768	1037.0	0.557	-2.0	0.582
+hk	sub-05	hyppocampus	overlap_2mm	2534	2534	0.821	1037.0	0.52	-2.0	0.53
+hk	sub-05	hypothalamus	public	92	92	1.0				
+hk	sub-05	hypothalamus	nn_2mm	16	16	0.278				
+hk	sub-05	hypothalamus	overlap_2mm	51	51	0.643				
+hk	sub-05	pallidum	public	815	815	1.0	606.0	0.684	0.0	0.684
+hk	sub-05	pallidum	nn_2mm	598	598	0.815	606.0	0.709	0.0	0.709
+hk	sub-05	pallidum	overlap_2mm	825	825	0.87	606.0	0.686	0.0	0.686
+hk	sub-05	brainstem	public	5705	5705	1.0	2818.0	0.599	-6.0	0.626
+hk	sub-05	brainstem	nn_2mm	3881	3881	0.8	2818.0	0.676	-4.0	0.718
+hk	sub-05	brainstem	overlap_2mm	4676	4676	0.868	2818.0	0.647	-4.0	0.68
+hk	sub-05	caudate	public	1940	1940	1.0	913.0	0.458	-2.0	0.476
+hk	sub-05	caudate	nn_2mm	1259	1259	0.722	913.0	0.507	-2.0	0.586
+hk	sub-05	caudate	overlap_2mm	1950	1950	0.792	913.0	0.5	-2.0	0.538
+hk	sub-05	putamen	public	2190	2190	1.0	1289.0	0.484	0.0	0.484
+hk	sub-05	putamen	nn_2mm	1597	1597	0.8	1289.0	0.543	0.0	0.543
+hk	sub-05	putamen	overlap_2mm	2169	2169	0.852	1289.0	0.538	0.0	0.538
+hk	sub-05	nuc_accum	public	577	577	1.0				
+hk	sub-05	nuc_accum	nn_2mm	260	260	0.547				
+hk	sub-05	nuc_accum	overlap_2mm	448	445	0.687				
+hk	sub-05	amygdala	public	726	726	1.0	449.0	0.405	-4.0	0.517
+hk	sub-05	amygdala	nn_2mm	444	444	0.715	449.0	0.392	-4.0	0.499
+hk	sub-05	amygdala	overlap_2mm	633	633	0.799	449.0	0.42	-2.0	0.501
+hk	sub-05	cerebellum	public	24770	20377	1.0	20268.0	0.825	0.0	0.825
+hk	sub-05	cerebellum	nn_2mm	21727	18302	0.89	20268.0	0.855	0.0	0.855
+hk	sub-05	cerebellum	overlap_2mm	24049	19762	0.907	20268.0	0.84	0.0	0.84
+mc	sub-01	thalamus	public	2304	2304	1.0	2287.0	0.807	0.0	0.807
+mc	sub-01	thalamus	nn_2mm	1497	1497	0.785	2287.0	0.722	0.0	0.722
+mc	sub-01	thalamus	overlap_2mm	1869	1869	0.868	2287.0	0.769	0.0	0.769
+mc	sub-01	hyppocampus	public	2408	2357	1.0	1219.0	0.6	-2.0	0.633
+mc	sub-01	hyppocampus	nn_2mm	1657	1641	0.763	1219.0	0.67	-2.0	0.69
+mc	sub-01	hyppocampus	overlap_2mm	2405	2364	0.845	1219.0	0.62	-2.0	0.622
+mc	sub-01	hypothalamus	public	85	38	1.0				
+mc	sub-01	hypothalamus	nn_2mm	17	11	0.333				
+mc	sub-01	hypothalamus	overlap_2mm	40	25	0.56				
+mc	sub-01	pallidum	public	769	769	1.0	501.0	0.587	-2.0	0.614
+mc	sub-01	pallidum	nn_2mm	443	443	0.711	501.0	0.472	-2.0	0.515
+mc	sub-01	pallidum	overlap_2mm	691	691	0.859	501.0	0.565	-2.0	0.572
+mc	sub-01	brainstem	public	5154	5016	1.0	2919.0	0.586	-6.0	0.644
+mc	sub-01	brainstem	nn_2mm	3840	3752	0.785	2919.0	0.716	-2.0	0.743
+mc	sub-01	brainstem	overlap_2mm	4620	4471	0.838	2919.0	0.689	-2.0	0.709
+mc	sub-01	caudate	public	1747	1747	1.0	804.0	0.494	-2.0	0.496
+mc	sub-01	caudate	nn_2mm	1030	1030	0.71	804.0	0.586	-2.0	0.606
+mc	sub-01	caudate	overlap_2mm	1587	1587	0.797	804.0	0.556	-2.0	0.56
+mc	sub-01	putamen	public	2066	2053	1.0	1017.0	0.428	-2.0	0.446
+mc	sub-01	putamen	nn_2mm	1386	1381	0.776	1017.0	0.37	-2.0	0.374
+mc	sub-01	putamen	overlap_2mm	1817	1808	0.855	1017.0	0.429	-2.0	0.434
+mc	sub-01	nuc_accum	public	552	317	1.0				
+mc	sub-01	nuc_accum	nn_2mm	245	112	0.587				
+mc	sub-01	nuc_accum	overlap_2mm	437	233	0.748				
+mc	sub-01	amygdala	public	719	683	1.0	394.0	0.593	-2.0	0.645
+mc	sub-01	amygdala	nn_2mm	431	422	0.67	394.0	0.616	-2.0	0.684
+mc	sub-01	amygdala	overlap_2mm	674	640	0.777	394.0	0.631	-2.0	0.659
+mc	sub-01	cerebellum	public	19955	18374	1.0	20415.0	0.817	-4.0	0.853
+mc	sub-01	cerebellum	nn_2mm	20124	18359	0.825	20415.0	0.868	0.0	0.868
+mc	sub-01	cerebellum	overlap_2mm	22229	19756	0.832	20415.0	0.868	0.0	0.868
+mc	sub-02	thalamus	public	2311	2311	1.0	1949.0	0.758	0.0	0.758
+mc	sub-02	thalamus	nn_2mm	1641	1641	0.825	1949.0	0.749	0.0	0.749
+mc	sub-02	thalamus	overlap_2mm	2041	2041	0.899	1949.0	0.767	0.0	0.767
+mc	sub-02	hyppocampus	public	2385	2368	1.0	1100.0	0.592	-2.0	0.607
+mc	sub-02	hyppocampus	nn_2mm	1629	1625	0.778	1100.0	0.657	-2.0	0.688
+mc	sub-02	hyppocampus	overlap_2mm	2251	2240	0.86	1100.0	0.607	-2.0	0.621
+mc	sub-02	hypothalamus	public	79	55	1.0				
+mc	sub-02	hypothalamus	nn_2mm	17	14	0.354				
+mc	sub-02	hypothalamus	overlap_2mm	40	26	0.555				
+mc	sub-02	pallidum	public	758	758	1.0	487.0	0.705	0.0	0.705
+mc	sub-02	pallidum	nn_2mm	475	475	0.706	487.0	0.726	0.0	0.726
+mc	sub-02	pallidum	overlap_2mm	702	702	0.781	487.0	0.691	0.0	0.691
+mc	sub-02	brainstem	public	4618	4541	1.0	2505.0	0.629	-4.0	0.645
+mc	sub-02	brainstem	nn_2mm	3279	3226	0.816	2505.0	0.706	-4.0	0.739
+mc	sub-02	brainstem	overlap_2mm	3903	3833	0.879	2505.0	0.685	-2.0	0.708
+mc	sub-02	caudate	public	1801	1801	1.0	797.0	0.401	-2.0	0.413
+mc	sub-02	caudate	nn_2mm	1134	1134	0.666	797.0	0.564	-2.0	0.616
+mc	sub-02	caudate	overlap_2mm	1699	1699	0.729	797.0	0.506	-2.0	0.542
+mc	sub-02	putamen	public	2034	2026	1.0	1129.0	0.431	-2.0	0.457
+mc	sub-02	putamen	nn_2mm	1364	1361	0.765	1129.0	0.506	-2.0	0.548
+mc	sub-02	putamen	overlap_2mm	1862	1851	0.815	1129.0	0.525	-2.0	0.546
+mc	sub-02	nuc_accum	public	531	402	1.0				
+mc	sub-02	nuc_accum	nn_2mm	214	138	0.523				
+mc	sub-02	nuc_accum	overlap_2mm	442	310	0.705				
+mc	sub-02	amygdala	public	693	685	1.0	419.0	0.635	-2.0	0.671
+mc	sub-02	amygdala	nn_2mm	421	419	0.67	419.0	0.645	-2.0	0.667
+mc	sub-02	amygdala	overlap_2mm	641	634	0.759	419.0	0.643	-2.0	0.651
+mc	sub-02	cerebellum	public	18535	17045	1.0	16806.0	0.832	-2.0	0.855
+mc	sub-02	cerebellum	nn_2mm	17512	15717	0.867	16806.0	0.848	0.0	0.848
+mc	sub-02	cerebellum	overlap_2mm	19358	16872	0.872	16806.0	0.839	0.0	0.839
+mc	sub-03	thalamus	public	2481	2481	1.0	2411.0	0.797	0.0	0.797
+mc	sub-03	thalamus	nn_2mm	1712	1712	0.815	2411.0	0.743	0.0	0.743
+mc	sub-03	thalamus	overlap_2mm	2151	2151	0.896	2411.0	0.782	0.0	0.782
+mc	sub-03	hyppocampus	public	2466	2466	1.0	1280.0	0.557	-4.0	0.621
+mc	sub-03	hyppocampus	nn_2mm	1577	1577	0.759	1280.0	0.592	-2.0	0.713
+mc	sub-03	hyppocampus	overlap_2mm	2320	2320	0.875	1280.0	0.572	-2.0	0.648
+mc	sub-03	hypothalamus	public	88	88	1.0				
+mc	sub-03	hypothalamus	nn_2mm	23	23	0.414				
+mc	sub-03	hypothalamus	overlap_2mm	48	48	0.588				
+mc	sub-03	pallidum	public	820	820	1.0	546.0	0.678	-2.0	0.728
+mc	sub-03	pallidum	nn_2mm	569	569	0.812	546.0	0.66	-2.0	0.746
+mc	sub-03	pallidum	overlap_2mm	818	818	0.884	546.0	0.636	-2.0	0.704
+mc	sub-03	brainstem	public	5288	5286	1.0	2801.0	0.616	-4.0	0.641
+mc	sub-03	brainstem	nn_2mm	3554	3554	0.801	2801.0	0.673	-4.0	0.715
+mc	sub-03	brainstem	overlap_2mm	4347	4347	0.882	2801.0	0.658	-4.0	0.692
+mc	sub-03	caudate	public	2011	2011	1.0	848.0	0.476	-2.0	0.477
+mc	sub-03	caudate	nn_2mm	1263	1263	0.683	848.0	0.629	-2.0	0.655
+mc	sub-03	caudate	overlap_2mm	1949	1949	0.782	848.0	0.547	-2.0	0.563
+mc	sub-03	putamen	public	2271	2269	1.0	1242.0	0.463	-4.0	0.531
+mc	sub-03	putamen	nn_2mm	1504	1503	0.771	1242.0	0.477	-4.0	0.535
+mc	sub-03	putamen	overlap_2mm	2091	2087	0.864	1242.0	0.484	-4.0	0.545
+mc	sub-03	nuc_accum	public	587	572	1.0				
+mc	sub-03	nuc_accum	nn_2mm	239	235	0.518				
+mc	sub-03	nuc_accum	overlap_2mm	477	457	0.701				
+mc	sub-03	amygdala	public	719	719	1.0	462.0	0.481	-4.0	0.62
+mc	sub-03	amygdala	nn_2mm	472	472	0.73	462.0	0.488	-4.0	0.638
+mc	sub-03	amygdala	overlap_2mm	676	676	0.8	462.0	0.525	-4.0	0.627
+mc	sub-03	cerebellum	public	22064	19869	1.0	19189.0	0.806	-4.0	0.867
+mc	sub-03	cerebellum	nn_2mm	20504	18574	0.863	19189.0	0.867	0.0	0.867
+mc	sub-03	cerebellum	overlap_2mm	22727	19931	0.868	19189.0	0.853	0.0	0.853
+mc	sub-04	thalamus	public	2242	2242	1.0	1546.0	0.706	-2.0	0.713
+mc	sub-04	thalamus	nn_2mm	1478	1478	0.794	1546.0	0.731	-2.0	0.752
+mc	sub-04	thalamus	overlap_2mm	1824	1824	0.875	1546.0	0.714	-2.0	0.731
+mc	sub-04	hyppocampus	public	2350	2350	1.0	965.0	0.527	-2.0	0.549
+mc	sub-04	hyppocampus	nn_2mm	1560	1560	0.78	965.0	0.551	-2.0	0.623
+mc	sub-04	hyppocampus	overlap_2mm	2154	2154	0.853	965.0	0.517	-2.0	0.555
+mc	sub-04	hypothalamus	public	77	77	1.0				
+mc	sub-04	hypothalamus	nn_2mm	19	19	0.396				
+mc	sub-04	hypothalamus	overlap_2mm	38	38	0.574				
+mc	sub-04	pallidum	public	721	721	1.0	428.0	0.677	0.0	0.677
+mc	sub-04	pallidum	nn_2mm	423	423	0.727	428.0	0.667	-2.0	0.729
+mc	sub-04	pallidum	overlap_2mm	584	584	0.814	428.0	0.66	-2.0	0.721
+mc	sub-04	brainstem	public	4182	4165	1.0	1927.0	0.566	-4.0	0.587
+mc	sub-04	brainstem	nn_2mm	2883	2883	0.803	1927.0	0.664	-4.0	0.699
+mc	sub-04	brainstem	overlap_2mm	3510	3497	0.884	1927.0	0.639	-2.0	0.656
+mc	sub-04	caudate	public	1771	1767	1.0	721.0	0.363	-4.0	0.426
+mc	sub-04	caudate	nn_2mm	1224	1223	0.715	721.0	0.493	-4.0	0.582
+mc	sub-04	caudate	overlap_2mm	1733	1721	0.762	721.0	0.448	-4.0	0.5
+mc	sub-04	putamen	public	1966	1960	1.0	1047.0	0.54	-2.0	0.572
+mc	sub-04	putamen	nn_2mm	1098	1097	0.713	1047.0	0.553	-2.0	0.583
+mc	sub-04	putamen	overlap_2mm	1560	1554	0.835	1047.0	0.568	-2.0	0.601
+mc	sub-04	nuc_accum	public	504	483	1.0				
+mc	sub-04	nuc_accum	nn_2mm	210	198	0.569				
+mc	sub-04	nuc_accum	overlap_2mm	355	335	0.738				
+mc	sub-04	amygdala	public	631	631	1.0	396.0	0.641	-2.0	0.685
+mc	sub-04	amygdala	nn_2mm	371	371	0.699	396.0	0.6	-2.0	0.681
+mc	sub-04	amygdala	overlap_2mm	562	562	0.795	396.0	0.589	-2.0	0.683
+mc	sub-04	cerebellum	public	16864	14798	1.0	15202.0	0.827	-2.0	0.853
+mc	sub-04	cerebellum	nn_2mm	15029	12927	0.863	15202.0	0.847	0.0	0.847
+mc	sub-04	cerebellum	overlap_2mm	16733	13881	0.872	15202.0	0.841	0.0	0.841
+mc	sub-05	thalamus	public	1932	1932	1.0	2052.0	0.758	0.0	0.758
+mc	sub-05	thalamus	nn_2mm	1442	1442	0.846	2052.0	0.724	0.0	0.724
+mc	sub-05	thalamus	overlap_2mm	1858	1858	0.908	2052.0	0.766	0.0	0.766
+mc	sub-05	hyppocampus	public	2177	2138	1.0	1165.0	0.532	-2.0	0.59
+mc	sub-05	hyppocampus	nn_2mm	1597	1588	0.774	1165.0	0.576	-2.0	0.688
+mc	sub-05	hyppocampus	overlap_2mm	2150	2127	0.826	1165.0	0.571	-2.0	0.627
+mc	sub-05	hypothalamus	public	77	56	1.0				
+mc	sub-05	hypothalamus	nn_2mm	12	8	0.247				
+mc	sub-05	hypothalamus	overlap_2mm	50	34	0.709				
+mc	sub-05	pallidum	public	679	674	1.0	532.0	0.743	0.0	0.743
+mc	sub-05	pallidum	nn_2mm	461	456	0.775	532.0	0.693	0.0	0.693
+mc	sub-05	pallidum	overlap_2mm	646	640	0.851	532.0	0.698	0.0	0.698
+mc	sub-05	brainstem	public	4702	4513	1.0	2760.0	0.624	-4.0	0.671
+mc	sub-05	brainstem	nn_2mm	3728	3629	0.831	2760.0	0.71	-4.0	0.735
+mc	sub-05	brainstem	overlap_2mm	4495	4333	0.88	2760.0	0.687	-2.0	0.704
+mc	sub-05	caudate	public	1559	1532	1.0	858.0	0.564	0.0	0.564
+mc	sub-05	caudate	nn_2mm	901	875	0.675	858.0	0.656	0.0	0.656
+mc	sub-05	caudate	overlap_2mm	1382	1352	0.766	858.0	0.637	0.0	0.637
+mc	sub-05	putamen	public	1812	1765	1.0	1270.0	0.472	-2.0	0.482
+mc	sub-05	putamen	nn_2mm	1245	1223	0.776	1270.0	0.471	-2.0	0.487
+mc	sub-05	putamen	overlap_2mm	1726	1667	0.829	1270.0	0.496	-2.0	0.506
+mc	sub-05	nuc_accum	public	496	305	1.0				
+mc	sub-05	nuc_accum	nn_2mm	206	120	0.544				
+mc	sub-05	nuc_accum	overlap_2mm	379	220	0.709				
+mc	sub-05	amygdala	public	646	615	1.0	422.0	0.549	-2.0	0.612
+mc	sub-05	amygdala	nn_2mm	407	401	0.705	422.0	0.499	-4.0	0.572
+mc	sub-05	amygdala	overlap_2mm	596	571	0.802	422.0	0.513	-4.0	0.589
+mc	sub-05	cerebellum	public	19871	18287	1.0	18013.0	0.758	-6.0	0.843
+mc	sub-05	cerebellum	nn_2mm	18596	17116	0.776	18013.0	0.879	0.0	0.879
+mc	sub-05	cerebellum	overlap_2mm	20642	18455	0.79	18013.0	0.869	0.0	0.869
+mc	sub-06	thalamus	public	2192	2192	1.0	2118.0	0.785	0.0	0.785
+mc	sub-06	thalamus	nn_2mm	1666	1666	0.824	2118.0	0.765	0.0	0.765
+mc	sub-06	thalamus	overlap_2mm	2050	2050	0.857	2118.0	0.778	0.0	0.778
+mc	sub-06	hyppocampus	public	2115	2115	1.0	1188.0	0.544	-2.0	0.651
+mc	sub-06	hyppocampus	nn_2mm	1451	1451	0.652	1188.0	0.665	-2.0	0.711
+mc	sub-06	hyppocampus	overlap_2mm	2111	2111	0.716	1188.0	0.622	-2.0	0.656
+mc	sub-06	hypothalamus	public	85	73	1.0				
+mc	sub-06	hypothalamus	nn_2mm	16	15	0.277				
+mc	sub-06	hypothalamus	overlap_2mm	45	43	0.569				
+mc	sub-06	pallidum	public	689	689	1.0	585.0	0.678	-2.0	0.714
+mc	sub-06	pallidum	nn_2mm	528	528	0.781	585.0	0.751	-2.0	0.778
+mc	sub-06	pallidum	overlap_2mm	705	705	0.815	585.0	0.752	-2.0	0.775
+mc	sub-06	brainstem	public	4751	4747	1.0	2875.0	0.616	-6.0	0.673
+mc	sub-06	brainstem	nn_2mm	3738	3738	0.844	2875.0	0.669	-4.0	0.719
+mc	sub-06	brainstem	overlap_2mm	4417	4416	0.882	2875.0	0.658	-4.0	0.702
+mc	sub-06	caudate	public	1672	1672	1.0	933.0	0.467	-2.0	0.488
+mc	sub-06	caudate	nn_2mm	1336	1336	0.68	933.0	0.597	-2.0	0.62
+mc	sub-06	caudate	overlap_2mm	1954	1954	0.707	933.0	0.532	-2.0	0.56
+mc	sub-06	putamen	public	1794	1793	1.0	1293.0	0.338	-2.0	0.354
+mc	sub-06	putamen	nn_2mm	1467	1467	0.705	1293.0	0.537	-2.0	0.559
+mc	sub-06	putamen	overlap_2mm	1985	1983	0.746	1293.0	0.53	-2.0	0.55
+mc	sub-06	nuc_accum	public	491	448	1.0				
+mc	sub-06	nuc_accum	nn_2mm	217	202	0.571				
+mc	sub-06	nuc_accum	overlap_2mm	375	341	0.727				
+mc	sub-06	amygdala	public	578	578	1.0	442.0	0.541	-4.0	0.684
+mc	sub-06	amygdala	nn_2mm	380	380	0.72	442.0	0.533	-4.0	0.664
+mc	sub-06	amygdala	overlap_2mm	555	555	0.75	442.0	0.592	-2.0	0.676
+mc	sub-06	cerebellum	public	21803	20110	1.0	20573.0	0.762	-6.0	0.86
+mc	sub-06	cerebellum	nn_2mm	21078	19023	0.802	20573.0	0.861	0.0	0.861
+mc	sub-06	cerebellum	overlap_2mm	23150	20325	0.808	20573.0	0.85	0.0	0.85

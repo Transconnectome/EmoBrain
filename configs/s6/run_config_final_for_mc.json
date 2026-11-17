@@ -1,0 +1,28 @@
+{
+  "note": "11/15 석진 님. 6-3 MC 전이에 쓰는 HK 최종 모델(final_for_mc, 개발 영상 전체, 검증은 O7). A-1은 표준 실행이 6 fold 모두 고른 값으로 고정하고 C-1은 r × λ 8개를 이 분할의 검증으로 고른다. seed 3개(G14). 결과는 S6_OUT=s6_brain_final_for_mc",
+  "k_candidates": [
+    [
+      64,
+      100.0
+    ]
+  ],
+  "learning_rates": [
+    0.001
+  ],
+  "learning_rates_by_condition": {
+    "brain_only": [
+      0.001
+    ],
+    "brain_decoded": [
+      0.0001
+    ]
+  },
+  "keep_candidate_checkpoints": true,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375
+}
