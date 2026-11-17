@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """S9 네트워크 교란의 모델 확장과 정서 head 입력 표현 저장 (01 6-4e (나), (다), 11/17 석진 님 승인). 다시 학습하지 않는다. GPU 추론.
 
-모델(seed 0, 바깥 fold 6개): A-1, C-1, B-1, D-4(짝 모델 4개의 예측 평균), E-고정, E-학습.
+모델(seed 0, 바깥 fold 6개): A-1, C-1, B-1, D-1, D-3, D-4(짝 모델 4개의 예측 평균), E-고정, E-학습(D-1, D-3은 11/17 석진 님 요청으로 더함).
+  D-1은 입력층이 둘(정서 encoder, encoder 2)이고 D-3은 encoder 2 하나다. 한 묶음의 voxel 입력을 바꾸면 두 입력층의 token이 함께 바뀌므로 둘 다 같은 배정으로 바꾼다.
+  D-3은 정서 query가 없어 표현(o)을 저장하지 않는다.
   표현 비교의 기준으로 A-1 depth2, depth4(A-1과 같은 후보 설정, encoder block 수만 2, 4)의 표현도 저장한다.
 교란: 6-4b와 같다. CAB-NP 13묶음의 입력을 같은 참가자, 같은 시험 fold의 다른 시험 영상 값으로 바꾼다. 20회.
   배정표는 s9_saved_models.donor_table(같은 seed 규칙)이라 6-4b의 A-1, C-1과 같은 배정이다. ROI 370개판은 하지 않는다.
@@ -31,7 +33,7 @@ import s6_model as M
 import s6_train as T
 import s9_saved_models as S9
 
-CONDS = ("brain_only", "brain_decoded", "brain_only_featdec", "brain_frozen_feature_encoder", "brain_only_repr_frozen", "brain_only_repr_trained")
+CONDS = ("brain_only", "brain_decoded", "brain_only_featdec", "brain_decoded_sep", "brain_features_only", "brain_frozen_feature_encoder", "brain_only_repr_frozen", "brain_only_repr_trained")
 REPEATS = S9.PERTURB_REPEATS
 CHUNK = 512
 
@@ -56,34 +58,56 @@ def submodels(root, k, cond, device):
     return out, saved
 
 
-def parts(m):
-    if isinstance(m, M.FrozenEncoderModel):
-        il, enc = m.feature_model.input_layer, m.feature_model.encoder
+def input_layers(m):
+    """모델의 ROI 입력층들. 선형 입력층이어야 token 교체가 입력 교체와 같다."""
+    if isinstance(m, M.SeparateDecodedModel):
+        ils = [m.main.input_layer, m.feature_model.input_layer]
+    elif isinstance(m, (M.FeatureHeadModel, M.FrozenEncoderModel)):
+        ils = [m.feature_model.input_layer]
     elif type(m) is M.BrainModel:
-        il, enc = m.input_layer, m.encoder
+        ils = [m.input_layer]
     else:
         raise ValueError(f"{type(m).__name__}: 이 분석이 다루지 않는 모델")
-    if type(il) is not M.RoiInput:
+    if any(type(il) is not M.RoiInput for il in ils):
         raise ValueError("token 교체는 선형 입력층에서만 입력 교체와 같다")
-    return il, enc, m.readout
+    return ils
 
 
 @torch.no_grad()
 def tokens(m, fd, rows):
-    il = parts(m)[0]
-    return torch.cat([il(fd.batch(rows[j:j + CHUNK])) for j in range(0, len(rows), CHUNK)])
+    return [torch.cat([il(fd.batch(rows[j:j + CHUNK])) for j in range(0, len(rows), CHUNK)]) for il in input_layers(m)]
+
+
+def _head_chunk(m, Ts):
+    """token에서 정서 logit과 정서 query 출력 o(없으면 None). 각 모델의 forward와 같은 계산이다."""
+    if isinstance(m, M.SeparateDecodedModel):
+        r = m.main.readout
+        o, _ = r.emotion_query(m.main.encoder(Ts[0]))
+        g = torch.cat([layer(o[:, e]) for e, layer in enumerate(r.emotion_linears)], dim=-1)
+        f = m.feature_model.readout(m.feature_model.encoder(Ts[1]))
+        return r.combine(g, f.v_hat, f.c_hat), o
+    if isinstance(m, M.FeatureHeadModel):
+        f = m.feature_model.readout(m.feature_model.encoder(Ts[0]))
+        z = m.a(f.v_hat) + m.b(f.c_hat)
+        if m.rank:
+            z = z + m.U(m.A(f.v_hat) * m.B(f.c_hat))
+        return z, None
+    if isinstance(m, M.FrozenEncoderModel):
+        out = m.readout(m.feature_model.encoder(Ts[0]))
+        return out.z, out.o
+    out = m.readout(m.encoder(Ts[0]))
+    return out.z, out.o
 
 
 @torch.no_grad()
-def head(m, Tk, want_o=False):
-    _, enc, rd = parts(m)
+def head(m, Ts, want_o=False):
     ps, os_ = [], []
-    for j in range(0, len(Tk), CHUNK):
-        out = rd(enc(Tk[j:j + CHUNK]))
-        ps.append(out.z.sigmoid())
-        if want_o:
-            os_.append(out.o.flatten(1))
-    return torch.cat(ps), (torch.cat(os_) if want_o else None)
+    for j in range(0, len(Ts[0]), CHUNK):
+        z, o = _head_chunk(m, [T[j:j + CHUNK] for T in Ts])
+        ps.append(z.sigmoid())
+        if want_o and o is not None:
+            os_.append(o.flatten(1))
+    return torch.cat(ps), (torch.cat(os_) if os_ else None)
 
 
 def saved_p(path, fd, rows):
@@ -99,8 +123,11 @@ def check_direct(m, fd, rows, donors, Tk, idx):
     p0 = np.flatnonzero(part == 0)
     local = {g: i for i, g in enumerate(p0)}
     direct = m(S9.raw_perturbed_batch(fd, rows[p0], np.array([local[g] for g in donors[0][p0]]), idx)).z.sigmoid().double()
-    Tp = Tk[p0].clone()
-    Tp[:, idx] = Tk[torch.as_tensor(donors[0][p0], device=Tk.device)][:, idx]
+    Tp = []
+    for T in Tk:
+        x = T[p0].clone()
+        x[:, idx] = T[torch.as_tensor(donors[0][p0], device=T.device)][:, idx]
+        Tp.append(x)
     if not torch.allclose(direct, head(m, Tp)[0].double(), atol=1e-4):
         raise ValueError("token 교체가 입력 교체와 다르다")
 
@@ -160,7 +187,8 @@ def run_fold(k, s6_dir, ref_dirs, device, tmp):
             if fdu is not fd:
                 del fdu
                 torch.cuda.empty_cache()
-            reprs[cond if len(subs) == 1 else f"{cond}|{d.name}"] = o.float().cpu().numpy()
+            if o is not None:
+                reprs[cond if len(subs) == 1 else f"{cond}|{d.name}"] = o.float().cpu().numpy()
             toks.append(Tk)
             base.append(p)
         b = torch.stack(base).mean(0)
@@ -169,15 +197,17 @@ def run_fold(k, s6_dir, ref_dirs, device, tmp):
         arrays[f"{cond}_base"] = b.float().cpu().numpy()
         pv = np.empty((len(units), REPEATS, len(rows), b.shape[1]), np.float32)
         for t in range(REPEATS):
-            dt = torch.as_tensor(donors[t], device=toks[0].device)
-            donor_toks = [Tk[dt] for Tk in toks]
+            dt = torch.as_tensor(donors[t], device=toks[0][0].device)
+            donor_toks = [[T[dt] for T in Ts] for Ts in toks]
             for u, (_, _, idx) in enumerate(units):
                 preds = []
-                for (_, m), Tk, Td in zip(subs, toks, donor_toks):
-                    keep = Tk[:, idx].clone()
-                    Tk[:, idx] = Td[:, idx]
-                    preds.append(head(m, Tk)[0])
-                    Tk[:, idx] = keep
+                for (_, m), Ts, Tds in zip(subs, toks, donor_toks):
+                    keeps = [T[:, idx].clone() for T in Ts]
+                    for T, Td in zip(Ts, Tds):
+                        T[:, idx] = Td[:, idx]
+                    preds.append(head(m, Ts)[0])
+                    for T, kk in zip(Ts, keeps):
+                        T[:, idx] = kk
                 pv[u, t] = torch.stack(preds).mean(0).float().cpu().numpy()
         np.save(tmp / f"perturbed_{cond}.npy", pv)
         print(f"fold {k} {cond} 끝", flush=True)

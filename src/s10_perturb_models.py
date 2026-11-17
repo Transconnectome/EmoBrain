@@ -4,7 +4,7 @@
 질문(석진 님 11/17): 34개 평균 성능이 비슷한 모델들이 같은 뇌 영역을 같은 방식으로 쓰는가, 같은 표현을 배웠는가.
 
 (나) 네트워크 교란
-- 모델: A-1(기준), C-1, B-1, D-4, E-고정, E-학습(seed 0). 계산은 6-4b(s10_perturb)와 같다.
+- 모델: A-1(기준), C-1, B-1, D-1, D-3, D-4, E-고정, E-학습(seed 0). 계산은 6-4b(s10_perturb)와 같다.
   참가자마다 6 fold의 영상을 모아 정서별 r을 내고, 점수는 모든 모델에서 원래 예측의 r을 계산할 수 있는 정서의 평균이다.
   하락 = 원래 점수 − 교란 점수를 반복마다 내고 20회를 평균한다. 하락폭 차이 = 모델의 하락 − A-1의 하락.
 - 재표집: 6-4b와 같은 영상 단위 bootstrap(canonical_id 묶음, BOOT_SEED 20261115, 10,000회, 모든 모델, 묶음, 5명에 같은 뽑힌 횟수). 배정표는 고정(6-4b의 fixed).
@@ -14,6 +14,7 @@
     둘 다 예측한 방향이고 Holm p < .05면 "맞음", 둘 가운데 하나라도 반대 방향으로 Holm p < .05면 "반대", 나머지는 "보류".
     Visual1(> 0)과 Cingulo-Opercular(< 0)는 같은 방향의 예측이고 판정에는 쓰지 않고 함께 보고한다.
   - B-1, E-고정, E-학습: 방향 예측이 없다. Holm p < .05인 묶음을 보고한다. C-1은 6-4b에서 이미 했고 같은 값이 나오는지 확인용이다.
+  - D-1, D-3(11/17 석진 님 요청으로 더함, 실행 전): 방향 예측 없이 Holm p < .05인 묶음을 보고한다. D-1과 D-3은 입력층 두 개(D-1) 또는 encoder 2 하나(D-3)의 token을 같은 배정으로 바꾼다.
 (다) 정서 head 입력 표현의 유사도
 - 표현: 정서 query의 출력 o(행 × 34·d). 같은 fold(같은 모델), 같은 참가자의 시험 영상에서 두 모델의 linear CKA(Kornblith 외 2019, 행 평균을 뺀 Gram 행렬의 정규화 내적).
   참가자마다 6 fold 평균, 그다음 5명 평균. D-4는 짝 모델 4개 각각과의 CKA를 평균한다(D-4 대각은 짝 사이 CKA 평균).
@@ -21,6 +22,7 @@
 - 판정(모델마다, A-1과의 CKA): 5명 모두 CKA(A-1, 모델) < 그 참가자의 min(CKA(A-1, depth2), CKA(A-1, depth4))이면 "A-1과 다른 표현",
   5명 모두 그 이상이면 "A-1 변형 수준", 나머지는 "보류".
 - 예측(실행 전, 11/17): D-4는 "A-1과 다른 표현". B-1, E-고정, E-학습은 "A-1 변형 수준". C-1은 예측 없음.
+  D-1(11/17 더함, 실행 전): "A-1과 다른 표현"(C-1처럼 decoded features가 정서 계산에 들어가 정서 query가 나머지만 담으면 되므로). D-3은 정서 query가 없어 표현 비교가 없다.
 - 한계: seed가 하나라 같은 설정의 seed 사이 CKA는 없다. depth 기준은 구조도 다르다(기준이 낮게 나올 수 있는 쪽).
 확인: A-1, C-1의 원래 예측과 13묶음 교란 예측이 6-4b(S9 perturb, --s9-dir)의 저장 값과 같아야 한다(같은 배정표). 다르면 멈춘다.
 출력(레포 밖 --out): network_drops.tsv, prediction.tsv, cka.tsv(모델 쌍, 참가자마다), cka_decision.tsv, verification.tsv, run_info.json
@@ -39,10 +41,10 @@ import s4_common as c
 import s10_stats as st
 
 BOOT_SEED = 20261115
-MODELS = {"brain_only": "A-1", "brain_decoded": "C-1", "brain_only_featdec": "B-1", "brain_frozen_feature_encoder": "D-4",
-          "brain_only_repr_frozen": "E-고정", "brain_only_repr_trained": "E-학습"}
+MODELS = {"brain_only": "A-1", "brain_decoded": "C-1", "brain_only_featdec": "B-1", "brain_decoded_sep": "D-1", "brain_features_only": "D-3",
+          "brain_frozen_feature_encoder": "D-4", "brain_only_repr_frozen": "E-고정", "brain_only_repr_trained": "E-학습"}
 REF = "brain_only"
-CKA_NAMES = ["A-1", "C-1", "B-1", "D-4", "E-고정", "E-학습", "A-1 depth2", "A-1 depth4"]
+CKA_NAMES = ["A-1", "C-1", "B-1", "D-1", "D-4", "E-고정", "E-학습", "A-1 depth2", "A-1 depth4"]  # D-3은 정서 query가 없어 표현 비교가 없다
 REPR_KEY = {v: k for k, v in MODELS.items()} | {"A-1 depth2": "depth2", "A-1 depth4": "depth4"}
 PRED_UNITS = {"Visual2": 1, "Default": -1}  # 판정
 ALSO = {"Visual1": 1, "Cingulo-Opercular": -1}  # 함께 보고
@@ -162,8 +164,8 @@ def cka_decide(cka_t):
     vsA = per[per.model_a == "A-1"].pivot_table(index="participant", columns="model_b", values="cka")
     ref = vsA[["A-1 depth2", "A-1 depth4"]].min(1)
     rows = []
-    pred = {"D-4": "A-1과 다른 표현", "B-1": "A-1 변형 수준", "E-고정": "A-1 변형 수준", "E-학습": "A-1 변형 수준"}
-    for m in ("C-1", "B-1", "D-4", "E-고정", "E-학습"):
+    pred = {"D-4": "A-1과 다른 표현", "B-1": "A-1 변형 수준", "E-고정": "A-1 변형 수준", "E-학습": "A-1 변형 수준", "D-1": "A-1과 다른 표현"}
+    for m in ("C-1", "B-1", "D-1", "D-4", "E-고정", "E-학습"):
         below = (vsA[m] < ref)
         dec = "A-1과 다른 표현" if below.all() else ("A-1 변형 수준" if (~below).all() else "보류")
         rows.append(dict(model=m, cka_mean5=float(vsA[m].mean()), reference_min_mean5=float(ref.mean()), n_participants_below_reference=int(below.sum()),
