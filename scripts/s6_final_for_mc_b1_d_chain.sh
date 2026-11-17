@@ -7,7 +7,7 @@
 #   3. 이 node: D-4(뒤에서 돎). D-4가 fold 밖 encoder 2 다섯을 먼저 한 번만 만든다(캐시)
 #   4. 캐시가 다 생기면 빈 node 여덟: D-1 후보 8개(--part i/8) / 빈 node 하나: D-3(후보 10개와 선택)
 #   5. D-1 후보가 다 끝나면 D-1 선택(학습 없음), D-4가 끝날 때까지 기다림
-# 빈 node: NODES 가운데 이 사용자의 학습 프로세스가 없고 GPU 메모리 사용이 1 GB 아래인 node. 없으면 5분마다 다시 본다.
+# 빈 node: NODES 가운데 이 사용자의 학습 프로세스가 없고 GPU 메모리 사용이 FREE_MB(기본 25,000 MB, GPU 40 GB 가운데. 학습 한 번은 약 8 GB) 아래인 node. 없으면 5분마다 다시 본다.
 # 사용: nohup bash scripts/s6_final_for_mc_b1_d_chain.sh <run worktree> <동결 커밋> > <log> 2>&1 &
 set -uo pipefail
 RUN_ROOT="${1:?run worktree}"; FREEZE="${2:?동결 커밋}"
@@ -30,7 +30,7 @@ free_node() {
             [ -f "$LOGS/busy_$n" ] && continue
             s=$(timeout 20 ssh -n -o ConnectTimeout=6 "$n" "ps -u $USER -o args | grep -v grep | grep -c -E 's6_train.py|s9_|s8_mc'; nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | head -1" 2>/dev/null | tail -2 | tr '\n' ' ')
             set -- $s
-            if [ "${1:-9}" = 0 ] && [ "${2:-99999}" -lt 1000 ]; then echo "$n"; return; fi
+            if [ "${1:-9}" = 0 ] && [ "${2:-99999}" -lt "${FREE_MB:-25000}" ]; then echo "$n"; return; fi
         done
         sleep 300
     done
