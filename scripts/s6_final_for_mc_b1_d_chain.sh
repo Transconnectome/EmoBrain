@@ -11,9 +11,10 @@
 # 사용: nohup bash scripts/s6_final_for_mc_b1_d_chain.sh <run worktree> <동결 커밋> > <log> 2>&1 &
 set -uo pipefail
 RUN_ROOT="${1:?run worktree}"; FREEZE="${2:?동결 커밋}"
-OUT=/pscratch/sd/s/sjmoon/EmoBrain/project/output/final_2026-11/s6_brain_final_for_mc_b1_d
+source "$RUN_ROOT/scripts/_env.sh"  # OUT_ROOT(configs/paths.yaml의 output_root)
+OUT="$OUT_ROOT/s6_brain_final_for_mc_b1_d"
 CFG="$RUN_ROOT/configs/s6/run_config_final_for_mc_b1_d.json"
-LOGS=/pscratch/sd/s/sjmoon/EmoBrain/project/output/final_2026-11/logs/s6_final_for_mc_b1_d
+LOGS="$OUT_ROOT/logs/s6_final_for_mc_b1_d"
 NODES="${NODES:-login01 login02 login03 login04 login06 login07 login08 login09 login10 login11 login12 login13 login14 login15}"
 mkdir -p "$OUT" "$LOGS"
 say() { echo "[$(TZ=Asia/Seoul date '+%F %T')] $*"; }
