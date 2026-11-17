@@ -103,6 +103,8 @@ external/            외부 레포 (git submodule)
 | S10 | `s10_mc_ridge.sh <s8_mc 폴더> <출력 폴더> <커밋>` | 6-3의 ridge 기준선(11/17). MC 참가자마다 자기 시청 학습 자료로 맞춘 voxel ridge와 ROI 평균 ridge, HK에서 맞춘 ROI 평균 ridge를 MC에 그대로 적용한 전이를, 같은 72개 영상에서 A-1, C-1 전이와 비교한다. 규칙은 `src/s10_mc_ridge.py` 머리말 (CPU, 몇 분) | `<출력 폴더>/scores.tsv`, `comparison.tsv`, `per_emotion.tsv` |
 | S8 | `s8_mc_individual.sh train <s6_brain_final_for_mc> <출력 폴더> <커밋> <참가자>`, `s8_mc_individual.sh perturb ...` | 공통과 개인차(11/17). MC 참가자마다 같은 구조의 개인 모델(A-1, C-1)을 그 사람 자료로만 학습하고, 6-3의 공통(전이) 모델과 함께 네트워크 교란을 걸어 개인 모델이 더 기대는 네트워크를 찾는다. 예측과 판정은 `src/s8_mc_individual.py` 머리말 (GPU, 참가자당 1~2시간) | `<출력 폴더>/<조건>/seed0/mc-0X/`, `perturb_drops.tsv`, `perturb_difference.tsv`, `prediction.tsv` |
 | S10 | `s10_per_emotion.sh <S6 최종 결과 폴더> <s8_mc 폴더> <V/C 지수 파일> <출력 폴더> <커밋>` | 정서별 모델 비교(11/17, 01 6-4e (가)). A-1에 대해 B-1, C-1, D-1, D-3, D-4, E-고정, E-학습의 정서별 차이(HK)와 C-1 − A-1(MC), 두 자료에서 정서별 차이가 재현되는지(판정 있음), Vision 대 Caption 지수와의 관계. 저장된 예측만 읽음. 규칙은 `src/s10_per_emotion.py` 머리말 (CPU, 몇 분) | `<출력 폴더>/differences.tsv`, `counts.tsv`, `replication.tsv`, `vc_index.tsv` |
+| S9 | `CUDA_VISIBLE_DEVICES=<번호> s9_perturb_models.sh <S6 최종> <s6_brain_depth2> <s6_brain_depth4> <출력 폴더> <커밋>` | 네트워크 교란의 모델 확장과 정서 head 입력 표현 저장(11/17, 01 6-4e (나), (다)). A-1, C-1, B-1, D-4, E-고정, E-학습에 6-4b와 같은 13묶음 교란, A-1 depth2, depth4는 표현 기준으로만. 규칙은 `src/s9_perturb_models.py` 머리말 (GPU 1장, 약 1시간) | `<출력 폴더>/outer_fold<k>_seed0/pred.npz`, `perturbed_<조건>.npy`, `repr.npz` |
+| S10 | `s10_perturb_models.sh <s9_perturb_models 출력> <6-4b S9 폴더> <출력 폴더> <커밋>` | 위 결과의 하락, 하락폭 차이(모델 − A-1), D-4 예측 판정, 모델 쌍의 CKA와 판정. 질문과 판정은 `src/s10_perturb_models.py` 머리말 (CPU, 수십 분) | `<출력 폴더>/network_drops.tsv`, `prediction.tsv`, `cka.tsv`, `cka_decision.tsv` |
 | S10 | `s10_holm15.sh <출력 파일> <p 파일>... [--seed 0] [--alpha <값>]` | [사전] 15개의 Holm 보정(5명 평균, 참가자마다). 15개가 다 모이지 않으면 없는 것을 적고 보정 값을 내지 않는다 (CPU, 몇 초) | `<출력 파일>`, `*_missing.tsv`, `*_counts.tsv` |
 
 S6의 결과 폴더 구조와 저장 형식은 [src/s6_train.py](src/s6_train.py) 머리말에 있다.
@@ -154,6 +156,7 @@ python tests/s10_rating_parts_tests.py   # src에서 실행. 몇 초. 시험 fol
 python tests/s10_beyond_scene_tests.py   # src에서 실행. 몇 초. band 하나 = crossfit, band 무게, 상수 열, 시험 fold 평정 무관, 판정 규칙
 python tests/s10_mc_ridge_tests.py   # src에서 실행. 몇 초. ROI 평균, 표준화, ridge = main_version
 python tests/s10_per_emotion_tests.py   # 몇 초. 순위 상관, 이름표 순열, 편상관
+python tests/s10_perturb_models_tests.py   # 몇 초. CKA 불변성, CKA 판정
 bash scripts/s10_tests.sh   # 약 3분. 1부: 모은 r과 계산 불가, R²와 MAE 정의, bootstrap 구간과 p의 식, block 안 순열, Holm과 BH, 합친 S6 폴더 끝에서 끝까지(0 후보 fold, D-4 ensemble, 빠진 fold), [사전] 15개 Holm, 그림. 2부: 특징 순열과 짝 열 가중 r, 2-1, 2-2(audition_codex와 같은 효과, 묶음 재표집), 6-4b(영상별 예측의 재표집, Holm 13, BH 묶음), 6-2, 6-4a, 6-3의 규칙과 빠진 입력 거절. K1과 14개 차원: decoded features의 눈금 바꾸기와 head 출력의 손 계산, N8 보정과 평균만 옮기는 차원, head 출처 확인, selected.json의 seed와 A-1, C-1 seed 대조, 같은 seed 짝, K1에 p가 없음, (3) − (1) 차이와 BH 묶음, 출처 대조와 빠진 입력 거절
 ```
 
