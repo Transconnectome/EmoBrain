@@ -87,6 +87,7 @@ def scores(y, p, rating_const):
 
 def run(final, mc_dir, imagery_dir, vc_path, out, n_boot, n_perm):
     torch.set_num_threads(16)
+    final = Path(final) / "final_for_mc"  # s8_mc_individual.main과 같은 규칙(--final은 s6_brain_final_for_mc)
     spec_batch = 256
     names = pd.read_csv(c.LABEL_MAP, sep="\t").name.tolist()
     P, ver, rep_rows, abl_rows = {}, [], [], []
