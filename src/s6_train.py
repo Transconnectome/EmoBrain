@@ -499,6 +499,11 @@ class FoldRunner:
         decoded = self.selected(S.DECODED_SOURCE[condition])["candidate"] if condition in S.DECODED_SOURCE else None
         cands = S.candidates(condition, k_candidates=config.k_candidates, base=base, decoded=decoded, learning_rates=S.condition_lrs(config, condition), lr_follows_brain_only=config.lr_follows_brain_only)
         cands = S.fixed_filter(config, condition, self.fd.plan.outer_fold, cands)  # 11/15 6-4a(L10). 고정이 없으면 그대로
+        if getattr(self, "part", None) is not None:  # 11/17. --part i/n: 후보의 i번째부터 n개 간격만 seed 0으로 학습하고 선택 없이 끝낸다(실행 번호에 들어가지 않음)
+            i, n = self.part
+            for cand in cands[i::n]:
+                self.train_one(condition, cand, self.spec.seeds[0], search=True)
+            return
         rows = [self._row(cand, self.train_one(condition, cand, self.spec.seeds[0], search=True)) for cand in cands]
         source = None
         if condition in S.ZERO_SOURCE:
@@ -784,6 +789,7 @@ def main(argv=None):
     ap.add_argument("--design-freeze", default="")
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--weight-counts", help="d 값을 쉼표로 나눠 주면 F8의 표만 쓰고 끝난다")
+    ap.add_argument("--part", default="", help="11/17. i/n. 짝 학습이 아닌 조건 하나의 seed 0 후보를 n개 프로세스로 나눠 i번째 몫만 학습하고 선택 없이 끝낸다. 같은 실행 번호의 프로세스 여럿이 후보를 나눠 돌릴 때 쓴다. 실행 번호에 들어가지 않는다. fold 밖 encoder 2가 필요한 조건은 그 캐시가 먼저 있어야 한다")
     ap.add_argument("--only-candidates", default="", help="11/13. brain_only 후보 일부(쉼표로 나눈 candidate_id)만 seed 0으로 학습하고 선택 없이 끝낸다. 같은 실행 번호의 프로세스 여럿이 A-1 후보를 나눠 돌릴 때 쓴다. 실행 번호에 들어가지 않는다")
     a = ap.parse_args(argv)
     if a.weight_counts:
@@ -818,6 +824,17 @@ def main(argv=None):
     run.check()  # 읽은 내용이 기록한 해시와 같음을 확인한다
     runner = FoldRunner(fd, split, run, spec, config, S.OUT / plan.name)
     runner.raw = raw
+    if a.part:
+        i, n = (int(x) for x in a.part.split("/"))
+        if not (0 <= i < n) or len(wanted) != 1 or S.CONDITIONS[wanted[0]].paired or wanted[0] in S.POOLED:
+            raise SystemExit("--part는 i/n(0 <= i < n)이고, 짝 학습과 pooling판이 아닌 조건 하나에만 쓴다")
+        if S.CONDITIONS[wanted[0]].separate or S.CONDITIONS[wanted[0]].head_only:
+            for j, *_ in S.inner_plans(plan, split):
+                if not (S.OUT / plan.name / "feature_encoder_oof" / f"seed{spec.seeds[0]}" / f"inner{j}" / "done.json").exists():
+                    raise SystemExit("--part: fold 밖 encoder 2 캐시가 아직 없다. 여러 프로세스가 같은 캐시를 동시에 만들지 않도록 먼저 만들어야 한다")
+        runner.part = (i, n)
+        runner.run_condition(wanted[0])
+        return
     if a.only_candidates:
         for cand in only_candidates(a.only_candidates, config):
             runner.train_one("brain_only", cand, spec.seeds[0], search=True)
