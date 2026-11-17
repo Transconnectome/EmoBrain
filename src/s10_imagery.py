@@ -119,10 +119,12 @@ def run(final, mc_dir, imagery_dir, vc_path, out, n_boot, n_perm):
                     if kind == "perception":
                         if not np.array_equal(saved["video_id"], fd.row_video[test]):
                             raise ValueError(f"{pid} {cond} seed {seed}: 시험 영상 순서가 저장 예측과 다르다")
-                        dmax = float(np.abs(p - saved["p"]).max())
-                        ver.append(dict(participant=pid, condition=CONDS[cond], seed=seed, max_abs_vs_saved=dmax))
-                        if dmax > 1e-4:
-                            raise ValueError(f"{pid} {cond} seed {seed}: 시청 예측이 6-3 저장 예측과 다르다({dmax:.2e})")
+                        # 저장 예측은 GPU(A100, TF32 행렬곱)에서, 여기는 CPU float32에서 낸다. 그 차이만 허용한다
+                        # (mc-01 A-1 seed 0에서 고른 입력층과 최대 3.6e-4, 평균 3e-5, 점수 같음. 다른 weight decay 판과는 최대 약 0.5)
+                        dmax, dmean = float(np.abs(p - saved["p"]).max()), float(np.abs(p - saved["p"]).mean())
+                        ver.append(dict(participant=pid, condition=CONDS[cond], seed=seed, max_abs_vs_saved=dmax, mean_abs_vs_saved=dmean))
+                        if dmax > 2e-3 or dmean > 1e-4:
+                            raise ValueError(f"{pid} {cond} seed {seed}: 시청 예측이 6-3 저장 예측과 다르다(최대 {dmax:.2e}, 평균 {dmean:.2e})")
                     if seed == 0 and kind in ("perception", "imagery"):
                         r0 = float(np.nanmean(st.pearson_columns(y, p)))
                         x0 = fd.x[pid].clone()
