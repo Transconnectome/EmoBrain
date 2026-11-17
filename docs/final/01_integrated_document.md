@@ -767,6 +767,8 @@
 | encoder 2 | `feature_encoder` | Brain → Vision + Caption만 학습. D-1~D-4가 같은 것을 고정해 쓴다 |
 | Multimodal Model | `multimodal` | Brain + Vision + Caption → Emotion. E-고정, E-학습이 맞히는 중간 표현과 head의 출처 |
 
+- distillation 조건은 더 쓰지 않는다 [석진 님 결정, 11/17]: A-2, C-2, D-2의 학습은 모두 끝났다. A-2, C-2는 [사전] 15개의 2-3 (다), (바)이므로 결과를 그대로 보고한다. D-2는 SI로 둔다. 이후 확장(회상 등)과 추가 실행에는 distillation 조건을 넣지 않는다. 결과를 해석할 때 S4 Stimulus Model이 같은 feature의 ridge보다 덜 맞춰졌다는 점(04 기록 칸 11/17)을 한계로 적는다.
+
 #### 1부. 모델 설명
 
 **A. Brain → Emotion (장면 정보를 쓰지 않음)**
