@@ -102,6 +102,7 @@ external/            외부 레포 (git submodule)
 | S10 | `s10_beyond_scene.sh targets <출력 폴더> <커밋>`, `s10_beyond_scene.sh fit <출력 폴더> <커밋> <참가자>`, `s10_beyond_scene.sh summarize <출력 폴더> <커밋>` | 장면 표현으로 선형으로 얻어지지 않는 정서 평정 정보(01 6-4d, 11/17). 장면 표현(motion energy + 이름표 73개, Vision feature, Caption feature, 넷 모두)으로 교차 예측한 부분을 뺀 정서 평정(범주 34개, valence, arousal)을 네트워크 13개와 뇌 전체에서 ridge로 읽는다. 판정 규칙과 예측은 계산 전에 `src/s10_beyond_scene.py` 머리말에 적었다 (CPU, 참가자당 10~20분) | `<출력 폴더>/targets.npz`, `features_only.tsv`, `fit/sub-0X.npz`, `scores.tsv`, `counts.tsv`, `predictions.tsv` |
 | S10 | `s10_mc_ridge.sh <s8_mc 폴더> <출력 폴더> <커밋>` | 6-3의 ridge 기준선(11/17). MC 참가자마다 자기 시청 학습 자료로 맞춘 voxel ridge와 ROI 평균 ridge, HK에서 맞춘 ROI 평균 ridge를 MC에 그대로 적용한 전이를, 같은 72개 영상에서 A-1, C-1 전이와 비교한다. 규칙은 `src/s10_mc_ridge.py` 머리말 (CPU, 몇 분) | `<출력 폴더>/scores.tsv`, `comparison.tsv`, `per_emotion.tsv` |
 | S8 | `s8_mc_individual.sh train <s6_brain_final_for_mc> <출력 폴더> <커밋> <참가자>`, `s8_mc_individual.sh perturb ...` | 공통과 개인차(11/17). MC 참가자마다 같은 구조의 개인 모델(A-1, C-1)을 그 사람 자료로만 학습하고, 6-3의 공통(전이) 모델과 함께 네트워크 교란을 걸어 개인 모델이 더 기대는 네트워크를 찾는다. 예측과 판정은 `src/s8_mc_individual.py` 머리말 (GPU, 참가자당 1~2시간) | `<출력 폴더>/<조건>/seed0/mc-0X/`, `perturb_drops.tsv`, `perturb_difference.tsv`, `prediction.tsv` |
+| S10 | `s10_per_emotion.sh <S6 최종 결과 폴더> <s8_mc 폴더> <V/C 지수 파일> <출력 폴더> <커밋>` | 정서별 모델 비교(11/17, 01 6-4e (가)). A-1에 대해 B-1, C-1, D-1, D-3, D-4, E-고정, E-학습의 정서별 차이(HK)와 C-1 − A-1(MC), 두 자료에서 정서별 차이가 재현되는지(판정 있음), Vision 대 Caption 지수와의 관계. 저장된 예측만 읽음. 규칙은 `src/s10_per_emotion.py` 머리말 (CPU, 몇 분) | `<출력 폴더>/differences.tsv`, `counts.tsv`, `replication.tsv`, `vc_index.tsv` |
 | S10 | `s10_holm15.sh <출력 파일> <p 파일>... [--seed 0] [--alpha <값>]` | [사전] 15개의 Holm 보정(5명 평균, 참가자마다). 15개가 다 모이지 않으면 없는 것을 적고 보정 값을 내지 않는다 (CPU, 몇 초) | `<출력 파일>`, `*_missing.tsv`, `*_counts.tsv` |
 
 S6의 결과 폴더 구조와 저장 형식은 [src/s6_train.py](src/s6_train.py) 머리말에 있다.
@@ -152,6 +153,7 @@ python tests/s10_geometry_checks_tests.py   # src에서 실행. 몇 초. 무게 
 python tests/s10_rating_parts_tests.py   # src에서 실행. 몇 초. 시험 fold 평정이 규칙에 들어가지 않음, literature_version과 같음, 안쪽 겹 바깥 예측
 python tests/s10_beyond_scene_tests.py   # src에서 실행. 몇 초. band 하나 = crossfit, band 무게, 상수 열, 시험 fold 평정 무관, 판정 규칙
 python tests/s10_mc_ridge_tests.py   # src에서 실행. 몇 초. ROI 평균, 표준화, ridge = main_version
+python tests/s10_per_emotion_tests.py   # 몇 초. 순위 상관, 이름표 순열, 편상관
 bash scripts/s10_tests.sh   # 약 3분. 1부: 모은 r과 계산 불가, R²와 MAE 정의, bootstrap 구간과 p의 식, block 안 순열, Holm과 BH, 합친 S6 폴더 끝에서 끝까지(0 후보 fold, D-4 ensemble, 빠진 fold), [사전] 15개 Holm, 그림. 2부: 특징 순열과 짝 열 가중 r, 2-1, 2-2(audition_codex와 같은 효과, 묶음 재표집), 6-4b(영상별 예측의 재표집, Holm 13, BH 묶음), 6-2, 6-4a, 6-3의 규칙과 빠진 입력 거절. K1과 14개 차원: decoded features의 눈금 바꾸기와 head 출력의 손 계산, N8 보정과 평균만 옮기는 차원, head 출처 확인, selected.json의 seed와 A-1, C-1 seed 대조, 같은 seed 짝, K1에 p가 없음, (3) − (1) 차이와 BH 묶음, 출처 대조와 빠진 입력 거절
 ```
 
