@@ -41,8 +41,8 @@ def perm_p(x, y, rng):
 
 
 def run(stats, out, obj="Sw", sit="C"):
-    f = pd.read_csv(Path(stats) / "features_only.tsv", sep="\t").set_index("target")
-    s = pd.read_csv(Path(stats) / "scores.tsv", sep="\t")
+    f = pd.read_csv(Path(stats) / "features_only.tsv", sep="\t", keep_default_na=False, na_values=[""]).set_index("target")
+    s = pd.read_csv(Path(stats) / "scores.tsv", sep="\t", keep_default_na=False, na_values=[""])  # 판 이름 "NA"를 결측으로 읽지 않게
     s = s[s.is_category & ~s.target.isin(CK7)]
     emos = sorted(s.target.unique())
     if len(emos) != 27:
