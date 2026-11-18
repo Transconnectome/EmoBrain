@@ -74,8 +74,9 @@ LEVEL_READ = ("T", "Sw", "N", "NA", "V", "C", "Sall")
 # --levels-graph(11/18 둘째 판): scene graph parser 판과 단어 섞은 판을 더한다(src/s3_caption_levels.py graph, graph_levels).
 #   GO = parser의 물체, GA = 물체 + 속성, GR = 물체 + 속성 + 관계 삼항(부사와 문장 구조 없음), CS = 정서어 제거판 캡션의 단어를 섞은 것(같은 단어, 순서만 다름).
 #   N, NA를 함께 두어 품사 판과 parser 판을 한 출력에서 견준다. 판정 규칙은 그대로다.
-GRAPH_SETS = {**LEVEL_SETS, "GO": ("caption_graph_objects",), "GA": ("caption_graph_objattr",), "GR": ("caption_graph_rel",), "CS": ("caption_shuffled",)}
 GRAPH_READ = ("T", "Sw", "N", "NA", "GO", "GA", "GR", "CS", "V", "C", "Sall")
+_GRAPH_BANDS = {**LEVEL_SETS, "GO": ("caption_graph_objects",), "GA": ("caption_graph_objattr",), "GR": ("caption_graph_rel",), "CS": ("caption_shuffled",)}
+GRAPH_SETS = {k: _GRAPH_BANDS[k] for k in GRAPH_READ[1:]}  # 11/18 고침: fit의 학습 목표(SETS 순서)와 채점 정답(READ 순서)이 같은 순서여야 한다
 CONFIRM = ("Visual1", "Visual2", "Default")
 WHOLE = "whole_brain"
 SURVIVE_R = 0.05
@@ -347,6 +348,8 @@ def main(argv=None):
         SETS, READ = dict(GRAPH_SETS), GRAPH_READ
     elif a.levels:
         SETS, READ = dict(LEVEL_SETS), LEVEL_READ
+    if list(SETS) != list(READ[1:]):  # 11/18. 순서가 다르면 다른 판의 정답으로 채점된다(--levels-graph 첫 실행의 오류)
+        raise SystemExit(f"SETS 순서 {list(SETS)}가 READ 순서 {list(READ[1:])}와 다르다")
     c.guard(a.design_freeze)
     split = c.load_split()
     started = time.time()
