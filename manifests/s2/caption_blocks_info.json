@@ -1,0 +1,21 @@
+{
+ "code": "src/s2_caption_blocks.py",
+ "code_sha256": "51f0b41513b22285868bb3aaf3d737c60e21cd2174507a2e751a2dcb8e36f2d3",
+ "feature": "deberta_no_emotion_words/target.npy",
+ "feature_sha256": "316b0512f2bae5e023dfc9f13b40c8f22f143dda9d93e9ff2c7be7f0243f06f0",
+ "n_pca": 50,
+ "pca_explained": 0.7458623966658544,
+ "kmeans": {
+  "n_clusters": 5,
+  "n_init": 10,
+  "random_state": 0
+ },
+ "seed_control": 20261118,
+ "seed_distance": 20261119,
+ "sklearn": "1.8.0",
+ "n_ratio_le_1": 0,
+ "output_sha256": {
+  "caption_blocks_assignment.tsv": "1ce93aaab5576ab8ae0491d1f6da3bc231541513bf870f721cdcaa097452ec1c",
+  "caption_block_control_samples.tsv": "3fafc1d750f2e0ae619732c08872195c44a545357dfa2dd83106a1ad717ece89"
+ }
+}
