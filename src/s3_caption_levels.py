@@ -13,15 +13,32 @@
 3. embed (GPU 환경): DeBERTa-large, 특수 token을 뺀 token 평균, 층 6/12/18/24를 이어 붙인 4,096차원(s3_text와 같은 정의), 영상마다 캡션 평균.
    빈 문자열(그 수준의 단어가 없는 캡션)은 평균에서 빼고 수를 기록한다. 영상의 캡션이 모두 비면 0 벡터로 두고 기록한다.
    출력: <s3_features>/deberta_objects/target.npy, deberta_objattr/target.npy(2196 × 4096, video_id 1~2196 순서), manifest.json
-사용: s3_caption_levels.py export|parse|embed --out <작업 폴더> [--device cuda]
+11/18 둘째 판(석진 님 "품사 근사 보완, 단어 순서 보완 진행"): scene graph parser로 수준을 직접 뽑고, 단어 순서만 깨뜨린 판을 더한다.
+4. graph (GPU 환경): FACTUAL parser(Li 외 2023, Findings of ACL, flan-t5-large-VG-factual-sg, 입력 "Generate Scene Graph: " + 원래 캡션, greedy, 최대 256 token)로
+   캡션마다 (주어, 관계, 목적어) 삼항을 낸다. 속성은 (물체, is, 속성) 꼴이다. <out>/caption_graph.tsv
+5. graph_levels (CPU): 삼항에서 세 판을 만들고 정서어를 뺀다. 같은 삼항이 두 번 나오면 하나만 둔다. 물체는 처음 나온 순서다.
+   - graph_objects: 물체 이름. ex) "man, road"
+   - graph_objattr: 속성을 앞에 붙인 물체. ex) "old man, icy road"
+   - graph_rel: 위 + 관계 삼항을 "주어 관계 목적어"로. ex) "old man, icy road, man slip on road". 부사와 문장 구조는 없다.
+   - shuffled: Caption feature 정서어 제거판과 같은 글(s3_text.load_captions(True))의 단어를 캡션마다 무작위로 섞은 것(seed [20261118, 캡션 행]).
+     단어는 같고 순서만 다르다. 문장 임베딩이 단어 순서에 얼마나 기대는지 보는 대조다.
+   <out>/caption_graph_levels.tsv
+6. embed --levels graph_objects,graph_objattr,graph_rel,shuffled: 위와 같은 임베딩. 출력 <s3_features>/deberta_<수준>/target.npy
+   한계: parser에도 오류가 있다(ex) 동사를 속성으로 넣음 "vehicle is fighting"). 품사 판과 parser 판이 같은 방향인지를 함께 본다.
+사용: s3_caption_levels.py export|parse|graph|graph_levels|embed --out <작업 폴더> [--device cuda] [--levels <쉼표>]
 """
 import argparse
 import json
+import re
 import sys
 import time
 from pathlib import Path
 
 LEVELS = ("objects", "objattr")
+GRAPH_LEVELS = ("graph_objects", "graph_objattr", "graph_rel", "shuffled")
+LEVEL_FILE = {**{lv: "caption_levels.tsv" for lv in LEVELS}, **{lv: "caption_graph_levels.tsv" for lv in GRAPH_LEVELS}}
+PARSER = "lizhuang144/flan-t5-large-VG-factual-sg"
+SHUFFLE_SEED = 20261118
 KEEP = {"objects": {"NOUN", "PROPN"}, "objattr": {"NOUN", "PROPN", "ADJ", "NUM"}}
 LAYERS = (6, 12, 18, 24)
 
@@ -54,7 +71,82 @@ def parse(out):
     print(json.dumps(info), flush=True)
 
 
-def embed(out, device, batch=256):
+def graph(out, device, batch=64):
+    import pandas as pd
+    import torch
+    from huggingface_hub import snapshot_download
+    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+    path = Path(snapshot_download(PARSER, local_files_only=True))
+    tok = AutoTokenizer.from_pretrained(path)
+    model = AutoModelForSeq2SeqLM.from_pretrained(path).to(device).eval()
+    cap = pd.read_csv(out / "captions.tsv", sep="\t", keep_default_na=False)
+    text = cap.description.astype(str).tolist()
+    order = sorted(range(len(text)), key=lambda i: len(text[i]))
+    res = [None] * len(text)
+    t0 = time.time()
+    with torch.no_grad():
+        for s in range(0, len(order), batch):
+            pick = order[s:s + batch]
+            enc = tok(["Generate Scene Graph: " + text[i] for i in pick], return_tensors="pt", padding=True, truncation=True, max_length=256).to(device)
+            o = model.generate(**enc, max_length=256, num_beams=1)
+            for i, g in zip(pick, tok.batch_decode(o, skip_special_tokens=True)):
+                res[i] = g
+            if s // batch % 50 == 0:
+                print(f"{s + len(pick)}/{len(order)} {time.time() - t0:.0f}초", flush=True)
+    cap["graph"] = res
+    cap.to_csv(out / "caption_graph.tsv", sep="\t", index=False)
+    info = dict(parser=PARSER, revision=path.name, prompt="Generate Scene Graph: ", max_length=256, num_beams=1, n_captions=len(cap), seconds=round(time.time() - t0, 1))
+    (out / "graph_info.json").write_text(json.dumps(info, indent=1))
+    print(json.dumps(info), flush=True)
+
+
+TRIPLE = re.compile(r"\(\s*([^(),]+?)\s*,\s*([^(),]+?)\s*,\s*([^()]+?)\s*\)")
+
+
+def render(g, drop):
+    """삼항 글 → (물체, 물체 + 속성, 관계까지) 세 판. drop은 정서어를 지우는 함수다."""
+    seen, ents, attrs, rels = set(), [], {}, []
+    for sub, rel, obj in TRIPLE.findall(g):
+        t = (sub.strip().lower(), rel.strip().lower(), obj.strip().lower())
+        if t in seen:
+            continue
+        seen.add(t)
+        for e in ((t[0],) if t[1] == "is" else (t[0], t[2])):
+            if e not in ents:
+                ents.append(e)
+        if t[1] == "is":
+            attrs.setdefault(t[0], []).append(t[2])
+        else:
+            rels.append(t)
+    clean = lambda items: ", ".join(x for x in (drop(i) for i in items) if x)
+    objattr = [" ".join(attrs.get(e, []) + [e]) for e in ents]
+    return clean(ents), clean(objattr), clean(objattr + [" ".join(r) for r in rels])
+
+
+def graph_levels(out):
+    import numpy as np
+    import pandas as pd
+    import s3_text as T3
+    words = T3.affect_words()
+    pat = re.compile(r"\b(?:" + "|".join(words) + r")\b", re.I)
+    drop = lambda t: re.sub(r"\s{2,}", " ", pat.sub("", t)).strip()
+    cap = pd.read_csv(out / "caption_graph.tsv", sep="\t", keep_default_na=False)
+    lv = [render(g, drop) for g in cap.graph.astype(str)]
+    cap["graph_objects"], cap["graph_objattr"], cap["graph_rel"] = zip(*lv)
+    vid, text = T3.load_captions(True)
+    if not (np.asarray(vid) == cap.video_id.to_numpy()).all():
+        raise SystemExit("정서어 제거판 캡션과 캡션 표의 순서가 다르다")
+    cap["shuffled"] = [" ".join(np.random.default_rng([SHUFFLE_SEED, i]).permutation(t.split()).tolist()) for i, t in enumerate(text)]
+    cap["no_emotion_original"] = text
+    cap.to_csv(out / "caption_graph_levels.tsv", sep="\t", index=False)
+    n_trip = cap.graph.astype(str).map(lambda g: len(TRIPLE.findall(g)))
+    info = dict(n_captions=len(cap), mean_triples=float(n_trip.mean()), no_triples=int((n_trip == 0).sum()), **{f"empty_{k}": int((cap[k] == "").sum()) for k in GRAPH_LEVELS},
+                n_with_relation=int(cap.graph.astype(str).map(lambda g: any(r.strip().lower() != "is" for _, r, _ in TRIPLE.findall(g))).sum()), shuffle_seed=SHUFFLE_SEED)
+    (out / "graph_levels_info.json").write_text(json.dumps(info, indent=1))
+    print(json.dumps(info), flush=True)
+
+
+def embed(out, device, batch=256, levels=LEVELS):
     import numpy as np
     import pandas as pd
     import torch
@@ -64,12 +156,15 @@ def embed(out, device, batch=256):
     snap = c3.hf_snapshot(T3.CHECKPOINT["deberta"])
     tok = AutoTokenizer.from_pretrained(snap["path"], local_files_only=True)
     model = AutoModel.from_pretrained(snap["path"], local_files_only=True).to(device).eval()
-    cap = pd.read_csv(out / "caption_levels.tsv", sep="\t", keep_default_na=False)
-    vids = cap.video_id.to_numpy()
-    if sorted(set(vids.tolist())) != list(range(1, 2197)):
-        raise SystemExit("캡션 표의 영상이 1~2196이 아니다")
     info = dict(checkpoint=T3.CHECKPOINT["deberta"], revision=snap["revision"], weights_sha256=snap["weights_sha256"], layers=list(LAYERS), parse_info=json.loads((out / "parse_info.json").read_text()))
-    for lv in LEVELS:
+    for f in ("graph_info.json", "graph_levels_info.json"):
+        if (out / f).exists() and any(lv in GRAPH_LEVELS for lv in levels):
+            info[f.replace(".json", "")] = json.loads((out / f).read_text())
+    for lv in levels:
+        cap = pd.read_csv(out / LEVEL_FILE[lv], sep="\t", keep_default_na=False)
+        vids = cap.video_id.to_numpy()
+        if sorted(set(vids.tolist())) != list(range(1, 2197)):
+            raise SystemExit("캡션 표의 영상이 1~2196이 아니다")
         text = cap[lv].astype(str).tolist()
         ok = np.array([len(t) > 0 for t in text])
         per = np.zeros((len(text), len(LAYERS) * 1024), np.float32)
@@ -105,13 +200,18 @@ def embed(out, device, batch=256):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("step", choices=("export", "parse", "embed"))
+    ap.add_argument("step", choices=("export", "parse", "graph", "graph_levels", "embed"))
+    ap.add_argument("--levels", default=",".join(LEVELS), help="embed할 수준(쉼표). 기본은 품사 판 둘")
     ap.add_argument("--out", required=True)
     ap.add_argument("--device", default="cuda")
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    {"export": lambda: export(out), "parse": lambda: parse(out), "embed": lambda: embed(out, a.device)}[a.step]()
+    levels = tuple(a.levels.split(","))
+    if set(levels) - set(LEVEL_FILE):
+        raise SystemExit(f"모르는 수준: {set(levels) - set(LEVEL_FILE)}")
+    {"export": lambda: export(out), "parse": lambda: parse(out), "graph": lambda: graph(out, a.device), "graph_levels": lambda: graph_levels(out),
+     "embed": lambda: embed(out, a.device, levels=levels)}[a.step]()
 
 
 if __name__ == "__main__":
