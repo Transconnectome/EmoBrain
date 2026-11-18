@@ -12,7 +12,9 @@
   코드의 판정: 구간 상한 < 0이고 6명 가운데 5명 이상이 음수면 "A-1보다 낮다", 구간 하한 > 0이고 5명 이상 양수면 "A-1보다 높다", 그 밖은 "A-1과 구별되지 않는다".
   6-3과 같은 판정 기준(6명 평균 구간과 6명 가운데 5명 이상 같은 방향)이다. 보정은 하지 않는다(O4 (5)).
 출력(--out): scores.tsv(조건 × 참가자 × 판), differences.tsv, per_emotion.tsv, run_info.json
-사용: s10_mc_dgroup.py --mc-dir <S8 폴더> --out <출력 폴더> [--n-boot 10000]
+- 11/18 --with-b1: B-1(brain_only_featdec, 06 5절 "C-1의 이득이 특징을 거쳐 읽어서인지, 학습 때 특징을 더 배워서인지")을 더한다.
+  더하는 차이: C-1 − B-1, B-1 − A-1. 기존 네 차이와 판정 규칙은 그대로다. 출력 폴더를 따로 준다.
+사용: s10_mc_dgroup.py --mc-dir <S8 폴더> --out <출력 폴더> [--n-boot 10000] [--with-b1]
 """
 import argparse
 import json
@@ -123,7 +125,12 @@ def main(argv=None):
     ap.add_argument("--mc-dir", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--n-boot", type=int, default=st.N_RESAMPLE)
+    ap.add_argument("--with-b1", action="store_true", help="11/18. B-1을 더하고 C-1 − B-1, B-1 − A-1을 낸다")
     a = ap.parse_args(argv)
+    if a.with_b1:
+        global CONDS, PAIRS
+        CONDS = {**CONDS, "brain_only_featdec": "B-1"}
+        PAIRS = PAIRS + (("C-1", "B-1"), ("B-1", "A-1"))
     print(json.dumps(run(a.mc_dir, a.out, a.n_boot), ensure_ascii=False), flush=True)
 
 
