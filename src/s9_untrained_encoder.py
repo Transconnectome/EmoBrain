@@ -20,7 +20,8 @@ summarize: 6 fold 시험 예측을 모아 A-1, D-4, 이 대조의 정서별 r(�
   bootstrap은 s10_per_emotion의 HK와 같다(내용 묶음 단위, BOOT_SEED 20261115, 10,000회, 모든 모델과 5명에 같은 재표집). 34개와 27개 평균을 함께 낸다.
 사용(1bca774 위에 이 파일만 더한 run worktree의 src에서)
   python s9_untrained_encoder.py train --plan outer_fold<k> --config <run_config_grid_main.json> --s6-root <s6_brain_grid_main> --out <폴더> --design-freeze 1bca774 [--device cuda]
-  python s9_untrained_encoder.py summarize --s6-root <s6_brain_grid_main> --out <폴더>
+  python s9_untrained_encoder.py summarize --s6-root <s6_brain_final> --d4-root <s6_brain_grid_main> --out <폴더>
+  (A-1은 최종 폴더에서, D-4는 대조와 짝, 후보, learning rate가 같은 주 비교 실행에서 읽는다. 대조의 실행 번호가 그 D-4와 같은지 확인한다)
 """
 import argparse
 import hashlib
@@ -145,6 +146,15 @@ def summarize(a):
         if sorted(f.fold.tolist()) != list(range(1, PF.N_FOLDS + 1)):
             raise SystemExit(f"{cond}: seed 0의 6 fold 예측이 다 있지 않다")
         paths[cond] = dict(zip(f.fold.astype(int), f.path))
+    if a.d4_root:  # 11/18. 대조와 짝이 같은 D-4(주 비교 실행, learning rate 1e-3)로 바꾼다. 최종 폴더의 D-4는 fold마다 1e-3과 1e-4 실행 중 하나다
+        d4 = {}
+        for k in range(1, PF.N_FOLDS + 1):
+            sel = json.loads((Path(a.d4_root) / f"outer_fold{k}" / COND / "selected.json").read_text())
+            d4[k] = Path(a.d4_root) / f"outer_fold{k}" / sel["seeds"]["0"] / "ensemble" / "test_pred.npz"
+            ctrl_done = sorted((Path(a.out) / f"outer_fold{k}" / NAME).glob("*_seed0/ensemble/done.json"))
+            if json.loads(ctrl_done[0].read_text())["base_run_key"] != sel["run_key"]:
+                raise SystemExit(f"outer_fold{k}: 대조의 실행 번호가 --d4-root의 D-4와 다르다")
+        paths[COND] = d4
     ctrl = {}
     for k in range(1, PF.N_FOLDS + 1):
         hits = sorted((Path(a.out) / f"outer_fold{k}" / NAME).glob("*_seed0/ensemble/test_pred.npz"))
@@ -202,6 +212,7 @@ def main(argv=None):
     ap.add_argument("--design-freeze", default="")
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--n-boot", type=int, default=10_000)
+    ap.add_argument("--d4-root", default="", help="summarize: D-4 예측을 읽을 S6 폴더(대조와 짝이 같은 주 비교 실행). 없으면 --s6-root의 D-4")
     a = ap.parse_args(argv)
     if a.step == "train":
         if not (a.plan and a.config):
