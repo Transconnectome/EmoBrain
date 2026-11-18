@@ -4,3 +4,9 @@
 set -euo pipefail
 HERE="${SLURM_SUBMIT_DIR:+$SLURM_SUBMIT_DIR/scripts}"; source "${HERE:-$(dirname "$0")}/_env.sh"
 "$PY_CPU" s10_key_test.py --stats "$OUT_ROOT/s10_stats/beyond_scene" --out "$OUT_ROOT/s10_stats/key_test_v1"
+# 11/18 둘째 판: 물체 = 물체 단어 캡션(N), 그리고 물체 + 속성(NA)과 전체 캡션(C)
+if [ -f "$OUT_ROOT/s10_stats/beyond_scene_levels/scores.tsv" ]; then
+  "$PY_CPU" s10_key_test.py --stats "$OUT_ROOT/s10_stats/beyond_scene_levels" --out "$OUT_ROOT/s10_stats/key_test_v2_N_C" --object N --situation C
+  "$PY_CPU" s10_key_test.py --stats "$OUT_ROOT/s10_stats/beyond_scene_levels" --out "$OUT_ROOT/s10_stats/key_test_v2_N_NA" --object N --situation NA
+  "$PY_CPU" s10_key_test.py --stats "$OUT_ROOT/s10_stats/beyond_scene_levels" --out "$OUT_ROOT/s10_stats/key_test_v2_NA_C" --object NA --situation C
+fi
