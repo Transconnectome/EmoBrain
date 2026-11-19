@@ -426,6 +426,16 @@ def plan_zone(split, block, k, kind, blocks=None, control=None):
     return Plan(f"zone_block{block}_fold{k}_{kind}", k, [v for v in train_val if fold_of[v] in r["train"]], [v for v in train_val if fold_of[v] == r["val"]], test)
 
 
+CAPTION_BLOCKS = (c.S2 / "caption_blocks_assignment.tsv", c.S2 / "caption_block_control_samples.tsv")  # 11/18 D-바(s2_caption_blocks.py)
+
+
+def plan_capzone(split, block, k, kind):
+    """11/18 D-바. 6-2와 같은 분할 규칙에 캡션으로 묶은 구역(s2_caption_blocks.py)을 쓴다."""
+    blocks, control = (pd.read_csv(p, sep="\t") for p in CAPTION_BLOCKS)
+    p = plan_zone(split, block, k, kind, blocks, control)
+    return Plan(f"capzone_block{block}_fold{k}_{kind}", p.outer_fold, p.train, p.val, p.test)
+
+
 def plan_final(split):
     """6-3의 HK 최종 모델(O7). 시험이 없다."""
     r = c.final_roles()
@@ -442,6 +452,9 @@ def parse_plan(name, split):
     if name.startswith("zone_block"):
         block, fold, kind = name[len("zone_block"):].split("_")
         return plan_zone(split, int(block), int(fold[len("fold"):]), kind)
+    if name.startswith("capzone_block"):
+        block, fold, kind = name[len("capzone_block"):].split("_")
+        return plan_capzone(split, int(block), int(fold[len("fold"):]), kind)
     raise SystemExit(f"알 수 없는 분할: {name}")
 
 
@@ -841,6 +854,8 @@ def input_paths(plan, participants=d5.HK, stimulus=True, cells=False):
         if cells:
             paths[f"roi_cells:sub-{s}"] = roi_cells_path(s)
     paths.update(split_files(plan))
+    if plan.name.startswith("capzone_block"):  # 11/18 D-바. 캡션 구역 표도 해시한다
+        paths.update({f"s2:{p.name}": p for p in CAPTION_BLOCKS})
     if stimulus and plan.name.startswith(("outer_fold", "pilot_fold")):
         paths["stimulus_oof"] = stimulus_path(plan.outer_fold)
         paths["stimulus_done"] = stimulus_path(plan.outer_fold).parent / "done.json"

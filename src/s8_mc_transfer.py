@@ -304,7 +304,8 @@ def run_unit_d1(hk_model, hk_meta, fe, seed, pid, fd, spec, out_dir, log=print):
 
 @torch.no_grad()
 def predict_z(model, fd, spec):
-    model.eval()
+    """D-3, D-4는 GPU에서 맞춘 encoder 2에 CPU로 읽은 HK head를 붙이므로, 예측 전에 모델 전체를 자료와 같은 장치로 옮긴다(11/18 GPU 실행에서 장치 불일치로 멈춤)."""
+    model = model.to(fd.device).eval()
     return T.collect(model, fd.rows("test"), T.brain_forward(fd), spec.batch, ("z",))["z"]
 
 

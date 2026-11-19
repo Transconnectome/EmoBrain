@@ -1,0 +1,23 @@
+{
+  "note": "11/18 석진 님. D-바 상황 묶음 빼고 시험. 6-2의 A-1 설정(run_config_zone.json)을 그대로 쓰고 분할만 캡션 구역(capzone, s2_caption_blocks.py)이다. A-1은 표준 실행이 6 fold 모두 고른 값(learning rate 1e-3, 입력층 weight decay 100, d 64)으로 고정한다. 결과는 S6_OUT=s6_brain_capzone",
+  "k_candidates": [
+    [
+      64,
+      100.0
+    ]
+  ],
+  "learning_rates": [
+    0.001
+  ],
+  "learning_rates_by_condition": {
+    "brain_only": [
+      0.001
+    ]
+  },
+  "keep_candidate_checkpoints": true,
+  "seeds": [
+    0
+  ],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375
+}
