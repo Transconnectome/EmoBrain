@@ -216,7 +216,7 @@ def total_val_loss(condition, cand, fd, forward, batch, teacher=None):
     return score
 
 
-def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on_epoch=None, val_fn=None, restore_fn=None):
+def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on_epoch=None, val_fn=None, restore_fn=None, observer=None):
     """G13, O6. AdamW, batch 64, 최대 300 epoch, patience 30, warmup 없음. 가장 낮은 epoch의 가중치로 되돌린다. 같은 값이면 앞선 epoch다.
     val_fn: encoder 2의 feature MSE(조기 종료와 선택 모두). restore_fn: 정서 조건의 검증 total loss(조기 종료만, 11/10). 없으면 검증 정서 soft BCE."""
     if val_fn is not None and restore_fn is not None:
@@ -227,6 +227,8 @@ def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on
     generator = torch.Generator().manual_seed(seed)  # 자료 순서(O32)
     best_loss, best_epoch, best_state = float("inf"), 0, None
     history = []
+    if observer is not None:
+        observer("fit_start", None)
     for epoch in range(1, spec.max_epochs + 1):
         model.train()
         order = train[torch.randperm(len(train), generator=generator).numpy()]
@@ -253,6 +255,8 @@ def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on
         if not np.isfinite(val_loss):
             raise Diverged(f"epoch {epoch}: 검증 손실이 NaN 또는 Inf다")
         history.append(dict(row, val_loss=val_loss))
+        if observer is not None:
+            observer("epoch", dict(row, val_loss=val_loss))
         if on_epoch is not None:
             on_epoch(epoch, model, val_loss)
         if val_loss < best_loss:
@@ -260,6 +264,8 @@ def fit(model, fd, spec, *, lr, input_wd, feature_wd, loss_fn, forward, seed, on
             best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
         elif epoch - best_epoch >= spec.patience:
             break
+    if observer is not None:
+        observer("fit_end", dict(best_epoch=best_epoch, n_epochs=len(history)))
     model.load_state_dict(best_state)
     model.eval()
     if val_fn is not None:  # 점수가 클수록 좋도록 MSE의 부호를 바꾼다(select_best)
@@ -349,6 +355,33 @@ class FoldRunner:
         brains, y, v, cap = self.raw
         return S.prepare_fold(brains, self.split, y, v, cap, plan, device=self.fd.device, mc_ids=self.mc_ids, roi_keep=S.roi_keep(self.config))
 
+    def train_inner(self, seed, j, enc_plan, head_plan, rest):
+        """Train one OOF encoder; shared by serial OOF and atomic B300 units."""
+        fd = self.fd
+        cand = self.selected("feature_encoder")["candidate"]
+        path = self.root / "feature_encoder_oof" / f"seed{seed}" / f"inner{j}"
+        if not c.done_or_new(path, self.run.key):
+            fdj = self._inner_fold(enc_plan)
+            started = time.time()
+            seed_everything(seed)
+            model = S.build_model("feature_encoder", cand, fdj.voxel_counts, self.config.tokenizer, self.config.voxel_sampling).to(fd.device)  # 11/10. 전체 encoder 2와 같은 입력층
+            result = fit(model, fdj, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=None, loss_fn=make_loss("feature_encoder", cand, fdj), forward=brain_forward(fdj), seed=seed, val_fn=feature_val_loss(fdj, self.spec.batch), observer=getattr(self, "fit_observer", None))
+            held = fdj.rows("test")
+            o = collect(model, held, brain_forward(fdj), self.spec.batch, ("v_hat", "c_hat"))
+            st, ft = fdj.feature_stats, fd.feature_stats
+            v = M.to_head_scale(o["v_hat"].numpy().astype(np.float64), st["visual_mean"], st["visual_std"], ft["visual_mean"], ft["visual_std"])
+            cc = M.to_head_scale(o["c_hat"].numpy().astype(np.float64), st["caption_mean"], st["caption_std"], ft["caption_mean"], ft["caption_std"])
+            with c.Atomic(path) as tmp:
+                M.save_checkpoint(tmp / "model.pt", model, condition="feature_encoder", candidate=cand, seed=seed, best_epoch=result.best_epoch, held_fold=int(j))
+                np.savez(tmp / "held.npz", participant=fdj.participant_names(held), video_id=fdj.row_video[held], v_hat=v.astype(np.float32), c_hat=cc.astype(np.float32))
+                result.history.to_csv(tmp / "history.tsv", sep="\t", index=False)
+                self.run._check_code()
+                _json(dict(self.run.prov, condition="feature_encoder_oof", candidate=cand, seed=seed, held_fold=int(j), n_train_videos=len(rest), n_held_videos=len(head_plan.train), best_epoch=result.best_epoch, val_loss=result.val_loss, **c.timing(started)), tmp / "done.json")
+            self.trained.append(("feature_encoder_oof", f"inner{j}", seed))
+            print("저장", path, f"epoch {result.best_epoch}/{result.n_epochs}", flush=True)
+            del fdj, model
+        return json.loads((path / "done.json").read_text())
+
     def oof(self, seed):
         """11/9 석진 님. 학습 fold 4개를 하나씩 뺀 encoder 2 네 개(같은 seed, 전체 encoder 2가 고른 learning rate, 검증 feature MSE로 조기 종료).
         j번째가 뺀 fold의 v̂₂, ĉ₂를 원래 단위로 되돌린 뒤 바깥 fold의 통계로 다시 표준화해 학습 행 순서로 모은다(Stimulus Model의 nested OOF와 같은 구조)."""
@@ -363,26 +396,7 @@ class FoldRunner:
         encoders = []
         for j, enc_plan, head_plan, rest in S.inner_plans(fd.plan, self.split):
             path = self.root / "feature_encoder_oof" / f"seed{seed}" / f"inner{j}"
-            if not c.done_or_new(path, self.run.key):
-                fdj = self._inner_fold(enc_plan)
-                started = time.time()
-                seed_everything(seed)
-                model = S.build_model("feature_encoder", cand, fdj.voxel_counts, self.config.tokenizer, self.config.voxel_sampling).to(fd.device)  # 11/10. 전체 encoder 2와 같은 입력층
-                result = fit(model, fdj, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=None, loss_fn=make_loss("feature_encoder", cand, fdj), forward=brain_forward(fdj), seed=seed, val_fn=feature_val_loss(fdj, self.spec.batch))
-                held = fdj.rows("test")
-                o = collect(model, held, brain_forward(fdj), self.spec.batch, ("v_hat", "c_hat"))
-                st, ft = fdj.feature_stats, fd.feature_stats
-                v = M.to_head_scale(o["v_hat"].numpy().astype(np.float64), st["visual_mean"], st["visual_std"], ft["visual_mean"], ft["visual_std"])
-                cc = M.to_head_scale(o["c_hat"].numpy().astype(np.float64), st["caption_mean"], st["caption_std"], ft["caption_mean"], ft["caption_std"])
-                with c.Atomic(path) as tmp:
-                    M.save_checkpoint(tmp / "model.pt", model, condition="feature_encoder", candidate=cand, seed=seed, best_epoch=result.best_epoch, held_fold=int(j))
-                    np.savez(tmp / "held.npz", participant=fdj.participant_names(held), video_id=fdj.row_video[held], v_hat=v.astype(np.float32), c_hat=cc.astype(np.float32))
-                    result.history.to_csv(tmp / "history.tsv", sep="\t", index=False)
-                    self.run._check_code()
-                    _json(dict(self.run.prov, condition="feature_encoder_oof", candidate=cand, seed=seed, held_fold=int(j), n_train_videos=len(rest), n_held_videos=len(head_plan.train), best_epoch=result.best_epoch, val_loss=result.val_loss, **c.timing(started)), tmp / "done.json")
-                self.trained.append(("feature_encoder_oof", f"inner{j}", seed))
-                print("저장", path, f"epoch {result.best_epoch}/{result.n_epochs}", flush=True)
-                del fdj, model
+            self.train_inner(seed, j, enc_plan, head_plan, rest)
             z = np.load(path / "held.npz")
             for name, vid, vv, cv in zip(z["participant"], z["video_id"], z["v_hat"], z["c_hat"]):
                 i = key[(str(name), int(vid))]
@@ -434,7 +448,7 @@ class FoldRunner:
         try:
             result = fit(model, fd, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=cand["feature_wd"], loss_fn=make_loss(condition, cand, fd, shuffle, teacher), forward=forward, seed=seed,
                          val_fn=feature_val_loss(fd, self.spec.batch) if cfg.feature_only else None,
-                         restore_fn=None if cfg.feature_only else total_val_loss(condition, cand, fd, forward, self.spec.batch, teacher))
+                         restore_fn=None if cfg.feature_only else total_val_loss(condition, cand, fd, forward, self.spec.batch, teacher), observer=getattr(self, "fit_observer", None))
         except Diverged as e:
             if not search:
                 raise
@@ -540,7 +554,7 @@ class FoldRunner:
         M.freeze(model.feature_model)
         model = model.to(fdj.device)
         forward = brain_forward(fdj)
-        result = fit(model, fdj, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=None, loss_fn=make_loss(condition, cand, fdj), forward=forward, seed=seed)
+        result = fit(model, fdj, self.spec, lr=cand["lr"], input_wd=cand["input_wd"], feature_wd=None, loss_fn=make_loss(condition, cand, fdj), forward=forward, seed=seed, observer=getattr(self, "fit_observer", None))
         if M.state_digest(model.feature_model) != enc["digest"]:
             raise ValueError("짝의 encoder 2가 학습 중에 바뀌었다")
         with c.Atomic(path) as tmp:

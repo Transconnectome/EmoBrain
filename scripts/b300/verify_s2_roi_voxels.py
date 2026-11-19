@@ -42,6 +42,45 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def validated_geometry(z, n_rois: int):
+    """Validate stored geometry before any integer conversion.
+
+    Integer-valued numeric arrays are accepted; fractional, nonfinite and
+    out-of-int64 values are rejected rather than truncated or wrapped.
+    Cross-ROI column overlap is intentionally allowed.
+    """
+    def integers(key, shape=None):
+        value = np.asarray(z[key])
+        if shape is not None and value.shape != shape:
+            raise ValueError(f"{key} shape must be {shape}")
+        if value.dtype.kind not in "iuf":
+            raise ValueError(f"{key} must contain integers")
+        if (not np.isfinite(value).all() or (value < 0).any()
+                or (value >= 2**63).any() or (value != np.floor(value)).any()):
+            raise ValueError(f"{key} must contain nonnegative int64 values")
+        return value.astype(np.int64)
+
+    offsets = integers("offsets", (n_rois + 1,))
+    cols = integers("columns")
+    if cols.ndim != 1:
+        raise ValueError("columns must be one-dimensional")
+    n_col = int(integers("n_columns", ()))
+    if n_col <= 0:
+        raise ValueError("n_columns must be positive")
+    if offsets[0] != 0 or (np.diff(offsets) < 0).any():
+        raise ValueError("offsets must start at zero and be nondecreasing")
+    if offsets[-1] != len(cols) or (cols >= n_col).any():
+        raise ValueError("column index out of bounds or offsets length mismatch")
+    shape = integers("shape", (3,))
+    if (shape <= 0).any():
+        raise ValueError("spatial shape dimensions must be positive")
+    affine = np.asarray(z["affine"])
+    if (affine.shape != (4, 4) or affine.dtype.kind not in "iuf"
+            or not np.isfinite(affine).all()):
+        raise ValueError("affine must be a finite numeric 4x4 matrix")
+    return offsets, cols, n_col
+
+
 def verify_all(roi_dir: Path) -> dict:
     prov = json.loads((REPO / "manifests/s2/provenance.json").read_text(encoding="utf-8"))
     in_sha = prov["input_sha256"]
@@ -88,9 +127,7 @@ def verify_all(roi_dir: Path) -> dict:
                 rois = [str(x) for x in z["roi"].tolist()]
                 if rois != expected_rois:
                     raise ValueError("370 ROI names/order mismatch vs roi_table.tsv")
-                offsets = z["offsets"].astype(np.int64)
-                cols = z["columns"].astype(np.int64)
-                n_col = int(z["n_columns"])
+                offsets, cols, n_col = validated_geometry(z, len(expected_rois))
                 mask_sha = str(z["mask_sha256"])
                 if mask_sha != expected_mask_sha:
                     raise ValueError(f"mask_sha256 mismatch ({mask_sha[:12]} != {expected_mask_sha[:12]})")
