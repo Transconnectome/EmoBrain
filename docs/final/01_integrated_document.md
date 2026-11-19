@@ -1888,6 +1888,9 @@ r, R², MAE를 정서별로 함께 보고, 셋이 같은 방향을 가리킬 때
         - parser 판에서도 objects, object states, object relations, 전체 캡션 순서로 뇌가 읽는 평정 정보가 준다. 품사 판과 방향이 같다. parser 판에서는 object states 단계도 크다.
         - object relations까지 빼도 전체 캡션만큼은 줄지 않는다. 남는 부분은 부사와 문장 구조다. 단어를 섞은 캡션은 순서를 지킨 캡션보다 덜 줄이고 object relations 판과 비슷하다. 그래서 단어 순서(문장 구조)도 뇌가 읽는 평정 정보의 일부를 설명한다. 품사 판에서 적은 "문장 임베딩은 단어 순서에 둔감하다"는 한계는 이 자료에서 그대로 성립하지 않는다.
         - 핵심 시험(교정한 기준선): objects 판 대 object relations 판으로 냈을 때 뇌 전체에서 기준선을 빼도 정서들 사이 순위 상관이 양수로 남는다(보정 전). 영역 14개(네트워크 13개 + 뇌 전체)로 Bonferroni 보정하면 Default, Cingulo-Opercular, Language에서 남는다. 시각 네트워크(Visual1, Visual2)에서는 보이지 않는다. object relations만의 단계(objects + object states 판 대 object relations 판)에서도 뇌 전체에서 기준선 뒤에 남는다(보정 전). object relations를 넘는 단계(object relations 판 대 전체 캡션)에서는 뇌 전체에서 보이지 않는다.
+        - 단어 수 대조(11/19, 코드 src/s3_caption_levels.py random_levels, src/s10_beyond_scene.py --levels-random, 수치는 beyond_scene_levels_random, key_test_v4_*의 README): parser 판마다 같은 캡션에서 겹치지 않는 단어 수만큼 무작위로 남긴 판을 만들었다.
+            - 판이 올라갈수록 뇌가 읽는 정보가 줄어드는 평균 모양은 무작위 판에서도 거의 같다. 평균 감소는 단어 수(담긴 정보의 양)로 대부분 설명된다. 그래서 H2 예측 1을 "object relations 단계의 평균 감소"로 주장하지 않는다.
+            - 정서마다의 정렬(핵심 시험)은 무작위 판에서 사라진다(뇌 전체, Default, Cingulo-Opercular 모두 n.s.). 핵심 시험의 결과는 단어 수가 아니라 object relations의 내용에서 온다.
         - 해석: 정서마다 평정을 맞히는 데 object relations가 더 필요할수록, 뇌에서 그 정서 평정이 object relations 정보에 더 기댄다. 품사 판보다 parser 판에서 뚜렷하고, 연합 네트워크(Default, Cingulo-Opercular, Language)에서는 보정 뒤에도 남는다. 1-3 핵심 시험의 예측과 같은 방향이다.
         - 한계: parser에도 오류가 있다(ex) 동사를 object state로 넣음 "vehicle is fighting"). 그래서 object states 단계가 object relations 정보를 일부 가져갔을 수 있다. 판마다 단어 수가 달라, "object relations 때문에 줄었다"와 "단어가 많아져서 줄었다"를 완전히 가르려면 같은 수의 단어를 무작위로 남긴 대조가 필요하다. 영역 사이 보정을 하지 않은 값은 탐색으로 쓴다.
 
@@ -1924,6 +1927,16 @@ r, R², MAE를 정서별로 함께 보고, 셋이 같은 방향을 가리킬 때
         - 사람 캡션 판: 사람 캡션은 COCO 사진에만 있어 반복 사진 113장 가운데 45장(CSI4 38장)으로 시험한다(11/19 석진 님 "45장 먼저").
         - MLLM 캡션 판: AffectLab이 11/17에 만든 Qwen3-VL-8B 캡션(사진당 5개, 4,913장 전부)을 쓰면 반복 사진 113장 전부로 시험할 수 있다. 먼저 COCO 사진에서 사람 캡션과 같은 절차로 비교해 대신할 수 있는지 본다(수준마다 평정을 맞히는 r, 수준 순서, 같은 사진 식별). 쓸지는 그 결과를 보고 석진 님이 정한다.
     - 한계: 시험 사진이 45장이라 범주별 r이 불안정하다. 범주가 20개라 핵심 시험의 점도 20개다. 한 번 본 사진의 반응은 잡음이 커서 decoder 학습이 HK보다 불리하다.
+    - 결과(11/19, 수치는 Gao2025_BOLD5000/photo_key_test/README.md)
+        - (가) 처음부터 학습: A-1과 C-1은 사진에서도 ridge(파일럿)와 같은 수준으로 학습된다. D-3, D-4는 진행 중.
+        - MLLM 캡션 검증: COCO 사진에서 MLLM 캡션은 수준마다 평정을 맞히는 정도가 사람 캡션과 거의 같고(범주별 모양 상관 0.99 이상, 수준 순서 같음), 같은 사진을 거의 다 알아본다. 사람 캡션을 대신할 수 있다.
+        - H1은 사진에서도 재현된다. 사람 캡션 45장 판과 MLLM 캡션 113장 판 모두에서, 캡션으로 설명되는 부분을 빼면 뇌가 읽던 평정 정보가 대부분 사라지고 objects, object states, object relations 순서로 준다.
+        - 핵심 시험은 사진에서 뚜렷하지 않다. 사람 캡션 판은 Default에서만 보정 전 유의하고, MLLM 캡션 판은 뇌 전체와 Default에서 보이지 않는다. 정지 사진에서는 평정을 맞히는 데 object relations가 objects 위에 더하는 것이 작아(뇌 없이 낸 수준 차이가 영상보다 훨씬 작음) 시험할 여지가 작다. 영상에서 본 정렬은 사건(행동과 관계)이 있는 자극에서 나타나는 것으로 쓴다.
+- 6-4h. 구조 선택과 단순 모델 비교의 정리 [11/19 석진 님 "빈 칸 다 채우자"]: 수치는 산출물 2-3_baselines, architecture_checks, ablation_sensitivity의 README.
+    - 단순 모델과 선행 decoder: HK 최종 결과에서 A-1, C-1, D-4는 ridge와 MLP보다 높고(5명 모두 같은 방향), D-3은 낮다. 같은 분할로 옮긴 GED, ML-BVAE, EmoGrowth는 A-1보다 크게 낮다(우리 구현의 그 방법이라 원 논문 수치와 비교하지 않는다).
+    - 입력층: voxel 뽑기를 넣은 선형 입력층이 dense 입력층(MindEye2 꼴), 입력층 learning rate를 낮춘 판, voxel 평균 token보다 높고, 입력 dropout 판과는 비슷하다. ROI 평균과 8칸 평균 입력은 예비 설정에서만 비교되어 최종 설정으로 다시 돌린다(11/19, s6_brain_arch_roi_mean, _roi_cells).
+    - 크기: block 1개가 2개, 4개보다 높다. 모델 폭 d는 표준 실행에서 64 하나만 썼다(5-5의 "검증 fold로 고른다"를 예산 때문에 줄임). d 32, 128 민감도를 11/19에 돌린다(s6_brain_arch_d32, _d128).
+    - emotion query: 평균 pooling판보다 A-1, C-1 모두 조금 높다.
 
 ## 7단계. 구현 세부(결정 항목 표) [정함, 11/3. 석진 님 결정 없음]
 
