@@ -13,6 +13,7 @@
 - 정서별 차이는 탐색으로 표시하고 BH-FDR을 쓴다(참가자마다, 쌍마다 34개. 5명 평균도 따로). [사전] 15개의 Holm에 넣지 않고 방향을 미리 정하지 않는다.
 - seed 0만 쓴다(seed 1, 2는 11/15에 미룸).
 출력(레포 밖 --out): per_emotion.tsv, scores.tsv, run_info.json
+- 11/19: 선택 파일(selected.json)이 없는 점검 실행은 fold마다 검증 r 평균이 가장 큰 후보로 고르고(본 실행의 규칙) run_info.json에 기록한다.
 사용: s10_sensitivity.py --pair "이름|A 폴더|A 조건|B 폴더|B 조건" [--pair ...] --out <출력 폴더> --design-freeze <커밋> [--n-boot 10000] [--overwrite]
 """
 import argparse
@@ -28,6 +29,7 @@ import s10_performance as perf
 import s10_stats as st
 
 SEED = 0
+SELECTED_BY_VAL = []  # 선택 파일 없이 검증 r로 고른 기록
 
 
 def parse_pair(text):
@@ -46,9 +48,15 @@ def load_one(s6_dir, cond, split, n_emo):
     for k in range(1, perf.N_FOLDS + 1):
         fo = Path(s6_dir) / f"outer_fold{k}"
         sel_path = fo / cond / "selected.json"
-        if not sel_path.exists():
-            raise SystemExit(f"{sel_path}가 없다. 6 fold가 모두 끝나야 비교한다")
-        rel = json.loads(sel_path.read_text())["seeds"].get(str(SEED))
+        if sel_path.exists():
+            rel = json.loads(sel_path.read_text())["seeds"].get(str(SEED))
+        else:  # 11/19. 후보만 학습하고 선택을 쓰지 않은 점검 실행(--only-candidates): 본 실행과 같은 규칙(검증 r 평균이 가장 큰 후보, 같으면 앞 후보)으로 고른다
+            done = sorted((fo / cond).glob(f"*_seed{SEED}/done.json"))
+            if not done:
+                raise SystemExit(f"{fo / cond}: 선택도 후보 결과도 없다. 6 fold가 모두 끝나야 비교한다")
+            best = max(done, key=lambda d: (json.loads(d.read_text()).get("val_score") or float("-inf")))
+            rel = str(best.parent.relative_to(fo))
+            SELECTED_BY_VAL.append(dict(dir=str(s6_dir), fold=k, condition=cond, chosen=rel, n_candidates=len(done)))
         path = perf.pred_file(fo, cond, rel) if rel else None
         if path is None or not Path(path).exists():
             raise SystemExit(f"{s6_dir} fold {k} {cond} seed {SEED}: 예측 파일이 없다")
@@ -133,7 +141,7 @@ def run(pairs, out, split, y_split, emotions, *, n_boot=st.N_RESAMPLE, overwrite
         info[pair["name"]] = dict(pair, **i)
     pd.DataFrame(emo).to_csv(out / "per_emotion.tsv", sep="\t", index=False)
     pd.DataFrame(scores).to_csv(out / "scores.tsv", sep="\t", index=False)
-    run_info = dict(pairs=info, n_boot=n_boot, boot_seed=perf.BOOT_SEED, seed=SEED, elapsed_seconds=round(time.time() - started, 1), **(extra_info or {}))
+    run_info = dict(pairs=info, n_boot=n_boot, boot_seed=perf.BOOT_SEED, seed=SEED, selected_by_val=SELECTED_BY_VAL, elapsed_seconds=round(time.time() - started, 1), **(extra_info or {}))
     (out / "run_info.json").write_text(json.dumps(run_info, indent=1, ensure_ascii=False, default=str))
     return run_info
 
