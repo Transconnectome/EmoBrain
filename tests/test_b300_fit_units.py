@@ -65,7 +65,7 @@ class ReceiptImports(unittest.TestCase):
             folder=root/'science/a';folder.mkdir(parents=True)
             (folder/'model.pt').write_bytes(b'synthetic fixture bytes')
             (folder/'history.tsv').write_text('epoch\n1\n')
-            (folder/'done.json').write_text(json.dumps(dict(run_key='fixture',candidate=a['candidate'],seed=0)))
+            (folder/'done.json').write_text(json.dumps(dict(run_key='fixture',condition=a['condition'],candidate=a['candidate'],seed=0)))
             attempt=root/'attempts/a/original';attempt.mkdir(parents=True);(attempt/'telemetry.json').write_text('{}')
             receipt=dict(status='complete',manifest_sha256=f.identity(m),unit=a,run_key='fixture',artifacts=f.hash_tree(folder),dependencies={},attempt='attempts/a/original',telemetry_sha256=f.digest(attempt/'telemetry.json'),slurm_job_id='synthetic-not-a-job')
             f.publish_json(f.receipt_path(root,'a'),receipt)
@@ -95,6 +95,28 @@ class PairEnsemble(unittest.TestCase):
             self.assertEqual(out['p_pairs'].shape,(2,2,34))
             np.savez(paths[1],participant=np.array(['p','p']),video_id=np.array([2,1]),p=np.full((2,34),.9))
             with self.assertRaisesRegex(ValueError,'row order'):f.paired_predictions(paths)
+
+class SelectionBinding(unittest.TestCase):
+    def test_same_candidate_wrong_seed_path_is_rejected(self):
+        import types
+        from unittest.mock import patch
+        f=load()
+        with tempfile.TemporaryDirectory() as d:
+            root=pathlib.Path(d);folder=root/'science/brain_only/c_seed0';folder.mkdir(parents=True)
+            cand={'d':4};done={'candidate':cand,'candidate_id':'c','val_score':.2}
+            (folder/'done.json').write_text(json.dumps(done));(folder/'model.pt').write_bytes(b'fixture')
+            row={'d':4,'candidate_id':'c','val_score':.2}
+            correct=dict(run_key='same',condition='brain_only',candidate=cand,zero_selected=False,source_condition=None,seeds={'0':'brain_only/c_seed0'},rows=[row])
+            selected=root/'science/brain_only/selected.json';bad=dict(correct,seeds={'0':'../../wrong'})
+            selected.write_text(json.dumps(bad))
+            r={'unit':{'id':'a','candidate':cand,'seed':0,'artifact_rel':'brain_only/c_seed0'},'run_key':'same','artifacts':{'model.pt':f.digest(folder/'model.pt')}}
+            runner=types.SimpleNamespace(root=root/'science',run=types.SimpleNamespace(key='same'),_row=lambda c,x:row,run_dir=lambda *args:folder,selected=lambda condition:f.read_json(selected))
+            with patch.object(f,'verify_group',return_value=[r]),patch.object(f,'science',return_value=(None,types.SimpleNamespace(select_best=lambda rows:rows[0]),None,None)):
+                with self.assertRaises(ValueError):f.ensure_selection({},runner,'brain_only',root)
+                selected.write_text(json.dumps(correct));f.ensure_selection({},runner,'brain_only',root)
+                for key,value in [('rows',[]),('condition','wrong'),('zero_selected',True),('seeds',{'0':'brain_only/c_seed0','1':'brain_only/c_seed0'})]:
+                    selected.write_text(json.dumps(dict(correct,**{key:value})))
+                    with self.assertRaises(ValueError):f.ensure_selection({},runner,'brain_only',root)
 
 class RuntimePathBinding(unittest.TestCase):
     def test_swapped_config_rejected_while_frozen_original_intact(self):

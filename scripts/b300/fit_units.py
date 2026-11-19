@@ -119,10 +119,17 @@ def verify_unit(m, uid, root, checked=None):
     if uid in checked:return checked[uid]
     u=unit_by_id(m,uid);p=receipt_path(root,uid)
     if not p.is_file():raise ValueError(f'incomplete unit: {uid}')
-    r=read_json(p)
+    return verify_receipt(m,uid,root,read_json(p),checked)
+
+
+def verify_receipt(m,uid,root,r,checked=None):
+    """Validate candidate receipt before its one-time publication as complete."""
+    checked={} if checked is None else checked
+    u=unit_by_id(m,uid)
     if r['manifest_sha256']!=identity(m) or r['unit']!=u or r['status']!='complete':raise ValueError(f'stale receipt: {uid}')
     for dep in u['dependencies']:
-        verify_unit(m,dep,root,checked)
+        dr=verify_unit(m,dep,root,checked)
+        if dr['run_key']!=r['run_key']:raise ValueError('dependency belongs to a different scientific run')
         if r['dependencies'].get(dep)!=digest(receipt_path(root,dep)):raise ValueError(f'dependency receipt changed: {dep}')
     folder=Path(root)/'science'/safe_rel(u['artifact_rel'])
     verify_hashes(folder,r['artifacts'])
@@ -131,6 +138,19 @@ def verify_unit(m, uid, root, checked=None):
     done=read_json(folder/'done.json')
     if done['run_key']!=r['run_key'] or done['candidate']!=u['candidate'] or done['seed']!=u['seed']:raise ValueError('scientific identity mismatch')
     if 'held_fold' in u and done.get('held_fold')!=u['held_fold']:raise ValueError('held fold mismatch')
+    expected_condition='feature_encoder_oof' if uid.startswith('inner') else u['condition']
+    if done.get('condition')!=expected_condition:raise ValueError('scientific condition differs')
+    global_deps=[checked[d] for d in u['dependencies'] if unit_by_id(m,d)['condition']=='feature_encoder' and 'held_fold' not in unit_by_id(m,d)]
+    inner_deps=[checked[d] for d in u['dependencies'] if unit_by_id(m,d)['id'].startswith('inner')]
+    if 'feature_encoder' in done:
+        if len(global_deps)!=1 or done['feature_encoder']['checkpoint_sha256']!=global_deps[0]['artifacts']['model.pt']:raise ValueError('loaded global encoder differs from dependency')
+    if 'feature_encoder_oof' in done:
+        expected=[r0['artifacts']['model.pt'] for r0 in inner_deps]
+        if 'held_fold' in u:
+            expected=[r0['artifacts']['model.pt'] for r0 in inner_deps if r0['unit']['held_fold']==u['held_fold']]
+            if len(expected)!=1:raise ValueError('paired encoder dependency missing')
+            expected=expected[0]
+        if done['feature_encoder_oof']['checkpoint_sha256']!=expected:raise ValueError('loaded OOF encoder differs from dependency')
     telemetry=Path(root)/safe_rel(r['attempt'])/'telemetry.json'
     if digest(telemetry)!=r['telemetry_sha256']:raise ValueError('telemetry changed')
     checked[uid]=r
@@ -321,6 +341,7 @@ def paired_predictions(paths):
 
 
 def aggregate(m,gid,root):
+    import numpy as np
     records=verify_group(m,gid,root)
     by_candidate={}
     for r in records:
@@ -330,7 +351,7 @@ def aggregate(m,gid,root):
     for pairs in by_candidate.values():
         vals=[d['val_score'] for _,d in pairs]
         if any(not isinstance(v,(int,float)) or not __import__('math').isfinite(v) for v in vals):raise ValueError('nonfinite validation score')
-        rows.append(dict(candidate=pairs[0][0]['candidate'],mean_pair_score=sum(vals)/len(vals),units=[u['id'] for u,_ in pairs]))
+        rows.append(dict(candidate=pairs[0][0]['candidate'],mean_pair_score=float(np.mean(vals)),units=[u['id'] for u,_ in pairs]))
     # S.select_best has a scientific tie rule; use its candidate fields unchanged.
     _,S,_,_=science()
     scientific=[dict(r['candidate'],candidate_id=S.candidate_id(r['candidate']),val_score=r['mean_pair_score']) for r in rows]
@@ -377,17 +398,26 @@ def build_runner(m,root):
 
 
 def ensure_selection(m,runner,condition,root):
-    """Actual complete declared probe grid selection; never a full-grid claim."""
+    """Bind every selection field and checkpoint to the verified complete group."""
     records=verify_group(m,condition,root)
+    if any(r['run_key']!=runner.run.key for r in records):raise ValueError('selection dependency run key differs')
     rows=[runner._row(r['unit']['candidate'],read_json(Path(root)/'science'/r['unit']['artifact_rel']/'done.json')) for r in records]
     _,S,_,_=science();best=S.select_best(rows);cand={k:best[k] for k in records[0]['unit']['candidate']}
+    chosen=[r for r in records if r['unit']['candidate']==cand]
+    seeds={str(r['unit']['seed']):r['unit']['artifact_rel'] for r in chosen}
+    if not chosen or len(seeds)!=len(chosen):raise ValueError('ambiguous selected seed mapping')
+    for r in chosen:
+        u=r['unit'];path=runner.run_dir(condition,cand,u['seed'])
+        if str(path.relative_to(runner.root))!=u['artifact_rel']:raise ValueError('selected path differs from receipt-owned path')
+        if digest(path/'model.pt')!=r['artifacts']['model.pt']:raise ValueError('selected checkpoint differs from dependency receipt')
+    expected=dict(run_key=runner.run.key,condition=condition,candidate=cand,zero_selected=False,source_condition=None,seeds=seeds,rows=rows)
     path=runner.root/condition/'selected.json'
     if path.exists():
-        sel=runner.selected(condition)
-        if sel['candidate']!=cand:raise ValueError('existing selection differs')
-        return
-    seeds={'0':str(runner.run_dir(condition,cand,0).relative_to(runner.root))}
+        if runner.selected(condition)!=expected:raise ValueError('existing selection structure differs from verified group')
+        return expected
     runner._write_selection(condition,rows,cand,None,seeds)
+    if runner.selected(condition)!=expected:raise ValueError('published selection differs from verified group')
+    return expected
 
 
 def execute(m,root,ids,telemetry):
@@ -429,12 +459,15 @@ def execute(m,root,ids,telemetry):
                         del fdj
                     else:runner.train_one(u['condition'],u['candidate'],u['seed'])
                 runner.run.check();check_frozen(m)
+                if u['condition']!='brain_only':ensure_selection(m,runner,'brain_only',root)
+                if uid.startswith('inner') or u['condition'] not in ('brain_only','feature_encoder'):ensure_selection(m,runner,'feature_encoder',root)
                 hashes=hash_tree(artifact)
                 if not set(u['required'])<=set(hashes):raise ValueError('incomplete scientific output')
                 done=read_json(artifact/'done.json')
                 if done['run_key']!=runner.run.key or done['candidate']!=u['candidate'] or done['seed']!=u['seed']:raise ValueError('wrong scientific output identity')
                 receipt=dict(status='complete',manifest_sha256=identity(m),unit=u,run_key=runner.run.key,artifacts=hashes,dependencies={dep:digest(receipt_path(root,dep)) for dep in u['dependencies']},attempt=str(attempt.relative_to(root)),telemetry_sha256=digest(attempt/'telemetry.json'),slurm_job_id=os.environ['SLURM_JOB_ID'])
-                publish_json(receipt_path(root,uid),receipt);verify_unit(m,uid,root)
+                verify_receipt(m,uid,root,receipt)
+                publish_json(receipt_path(root,uid),receipt)
                 print('UNIT_COMPLETE',uid,flush=True)
             except BaseException as exc:
                 publish_json(attempt/'interrupted_or_failed.json',dict(error=repr(exc),utc=time.time(),resume_semantics='restart_from_seed'))
