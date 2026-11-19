@@ -154,7 +154,15 @@ def writer_lock(root,uid):
         finally:fcntl.flock(f,fcntl.LOCK_UN)
 
 
+def check_runtime_paths(m):
+    configured=os.environ.get('EMOBRAIN_PATHS')
+    if not configured or str(Path(configured).resolve())!=m['paths_config']:raise ValueError('runtime EMOBRAIN_PATHS differs from frozen path')
+    for key in ('S5_ROI_VOXELS','S5_PM','S4_FEATURES','S4_LABELS'):
+        if os.environ.get(key):raise ValueError(f'unreviewed runtime override: {key}')
+
+
 def check_frozen(m):
+    check_runtime_paths(m)
     for rel,sha in m['source_hashes'].items():
         if digest(REPO/safe_rel(rel))!=sha:raise ValueError(f'frozen source changed: {rel}')
     for path,sha in m['external_hashes'].items():
@@ -212,6 +220,7 @@ def make_probe(config, freeze, admission, output):
     """Freeze actual source and input bytes without initializing CUDA."""
     T,S,M,c=science()
     from dataclasses import asdict
+    c.guard(freeze)
     cfg=S.load_config(config);split=c.load_split();plan=S.load_plan('pilot_fold1',split)
     base=next(x for x in S.candidates('brain_only',k_candidates=cfg.k_candidates,learning_rates=cfg.learning_rates) if x['d']==64 and x['input_wd']==100 and x['lr']==1e-3)
     choices={'brain_only':base}
@@ -236,25 +245,128 @@ def make_probe(config, freeze, admission, output):
     for cond,prefix in [('brain_features_only_paired','d3pair'),('brain_frozen_feature_encoder','d4pair')]:
         for j in held:add(f'{prefix}{j}',cond,prereq,j)
     for cond in choices:groups.append(dict(id=cond,units=[u['id'] for u in units if u['condition']==cond and not(u['id'].startswith('inner'))]))
-    files=sorted(set((REPO/'src').glob('s[456]_*.py'))|{S.AUDITION_PATH,Path(__file__),REPO/'scripts/b300/measure_fit_units.py',REPO/'scripts/b300/submit_fit_units.py',REPO/'scripts/b300/verify_s2_roi_voxels.py'})
-    inputs={**S.input_paths(plan,stimulus=False),**{f's2:{p.name}':p for p in T.d5.S2_TABLES},'config':Path(config),'admission':Path(admission)}
+    files=sorted(set((REPO/'src').glob('*.py'))|{S.AUDITION_PATH,Path(__file__),REPO/'scripts/b300/measure_fit_units.py',REPO/'scripts/b300/submit_fit_units.py',REPO/'scripts/b300/verify_s2_roi_voxels.py'})
+    inputs={**S.input_paths(plan,stimulus=False),**{f's2:{p.name}':p for p in T.d5.S2_TABLES},'config':Path(config),'admission':Path(admission),'paths_config':Path(os.environ['EMOBRAIN_PATHS'])}
     independent_hashes=independent_roi_preflight(admission)
+    import numpy as np
+    reference_path=Path(admission).parent/'feature_reference.json'
+    reference={x['model']:x for x in read_json(reference_path)['features']}
+    independent_hashes[str(reference_path.resolve())]=digest(reference_path)
+    for model,role,shape in [('vjepa2','visual_target',[2196,5632]),('deberta','caption_target',[2196,4096])]:
+        target=Path(inputs[role]);feature_manifest=target.parent/'manifest.json';fm=read_json(feature_manifest)
+        expected=fm.get('target_sha256') or fm['file_sha256']['target.npy']
+        if digest(target)!=expected or expected!=reference[model]['sha256'] or list(np.load(target,mmap_mode='r').shape)!=shape:raise ValueError('feature provenance or full shape differs')
+        independent_hashes[str(feature_manifest.resolve())]=digest(feature_manifest)
     ad=read_json(admission)
     if ad['computational_admission']!='ROI_INPUTS_PASS_FOR_BOUNDED_RESOURCE_MEASUREMENT':raise ValueError('bounded admission absent')
     for subject in ad['subjects']:
         if subject['tag'].startswith('hk_'):
             roi=inputs['roi:sub-'+subject['tag'][-2:]]
             if digest(roi)!=subject['sha256']:raise ValueError('ROI admission does not bind actual input')
-    m=dict(schema=SCHEMA,scope='bounded_measurement',restart_policy='restart_from_seed',plan=plan.name,design_freeze=freeze,config=str(Path(config).resolve()),admission=str(Path(admission).resolve()),units=units,groups=groups,expected_units=[u['id'] for u in units],held_folds=held,candidate_universe={k:[v] for k,v in choices.items()},paired_conditions=['brain_features_only_paired','brain_frozen_feature_encoder'],source_hashes={str(p.relative_to(REPO)):digest(p) for p in files},external_hashes={**independent_hashes,**{str(Path(p).resolve()):digest(p) for p in inputs.values()}},spec=asdict(S.Spec(seeds=cfg.seeds,input_lr_scale=cfg.input_lr_scale)),numeric_comparison=dict(tensors_rtol=0,tensors_atol=0,predictions_rtol=0,predictions_atol=0,history_rtol=0,history_atol=0),training_targets=34,interpretation_targets=27)
+    m=dict(schema=SCHEMA,scope='bounded_measurement',restart_policy='restart_from_seed',plan=plan.name,paths_config=str(Path(os.environ['EMOBRAIN_PATHS']).resolve()),input_roles={k:str(Path(p).resolve()) for k,p in inputs.items()},design_freeze=freeze,config=str(Path(config).resolve()),admission=str(Path(admission).resolve()),units=units,groups=groups,expected_units=[u['id'] for u in units],held_folds=held,candidate_universe={k:[v] for k,v in choices.items()},paired_conditions=['brain_features_only_paired','brain_frozen_feature_encoder'],environment=runtime_environment(),source_commit=c.START_HEAD,source_hashes={str(p.relative_to(REPO)):digest(p) for p in files},external_hashes={**independent_hashes,**{str(Path(p).resolve()):digest(p) for p in inputs.values()}},spec=asdict(S.Spec(seeds=cfg.seeds,input_lr_scale=cfg.input_lr_scale)),numeric_comparison=dict(tensors_rtol=0,tensors_atol=0,predictions_rtol=0,predictions_atol=0,history_rtol=0,history_atol=0),training_targets=34,interpretation_targets=27)
     validate_manifest(m);publish_json(output,m);return m
 
 
+def clone_dependencies(m,source_root,target_root,target_ids):
+    """Byte-identical frozen dependencies for a separate uninterrupted comparator.
+
+    Imported receipts preserve original attempts/job IDs; they are never counted
+    as new fits, never rekeyed, and never imported from historical pilot runs.
+    """
+    import shutil
+    source_root=Path(source_root);target_root=Path(target_root)
+    if source_root.resolve()==target_root.resolve():raise ValueError('comparator must have separate output root')
+    deps=set()
+    def visit(uid):
+        for dep in unit_by_id(m,uid)['dependencies']:
+            if dep not in deps:deps.add(dep);visit(dep)
+    for uid in target_ids:visit(uid)
+    if deps&set(target_ids):raise ValueError('target cannot also be imported dependency')
+    for uid in deps:verify_unit(m,uid,source_root)
+    target_root.mkdir(parents=True,exist_ok=False)
+    hashes={}
+    for u in m['units']:
+        uid=u['id']
+        if uid not in deps:continue
+        r=read_json(receipt_path(source_root,uid));rel=safe_rel(u['artifact_rel'])
+        dest=target_root/'science'/rel;dest.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copytree(source_root/'science'/rel,dest)
+        rp=receipt_path(target_root,uid);rp.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(receipt_path(source_root,uid),rp)
+        attempt=safe_rel(r['attempt']);(target_root/attempt).mkdir(parents=True,exist_ok=True)
+        shutil.copyfile(source_root/attempt/'telemetry.json',target_root/attempt/'telemetry.json')
+        hashes[uid]=digest(rp)
+    for uid in deps:verify_unit(m,uid,target_root)
+    publish_json(target_root/'imported_dependencies.json',dict(manifest_sha256=identity(m),source_root=str(source_root.resolve()),receipt_hashes=hashes,new_fit_count=0,targets=target_ids,policy='byte-identical same-run frozen dependency import; original job IDs preserved'))
+
+
+def runtime_environment():
+    import platform
+    import torch,numpy,pandas
+    return dict(python=platform.python_version(),torch=torch.__version__,numpy=numpy.__version__,pandas=pandas.__version__,cuda_build=torch.version.cuda,cudnn=torch.backends.cudnn.version())
+
+
+def paired_predictions(paths):
+    """Same mean-probability operation as FoldRunner._ensemble, with exact row checks."""
+    import numpy as np
+    parts=[]
+    for path in paths:
+        with np.load(path,allow_pickle=False) as z:parts.append({k:z[k].copy() for k in z.files})
+    if not parts:raise ValueError('no paired predictions')
+    keys=[list(zip(z['participant'].tolist(),z['video_id'].tolist())) for z in parts]
+    if any(k!=keys[0] for k in keys):raise ValueError('paired prediction row order differs')
+    pp=np.stack([z['p'] for z in parts])
+    if not np.isfinite(pp).all() or np.any(pp<0) or np.any(pp>1):raise ValueError('invalid paired probabilities')
+    pm=pp.mean(0)
+    return dict(participant=parts[0]['participant'],video_id=parts[0]['video_id'],p=pm,logit=np.log(pm)-np.log1p(-pm),p_pairs=pp)
+
+
+def aggregate(m,gid,root):
+    records=verify_group(m,gid,root)
+    by_candidate={}
+    for r in records:
+        u=r['unit'];done=read_json(Path(root)/'science'/u['artifact_rel']/'done.json')
+        by_candidate.setdefault(identity(u['candidate']),[]).append((u,done))
+    rows=[]
+    for pairs in by_candidate.values():
+        vals=[d['val_score'] for _,d in pairs]
+        if any(not isinstance(v,(int,float)) or not __import__('math').isfinite(v) for v in vals):raise ValueError('nonfinite validation score')
+        rows.append(dict(candidate=pairs[0][0]['candidate'],mean_pair_score=sum(vals)/len(vals),units=[u['id'] for u,_ in pairs]))
+    # S.select_best has a scientific tie rule; use its candidate fields unchanged.
+    _,S,_,_=science()
+    scientific=[dict(r['candidate'],candidate_id=S.candidate_id(r['candidate']),val_score=r['mean_pair_score']) for r in rows]
+    best=S.select_best(scientific)
+    value=dict(scope=m['scope'],manifest_sha256=identity(m),group=gid,rows=rows,best_candidate_id=best['candidate_id'],receipt_hashes={r['unit']['id']:digest(receipt_path(root,r['unit']['id'])) for r in records})
+    if gid in m.get('paired_conditions',[]):
+        import numpy as np
+        chosen=next(r for r in rows if S.candidate_id(r['candidate'])==best['candidate_id'])
+        selected=[unit_by_id(m,uid) for uid in chosen['units']]
+        out=Path(root)/'aggregations'/gid
+        with writer_lock(root,'aggregate-'+gid):
+            if out.exists():raise FileExistsError(out)
+            tmp=out.parent/(gid+'.tmp-'+uuid.uuid4().hex);tmp.mkdir(parents=True)
+            for name in ('val_pred.npz','test_pred.npz'):
+                paths=[Path(root)/'science'/u['artifact_rel']/name for u in selected]
+                if not any(p.exists() for p in paths):continue
+                if not all(p.exists() for p in paths):raise ValueError('incomplete pair prediction universe')
+                pred=paired_predictions(paths);pred['held_folds']=np.array([u['held_fold'] for u in selected])
+                np.savez(tmp/name,**pred)
+            value['ensemble_artifacts']=hash_tree(tmp)
+            tmp.rename(out)
+    publish_json(Path(root)/'aggregations'/f'{gid}.json',value)
+    return value
+
+
 def build_runner(m,root):
+    check_runtime_paths(m)  # Before importing modules that resolve paths from env.
     T,S,M,c=science()
     from dataclasses import asdict
     import torch
+    if runtime_environment()!=m['environment']:raise ValueError('runtime software differs from frozen environment')
+    c.guard(m['design_freeze'])
     torch.use_deterministic_algorithms(True)
     cfg=S.load_config(m['config']);split=c.load_split();plan=S.load_plan(m['plan'],split);spec=S.Spec(**m['spec'])
+    actual_inputs={**S.input_paths(plan,stimulus=False),**{f's2:{p.name}':p for p in T.d5.S2_TABLES},'config':Path(m['config']),'admission':Path(m['admission']),'paths_config':Path(os.environ['EMOBRAIN_PATHS'])}
+    if {k:str(Path(p).resolve()) for k,p in actual_inputs.items()}!=m['input_roles']:raise ValueError('resolved runtime input roles differ')
     run=S.Run(m['design_freeze'],{**S.input_paths(plan,stimulus=False),'config':m['config']},stimulus_run_key=None,plan=plan.name,config=asdict(cfg),spec=asdict(spec),torch=torch.__version__,deterministic=torch.are_deterministic_algorithms_enabled(),nondeterministic_ops=[],fit_manifest=identity(m))
     y,v,cap=T.load_known(split,plan,False)
     brains=S.load_brains(split,list(plan.train)+list(plan.val)+list(plan.test))
@@ -299,7 +411,9 @@ def execute(m,root,ids,telemetry):
                 with telemetry(attempt,uid) as meter:
                     if runner is None:
                         with writer_lock(root,'plan'):
+                            meter.observe('load_start',None)
                             runner=build_runner(m,root)
+                            meter.observe('load_end',None)
                     if u['condition']!='brain_only':
                         with writer_lock(root,'selection-brain_only'):ensure_selection(m,runner,'brain_only',root)
                     if u['id'].startswith('inner') or u['condition'] not in ('brain_only','feature_encoder'):
@@ -334,13 +448,20 @@ def runner_plan(runner):
 def main():
     ap=argparse.ArgumentParser(description=__doc__);sub=ap.add_subparsers(dest='cmd',required=True)
     p=sub.add_parser('freeze-probe');p.add_argument('--config',required=True);p.add_argument('--design-freeze',required=True);p.add_argument('--admission',required=True);p.add_argument('--output',required=True)
-    for cmd in ('validate','run','verify'):
-        p=sub.add_parser(cmd);p.add_argument('--manifest',required=True);p.add_argument('--root');p.add_argument('--units');p.add_argument('--group')
+    for cmd in ('validate','run','verify','aggregate','clone-dependencies'):
+        p=sub.add_parser(cmd);p.add_argument('--manifest',required=True);p.add_argument('--root');p.add_argument('--units');p.add_argument('--group');p.add_argument('--source-root')
     a=ap.parse_args()
     if a.cmd=='freeze-probe':make_probe(a.config,a.design_freeze,a.admission,a.output);return
     m=validate_manifest(read_json(a.manifest))
     if a.cmd=='validate':check_frozen(m);print(json.dumps({'valid':True,'units':len(m['units']),'manifest_sha256':identity(m)}));return
     if not a.root:ap.error('--root required')
+    if a.cmd in ('clone-dependencies','aggregate','verify'):check_frozen(m)
+    if a.cmd=='clone-dependencies':
+        if not(a.source_root and a.units):ap.error('--source-root and --units required')
+        clone_dependencies(m,a.source_root,a.root,a.units.split(','));return
+    if a.cmd=='aggregate':
+        if not a.group:ap.error('--group required')
+        aggregate(m,a.group,a.root);return
     if a.cmd=='verify':
         if a.group:verify_group(m,a.group,a.root)
         else:

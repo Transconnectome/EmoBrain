@@ -28,11 +28,12 @@ def pack(bounds,limit_s=46*3600):
     return groups
 
 
-def render(manifest,root,units,repo='/scratch/emobrain/code',time_limit='08:00:00'):
+def render(manifest,root,units,repo='/scratch/emobrain/code',time_limit='08:00:00',paths_config=None):
     h,m,s=map(int,time_limit.split(':'))
     if h*3600+m*60+s>46*3600:raise ValueError('operational limit is 46h, with 2h cap margin')
+    if not paths_config:raise ValueError('frozen paths config required')
     cmd=['/scratch/envs/centaur/bin/python',repo+'/scripts/b300/fit_units.py','run','--manifest',manifest,'--root',root,'--units',','.join(units)]
-    return '\n'.join(['#!/bin/bash','#SBATCH --job-name=emobrain-fit-units','#SBATCH --partition=gpu','#SBATCH --nodelist=b300-01','#SBATCH --ntasks=1','#SBATCH --gres=gpu:1','#SBATCH --cpus-per-task=8','#SBATCH --mem=96G',f'#SBATCH --time={time_limit}','set -euo pipefail',': "${SLURM_JOB_ID:?Slurm required}"','export PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 CUBLAS_WORKSPACE_CONFIG=:4096:8',f'cd {shlex.quote(repo)}','exec '+shlex.join(cmd),''])
+    return '\n'.join(['#!/bin/bash','#SBATCH --job-name=emobrain-fit-units','#SBATCH --partition=gpu','#SBATCH --nodelist=b300-01','#SBATCH --ntasks=1','#SBATCH --gres=gpu:1','#SBATCH --cpus-per-task=8','#SBATCH --mem=96G',f'#SBATCH --time={time_limit}','set -euo pipefail',': "${SLURM_JOB_ID:?Slurm required}"','export PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 CUBLAS_WORKSPACE_CONFIG=:4096:8','export EMOBRAIN_PATHS='+shlex.quote(paths_config),'unset S5_ROI_VOXELS S5_PM S4_FEATURES S4_LABELS',f'cd {shlex.quote(repo)}','exec '+shlex.join(cmd),''])
 
 
 def main():
@@ -41,7 +42,7 @@ def main():
     m=validate_manifest(read_json(a.manifest));ids=a.units.split(',')
     for uid in ids:unit_by_id(m,uid)
     out=Path(a.output)
-    with out.open('x') as f:f.write(render(a.manifest,a.root,ids,time_limit=a.time))
+    with out.open('x') as f:f.write(render(a.manifest,a.root,ids,time_limit=a.time,paths_config=m['paths_config']))
     print(json.dumps(dict(submitted=False,script=str(out),command=['sbatch','--parsable','--output',a.root+'/slurm_%j.log',str(out)])))
 
 if __name__=='__main__':main()
