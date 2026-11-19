@@ -75,7 +75,7 @@ def fit(who, out, split, threads):
     res = {}
     for g, x in feats.items():
         started = time.time()
-        xt = torch.as_tensor(x)
+        xt = torch.as_tensor(x).double()  # 6-4d와 같이 float64(평정 목표가 float64)
         for (b, k, kind), pl in P.items():
             tr, va, te = rows(pl.train), rows(pl.val), rows(pl.test)
             pr, bad = geo.ridge(xt, Y, tr, va, te)
