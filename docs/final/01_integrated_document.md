@@ -1958,8 +1958,8 @@ r, R², MAE를 정서별로 함께 보고, 셋이 같은 방향을 가리킬 때
         - 핵심 시험은 사진에서 뚜렷하지 않다. 사람 캡션 판은 Default에서만 보정 전 유의하고, MLLM 캡션 판은 뇌 전체와 Default에서 보이지 않는다. 정지 사진에서는 평정을 맞히는 데 object relations가 objects 위에 더하는 것이 작아(뇌 없이 낸 수준 차이가 영상보다 훨씬 작음) 시험할 여지가 작다. 영상에서 본 정렬은 사건(행동과 관계)이 있는 자극에서 나타나는 것으로 쓴다.
 - 6-4h. 구조 선택과 단순 모델 비교의 정리 [11/19 석진 님 "빈 칸 다 채우자"]: 수치는 산출물 2-3_baselines, architecture_checks, ablation_sensitivity의 README.
     - 단순 모델과 선행 decoder: HK 최종 결과에서 A-1, C-1, D-4는 ridge와 MLP보다 높고(5명 모두 같은 방향), D-3은 낮다. 같은 분할로 옮긴 GED, ML-BVAE, EmoGrowth는 A-1보다 크게 낮다(우리 구현의 그 방법이라 원 논문 수치와 비교하지 않는다).
-    - 입력층: voxel 뽑기를 넣은 선형 입력층이 dense 입력층(MindEye2 꼴), 입력층 learning rate를 낮춘 판, voxel 평균 token보다 높고, 입력 dropout 판과는 비슷하다. ROI 평균과 8칸 평균 입력은 예비 설정에서만 비교되어 최종 설정으로 다시 돌린다(11/19, s6_brain_arch_roi_mean, _roi_cells).
-    - 크기: block 1개가 2개, 4개보다 높다. 모델 폭 d는 표준 실행에서 64 하나만 썼다(5-5의 "검증 fold로 고른다"를 예산 때문에 줄임). d 32, 128 민감도를 11/19에 돌린다(s6_brain_arch_d32, _d128).
+    - 입력층: voxel 뽑기를 넣은 선형 입력층이 dense 입력층(MindEye2 꼴), 입력층 learning rate를 낮춘 판, voxel 평균 token보다 높고, 입력 dropout 판과는 비슷하다. ROI 평균과 8칸 평균 입력은 11/8 예비 설정에서는 선형 입력보다 높았지만, 최종 설정(learning rate 1e-3, 입력층 weight decay {0.01, 1, 100}을 검증 fold로 고름)으로 다시 돌리면 둘 다 A-1보다 낮다(5명 모두 같은 방향, ROI 평균은 조금, 8칸 평균은 크게). 예비 설정의 선형 입력에는 voxel 뽑기와 강한 입력층 weight decay가 없었다. 이 둘을 넣은 뒤로는 voxel을 미리 평균 내지 않고 ROI 안의 voxel 조합을 배우는 입력층이 낫다. 8칸 평균은 GED, ML-BVAE, EmoGrowth의 ROI pooling과 같은 입력이다.
+    - 크기: block 1개가 2개, 4개보다 높다. 모델 폭 d는 표준 실행에서 64 하나만 썼다(5-5의 "검증 fold로 고른다"를 예산 때문에 줄임). 같은 설정에서 d만 32, 128로 바꾸면 둘 다 64보다 조금 낮다(d 32는 5명 모두, d 128은 5명 중 4명). 검증 fold로 골랐다면 6 fold 중 5개에서 64를 골랐을 것이라 폭을 고르지 않은 것이 A-1을 불리하게 만들지 않았다.
     - emotion query: 평균 pooling판보다 A-1, C-1 모두 조금 높다.
 
 ## 7단계. 구현 세부(결정 항목 표) [정함, 11/3. 석진 님 결정 없음]
