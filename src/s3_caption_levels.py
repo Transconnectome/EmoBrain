@@ -19,7 +19,7 @@
 5. graph_levels (CPU): 삼항에서 세 판을 만들고 정서어를 뺀다. 같은 삼항이 두 번 나오면 하나만 둔다. 물체는 처음 나온 순서다.
    - graph_objects: 물체 이름. ex) "man, road"
    - graph_objattr: 속성을 앞에 붙인 물체. ex) "old man, icy road"
-   - graph_rel: 위 + 관계 삼항을 "주어 관계 목적어"로. ex) "old man, icy road, man slip on road". 부사와 문장 구조는 없다.
+   - graph_rel: 위 + object relations을 "주어 관계 목적어"로. ex) "old man, icy road, man slip on road". 부사와 문장 구조는 없다.
    - shuffled: Caption feature 정서어 제거판과 같은 글(s3_text.load_captions(True))의 단어를 캡션마다 무작위로 섞은 것(seed [20261118, 캡션 행]).
      단어는 같고 순서만 다르다. 문장 임베딩이 단어 순서에 얼마나 기대는지 보는 대조다.
    <out>/caption_graph_levels.tsv

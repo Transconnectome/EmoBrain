@@ -72,7 +72,7 @@ READ = ("T", "Sw", "V", "C", "Sall")  # 뇌로 읽는 목표 판. T는 평정 �
 LEVEL_SETS = {"Sw": ("motion", "labels"), "N": ("caption_objects",), "NA": ("caption_objattr",), "V": ("vision",), "C": ("caption",), "Sall": ("motion", "labels", "vision", "caption")}
 LEVEL_READ = ("T", "Sw", "N", "NA", "V", "C", "Sall")
 # --levels-graph(11/18 둘째 판): scene graph parser 판과 단어 섞은 판을 더한다(src/s3_caption_levels.py graph, graph_levels).
-#   GO = parser의 물체, GA = 물체 + 속성, GR = 물체 + 속성 + 관계 삼항(부사와 문장 구조 없음), CS = 정서어 제거판 캡션의 단어를 섞은 것(같은 단어, 순서만 다름).
+#   GO = parser의 물체, GA = 물체 + 속성, GR = objects + object states + object relations(부사와 문장 구조 없음), CS = 정서어 제거판 캡션의 단어를 섞은 것(같은 단어, 순서만 다름).
 #   N, NA를 함께 두어 품사 판과 parser 판을 한 출력에서 견준다. 판정 규칙은 그대로다.
 GRAPH_READ = ("T", "Sw", "N", "NA", "GO", "GA", "GR", "CS", "V", "C", "Sall")
 _GRAPH_BANDS = {**LEVEL_SETS, "GO": ("caption_graph_objects",), "GA": ("caption_graph_objattr",), "GR": ("caption_graph_rel",), "CS": ("caption_shuffled",)}
