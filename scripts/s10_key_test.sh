@@ -18,3 +18,9 @@ if [ -f "$OUT_ROOT/s10_stats/beyond_scene_levels_graph/scores.tsv" ]; then
   "$PY_CPU" s10_key_test.py --stats "$G" --out "$OUT_ROOT/s10_stats/key_test_v3_GR_C" --object GR --situation C
   "$PY_CPU" s10_key_test.py --stats "$G" --out "$OUT_ROOT/s10_stats/key_test_v3_GO_C" --object GO --situation C
 fi
+# 11/19 대조: 단어 수를 맞춘 무작위 판. RO 대 RR(GO 대 GR과 같은 단어 수), RA 대 RR
+if [ -f "$OUT_ROOT/s10_stats/beyond_scene_levels_random/scores.tsv" ]; then
+  G="$OUT_ROOT/s10_stats/beyond_scene_levels_random"
+  "$PY_CPU" s10_key_test.py --stats "$G" --out "$OUT_ROOT/s10_stats/key_test_v4_RO_RR" --object RO --situation RR
+  "$PY_CPU" s10_key_test.py --stats "$G" --out "$OUT_ROOT/s10_stats/key_test_v4_RA_RR" --object RA --situation RR
+fi

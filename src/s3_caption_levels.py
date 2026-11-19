@@ -25,7 +25,12 @@
    <out>/caption_graph_levels.tsv
 6. embed --levels graph_objects,graph_objattr,graph_rel,shuffled: 위와 같은 임베딩. 출력 <s3_features>/deberta_<수준>/target.npy
    한계: parser에도 오류가 있다(ex) 동사를 속성으로 넣음 "vehicle is fighting"). 품사 판과 parser 판이 같은 방향인지를 함께 본다.
-사용: s3_caption_levels.py export|parse|graph|graph_levels|embed --out <작업 폴더> [--device cuda] [--levels <쉼표>]
+11/19 셋째 판(석진 님 "다 진행"): 단어 수를 맞춘 무작위 대조. 판이 올라갈수록 단어 수도 늘어서 "object relations 때문에 줄었다"와 "단어가 많아져서 줄었다"를 가르려는 것이다.
+7. random_levels (CPU): 캡션마다, 정서어 제거판 캡션의 단어 가운데 parser 판(objects, objects + object states, + object relations)의
+   겹치지 않는 단어 수(소문자 알파벳 단어)만큼을 무작위로 골라 원래 순서대로 남긴다(seed [20261119, 캡션 행, 판 번호]). 단어 수가 캡션 단어 수 이상이면 캡션 전체를 쓴다.
+   object relations 판은 삼항마다 objects 이름이 되풀이되어 그냥 세면 단어 수가 부풀므로 겹치지 않는 단어로 센다.
+   <out>/caption_random_levels.tsv(rand_objects, rand_objattr, rand_rel), random_levels_info.json
+사용: s3_caption_levels.py export|parse|graph|graph_levels|random_levels|embed --out <작업 폴더> [--device cuda] [--levels <쉼표>]
 """
 import argparse
 import json
@@ -36,7 +41,9 @@ from pathlib import Path
 
 LEVELS = ("objects", "objattr")
 GRAPH_LEVELS = ("graph_objects", "graph_objattr", "graph_rel", "shuffled")
-LEVEL_FILE = {**{lv: "caption_levels.tsv" for lv in LEVELS}, **{lv: "caption_graph_levels.tsv" for lv in GRAPH_LEVELS}}
+RANDOM_LEVELS = ("rand_objects", "rand_objattr", "rand_rel")  # 11/19. 같은 순서의 parser 판과 단어 수를 맞춘 무작위 판
+LEVEL_FILE = {**{lv: "caption_levels.tsv" for lv in LEVELS}, **{lv: "caption_graph_levels.tsv" for lv in GRAPH_LEVELS}, **{lv: "caption_random_levels.tsv" for lv in RANDOM_LEVELS}}
+RANDOM_SEED = 20261119
 PARSER = "lizhuang144/flan-t5-large-VG-factual-sg"
 SHUFFLE_SEED = 20261118
 KEEP = {"objects": {"NOUN", "PROPN"}, "objattr": {"NOUN", "PROPN", "ADJ", "NUM"}}
@@ -146,6 +153,32 @@ def graph_levels(out):
     print(json.dumps(info), flush=True)
 
 
+def random_levels(out):
+    import numpy as np
+    import pandas as pd
+    cap = pd.read_csv(out / "caption_graph_levels.tsv", sep="\t", keep_default_na=False)
+    words = lambda t: len(set(re.findall(r"[a-z]+", str(t).lower())))
+    cols, full = {lv: [] for lv in RANDOM_LEVELS}, 0
+    for i, row in enumerate(cap.itertuples()):
+        tok = str(row.no_emotion_original).split()
+        for j, (lv, src) in enumerate(zip(RANDOM_LEVELS, ("graph_objects", "graph_objattr", "graph_rel"))):
+            k = words(getattr(row, src))
+            if k >= len(tok):
+                cols[lv].append(" ".join(tok))
+                full += 1
+            else:
+                pick = np.sort(np.random.default_rng([RANDOM_SEED, i, j]).choice(len(tok), k, replace=False))
+                cols[lv].append(" ".join(tok[q] for q in pick))
+    for lv in RANDOM_LEVELS:
+        cap[lv] = cols[lv]
+    cap[["video_id", "description", "no_emotion_original", *RANDOM_LEVELS]].to_csv(out / "caption_random_levels.tsv", sep="\t", index=False)
+    info = dict(seed=RANDOM_SEED, n_captions=len(cap), n_level_rows_using_full_caption=full,
+                **{f"mean_words_{lv}": float(cap[lv].map(lambda t: len(str(t).split())).mean()) for lv in RANDOM_LEVELS},
+                **{f"mean_unique_words_{src}": float(cap[src].map(words).mean()) for src in ("graph_objects", "graph_objattr", "graph_rel")})
+    (out / "random_levels_info.json").write_text(json.dumps(info, indent=1))
+    print(json.dumps(info), flush=True)
+
+
 def embed(out, device, batch=256, levels=LEVELS):
     import numpy as np
     import pandas as pd
@@ -157,8 +190,8 @@ def embed(out, device, batch=256, levels=LEVELS):
     tok = AutoTokenizer.from_pretrained(snap["path"], local_files_only=True)
     model = AutoModel.from_pretrained(snap["path"], local_files_only=True).to(device).eval()
     info = dict(checkpoint=T3.CHECKPOINT["deberta"], revision=snap["revision"], weights_sha256=snap["weights_sha256"], layers=list(LAYERS), parse_info=json.loads((out / "parse_info.json").read_text()))
-    for f in ("graph_info.json", "graph_levels_info.json"):
-        if (out / f).exists() and any(lv in GRAPH_LEVELS for lv in levels):
+    for f in ("graph_info.json", "graph_levels_info.json", "random_levels_info.json"):
+        if (out / f).exists() and any(lv in GRAPH_LEVELS + RANDOM_LEVELS for lv in levels):
             info[f.replace(".json", "")] = json.loads((out / f).read_text())
     for lv in levels:
         cap = pd.read_csv(out / LEVEL_FILE[lv], sep="\t", keep_default_na=False)
@@ -200,7 +233,7 @@ def embed(out, device, batch=256, levels=LEVELS):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("step", choices=("export", "parse", "graph", "graph_levels", "embed"))
+    ap.add_argument("step", choices=("export", "parse", "graph", "graph_levels", "random_levels", "embed"))
     ap.add_argument("--levels", default=",".join(LEVELS), help="embed할 수준(쉼표). 기본은 품사 판 둘")
     ap.add_argument("--out", required=True)
     ap.add_argument("--device", default="cuda")
@@ -210,7 +243,7 @@ def main():
     levels = tuple(a.levels.split(","))
     if set(levels) - set(LEVEL_FILE):
         raise SystemExit(f"모르는 수준: {set(levels) - set(LEVEL_FILE)}")
-    {"export": lambda: export(out), "parse": lambda: parse(out), "graph": lambda: graph(out, a.device), "graph_levels": lambda: graph_levels(out),
+    {"export": lambda: export(out), "parse": lambda: parse(out), "graph": lambda: graph(out, a.device), "graph_levels": lambda: graph_levels(out), "random_levels": lambda: random_levels(out),
      "embed": lambda: embed(out, a.device, levels=levels)}[a.step]()
 
 

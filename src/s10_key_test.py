@@ -17,6 +17,7 @@
 - 11/18 둘째 판: --object N --stats <beyond_scene_levels>로 물체 수준을 물체 단어만 남긴 캡션(N)으로 바꾼다. 물체와 전체 캡션이 같은 언어 모델(DeBERTa-large, 같은 층)이라
   특징 차원과 모델이 같다(비판 agent 11/17의 "B와 C는 같은 언어 모델로"). NA(물체 + 속성)도 --object NA로 낼 수 있다.
 - 11/18 셋째 판: --stats <beyond_scene_levels_graph>로 parser 판(GO objects, GA objects + object states, GR objects + object states + object relations)을 쓴다. GA 대 GR이 object relations만의 단계, GR 대 C가 부사와 문장 구조의 단계다.
+- 11/19 대조: --stats <beyond_scene_levels_random>, RO 대 RR(단어 수를 GO, GR에 맞춘 무작위 판). 단어 수만으로 GO 대 GR의 정렬이 생기는지 본다.
 사용: s10_key_test.py --stats <s10_stats/beyond_scene 또는 beyond_scene_levels> --out <폴더> [--object Sw|N|NA] [--situation C]
 """
 import argparse
@@ -82,8 +83,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="S10 핵심 시험 첫 판(6-4d 저장값)")
     ap.add_argument("--stats", required=True)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--object", default="Sw", choices=("Sw", "N", "NA", "GO", "GA", "GR"))
-    ap.add_argument("--situation", default="C", choices=("C", "NA", "GA", "GR"))
+    ap.add_argument("--object", default="Sw", choices=("Sw", "N", "NA", "GO", "GA", "GR", "RO", "RA"))
+    ap.add_argument("--situation", default="C", choices=("C", "NA", "GA", "GR", "RA", "RR"))
     a = ap.parse_args(argv)
     info = run(a.stats, a.out, a.object, a.situation)
     info.update(stage="S10 핵심 시험 첫 판", stats=str(a.stats), code_commit=c.START_HEAD, code_dirty=c.START_DIRTY)
