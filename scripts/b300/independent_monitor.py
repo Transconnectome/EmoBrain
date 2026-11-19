@@ -44,7 +44,9 @@ def refresh(ledger, now):
     L.recompute_summary(ledger, now, observed=False)
     active = [j for j in ledger['jobs'] if j['status'] not in L.TERMINAL_STATUSES]
     warning = any(j.get('error') or j.get('warnings') for j in active) or ledger.get('host_observation', {}).get('cache_fresh') is False
-    startup = ledger.get('tick_count', 0) < 2
+    startup = ledger.get('tick_count', 0) < 2 or any(
+        j.get('status_since') is not None and 0 <= now-j['status_since'] < 1800
+        for j in active if j.get('kind') == 'work_unit')
     interval = 0 if not active else (900 if warning or startup else 1800)
     ledger.update(active=bool(active), next_interval_sec=interval,
                   next_check_epoch=now+interval if interval else None,
