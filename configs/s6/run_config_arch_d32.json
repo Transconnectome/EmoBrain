@@ -1,0 +1,19 @@
+{
+  "learning_rates": [
+    0.001
+  ],
+  "lr_follows_brain_only": false,
+  "keep_candidate_checkpoints": false,
+  "seeds": [
+    0
+  ],
+  "note": "11/19 석진 님 \"빈 칸 다 채우자\". 모델 폭 d 민감도. A-1만, 본 설계와 같은 선형 입력층과 voxel 뽑기 0.375, learning rate 1e-3, 입력층 weight decay 100(표준 실행이 6 fold 모두 고른 값)에서 d만 32. 결과는 S6_OUT=s6_brain_arch_d32",
+  "k_candidates": [
+    [
+      32,
+      100.0
+    ]
+  ],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375
+}

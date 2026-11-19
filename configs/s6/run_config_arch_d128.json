@@ -1,0 +1,19 @@
+{
+  "learning_rates": [
+    0.001
+  ],
+  "lr_follows_brain_only": false,
+  "keep_candidate_checkpoints": false,
+  "seeds": [
+    0
+  ],
+  "note": "11/19. 모델 폭 d 민감도. d만 128, 나머지는 arch_d32와 같다. 결과는 S6_OUT=s6_brain_arch_d128",
+  "k_candidates": [
+    [
+      128,
+      100.0
+    ]
+  ],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375
+}
