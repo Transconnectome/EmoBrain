@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-"""S10 6-4i 공통 입력(01 6-4i, 11/22). ①(s10_shared_ae.py), ②(s10_usae.py)가 같이 쓴다. CPU.
+"""S10 6-4i 공통 입력(01 6-4i, 11/22). ②(s10_usae.py)가 쓴다. CPU. ①(Shared-AE)의 캡션 잔차 입력은 11/22 AffectLab으로 넘기며 뺐다(commit 0e0c1ed에 있음).
 
 입력(모두 정서 평정을 보지 않는다)
 - 뇌: 참가자마다 voxel 반응(s5_common.load_brain, MC 72개는 읽기 전에 뺌). 바깥 fold k마다 학습 fold 행으로 표준화하고 PCA N_PC개.
 - Vision feature: V-JEPA 2 target(5,632차원, encoder 2와 같음). Caption feature: 정서어를 지운 DeBERTa(4,096차원, 6-4d의 C).
   둘 다 바깥 fold k마다, 그 실행에서 쓰는 영상의 학습 fold 행으로 표준화하고 PCA N_PC개.
-- 캡션 잔차(①의 셋째 modality): 캡션 PCA에서 Vision PCA로 맞힐 수 있는 부분을 뺀 것. ridge(λ는 검증 fold R²로 하나 고름),
-  학습 fold 행은 학습 fold끼리 cross-fitting(6-4d와 같은 방식), 검증과 시험 행은 학습 fold 넷으로 맞춘 ridge로 뺀다.
 - 크기 맞춤: modality마다 학습 행에서 좌표 제곱 평균이 1이 되게 나눈다(USAE의 모델별 표준화와 같은 뜻).
 brain 단계(참가자마다 한 번): <out>/brain_pca/sub-0X.npz. video_id, fold, fold k마다 PCA 점수(행 × N_PC), 설명 분산 비,
   네트워크 13개마다 성분 적재값의 평균(N_PC × 13, ② 개념의 네트워크 무게용).
@@ -67,41 +65,13 @@ def r2_weighted(y, p):
     return float(1.0 - ((y - p) ** 2).sum() / ((y - y.mean(0)) ** 2).sum())
 
 
-def caption_residual(cap, vis, fold, k, lambdas=None):
-    """①의 캡션 잔차. 학습 fold 행은 학습 fold끼리 cross-fitting, 검증과 시험 행은 학습 fold 넷으로 맞춘 ridge. λ는 검증 fold R²로 하나."""
-    import s5_common as d5
-    lambdas = d5.LAMBDAS if lambdas is None else lambdas
-    r = c.roles(k)
-    tr, va = np.flatnonzero(np.isin(fold, r["train"])), np.flatnonzero(fold == r["val"])
-    scores = []
-    for lam in lambdas:
-        w, b = ridge_fit(vis[tr], cap[tr], lam)
-        scores.append(r2_weighted(cap[va], vis[va] @ w + b))
-    lam = float(lambdas[int(np.argmax(scores))])
-    pred = np.full(cap.shape, np.nan)
-    w, b = ridge_fit(vis[tr], cap[tr], lam)
-    rest = np.flatnonzero(~np.isin(fold, r["train"]))
-    pred[rest] = vis[rest] @ w + b
-    for j in r["train"]:
-        inner_tr, inner_te = np.flatnonzero(np.isin(fold, [f for f in r["train"] if f != j])), np.flatnonzero(fold == j)
-        w, b = ridge_fit(vis[inner_tr], cap[inner_tr], lam)
-        pred[inner_te] = vis[inner_te] @ w + b
-    c.finite(pred, "캡션 잔차 예측")
-    return cap - pred, dict(lambda_=lam, val_r2=float(max(scores)))
-
-
-def scene_inputs(video_ids, fold, k, split, residual=True):
-    """바깥 fold k의 Vision PCA, 캡션 PCA(, 캡션 잔차). 표준화와 PCA는 video_ids 가운데 학습 fold 행으로만 맞춘다."""
+def scene_inputs(video_ids, fold, k, split):
+    """바깥 fold k의 Vision PCA, 캡션 PCA. 표준화와 PCA는 video_ids 가운데 학습 fold 행으로만 맞춘다."""
     tr = np.flatnonzero(np.isin(fold, c.roles(k)["train"]))
     vis, _, rv = standardize_pca(c.load_rows(VISION, video_ids, split), tr)
     cap, _, rc = standardize_pca(c.load_rows(CAPTION, video_ids, split), tr)
     info = dict(vision_var_ratio=float(rv.sum()), caption_var_ratio=float(rc.sum()))
-    out = dict(vision=scale_rms(vis, tr), caption=scale_rms(cap, tr))
-    if residual:
-        res, ri = caption_residual(out["caption"], out["vision"], fold, k)
-        out["caption_resid"] = scale_rms(res, tr)
-        info.update(caption_resid=ri)
-    return out, info
+    return dict(vision=scale_rms(vis, tr), caption=scale_rms(cap, tr)), info
 
 
 def load_brain_pca(out, participant, k):

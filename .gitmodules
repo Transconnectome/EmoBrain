@@ -4,9 +4,6 @@
 [submodule "external/repos/fMRI-LM"]
 	path = external/repos/fMRI-LM
 	url = git@github.com:yuxiangwei0808/fMRI-LM.git
-[submodule "external/repos/Shared-AE"]
-	path = external/repos/Shared-AE
-	url = https://github.com/saxenalab-neuro/Shared-AE
 [submodule "external/repos/UniversalSAE"]
 	path = external/repos/UniversalSAE
 	url = https://github.com/YorkUCVIL/UniversalSAE
