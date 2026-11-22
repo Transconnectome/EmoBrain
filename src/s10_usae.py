@@ -429,7 +429,9 @@ def summarize(a):
         except Exception as ex:  # 캡션 단어는 카드 설명용이다. 실패하면 이유를 남기고 빈칸으로 둔다
             print("캡션 단어를 읽지 못했다:", ex, flush=True)
         cap = pd.read_csv(__import__("s3_common").CAPTIONS, encoding="utf-8-sig").groupby("video_id").description.first()
-        Dmean = np.mean([f0["D_trained_seed0"][qi] @ f0["nets"][qi] for qi in range(nb)], 0)  # (개념, 네트워크)
+        def _zn(v):  # 참가자마다 개념의 네트워크 13개 무게를 네트워크 사이에서 표준화(voxel 13만 개에 퍼진 방향이라 원래 값은 1e-4 크기)
+            return (v - v.mean(1, keepdims=True)) / np.where(v.std(1, keepdims=True) > 0, v.std(1, keepdims=True), 1.0)
+        Dmean = np.mean([_zn(f0["D_trained_seed0"][qi] @ f0["nets"][qi]) for qi in range(nb)], 0)  # (개념, 네트워크), 네트워크 사이 z의 5명 평균
         for ci in range(Z.shape[2]):
             b5 = Z[:nb, :, ci]
             ba = b5.mean(0)
@@ -465,7 +467,7 @@ def summarize(a):
             nets = f0["net_names"].tolist()
             nt = np.argsort(-np.abs(Dmean[ci]))[:3]
             card_rows.append(dict(fold=k, concept=ci, top_emotions="; ".join(f"{emo_names[e]} {er[e]:.2f}" for e in top), caption_words=words,
-                                  top_networks="; ".join(f"{nets[n]} {Dmean[ci, n]:+.2f}" for n in nt),
+                                  top_networks="; ".join(f"{nets[n]} {Dmean[ci, n]:+.1f}" for n in nt),
                                   top_videos=" | ".join(f"{v}: {cap.get(v, '')}" for v in vids)))
             concept_rows.append(row)
     C = pd.DataFrame(concept_rows)
