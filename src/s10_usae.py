@@ -121,7 +121,8 @@ def train_official(X, names, tr, scene_rows, n_concepts, topk, seed, workdir, va
     criterion.__name__ = crit.__name__
     ds = Acts(X, names, tr, scene_rows)
     g = torch.Generator().manual_seed(seed)
-    loader = torch.utils.data.DataLoader(ds, batch_size=BATCH, shuffle=True, generator=g, num_workers=0)
+    # drop_last: 마지막 batch가 1행이면 BatchNorm이 학습 모드에서 멈춘다(fold 5는 학습 1,313행 = 41 × 32 + 1). 행은 epoch마다 다시 섞인다
+    loader = torch.utils.data.DataLoader(ds, batch_size=BATCH, shuffle=True, generator=g, num_workers=0, drop_last=True)
     total, warm = int(len(ds) / BATCH * EPOCHS), int(len(ds) / BATCH * WARMUP_EPOCHS)
     opts = {n: torch.optim.AdamW(saes[n].parameters(), lr=LR, weight_decay=WEIGHT_DECAY) for n in names}
     scheds = {n: CosineScheduler(opts[n], LR, FINAL_LR, total_iters=total, warmup_iters=warm, start_warmup_value=1e-6) for n in names}
