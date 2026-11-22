@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
-"""S10 6-4i ①과 ③(01 6-4i, 11/22). Shared-AE(Yi 외, 2025)를 세 modality(뇌, Vision, 캡션 잔차)로 넓히고 표본 짝 손실을 더한 모델. CPU.
+"""S10 6-4i ①과 ③(01 6-4i, 11/22). Shared-AE(Yi 외, ICLR 2025)의 공식 코드(external/repos/Shared-AE, commit fa5e74b)를 세 modality(뇌, Vision, 캡션 잔차)에 쓴다. CPU.
 
-모델(참가자마다, 바깥 fold k마다, seed마다)
-- 입력: s10_align_data의 뇌 PCA, Vision PCA, 캡션 잔차(모두 학습 행 크기 맞춤).
-- modality마다 MLP encoder(256 → HIDDEN → 잠재)와 decoder(잠재 → HIDDEN → 256). 잠재 칸의 차원은 모두 d.
-  뇌 [s_vis, s_sit, p], Vision [t_vis, q_vis], 캡션 잔차 [t_sit, q_sit].
-- 손실(원 논문 식 5를 넓힘, 가중치 W = 5):
-  재구성 MSE 셋 + W × CS(s_vis, t_vis), CS(s_sit, t_sit)
-  + W × inverse CS(s_vis, p), (s_sit, p), (s_vis, s_sit), (t_vis, q_vis), (t_sit, q_sit), (p, q_vis), (p, q_sit)
-  + W × 짝 손실(s_vis, t_vis), (s_sit, t_sit).
-  CS는 Gaussian Parzen 추정(원 논문 식 2, 3), σ²는 배치 안 제곱 거리 중앙값의 절반(값의 크기에 따라 뜻이 바뀌지 않게). inverse CS는 1 / (CS + EPS)(공개 코드의 weight / loss 꼴).
-  짝 손실은 Barlow Twins(Zbontar 외, 2021)의 교차상관 손실. 대각과 비대각 합을 d로 나눠 d가 달라도 크기가 같게 한다(비대각 가중치 5e-3은 원 논문).
-- 학습: Adam, learning rate 1e-4, batch 256(원 논문). 최대 MAX_EPOCHS(계산 예산), 검증 fold 전체 손실로 조기 종료(patience PATIENCE).
-- d: D_CANDIDATES 가운데 seed 0의 검증 재구성 손실이 최소값의 1% 안에 드는 가장 작은 값(원 논문 A.9.2). 다른 seed와 대조에도 같은 d.
-- 변형: trained, shuffled(학습과 검증 행에서 캡션 구역 안 뇌와 장면의 짝을 섞음. 시험은 원래 짝).
+공식 코드에서 그대로 가져오는 것
+- CS 손실: n_modalities/multi_loss.py의 csLoss(kernel exp(−거리² / ksize), r = log(√(mean Gxx · mean Gzz) / mean Gxz)).
+- inverse CS: 가중치 / csLoss(two_modalities/train.py, n_modalities/train.py의 weight/loss).
+- 손실 조립: 재구성 MSE에 입력 차원 수를 곱해 더한다(train.py의 loss1 * pose_dim * newW, 창 크기 1이라 newW = 1).
+- 구조: encoder 출력 embedding(512) → modality마다 선형층(lamdba, bottleneck = 칸 차원 합) → 공유 칸과 고유 칸 선형층(n_modalities/modeldecodeorth2.py의
+  imagedense, imagepreviate) → [고유, 공유]를 받는 modality별 decoder. 공식 세 modality 코드는 공유 칸 층의 입력 크기가 bottleneck × 3으로 적혀 있어
+  그대로는 돌지 않는다(자기 bottleneck만 받는 논문 식 si = Ws zi + bs로 고침).
+- optimizer: Adam, learning rate 1e-4, batch 256(논문), 마지막 모델. 학습 길이는 논문의 gradient step 수(STEPS)에 맞춘다(epoch 100은 논문 자료에서 약 3,200 step).
+논문 값(석진 님 11/22 "논문값으로 일단 진행"): kernel 크기 15(논문 A.9 "σ = 15"를 공식 코드의 kernel_size 자리에 둠), CS와 inverse CS 가중치 5(논문의 2AFC 생쥐 자료,
+  세 modality 시연도 이 자료). 잠재 차원 d는 논문 A.9.2처럼 재구성 손실로 고른다(D_CANDIDATES, 검증 fold, 최소값의 1% 안 가장 작은 값).
+공식 코드와 다른 점(01 6-4i에 표로 적음)
+- encoder: 공식은 시계열 창을 받는 1D ResNet-18이다. 우리 입력은 영상당 벡터 하나라 MLP(입력 → 512)로 바꾼다. decoder도 같은 이유로 MLP.
+- 뇌는 공유 칸이 둘이다. s_vis는 Vision과, s_sit는 캡션 잔차와 짝이다(두 modality 손실을 짝마다 쓴다). Vision은 [t_vis, q_vis], 캡션 잔차는 [t_sit, q_sit].
+- 표본 짝 손실(우리가 더함): 공식 CS 항은 배치 안 모든 쌍의 kernel 평균이라 같은 영상끼리 맞추지 않는다. ③에 필요해 공유 칸 짝에 Barlow Twins
+  (Zbontar 외, 2021) 교차상관 손실을 더한다. 비대각 가중치 5e-3(원 논문), 합은 d로 나눔, 가중치는 공유 CS 항과 같은 5.
+손실 = Σ_m MSE_m × 차원_m + 5 × [CS(s_vis, t_vis) + CS(s_sit, t_sit)]
+       + 5 / CS(s_vis, p) + 5 / CS(s_sit, p) + 5 / CS(t_vis, q_vis) + 5 / CS(t_sit, q_sit) + 5 / CS(p, q_vis) + 5 / CS(p, q_sit)
+       + 5 × [BT(s_vis, t_vis) + BT(s_sit, t_sit)]
+변형: trained, shuffled(학습과 검증 행에서 캡션 구역 안 뇌와 장면의 짝을 섞음. 시험은 원래 짝).
 읽기(readout, 참가자마다, 6 fold의 시험 예측을 모아서). 정서와 장면을 읽는 ridge는 검증 fold 행으로 학습하고 λ는 검증 fold 안 내용 묶음 5겹으로 고른다
 (모델이 학습한 행의 잠재는 시험 행과 분포가 달라서다, 11/22 비판 agent 검토).
 - 정렬: 공유 칸 짝의 차원별 상관(시험, 학습 행 값도 함께).
@@ -29,6 +35,7 @@
 """
 import argparse
 import json
+import sys
 import time
 from pathlib import Path
 
@@ -38,59 +45,56 @@ import pandas as pd
 import s4_common as c
 import s10_align_data as A
 
-HIDDEN = 256
-WEIGHT = 5.0  # 원 논문 2AFC(생쥐 신경, 행동) 값
+OFFICIAL = c.REPO / "external" / "repos" / "Shared-AE"
+OFFICIAL_COMMIT = "fa5e74b5067adbe0784d3c6142ded9740631bd59"
+EMB = 512  # 공식 encoder 출력 embedding 크기
+KERNEL = 15.0  # 논문 A.9
+WEIGHT = 5.0  # 논문 A.9, 2AFC 자료
 OFF_DIAG = 5e-3  # Barlow Twins 원 논문
-EPS = 1e-3
-LR, BATCH = 1e-4, 256
-MAX_EPOCHS, PATIENCE = 600, 50  # 600은 계산 예산
+LR, BATCH = 1e-4, 256  # 논문 3절과 A.7
+STEPS = 3200  # 논문 3D Shapes의 gradient step 수(학습 8,000개 / batch 256 = 32 step × 100 epoch). 우리 학습 행은 약 1,400개라 100 epoch면 약 600 step으로 수렴하지 않는다
 D_CANDIDATES = (4, 8, 16, 32)
 D_TOL = 0.01
 SEEDS = (0, 1, 2, 3, 4)
 VARIANTS = ("trained", "shuffled")
 PARTS = ("s_vis", "s_sit", "p", "t_vis", "q_vis", "t_sit", "q_sit")
-
+SLOTS = dict(brain=("s_vis", "s_sit", "p"), vision=("t_vis", "q_vis"), resid=("t_sit", "q_sit"))
 BOOT_SEED = 20261115
 
 
-def mlp(i, o):
-    import torch.nn as nn
-    return nn.Sequential(nn.Linear(i, HIDDEN), nn.ReLU(), nn.Linear(HIDDEN, o))
+def official_cs():
+    """공식 csLoss. 저장소 commit이 고정한 값과 다르면 멈춘다."""
+    import subprocess
+    head = subprocess.run(["git", "-C", str(OFFICIAL), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    if head != OFFICIAL_COMMIT:
+        raise SystemExit(f"external/repos/Shared-AE가 {OFFICIAL_COMMIT[:7]}이 아니다({head[:7]}). git submodule update --init external/repos/Shared-AE")
+    if str(OFFICIAL) not in sys.path:
+        sys.path.insert(0, str(OFFICIAL))
+    from n_modalities.multi_loss import csLoss
+    return csLoss(KERNEL)
 
 
 def build(dims, d, seed):
-    """dims: modality -> 입력 차원. 뇌는 칸 3개, 나머지는 2개."""
+    """공식 modeldecodeorth2.Decoder의 구조를 벡터 입력에 맞춘 것. dims: modality -> 입력 차원."""
     import torch
     import torch.nn as nn
     torch.manual_seed(seed)
-    n = dict(brain=3, vision=2, resid=2)
     m = nn.Module()
-    m.enc = nn.ModuleDict({k: mlp(dims[k], n[k] * d) for k in ("brain", "vision", "resid")})
-    m.dec = nn.ModuleDict({k: mlp(n[k] * d, dims[k]) for k in ("brain", "vision", "resid")})
+    m.enc = nn.ModuleDict({k: nn.Sequential(nn.Linear(dims[k], EMB), nn.ReLU()) for k in SLOTS})  # 공식 ResNet encoder 자리
+    m.lamdba = nn.ModuleDict({k: nn.Linear(EMB, d * len(SLOTS[k])) for k in SLOTS})
+    m.head = nn.ModuleDict({s: nn.Linear(d * len(SLOTS[k]), d) for k in SLOTS for s in SLOTS[k]})  # imagedense, imagepreviate 자리
+    m.dec = nn.ModuleDict({k: nn.Sequential(nn.Linear(d * len(SLOTS[k]), EMB), nn.ReLU(), nn.Linear(EMB, dims[k])) for k in SLOTS})
     m.d = d
     return m
 
 
 def encode(m, xb, xv, xr):
-    d = m.d
-    zb, zv, zr = m.enc["brain"](xb), m.enc["vision"](xv), m.enc["resid"](xr)
-    return dict(s_vis=zb[:, :d], s_sit=zb[:, d:2 * d], p=zb[:, 2 * d:], t_vis=zv[:, :d], q_vis=zv[:, d:], t_sit=zr[:, :d], q_sit=zr[:, d:]), (zb, zv, zr)
-
-
-def sq_dists(a, b):
-    return (a.pow(2).sum(1)[:, None] + b.pow(2).sum(1)[None, :] - 2 * a @ b.T).clamp_min(0)
-
-
-def cs_div(a, b):
-    """Cauchy-Schwarz divergence의 Parzen 추정(Yi 외, 2025 식 2, 3). 두 Parzen 창(분산 σ²)의 곱의 적분은 분산 2σ² kernel이다.
-    σ²는 [a; b] 안의 제곱 거리 중앙값의 절반(기울기 없음). 정규화 상수는 비에서 지워진다."""
-    import torch
-    with torch.no_grad():
-        z = torch.cat([a, b])
-        dd = sq_dists(z, z)
-        s2 = (dd[~torch.eye(len(z), dtype=torch.bool)].median() / 2).clamp_min(1e-8)
-    k = lambda x, y: torch.exp(-sq_dists(x, y) / (4 * s2)).mean()
-    return -2 * torch.log(k(a, b)) + torch.log(k(a, a)) + torch.log(k(b, b))
+    z = {}
+    for k, x in (("brain", xb), ("vision", xv), ("resid", xr)):
+        h = m.lamdba[k](m.enc[k](x))
+        for s in SLOTS[k]:
+            z[s] = m.head[s](h)
+    return z
 
 
 def barlow(a, b):
@@ -104,56 +108,58 @@ def barlow(a, b):
     return ((1 - on).pow(2).sum() + OFF_DIAG * off.pow(2).sum()) / a.shape[1]
 
 
-def losses(m, xb, xv, xr):
-    z, (zb, zv, zr) = encode(m, xb, xv, xr)
-    mse = sum(((m.dec[k](zz) - x) ** 2).mean() for k, zz, x in (("brain", zb, xb), ("vision", zv, xv), ("resid", zr, xr)))
-    cs = cs_div(z["s_vis"], z["t_vis"]) + cs_div(z["s_sit"], z["t_sit"])
-    inv = sum(1.0 / (cs_div(z[a], z[b]) + EPS) for a, b in (("s_vis", "p"), ("s_sit", "p"), ("s_vis", "s_sit"), ("t_vis", "q_vis"), ("t_sit", "q_sit"), ("p", "q_vis"), ("p", "q_sit")))
+def losses(m, cs, xb, xv, xr):
+    """공식 train.py의 손실 조립(재구성 MSE × 차원 + 가중치 × CS + 가중치 / CS)에 짝 손실을 더한 것. 돌려주는 값: (전체, 재구성 MSE 합(차원 곱 전))."""
+    import torch
+    z = encode(m, xb, xv, xr)
+    mse = 0.0
+    rec = 0.0
+    for k, x in (("brain", xb), ("vision", xv), ("resid", xr)):
+        e = ((m.dec[k](torch.cat([z[s] for s in SLOTS[k]], 1)) - x) ** 2).mean()
+        mse = mse + e * x.shape[1]
+        rec = rec + e
+    shared = cs(z["s_vis"], z["t_vis"]) + cs(z["s_sit"], z["t_sit"])
+    inv = sum(WEIGHT / cs(z[a], z[b]) for a, b in (("s_vis", "p"), ("s_sit", "p"), ("t_vis", "q_vis"), ("t_sit", "q_sit"), ("p", "q_vis"), ("p", "q_sit")))
     pair = barlow(z["s_vis"], z["t_vis"]) + barlow(z["s_sit"], z["t_sit"])
-    return mse + WEIGHT * (cs + inv + pair), mse
+    return mse + WEIGHT * shared + inv + WEIGHT * pair, rec
 
 
-def train(m, X, tr, va, scene_rows, seed):
-    """X: modality -> 텐서(모든 행). scene_rows: 장면 modality에서 쓸 행(뇌 행 i에 짝지을 장면 행). 학습 행과 검증 행에만 쓴다.
-    돌려주는 값: 학습 기록(dict)."""
+def train(m, cs, X, tr, va, scene_rows, seed):
+    """X: modality -> 텐서(모든 행). scene_rows: 뇌 행 i에 짝지을 장면 행(학습과 검증 행에만 씀). STEPS 고정, 마지막 모델(논문).
+    돌려주는 값: epoch마다 검증 재구성 MSE와 전체 손실 기록."""
     import torch
     g = torch.Generator().manual_seed(seed)
     opt = torch.optim.Adam(m.parameters(), lr=LR)
     sr = torch.as_tensor(scene_rows)
     tr_t, va_t = torch.as_tensor(tr), torch.as_tensor(va)
-    best, best_state, best_epoch, bad = np.inf, None, -1, 0
-    for epoch in range(MAX_EPOCHS):
+    curve, step = [], 0
+    while step < STEPS:
+        epoch = len(curve)
         m.train()
         order = tr_t[torch.randperm(len(tr_t), generator=g)]
         for i in range(0, len(order), BATCH):
             b = order[i:i + BATCH]
-            if len(b) < 32:
+            if len(b) < 32 or step >= STEPS:
                 continue
-            loss, _ = losses(m, X["brain"][b], X["vision"][sr[b]], X["resid"][sr[b]])
+            step += 1
+            loss, _ = losses(m, cs, X["brain"][b], X["vision"][sr[b]], X["resid"][sr[b]])
+            if not torch.isfinite(loss):
+                raise ValueError(f"학습 손실이 유한하지 않다(epoch {epoch})")
             opt.zero_grad()
             loss.backward()
             opt.step()
         m.eval()
         with torch.no_grad():
-            vl, vm = losses(m, X["brain"][va_t], X["vision"][sr[va_t]], X["resid"][sr[va_t]])
-        if not torch.isfinite(vl):
-            raise ValueError("검증 손실이 NaN이다")
-        if vl.item() < best:
-            best, best_epoch, bad, best_mse = vl.item(), epoch, 0, vm.item()
-            best_state = {k: v.clone() for k, v in m.state_dict().items()}
-        else:
-            bad += 1
-            if bad >= PATIENCE:
-                break
-    m.load_state_dict(best_state)
-    return dict(best_val_loss=best, best_val_mse=best_mse, best_epoch=best_epoch, epochs_run=epoch + 1)
+            vl, vr = losses(m, cs, X["brain"][va_t], X["vision"][sr[va_t]], X["resid"][sr[va_t]])
+        curve.append((float(vl), float(vr)))
+    return dict(steps=step, epochs=len(curve), val_loss_last=curve[-1][0], val_rec_last=curve[-1][1], val_rec_curve=[r for _, r in curve], val_loss_curve=[l for l, _ in curve])
 
 
 def latents(m, X):
     import torch
     m.eval()
     with torch.no_grad():
-        z, _ = encode(m, X["brain"], X["vision"], X["resid"])
+        z = encode(m, X["brain"], X["vision"], X["resid"])
     return {k: v.numpy().astype(np.float32) for k, v in z.items()}
 
 
@@ -173,6 +179,7 @@ def fit(a):
     o = Path(a.out) / "shared_ae"
     (o / "fit" / q).mkdir(parents=True, exist_ok=True)
     started = time.time()
+    cs = official_cs()
     vid, fold, Xn, info = fold_inputs(a.out, a.participant, k, split)
     X = {kk: torch.as_tensor(v, dtype=torch.float32) for kk, v in Xn.items()}
     dims = {kk: v.shape[1] for kk, v in Xn.items()}
@@ -182,11 +189,11 @@ def fit(a):
     cand = {}
     for d in D_CANDIDATES:
         m = build(dims, d, 0)
-        cand[d] = (train(m, X, tr, va, ident, 0), m)
-    mses = {d: v[0]["best_val_mse"] for d, v in cand.items()}
+        cand[d] = (train(m, cs, X, tr, va, ident, 0), m)
+    mses = {d: v[0]["val_rec_last"] for d, v in cand.items()}
     lo = min(mses.values())
     d_pick = min(d for d, v in mses.items() if v <= lo * (1 + D_TOL))
-    log = dict(participant=q, fold=k, scene=info, d_val_mse=mses, d_hist={d: v[0] for d, v in cand.items()}, d=d_pick, runs={},
+    log = dict(participant=q, fold=k, scene=info, d_val_mse=mses, d_hist={d: v[0] for d, v in cand.items()}, d=d_pick, runs={}, official_commit=OFFICIAL_COMMIT,
                design_freeze=a.design_freeze, code_commit=c.START_HEAD, code_dirty=c.START_DIRTY)
     zones = A.zone_of(vid)
     for seed in SEEDS:
@@ -200,7 +207,7 @@ def fit(a):
                     rows[tr] = A.zone_shuffle(tr, zones, rng)
                     rows[va] = A.zone_shuffle(va, zones, rng)
                 m = build(dims, d_pick, seed)
-                hist = train(m, X, tr, va, rows, seed)
+                hist = train(m, cs, X, tr, va, rows, seed)
             np.savez(o / "fit" / q / f"fold{k}_{variant}_seed{seed}.npz", video_id=vid, fold=fold, **latents(m, X))
             log["runs"][f"{variant}_seed{seed}"] = hist
     log["seconds"] = round(time.time() - started, 1)
@@ -412,7 +419,7 @@ def summarize(a):
         for k in range(1, c.N_FOLDS + 1):
             d_used[f"{q}_fold{k}"] = json.loads((o / "fit" / f"sub-{q}" / f"run_info_fold{k}.json").read_text())["d"]
     (o2 / "run_info.json").write_text(json.dumps(dict(participants=P, n_boot=a.n_boot, n_perm=a.n_perm, boot_seed=BOOT_SEED, n_units=n_units, d_used=d_used,
-                                                    settings=dict(hidden=HIDDEN, weight=WEIGHT, off_diag=OFF_DIAG, lr=LR, batch=BATCH, max_epochs=MAX_EPOCHS, patience=PATIENCE,
+                                                    settings=dict(official_commit=OFFICIAL_COMMIT, emb=EMB, kernel=KERNEL, weight=WEIGHT, off_diag=OFF_DIAG, lr=LR, batch=BATCH, steps=STEPS,
                                                                   d_candidates=D_CANDIDATES, d_tol=D_TOL, seeds=SEEDS), code_commit=c.START_HEAD, code_dirty=c.START_DIRTY), indent=1, ensure_ascii=False))
     S = pd.DataFrame(rows)
     print(S[S.participant == "mean5"].pivot_table(index="read", columns="set", values="r").round(3).to_string())
