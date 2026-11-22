@@ -151,6 +151,132 @@ def zone_shuffle(video_rows, zones, rng):
     return out
 
 
+_PREV_CACHE = {}
+
+
+def order_inputs(participant, video_ids, k, split):
+    """제시 순서 변수(01 6-4i): [영상 길이, run 안 순서, 그 제곱, run 첫 영상 표시, 앞 영상의 Vision PCA 32개와 Caption PCA 32개].
+    run 안 순서와 앞 영상은 그 참가자의 block 표(qc_row 순서)에서 낸다. 앞 영상의 특징은 fold k의 PCA(학습 행으로 맞춤)로 바꾼다.
+    run 첫 영상은 앞 영상 특징을 0으로 둔다. 앞 영상이 MC 72개거나 개발 영상이 아니면 0으로 두고 표시한다."""
+    import s5_common as d5
+    t = pd.read_csv(d5.BLOCKS, sep="\t")
+    t = t[t.participant == f"sub-{participant}"].sort_values("qc_row").reset_index(drop=True)
+    t["pos"] = t.groupby("run_index").cumcount()
+    t["prev"] = t.groupby("run_index").video_id.shift(1)
+    info = pd.read_csv(c.FEATURES / "vjepa2" / "video_info.tsv", sep="\t").set_index("video_id").duration_s
+    dev = set(split.video_id.tolist())
+    vid = np.asarray(video_ids)
+    tt = t.drop_duplicates("video_id").set_index("video_id").loc[vid]
+    fold = split.set_index("video_id").fold.loc[vid].to_numpy()
+    tr = np.flatnonzero(np.isin(fold, c.roles(k)["train"]))
+    key = (k, hash(vid.tobytes()))
+    if key not in _PREV_CACHE:
+        packs = []
+        for name in (VISION, CAPTION):
+            x = np.asarray(c.load_rows(name, vid, split), np.float64)
+            _, comps, _ = standardize_pca(x, tr, 32)
+            m, s = c.fit_standardizer(x[tr])
+            packs.append((comps, m, s))
+        _PREV_CACHE.clear()
+        _PREV_CACHE[key] = packs
+    (cv, mv, sv), (cc, mc, sc) = _PREV_CACHE[key]
+    prev = tt.prev.to_numpy()
+    ok = np.array([(not pd.isna(v)) and int(v) in dev for v in prev])
+    pv, pc = np.zeros((len(vid), 32)), np.zeros((len(vid), 32))
+    if ok.any():
+        pids = np.array([int(v) for v in prev[ok]])
+        xv, xc = np.asarray(c.load_rows(VISION, pids, split), np.float64), np.asarray(c.load_rows(CAPTION, pids, split), np.float64)
+        pv[ok], pc[ok] = ((xv - mv) / sv) @ cv.T, ((xc - mc) / sc) @ cc.T
+    pos = tt.pos.to_numpy(np.float64)
+    dur = info.loc[vid].to_numpy(np.float64)
+    out = np.c_[dur, pos, pos ** 2, (pos == 0).astype(float), (~ok).astype(float), pv, pc]
+    return c.finite(out, "제시 순서 변수")
+
+
+# ---------- 읽기용 ridge(①②③ 공통, 01 6-4i) ----------
+
+CV_SEED = 20261122
+
+
+def group_folds(groups, n=5):
+    """같은 내용 영상(canonical_id)은 같은 겹. 묶음 순서를 CV_SEED로 섞어 n겹에 돌려 가며 넣는다."""
+    u = np.unique(np.asarray(groups))
+    u = u[np.random.default_rng(CV_SEED).permutation(len(u))]
+    g2f = {g: i % n for i, g in enumerate(u.tolist())}
+    return np.array([g2f[g] for g in np.asarray(groups).tolist()])
+
+
+def ridge_paths(xtr, ytr, xs, lambdas):
+    """절편 있는 ridge(학습 행 평균을 빼고 맞춤)를 λ마다. 돌려주는 값: xs의 각 행렬에 대해 (λ 수, 행, 목표) 예측."""
+    mx, my = xtr.mean(0), ytr.mean(0)
+    u, s, vt = np.linalg.svd(xtr - mx, full_matrices=False)
+    uty = u.T @ (ytr - my)
+    out = []
+    for x in xs:
+        xv = (x - mx) @ vt.T
+        out.append(np.stack([xv @ ((s / (s ** 2 + lam))[:, None] * uty) + my for lam in lambdas]))
+    return out
+
+
+def col_r(y, p):
+    y, p = y - y.mean(0), p - p.mean(0)
+    den = np.sqrt((y ** 2).sum(0) * (p ** 2).sum(0))
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return np.where(den > 0, (y * p).sum(0) / den, np.nan)
+
+
+def ridge_cv(x_fit, y_fit, groups, x_apply, per_target=True, lambdas=None):
+    """fit 행에서 내용 묶음 5겹 교차검증으로 λ를 고른다(per_target이면 목표마다 r 최대, 아니면 분산 가중 R² 최대인 λ 하나).
+    fit 행 전체로 다시 맞춰 x_apply(행렬 목록)에 적용. 입력 표준화는 부르는 쪽이 학습 행 기준으로 해 둔다."""
+    import s5_common as d5
+    lambdas = d5.LAMBDAS if lambdas is None else lambdas
+    x_fit, y_fit = np.asarray(x_fit, np.float64), np.asarray(y_fit, np.float64)
+    f = group_folds(groups)
+    oof = np.zeros((len(lambdas),) + y_fit.shape)
+    for j in range(5):
+        tr, te = np.flatnonzero(f != j), np.flatnonzero(f == j)
+        oof[:, te] = ridge_paths(x_fit[tr], y_fit[tr], [x_fit[te]], lambdas)[0]
+    if per_target:
+        sc = np.stack([col_r(y_fit, oof[i]) for i in range(len(lambdas))])
+        pick = np.where(np.isfinite(sc), sc, -np.inf).argmax(0)
+    else:
+        pick = np.full(y_fit.shape[1], int(np.argmax([r2_weighted(y_fit, oof[i]) for i in range(len(lambdas))])))
+    outs = ridge_paths(x_fit, y_fit, [np.asarray(x, np.float64) for x in x_apply], lambdas)
+    return [o[pick, :, np.arange(y_fit.shape[1])].T for o in outs]
+
+
+def ridge_val(x, y, tr, va, x_apply, lambdas=None):
+    """학습 행으로 맞추고 검증 행 분산 가중 R²로 λ 하나를 고르는 다출력 ridge(선형 2단계 바닥의 첫 단계). 돌려주는 값: x_apply 예측."""
+    import s5_common as d5
+    lambdas = d5.LAMBDAS if lambdas is None else lambdas
+    pv, pa = ridge_paths(x[tr], y[tr], [x[va], x_apply], lambdas)
+    return pa[int(np.argmax([r2_weighted(y[va], p) for p in pv]))]
+
+
+def zfit(x, rows):
+    """rows(학습 행)의 평균과 표준편차로 표준화."""
+    x = np.asarray(x, np.float64)
+    m, s = x[rows].mean(0), x[rows].std(0)
+    return (x - m) / np.where(s > 0, s, 1.0)
+
+
+def partial_spearman(a, b, ctrl):
+    """순위로 바꾼 뒤 ctrl을 뺀 편상관."""
+    from scipy.stats import rankdata
+    ra, rb, rc = (rankdata(v) for v in (a, b, ctrl))
+    X = np.c_[np.ones(len(rc)), rc]
+    ea = ra - X @ np.linalg.lstsq(X, ra, rcond=None)[0]
+    eb = rb - X @ np.linalg.lstsq(X, rb, rcond=None)[0]
+    return float(np.corrcoef(ea, eb)[0, 1])
+
+
+def partial_pearson(a, b, ctrl):
+    X = np.c_[np.ones(len(ctrl)), ctrl]
+    ea = a - X @ np.linalg.lstsq(X, a, rcond=None)[0]
+    eb = b - X @ np.linalg.lstsq(X, b, rcond=None)[0]
+    return float(np.corrcoef(ea, eb)[0, 1])
+
+
 def brain(a):
     import s5_common as d5
     import s10_geometry as geo
