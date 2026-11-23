@@ -1,29 +1,37 @@
-# EmoBrain 인수인계 — b300 연계 트랙
+# EmoBrain 인수인계 — 독립 B300 트랙
 
-2026-11-18 08:47 KST Git·Teams 재확인 스냅샷. 서버·시험 상태는 아래 명시한 11/17 측정 기록이다. 로컬 `/home/juke/git/EmoBrain`, 통합 브랜치 `feat/b300-s1-s10-onboarding`. 정본은 `origin/design/emobrain-final-2026-11-03 @ df9bc625afb3c07bca55bb9339dcd2c4ca22e23f`이다. 읽기 순서: `docs/final/01_integrated_document.md` → `docs/final/04_claude_code_workorder.md` → 이 문서 → `docs/FUTURE_RESEARCH_PLAN.md`.
+2026-11-23 23:20 KST 실측 스냅샷. 로컬 `/home/juke/git/EmoBrain`, 브랜치 `feat/b300-s1-s10-onboarding`. 정본은 `origin/design/emobrain-final-2026-11-03 @ a714d36`(11/22, 문석진 선생님)이고 이번에 기능 브랜치로 병합했다. 읽기 순서: `docs/final/01_integrated_document.md` → `docs/final/04_claude_code_workorder.md` → 이 문서 → `docs/FUTURE_RESEARCH_PLAN.md`(11/17 기준이라 1–3절보다 낡았다).
 
 ## 1. 현재 상태
 
-- 11/17 20:15 fetch 때 정본은 d1cbf59였으나 20:37 원격에서 새 2개 커밋을 발견했다. `1acd935`(s10_content)와 `df9bc62`(01 6-4f)를 병합한 `e63b03ea16ee452c7137c86a8a76b739c609e1e4`를 PR #14 브랜치에 푸시했다. 11/17 당시 로컬 HEAD·원격 feature·b300 HEAD가 이 커밋이었고, 로컬·b300 `src/` 차이는 정본 대비 0바이트였다. 11/18 fetch에서도 정본은 df9bc62 그대로이며 새 커밋은 0개, 로컬 `src/` 차이도 0바이트다.
-- b300 동기화는 `git merge --ff-only`로 했다. 기존 미추적 12개를 보존했다. 경로는 `/scratch/emobrain/code`, Python은 `/scratch/envs/centaur/bin/python`이다.
-- 새 모듈은 b300 CPU에서 합성 시험 3개(SciPy Spearman 대조, 부분상관 폐쇄식 대조, 캡션 빈도·불용어·정서어 필터)를 실행해 3/3 통과했다. `s10_content.py --help`와 셸 문법 검사도 통과했다. 실제 결과 분석·GPU 작업은 실행하지 않았다. S6 533개 시험은 병합 뒤 미실행 상태를 유지한다.
-- `docs/FUTURE_RESEARCH_PLAN.md`와 아래 같은 Google Doc의 본문·제목을 df9bc62 기준으로 수정했다. Distillation 추가 사용 종료, 27개 해석판/34개 사전 검정판 구분, MC 확장·회상·6-4e 및 새 6-4f 완료 기록과 수치 미수령을 반영했다. [사전] 2-3(바)는 C-2 vs C-1로 바로잡았다.
-- S3 표기는 정본의 V-JEPA 2 ViT-g 40개 block과 microsoft/deberta-large 24개 층으로 바로잡았다. 이는 구성 요구사항이며, 실제 특징 파일·manifest 및 b300 보존 상태를 이번 세션에 재점검하거나 새로 추출한 것은 아니다.
-- 11/18 사용자 요청에 따른 문서 커밋 범위는 `docs/FUTURE_RESEARCH_PLAN.md`와 `HANDOFF.md` 두 파일뿐이다. 기준 e63b03e는 정본 병합 커밋이다. 문서 커밋 SHA와 실제 원격 반영 여부는 세션 완료 응답과 `git log -1 -- HANDOFF.md docs/FUTURE_RESEARCH_PLAN.md`로 확인한다. 이번에는 b300 문서 동기화나 GPU 작업을 실행하지 않는다.
+- **실측 15개 fit 완료·검증.** Slurm 4212(11/19 12:48–15:33, 1 GPU, 2h44m14s)가 14개 단위를 끝냈고, 11/23에 15번째(`d4pair4`)를 재시작 실험으로 채웠다. `fit_units.py verify` 전체 VERIFIED, 예측 파일 10개 행·형태 검사 통과, D3 짝·D4 짝 집계 각 4짝 완료.
+- **중단→재시작 검증 통과(11/23).** 6353을 `d4pair4` epoch 3에서 scancel → 6355 재제출: 완료돼 있던 `d4pair3`는 fit 0회·영수증 해시 불변, `d4pair4`는 epoch 1부터 271 epoch(best 241). 별도 루트에서 중단 없이 돌린 6356과 텐서 192개·history·검증 예측이 정확히 일치(허용 오차 0). 재시작은 seed부터 다시 학습하는 방식이며 epoch 이어하기가 아니다.
+- **실측 시간(1 GPU, fold 1, seed 0, 후보 1개씩).** A-1 1,330초(144 epoch), 전체 인코더 966초, 안쪽 인코더 448–1,158초, D-3 392초, D-3 짝 362–488초, D-4 짝 426–620초. PyTorch 예약 최대 10.89 GiB. 잡당 고정 비용은 4212에서 476초(첫 로딩 162초 포함), 짧은 잡에서는 로딩 21초.
+- **정본 병합.** 9b2b10a 이후 31개 커밋(6-4d 길이 맞춘 무작위 대조, 6-4g BOLD5000, 6-4h 구조 민감도, 6-2b Dec-바, 6-4i USAE)을 병합했다. `src/s6_*`와 `scripts/b300/`는 바뀌지 않았다. `tests/s10_imagery_prereg_tests.py` 통과.
+- **B300 코드는 일부러 2b87e25에 둔다.** manifest_v3가 묶은 소스 75개 중 4개(`s10_beyond_scene`, `s10_key_test`, `s10_sensitivity`, `s3_caption_levels`)가 정본에서 바뀌었다. B300을 지금 올리면 run_v3 영수증 검증이 깨진다. 본 학습용 새 freeze를 만들 때 같이 올린다.
+- 모니터 장부(`scripts/b300/independent_monitor.py status`): `d3_d4_measurement`·`partition_48h_restart` 완료, `roi_scientific_disposition`·`main_launch_preparation` 미완.
 
-## 2. 막혀 있는 것
+## 2. 막혀 있는 것 — 교수님 결정 3건
 
-| 항목 | 현재 근거·막힌 이유 | 다음 해제 조건 |
+| 결정 | 선택지 | 근거 위치 |
 | --- | --- | --- |
-| 정본 결과 수치 | `s10_stats/` 미수령. 실제 출력·manifest를 보지 못함 | 문석진 선생님 결과 공유 |
-| 남은 GPU 분담 | 확인된 잔여 과업 없음 | 담당자 확인 후 범위 확정 |
-| 정본 ROI | 20:38 독립 검사 exit 2, authentic 0/11, synthetic hash mismatch 11 | 정본 11개 수령/재구축 및 verifier exit 0 |
-| Holm15 | 구현 기록은 있으나 실제 15개 실행·출력 완료 미확인 | 결과 수령 뒤 15개와 participant/mean5 묶음 검사 |
-| 6-4a·depth4 | 후속 사용 기록은 있으나 이 트랙에 완료 manifest 미수령 | 결과 반입 때 실제 완료 수 확인 |
+| GPU 자원 | B300 4대 전체가 `swift7t_100k` 예약(11/21–12/09, connectome)에 묶여 있어 예약 밖 잡은 12/09까지 대기한다. 본 학습 540 fit을 이 예약 안에서 돌릴지, 12/09 이후로 미룰지. 11/23 실험 3건(1 GPU, 합계 약 17분)은 `--reservation=swift7t_100k`로 냈다. | `scontrol show res` |
+| lr4 설정 | `literal_source`(원본 JSON의 d64/wd100 그대로) 또는 `fresh_a1_adaptive`(새 A-1 선택의 d/wd를 lr4에 적용). 둘 다 540 fit. 정하지 않으면 main A-1 102개까지만 풀린다. | `production_package/SOURCE_SCOPE_AND_RECIPES.md` |
+| ROI 주장 범위 | 독립 검토 2건 모두 계산용 입력은 승인, 과학적 해석은 보류. 뇌실 주변 혼합 신호(시상하부 MC04 13/35 복셀 겹침 등)와 `nuc_accum`이 실제로는 BA34라는 점 때문이다. 네트워크 수준 주장으로 좁혀 받아들일지, 추가 근거를 만들지. | `roi_resolution/SCIENTIFIC_PACKET.md` |
 
-11/18 08:47 KST에 지정된 Teams 세 채팅을 다시 조회했다. 캐시 동기화 시각은 11/18 08:40:06 KST이며, 이전 확인 기준(11/17 20:10:05 KST) 이후 새 메시지는 세 채팅 모두 0개다. 마지막 메시지는 문석진 선생님 1:1 11/17 17:11:08 KST, 이태양 선생님 1:1 11/17 17:28:03 KST, 단체방 11/16 21:37:37 KST다. 따라서 갱신된 캐시에도 결과 공유·잔여 GPU 회신은 없다. 실시간 연결 도구 조회는 HTTP 403으로 거절됐고, 별도 CLI sync 직전 MemAvailable이 16,223,360 kB로 16 GiB보다 작아 실행하지 않았다. 08:40 이후의 실시간 무응답까지 단정하지 않으며, 재촉하는 메시지도 보내지 않았다.
+그 밖에 남은 일: Perlmutter `s10_stats/` 수치는 여전히 받지 못했다(11/23 22:40 캐시 기준 Teams 세 채팅에 관련 회신 없음, 재촉하지 않음).
 
-## 3. 유지할 결정과 제약
+## 3. 다음 단계
+
+1. 본 학습 패키지 마감(`project/output/audits/b300-main-ready-20261119/production_package/`): plan_v4 시험 28개 중 1개 실패(`status_snapshot` 회귀 메시지) 수리 → 11/23 실측으로 `timing_bounds` 채우기 → `pack`으로 46시간 분할 → 독립 E2E·검토.
+2. 조건부 추정: 540 fit을 관측 시간으로 합치면 1 GPU 약 139시간(4 GPU 약 35시간 + 의존 순서 대기). B-1·C-1·D-1은 11/18 파일럿 값, 대조 2종은 대리값이고 후보별 epoch 수 차이는 반영하지 못했다. 최대 300 epoch 상한으로 잡으면 A-1 한 개가 3.6시간까지 간다.
+3. 위 결정 3건이 나면 새 정본으로 B300 freeze → main A-1 102개부터 sbatch.
+4. `s10_stats/`를 받으면 FUTURE_RESEARCH_PLAN Phase 1–3(반입, Holm15 대조, 표·그림)을 진행한다.
+5. 로컬 미커밋 `scripts/b300/independent_monitor.py`(durable progress 패치, sha 216918aa…)는 검토 뒤 커밋한다. `OPEN_HELPER_BOUNDARIES.md`의 helper RED 2건도 남아 있다.
+
+증거: `project/output/audits/b300-main-ready-20261119/runtime_execution/restart_evidence/RESTART_RESULT.json`, 같은 폴더 `metrics_20261123T1409*.json`. 원격 산출물은 b300-01 `/scratch/emobrain/outputs/b300_main_ready_20261119/{run_v3,compare_u2_v3}`.
+
+## 4. 유지할 결정과 제약
 
 - Distillation A-2·C-2·D-2 추가 사용 종료. A-2/C-2는 [사전] 결과, D-2는 SI. 이후 모델은 A-1, B-1, C-1, D-1, D-3(짝 포함), D-4이며 E의 기존 결과만 보존한다.
 - 학습 34개판 유지, 이후 해석·분석은 27개판. 이미 시행한 34개 사전 검정은 그대로 보고한다. 6-4f는 저장 예측·캡션·73개 이름표의 기술 분석이며 검정·판정이 없다.
@@ -32,20 +40,8 @@
 - connectome `/storage`·`/scratch`에서 find, du, grep -r, ls -R 금지. 정확한 경로나 labfind를 쓴다.
 - dgx-spark Python은 MemAvailable 6 GB 이상, Teams sync는 16 GB 이상에서만. 학생·연구원은 항상 선생님과 존댓말. 감사에는 수·커밋·막힌 이유를 쓴다.
 
-## 4. 모니터링과 다음 단계
 
-1. 다음 세션에는 Git fetch와 정확한 Teams 세 채팅 조회부터 반복한다. 11/17 20:45 반복 관찰은 `job_ledger.py record --run-id emobrain-core-v2`에 기록했다. Step 1은 0/2, Step 2 분모는 미확정이다. 기존 장부 제목·job ID에 과거 431c1bc가 남아 있으므로 최신 note의 정확한 SHA를 읽는다.
-2. 이번 세션 전용 30분 source-check 및 2시간 expiry 타이머는 20:57:42 KST에 정리했다. 두 타이머와 두 서비스 모두 `LoadState=not-found`, `ActiveState=inactive`, `SubState=dead`를 재조회했다. 서비스는 예정 실행 전부터 unloaded 상태였다. 실제 20:45 반복 점검 기록은 남아 있으나, 예정됐던 21:15 자동 실행이나 자동 만료가 관찰된 것은 아니다. 재개 시에는 필요에 맞게 세션 전용 점검을 다시 설정한다.
-3. 기존 `long-job-mon-emobrain-core-v2.timer`(15분 Telegram)는 변경하지 않았고 정리 후에도 active/waiting이었다. 모든 probe가 null이라 Git/Teams를 확인하지 않는다. 이 기존 서비스에는 Python 메모리 사전 게이트가 없으며, 이번 작업에서 수정한 속성으로 보고하지 않는다.
-4. `s10_stats/` 수령 후에만 results/ 정본판 반입 → MASTER_RESULTS_SUMMARY.md·그림 갱신 → deliverable-audit·research-audit를 진행한다. Holm15 15개, 27/34 정서판, S4 teacher 한계, 6-2 pride 제외를 대조한다. 실제 결과가 없으므로 이 단계는 미착수다.
-5. 잔여 GPU 과업이 확인되면 아래 ROI 입력으로 수령/재구축 → verify_s2_roi_voxels.py exit 0 → b300-live 유휴 GPU 확인 → sbatch로 분담한다.
-
-11/17 20:57:42 KST에 실행한 세션 전용 종료 명령:
-```bash
-systemctl --user stop emobrain-source-check-20261117-2045.timer emobrain-source-check-20261117-2045.service emobrain-source-expire-20261117-2045.timer emobrain-source-expire-20261117-2045.service
-```
-
-## 5. 산출물 지도·재개 입력
+## 6. 재개 입력(11/18 기록, 경로 유지)
 
 | 항목 | 위치·값 | 상태 |
 | --- | --- | --- |
@@ -63,7 +59,7 @@ systemctl --user stop emobrain-source-check-20261117-2045.timer emobrain-source-
 | 외부 ROI 기준 | Figshare 11988351, 25808179; UMPsychMethodsCore/MethodsCore@1cff4ae; ColeLab/ColeAnticevicNetPartition@e4ea9fd | 기존 인계 출처 |
 | b300 | 코드 /scratch/emobrain/code; 자료 /scratch/emobrain/data; 산출물 /scratch/emobrain/outputs | 경로 유지 |
 
-## 6. 파일 소유권과 함정
+## 7. 파일 소유권과 함정
 
 - 로컬 미추적 `.agents/`, `PROJECT.md`, `tests/test_challenger_m2_author.py`, `tests/test_s2_adversarial.py`는 기존 타 작업물이 포함돼 있어 일괄 stage하지 않는다.
 - b300 미추적 12개는 `remote_final.log`에 남겼고 보존했다. 과거 근사 ROI 결과는 정본 수치로 쓰지 않는다.
