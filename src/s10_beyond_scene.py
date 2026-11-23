@@ -72,11 +72,15 @@ READ = ("T", "Sw", "V", "C", "Sall")  # 뇌로 읽는 목표 판. T는 평정 �
 LEVEL_SETS = {"Sw": ("motion", "labels"), "N": ("caption_objects",), "NA": ("caption_objattr",), "V": ("vision",), "C": ("caption",), "Sall": ("motion", "labels", "vision", "caption")}
 LEVEL_READ = ("T", "Sw", "N", "NA", "V", "C", "Sall")
 # --levels-graph(11/18 둘째 판): scene graph parser 판과 단어 섞은 판을 더한다(src/s3_caption_levels.py graph, graph_levels).
-#   GO = parser의 물체, GA = 물체 + 속성, GR = 물체 + 속성 + 관계 삼항(부사와 문장 구조 없음), CS = 정서어 제거판 캡션의 단어를 섞은 것(같은 단어, 순서만 다름).
+#   GO = parser의 물체, GA = 물체 + 속성, GR = objects + object states + object relations(부사와 문장 구조 없음), CS = 정서어 제거판 캡션의 단어를 섞은 것(같은 단어, 순서만 다름).
 #   N, NA를 함께 두어 품사 판과 parser 판을 한 출력에서 견준다. 판정 규칙은 그대로다.
 GRAPH_READ = ("T", "Sw", "N", "NA", "GO", "GA", "GR", "CS", "V", "C", "Sall")
 _GRAPH_BANDS = {**LEVEL_SETS, "GO": ("caption_graph_objects",), "GA": ("caption_graph_objattr",), "GR": ("caption_graph_rel",), "CS": ("caption_shuffled",)}
-GRAPH_SETS = {k: _GRAPH_BANDS[k] for k in GRAPH_READ[1:]}  # 11/18 고침: fit의 학습 목표(SETS 순서)와 채점 정답(READ 순서)이 같은 순서여야 한다
+GRAPH_SETS = {k: _GRAPH_BANDS[k] for k in GRAPH_READ[1:]}
+# --levels-random(11/19 셋째 판): parser 판(GO, GA, GR) 옆에 단어 수를 맞춘 무작위 판(RO, RA, RR, src/s3_caption_levels.py random_levels)을 둔다.
+RANDOM_READ = ("T", "Sw", "GO", "RO", "GA", "RA", "GR", "RR", "C", "Sall")
+_RANDOM_BANDS = {**_GRAPH_BANDS, "RO": ("caption_rand_objects",), "RA": ("caption_rand_objattr",), "RR": ("caption_rand_rel",)}
+RANDOM_SETS = {k: _RANDOM_BANDS[k] for k in RANDOM_READ[1:]}  # 11/18 고침: fit의 학습 목표(SETS 순서)와 채점 정답(READ 순서)이 같은 순서여야 한다
 CONFIRM = ("Visual1", "Visual2", "Default")
 WHOLE = "whole_brain"
 SURVIVE_R = 0.05
@@ -112,8 +116,12 @@ def load_bands(split):
     if "N" in SETS:  # --levels
         bands["caption_objects"] = np.asarray(c.load_rows("deberta_objects/target", vid, split), np.float64)
         bands["caption_objattr"] = np.asarray(c.load_rows("deberta_objattr/target", vid, split), np.float64)
-    if "GO" in SETS:  # --levels-graph
+    if "GO" in SETS:  # --levels-graph, --levels-random
         for k in ("graph_objects", "graph_objattr", "graph_rel", "shuffled"):
+            if any(f"caption_{k}" in b for b in SETS.values()):
+                bands[f"caption_{k}"] = np.asarray(c.load_rows(f"deberta_{k}/target", vid, split), np.float64)
+    if "RO" in SETS:  # --levels-random
+        for k in ("rand_objects", "rand_objattr", "rand_rel"):
             bands[f"caption_{k}"] = np.asarray(c.load_rows(f"deberta_{k}/target", vid, split), np.float64)
     return bands
 
@@ -342,9 +350,12 @@ def main(argv=None):
     ap.add_argument("--n-boot", type=int, default=st.N_RESAMPLE)
     ap.add_argument("--levels", action="store_true", help="11/18. 물체(N), 물체 + 속성(NA) 캡션 판을 더한다. 출력 폴더를 따로 준다")
     ap.add_argument("--levels-graph", action="store_true", help="11/18 둘째 판. 위에 parser 판(GO, GA, GR)과 단어 섞은 판(CS)을 더한다. 출력 폴더를 따로 준다")
+    ap.add_argument("--levels-random", action="store_true", help="11/19 셋째 판. parser 판과 단어 수를 맞춘 무작위 판(RO, RA, RR). 출력 폴더를 따로 준다")
     a = ap.parse_args(argv)
     global SETS, READ
-    if a.levels_graph:
+    if a.levels_random:
+        SETS, READ = dict(RANDOM_SETS), RANDOM_READ
+    elif a.levels_graph:
         SETS, READ = dict(GRAPH_SETS), GRAPH_READ
     elif a.levels:
         SETS, READ = dict(LEVEL_SETS), LEVEL_READ
@@ -364,7 +375,7 @@ def main(argv=None):
     else:
         summarize(a.out)
         tag = "summarize"
-    info = dict(step=a.step, participant=a.participant, levels=a.levels, levels_graph=a.levels_graph, reads=list(READ), n_boot=a.n_boot, boot_seed=gc.BOOT_SEED, perm_seed=PERM_SEED, n_perm=N_PERM,
+    info = dict(step=a.step, participant=a.participant, levels=a.levels, levels_graph=a.levels_graph, levels_random=a.levels_random, reads=list(READ), n_boot=a.n_boot, boot_seed=gc.BOOT_SEED, perm_seed=PERM_SEED, n_perm=N_PERM,
                 design_freeze=a.design_freeze, code_commit=c.START_HEAD, code_dirty=c.START_DIRTY, elapsed_seconds=round(time.time() - started, 1))
     Path(a.out).mkdir(parents=True, exist_ok=True)
     (Path(a.out) / f"run_info_{tag}.json").write_text(json.dumps(info, indent=1, ensure_ascii=False))

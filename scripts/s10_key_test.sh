@@ -10,11 +10,17 @@ if [ -f "$OUT_ROOT/s10_stats/beyond_scene_levels/scores.tsv" ]; then
   "$PY_CPU" s10_key_test.py --stats "$OUT_ROOT/s10_stats/beyond_scene_levels" --out "$OUT_ROOT/s10_stats/key_test_v2_N_NA" --object N --situation NA
   "$PY_CPU" s10_key_test.py --stats "$OUT_ROOT/s10_stats/beyond_scene_levels" --out "$OUT_ROOT/s10_stats/key_test_v2_NA_C" --object NA --situation C
 fi
-# 11/18 셋째 판: parser 판. GO 대 GR(물체 대 관계 삼항까지), GA 대 GR(관계만의 단계), GR 대 C(부사와 문장 구조의 단계), GO 대 C
+# 11/18 셋째 판: parser 판. GO 대 GR(물체 대 object relations까지), GA 대 GR(관계만의 단계), GR 대 C(부사와 문장 구조의 단계), GO 대 C
 if [ -f "$OUT_ROOT/s10_stats/beyond_scene_levels_graph/scores.tsv" ]; then
   G="$OUT_ROOT/s10_stats/beyond_scene_levels_graph"
   "$PY_CPU" s10_key_test.py --stats "$G" --out "$OUT_ROOT/s10_stats/key_test_v3_GO_GR" --object GO --situation GR
   "$PY_CPU" s10_key_test.py --stats "$G" --out "$OUT_ROOT/s10_stats/key_test_v3_GA_GR" --object GA --situation GR
   "$PY_CPU" s10_key_test.py --stats "$G" --out "$OUT_ROOT/s10_stats/key_test_v3_GR_C" --object GR --situation C
   "$PY_CPU" s10_key_test.py --stats "$G" --out "$OUT_ROOT/s10_stats/key_test_v3_GO_C" --object GO --situation C
+fi
+# 11/19 대조: 단어 수를 맞춘 무작위 판. RO 대 RR(GO 대 GR과 같은 단어 수), RA 대 RR
+if [ -f "$OUT_ROOT/s10_stats/beyond_scene_levels_random/scores.tsv" ]; then
+  G="$OUT_ROOT/s10_stats/beyond_scene_levels_random"
+  "$PY_CPU" s10_key_test.py --stats "$G" --out "$OUT_ROOT/s10_stats/key_test_v4_RO_RR" --object RO --situation RR
+  "$PY_CPU" s10_key_test.py --stats "$G" --out "$OUT_ROOT/s10_stats/key_test_v4_RA_RR" --object RA --situation RR
 fi

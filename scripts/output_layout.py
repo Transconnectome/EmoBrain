@@ -378,7 +378,14 @@ def cond_readme(name, code, display, io, desc, question, kind, raw_desc, status)
               MERGED_NOTE if raw_desc.startswith("s6_brain_final") else "")
 
 
+GENERATED_MARK = "scripts/output_layout.py가 만든다"
+
+
 def write(path, text, dry, written):
+    # 11/20: 이 스크립트가 만든 표시가 없는 README는 그 뒤 손이나 분석 코드로 고친 것이라 덮어쓰지 않는다(ex) s10_stats/README.md의 11/20 목록)
+    if path.name == "README.md" and path.exists() and GENERATED_MARK not in path.read_text():
+        print(f"건너뜀(손으로 고친 README): {path}")
+        return
     written.append(path)
     if dry:
         return
