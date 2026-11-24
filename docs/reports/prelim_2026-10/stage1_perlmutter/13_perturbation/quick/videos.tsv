@@ -1,0 +1,80 @@
+video_id	emotion	rating	duration
+1801	amusement	0.91667	3.2
+74	amusement	0.88889	2.9
+80	amusement	0.88889	3.92
+1043	amusement	0.86364	3.3
+1697	amusement	0.86364	3.06
+741	amusement	0.85714	3.84
+1411	amusement	0.84615	3.52
+656	amusement	0.84615	2.52
+1375	fear	0.90909	2.0
+395	fear	0.76923	4.0
+25	fear	0.75	2.3
+137	fear	0.73333	2.52
+190	fear	0.71429	2.88
+504	fear	0.7	4.0
+889	fear	0.69231	3.78
+1599	fear	0.66667	3.3
+1194	disgust	1.0	1.7
+2010	disgust	1.0	3.2
+1685	disgust	1.0	2.38
+1441	disgust	1.0	2.773
+876	disgust	1.0	3.6
+1044	disgust	1.0	2.1
+1425	disgust	1.0	1.33
+187	disgust	1.0	2.8
+1282	adoration	0.83333	3.9
+344	adoration	0.76923	1.4
+1935	adoration	0.73077	1.4
+35	adoration	0.7	2.4
+1311	adoration	0.63636	1.6
+1692	adoration	0.63636	2.4
+1683	adoration	0.63636	2.0
+1924	adoration	0.61538	1.2
+1022	aesthetic appreciation	0.81818	2.16
+1708	aesthetic appreciation	0.81818	2.85
+1986	aesthetic appreciation	0.8	2.45
+1439	aesthetic appreciation	0.76923	1.6
+1426	aesthetic appreciation	0.76923	0.7
+2082	aesthetic appreciation	0.75	3.8
+2181	aesthetic appreciation	0.75	1.2
+1608	aesthetic appreciation	0.75	1.2
+274	awe	0.66667	0.7
+286	awe	0.66667	3.4
+766	awe	0.63636	1.08
+1505	awe	0.6	2.52
+996	awe	0.58333	2.25
+2108	awe	0.54545	2.0
+1400	awe	0.53846	1.542
+1715	awe	0.52941	3.15
+756	sadness	0.90909	2.4
+1259	sadness	0.90909	2.4
+59	sadness	0.8	2.4
+1164	sadness	0.76923	2.12
+673	sadness	0.72727	1.24
+1169	sadness	0.69231	2.46
+803	sadness	0.69231	2.1
+9	sadness	0.66667	3.6
+234	horror	0.84615	3.24
+1868	horror	0.75	1.8
+1650	horror	0.75	1.1
+1214	horror	0.73333	0.88
+1126	horror	0.72727	1.68
+1111	horror	0.72727	1.7
+1434	horror	0.69231	2.2
+1601	horror	0.66667	3.36
+2034	joy	0.72727	2.4
+1032	joy	0.72727	1.6
+1712	joy	0.64706	4.0
+1363	joy	0.63636	2.0
+165	joy	0.61538	3.9
+605	joy	0.58333	3.92
+1349	joy	0.54545	2.0
+1249	joy	0.54545	3.85
+348	calmness	0.69231	1.2
+339	calmness	0.69231	1.92
+1216	calmness	0.66667	2.97
+1716	calmness	0.64706	2.24
+1193	calmness	0.64286	0.87
+961	calmness	0.58333	1.015
+590	calmness	0.5	2.0

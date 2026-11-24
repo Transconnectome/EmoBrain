@@ -1,0 +1,13 @@
+participant_id	input_condition	target_space	n_videos	n_valid	profile_r_mean	profile_r_median	train_mean_profile_r_mean	gain_over_mean_profile
+sub-04	brain→lowlevel_L→emotion	A34	2160	2160	0.37491	0.36272	0.34561	0.02930
+sub-04	brain→lowlevel_L→emotion	A14	2153	2153	0.55085	0.70131	0.53850	0.01236
+sub-04	brain+lowlevel_L	A34	2160	2160	0.54503	0.59159	0.34561	0.19943
+sub-04	brain+lowlevel_L	A14	2153	2153	0.63383	0.73075	0.53850	0.09533
+sub-04	brain→hk_vision1000→emotion	A34	2160	2160	0.46228	0.49445	0.34561	0.11667
+sub-04	brain→hk_vision1000→emotion	A14	2153	2153	0.59211	0.71823	0.53850	0.05361
+sub-04	brain+hk_vision1000	A34	2160	2160	0.60769	0.65382	0.34561	0.26208
+sub-04	brain+hk_vision1000	A14	2153	2153	0.65796	0.74366	0.53850	0.11947
+sub-04	brain→hk_semantic73→emotion	A34	2160	2160	0.48424	0.52730	0.34561	0.13864
+sub-04	brain→hk_semantic73→emotion	A14	2153	2153	0.62267	0.72294	0.53850	0.08417
+sub-04	brain+hk_semantic73	A34	2160	2160	0.70396	0.75716	0.34561	0.35835
+sub-04	brain+hk_semantic73	A14	2153	2153	0.73991	0.83069	0.53850	0.20141

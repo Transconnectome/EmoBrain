@@ -1,0 +1,1081 @@
+model	word	kind	n_videos	r
+V-JEPA 2 (영상)	accident	object	53	0.3288
+V-JEPA 2 (영상)	air	object	259	0.2793
+V-JEPA 2 (영상)	american	object	48	0.2052
+V-JEPA 2 (영상)	animal	object	514	0.5664
+V-JEPA 2 (영상)	animated	object	129	0.5445
+V-JEPA 2 (영상)	animation	object	118	0.4383
+V-JEPA 2 (영상)	approaching	action	74	0.0925
+V-JEPA 2 (영상)	arms	object	241	0.1472
+V-JEPA 2 (영상)	athlete	object	42	0.3339
+V-JEPA 2 (영상)	audience	object	46	0.2984
+V-JEPA 2 (영상)	ball	object	160	0.4706
+V-JEPA 2 (영상)	beach	object	57	0.3942
+V-JEPA 2 (영상)	beautiful	object	153	0.5350
+V-JEPA 2 (영상)	bed	object	148	0.5030
+V-JEPA 2 (영상)	belly	object	42	0.1251
+V-JEPA 2 (영상)	bike	object	50	0.6027
+V-JEPA 2 (영상)	bird	object	62	0.3702
+V-JEPA 2 (영상)	biting	action	47	-0.0166
+V-JEPA 2 (영상)	blonde	object	43	0.2087
+V-JEPA 2 (영상)	blowing	action	74	0.0845
+V-JEPA 2 (영상)	board	object	69	0.1515
+V-JEPA 2 (영상)	body	object	274	0.1604
+V-JEPA 2 (영상)	bouncing	action	45	0.0424
+V-JEPA 2 (영상)	bowl	object	46	0.2392
+V-JEPA 2 (영상)	box	object	78	0.1461
+V-JEPA 2 (영상)	bridge	object	44	0.0670
+V-JEPA 2 (영상)	bunch	object	87	0.1147
+V-JEPA 2 (영상)	butt	object	43	0.1753
+V-JEPA 2 (영상)	camera	object	300	0.2345
+V-JEPA 2 (영상)	car	object	180	0.6881
+V-JEPA 2 (영상)	caressing	action	68	0.2550
+V-JEPA 2 (영상)	carrying	action	91	0.1302
+V-JEPA 2 (영상)	cartoon	object	53	0.6371
+V-JEPA 2 (영상)	cat	object	84	0.7355
+V-JEPA 2 (영상)	causing	action	235	0.1896
+V-JEPA 2 (영상)	center	object	48	0.1096
+V-JEPA 2 (영상)	chair	object	70	0.1760
+V-JEPA 2 (영상)	cheering	action	44	0.2619
+V-JEPA 2 (영상)	chest	object	52	0.0634
+V-JEPA 2 (영상)	circular	object	66	0.3352
+V-JEPA 2 (영상)	city	object	90	0.4577
+V-JEPA 2 (영상)	cliff	object	53	0.3669
+V-JEPA 2 (영상)	coming	action	170	0.1189
+V-JEPA 2 (영상)	container	object	48	0.0693
+V-JEPA 2 (영상)	corner	object	56	0.0977
+V-JEPA 2 (영상)	couch	object	42	0.2078
+V-JEPA 2 (영상)	crawling	action	86	0.1259
+V-JEPA 2 (영상)	creating	action	91	0.3746
+V-JEPA 2 (영상)	crossing	action	122	0.3928
+V-JEPA 2 (영상)	cup	object	42	0.2398
+V-JEPA 2 (영상)	cute	object	56	0.2865
+V-JEPA 2 (영상)	dancing	action	94	0.4325
+V-JEPA 2 (영상)	dead	object	45	0.2279
+V-JEPA 2 (영상)	deep	object	57	0.2351
+V-JEPA 2 (영상)	desert	object	42	0.1725
+V-JEPA 2 (영상)	distance	object	74	0.2855
+V-JEPA 2 (영상)	dog	object	179	0.6618
+V-JEPA 2 (영상)	door	object	73	0.2987
+V-JEPA 2 (영상)	dragging	action	52	0.0763
+V-JEPA 2 (영상)	driving	action	89	0.4241
+V-JEPA 2 (영상)	driver	object	56	0.3470
+V-JEPA 2 (영상)	eating	action	121	0.1152
+V-JEPA 2 (영상)	edge	object	110	0.3417
+V-JEPA 2 (영상)	elderly	object	55	0.1789
+V-JEPA 2 (영상)	embracing	action	44	0.1815
+V-JEPA 2 (영상)	enjoying	action	156	0.2074
+V-JEPA 2 (영상)	everything	action	48	0.1497
+V-JEPA 2 (영상)	eyes	object	117	0.3028
+V-JEPA 2 (영상)	facing	action	69	0.1012
+V-JEPA 2 (영상)	face	object	384	0.3771
+V-JEPA 2 (영상)	father	object	51	0.2334
+V-JEPA 2 (영상)	feeding	action	44	0.0843
+V-JEPA 2 (영상)	feet	object	130	0.1842
+V-JEPA 2 (영상)	few	object	76	0.0620
+V-JEPA 2 (영상)	field	object	151	0.4435
+V-JEPA 2 (영상)	fighting	action	68	0.1677
+V-JEPA 2 (영상)	filming	action	132	0.1585
+V-JEPA 2 (영상)	finger	object	111	0.2360
+V-JEPA 2 (영상)	floating	action	66	0.1554
+V-JEPA 2 (영상)	floor	object	235	0.2887
+V-JEPA 2 (영상)	flying	action	179	0.2773
+V-JEPA 2 (영상)	following	action	68	0.1484
+V-JEPA 2 (영상)	foot	object	46	0.1218
+V-JEPA 2 (영상)	forest	object	68	0.3764
+V-JEPA 2 (영상)	friend	object	73	0.1725
+V-JEPA 2 (영상)	funny	object	44	0.2687
+V-JEPA 2 (영상)	genitals	object	45	0.2392
+V-JEPA 2 (영상)	giant	object	75	0.1716
+V-JEPA 2 (영상)	giving	action	109	0.1731
+V-JEPA 2 (영상)	glass	object	113	0.2216
+V-JEPA 2 (영상)	going	action	179	0.1308
+V-JEPA 2 (영상)	grass	object	72	0.2790
+V-JEPA 2 (영상)	ground	object	395	0.3718
+V-JEPA 2 (영상)	group	object	273	0.4334
+V-JEPA 2 (영상)	hand	object	616	0.3908
+V-JEPA 2 (영상)	hanging	action	92	0.1562
+V-JEPA 2 (영상)	head	object	379	0.2109
+V-JEPA 2 (영상)	hill	object	68	0.2554
+V-JEPA 2 (영상)	hole	object	68	0.0687
+V-JEPA 2 (영상)	house	object	109	0.1477
+V-JEPA 2 (영상)	hugging	action	121	0.3710
+V-JEPA 2 (영상)	human	object	178	0.2213
+V-JEPA 2 (영상)	ice	object	56	0.1195
+V-JEPA 2 (영상)	insect	object	43	0.3032
+V-JEPA 2 (영상)	kind	object	61	0.0836
+V-JEPA 2 (영상)	kissing	action	131	0.5919
+V-JEPA 2 (영상)	lake	object	45	0.2012
+V-JEPA 2 (영상)	lap	object	42	0.1528
+V-JEPA 2 (영상)	larger	object	57	0.1363
+V-JEPA 2 (영상)	laughing	action	82	0.2003
+V-JEPA 2 (영상)	laying	action	84	0.1959
+V-JEPA 2 (영상)	leaving	action	57	0.1121
+V-JEPA 2 (영상)	ledge	object	42	0.1879
+V-JEPA 2 (영상)	legs	object	234	0.2090
+V-JEPA 2 (영상)	licking	action	49	0.1960
+V-JEPA 2 (영상)	lips	object	47	0.3619
+V-JEPA 2 (영상)	live	object	42	0.2130
+V-JEPA 2 (영상)	lying	action	257	0.4694
+V-JEPA 2 (영상)	metal	object	123	0.2736
+V-JEPA 2 (영상)	middle	object	220	0.1338
+V-JEPA 2 (영상)	mother	object	67	0.2830
+V-JEPA 2 (영상)	mountain	object	103	0.6519
+V-JEPA 2 (영상)	mouth	object	220	0.3111
+V-JEPA 2 (영상)	naked	object	130	0.5308
+V-JEPA 2 (영상)	neck	object	73	0.1046
+V-JEPA 2 (영상)	nose	object	57	0.1170
+V-JEPA 2 (영상)	nude	object	59	0.3101
+V-JEPA 2 (영상)	number	object	104	0.2254
+V-JEPA 2 (영상)	ocean	object	93	0.4549
+V-JEPA 2 (영상)	old	object	133	0.3242
+V-JEPA 2 (영상)	older	object	74	0.2452
+V-JEPA 2 (영상)	opponent	object	41	0.4802
+V-JEPA 2 (영상)	opposite	object	45	0.0526
+V-JEPA 2 (영상)	optical	object	51	0.3314
+V-JEPA 2 (영상)	own	object	73	0.0582
+V-JEPA 2 (영상)	owner	object	42	0.1684
+V-JEPA 2 (영상)	pair	object	71	0.1122
+V-JEPA 2 (영상)	pants	object	57	0.0708
+V-JEPA 2 (영상)	park	object	68	0.1486
+V-JEPA 2 (영상)	path	object	51	0.2258
+V-JEPA 2 (영상)	paws	object	81	0.3968
+V-JEPA 2 (영상)	penis	object	57	0.3709
+V-JEPA 2 (영상)	photo	object	43	0.3246
+V-JEPA 2 (영상)	picture	object	127	0.2853
+V-JEPA 2 (영상)	piece	object	248	0.3151
+V-JEPA 2 (영상)	pile	object	53	0.0881
+V-JEPA 2 (영상)	plastic	object	62	0.1122
+V-JEPA 2 (영상)	plate	object	64	0.3350
+V-JEPA 2 (영상)	platform	object	73	0.2173
+V-JEPA 2 (영상)	playing	action	395	0.3712
+V-JEPA 2 (영상)	pool	object	67	0.2658
+V-JEPA 2 (영상)	rail	object	41	0.1326
+V-JEPA 2 (영상)	recording	action	49	0.0248
+V-JEPA 2 (영상)	riding	action	115	0.3531
+V-JEPA 2 (영상)	river	object	76	0.2690
+V-JEPA 2 (영상)	road	object	190	0.5914
+V-JEPA 2 (영상)	room	object	141	0.2398
+V-JEPA 2 (영상)	rope	object	43	0.0668
+V-JEPA 2 (영상)	rotating	action	98	0.4003
+V-JEPA 2 (영상)	row	object	50	0.2245
+V-JEPA 2 (영상)	same	object	136	0.0861
+V-JEPA 2 (영상)	sand	object	46	0.0904
+V-JEPA 2 (영상)	scary	object	40	0.2390
+V-JEPA 2 (영상)	screen	object	67	0.2153
+V-JEPA 2 (영상)	sea	object	146	0.5627
+V-JEPA 2 (영상)	second	object	75	0.0897
+V-JEPA 2 (영상)	series	object	59	0.2426
+V-JEPA 2 (영상)	shaking	action	53	0.1137
+V-JEPA 2 (영상)	sheet	object	45	0.1642
+V-JEPA 2 (영상)	shirtless	object	56	0.2029
+V-JEPA 2 (영상)	shoulder	object	44	0.0631
+V-JEPA 2 (영상)	single	object	49	0.0286
+V-JEPA 2 (영상)	skin	object	71	0.2085
+V-JEPA 2 (영상)	sky	object	143	0.6213
+V-JEPA 2 (영상)	sliding	action	51	0.1137
+V-JEPA 2 (영상)	smaller	object	53	0.1361
+V-JEPA 2 (영상)	smiling	action	155	0.3284
+V-JEPA 2 (영상)	snow	object	49	0.3344
+V-JEPA 2 (영상)	speaking	action	60	0.4667
+V-JEPA 2 (영상)	spinning	action	137	0.4714
+V-JEPA 2 (영상)	sports	object	55	0.3004
+V-JEPA 2 (영상)	square	object	44	0.2184
+V-JEPA 2 (영상)	stage	object	62	0.3120
+V-JEPA 2 (영상)	staring	action	67	0.1642
+V-JEPA 2 (영상)	stomach	object	41	0.0626
+V-JEPA 2 (영상)	stone	object	42	0.1957
+V-JEPA 2 (영상)	strange	object	67	0.0513
+V-JEPA 2 (영상)	street	object	169	0.4655
+V-JEPA 2 (영상)	suit	object	110	0.3824
+V-JEPA 2 (영상)	sun	object	66	0.5802
+V-JEPA 2 (영상)	surface	object	117	0.2220
+V-JEPA 2 (영상)	table	object	131	0.2568
+V-JEPA 2 (영상)	talking	action	108	0.3302
+V-JEPA 2 (영상)	times	object	67	0.1194
+V-JEPA 2 (영상)	touching	action	133	0.1800
+V-JEPA 2 (영상)	toy	object	75	0.1802
+V-JEPA 2 (영상)	track	object	65	0.3462
+V-JEPA 2 (영상)	train	object	60	0.4432
+V-JEPA 2 (영상)	traveling	action	83	0.3044
+V-JEPA 2 (영상)	tree	object	74	0.2300
+V-JEPA 2 (영상)	truck	object	57	0.3616
+V-JEPA 2 (영상)	underwear	object	43	0.2315
+V-JEPA 2 (영상)	using	action	280	0.2677
+V-JEPA 2 (영상)	vagina	object	45	0.4720
+V-JEPA 2 (영상)	vehicle	object	147	0.5343
+V-JEPA 2 (영상)	waiting	action	54	0.0740
+V-JEPA 2 (영상)	walking	action	349	0.3485
+V-JEPA 2 (영상)	wall	object	125	0.1750
+V-JEPA 2 (영상)	watching	action	187	0.1127
+V-JEPA 2 (영상)	water	object	290	0.5149
+V-JEPA 2 (영상)	whole	object	42	0.0735
+V-JEPA 2 (영상)	wild	object	64	0.2585
+V-JEPA 2 (영상)	wind	object	42	0.0339
+V-JEPA 2 (영상)	window	object	51	0.1552
+V-JEPA 2 (영상)	wooden	object	81	0.1035
+V-JEPA 2 (영상)	young	object	522	0.4637
+VideoMAE (영상)	accident	object	53	0.4228
+VideoMAE (영상)	air	object	259	0.2582
+VideoMAE (영상)	american	object	48	0.1965
+VideoMAE (영상)	animal	object	514	0.5579
+VideoMAE (영상)	animated	object	129	0.4149
+VideoMAE (영상)	animation	object	118	0.3957
+VideoMAE (영상)	approaching	action	74	0.0944
+VideoMAE (영상)	arms	object	241	0.2470
+VideoMAE (영상)	athlete	object	42	0.4752
+VideoMAE (영상)	audience	object	46	0.3538
+VideoMAE (영상)	ball	object	160	0.5993
+VideoMAE (영상)	beach	object	57	0.4854
+VideoMAE (영상)	beautiful	object	153	0.5057
+VideoMAE (영상)	bed	object	148	0.5537
+VideoMAE (영상)	belly	object	42	0.1722
+VideoMAE (영상)	bike	object	50	0.6629
+VideoMAE (영상)	bird	object	62	0.2844
+VideoMAE (영상)	biting	action	47	-0.0101
+VideoMAE (영상)	blonde	object	43	0.1857
+VideoMAE (영상)	blowing	action	74	0.0874
+VideoMAE (영상)	board	object	69	0.1531
+VideoMAE (영상)	body	object	274	0.1963
+VideoMAE (영상)	bouncing	action	45	0.1178
+VideoMAE (영상)	bowl	object	46	0.2339
+VideoMAE (영상)	box	object	78	0.3555
+VideoMAE (영상)	bridge	object	44	0.1965
+VideoMAE (영상)	bunch	object	87	0.0978
+VideoMAE (영상)	butt	object	43	0.1871
+VideoMAE (영상)	camera	object	300	0.1690
+VideoMAE (영상)	car	object	180	0.7588
+VideoMAE (영상)	caressing	action	68	0.3426
+VideoMAE (영상)	carrying	action	91	0.1733
+VideoMAE (영상)	cartoon	object	53	0.4375
+VideoMAE (영상)	cat	object	84	0.5330
+VideoMAE (영상)	causing	action	235	0.1674
+VideoMAE (영상)	center	object	48	0.0258
+VideoMAE (영상)	chair	object	70	0.3279
+VideoMAE (영상)	cheering	action	44	0.2788
+VideoMAE (영상)	chest	object	52	0.0618
+VideoMAE (영상)	circular	object	66	0.2529
+VideoMAE (영상)	city	object	90	0.4093
+VideoMAE (영상)	cliff	object	53	0.4767
+VideoMAE (영상)	coming	action	170	0.1217
+VideoMAE (영상)	container	object	48	0.1043
+VideoMAE (영상)	corner	object	56	0.0328
+VideoMAE (영상)	couch	object	42	0.2127
+VideoMAE (영상)	crawling	action	86	0.1198
+VideoMAE (영상)	creating	action	91	0.3136
+VideoMAE (영상)	crossing	action	122	0.3345
+VideoMAE (영상)	cup	object	42	0.3913
+VideoMAE (영상)	cute	object	56	0.2516
+VideoMAE (영상)	dancing	action	94	0.4831
+VideoMAE (영상)	dead	object	45	0.1438
+VideoMAE (영상)	deep	object	57	0.2336
+VideoMAE (영상)	desert	object	42	0.2134
+VideoMAE (영상)	distance	object	74	0.2293
+VideoMAE (영상)	dog	object	179	0.5816
+VideoMAE (영상)	door	object	73	0.3374
+VideoMAE (영상)	dragging	action	52	0.0748
+VideoMAE (영상)	driving	action	89	0.5193
+VideoMAE (영상)	driver	object	56	0.3981
+VideoMAE (영상)	eating	action	121	0.3047
+VideoMAE (영상)	edge	object	110	0.3764
+VideoMAE (영상)	elderly	object	55	0.1862
+VideoMAE (영상)	embracing	action	44	0.2649
+VideoMAE (영상)	enjoying	action	156	0.2002
+VideoMAE (영상)	everything	action	48	0.0992
+VideoMAE (영상)	eyes	object	117	0.1794
+VideoMAE (영상)	facing	action	69	0.0786
+VideoMAE (영상)	face	object	384	0.3349
+VideoMAE (영상)	father	object	51	0.2119
+VideoMAE (영상)	feeding	action	44	0.1983
+VideoMAE (영상)	feet	object	130	0.1362
+VideoMAE (영상)	few	object	76	0.0569
+VideoMAE (영상)	field	object	151	0.4286
+VideoMAE (영상)	fighting	action	68	0.2320
+VideoMAE (영상)	filming	action	132	0.1171
+VideoMAE (영상)	finger	object	111	0.2986
+VideoMAE (영상)	floating	action	66	0.1174
+VideoMAE (영상)	floor	object	235	0.4256
+VideoMAE (영상)	flying	action	179	0.3688
+VideoMAE (영상)	following	action	68	0.1219
+VideoMAE (영상)	foot	object	46	0.1145
+VideoMAE (영상)	forest	object	68	0.3486
+VideoMAE (영상)	friend	object	73	0.1557
+VideoMAE (영상)	funny	object	44	0.2281
+VideoMAE (영상)	genitals	object	45	0.2522
+VideoMAE (영상)	giant	object	75	0.1306
+VideoMAE (영상)	giving	action	109	0.2169
+VideoMAE (영상)	glass	object	113	0.2608
+VideoMAE (영상)	going	action	179	0.1127
+VideoMAE (영상)	grass	object	72	0.3650
+VideoMAE (영상)	ground	object	395	0.3936
+VideoMAE (영상)	group	object	273	0.3466
+VideoMAE (영상)	hand	object	616	0.3768
+VideoMAE (영상)	hanging	action	92	0.2267
+VideoMAE (영상)	head	object	379	0.2349
+VideoMAE (영상)	hill	object	68	0.3833
+VideoMAE (영상)	hole	object	68	0.0837
+VideoMAE (영상)	house	object	109	0.1491
+VideoMAE (영상)	hugging	action	121	0.5435
+VideoMAE (영상)	human	object	178	0.1943
+VideoMAE (영상)	ice	object	56	0.2636
+VideoMAE (영상)	insect	object	43	0.2720
+VideoMAE (영상)	kind	object	61	0.1122
+VideoMAE (영상)	kissing	action	131	0.7223
+VideoMAE (영상)	lake	object	45	0.2365
+VideoMAE (영상)	lap	object	42	0.2300
+VideoMAE (영상)	larger	object	57	0.1026
+VideoMAE (영상)	laughing	action	82	0.3278
+VideoMAE (영상)	laying	action	84	0.1256
+VideoMAE (영상)	leaving	action	57	0.0651
+VideoMAE (영상)	ledge	object	42	0.2838
+VideoMAE (영상)	legs	object	234	0.1797
+VideoMAE (영상)	licking	action	49	0.2795
+VideoMAE (영상)	lips	object	47	0.3433
+VideoMAE (영상)	live	object	42	0.3375
+VideoMAE (영상)	lying	action	257	0.3937
+VideoMAE (영상)	metal	object	123	0.3676
+VideoMAE (영상)	middle	object	220	0.1109
+VideoMAE (영상)	mother	object	67	0.2328
+VideoMAE (영상)	mountain	object	103	0.6196
+VideoMAE (영상)	mouth	object	220	0.3478
+VideoMAE (영상)	naked	object	130	0.5169
+VideoMAE (영상)	neck	object	73	0.1632
+VideoMAE (영상)	nose	object	57	0.1196
+VideoMAE (영상)	nude	object	59	0.3215
+VideoMAE (영상)	number	object	104	0.1018
+VideoMAE (영상)	ocean	object	93	0.4610
+VideoMAE (영상)	old	object	133	0.2670
+VideoMAE (영상)	older	object	74	0.2266
+VideoMAE (영상)	opponent	object	41	0.5668
+VideoMAE (영상)	opposite	object	45	0.0603
+VideoMAE (영상)	optical	object	51	0.2950
+VideoMAE (영상)	own	object	73	0.0612
+VideoMAE (영상)	owner	object	42	0.2351
+VideoMAE (영상)	pair	object	71	0.0651
+VideoMAE (영상)	pants	object	57	0.0759
+VideoMAE (영상)	park	object	68	0.1721
+VideoMAE (영상)	path	object	51	0.1800
+VideoMAE (영상)	paws	object	81	0.3003
+VideoMAE (영상)	penis	object	57	0.4485
+VideoMAE (영상)	photo	object	43	0.2072
+VideoMAE (영상)	picture	object	127	0.2625
+VideoMAE (영상)	piece	object	248	0.3337
+VideoMAE (영상)	pile	object	53	0.1269
+VideoMAE (영상)	plastic	object	62	0.1286
+VideoMAE (영상)	plate	object	64	0.4599
+VideoMAE (영상)	platform	object	73	0.2765
+VideoMAE (영상)	playing	action	395	0.3376
+VideoMAE (영상)	pool	object	67	0.5633
+VideoMAE (영상)	rail	object	41	0.1309
+VideoMAE (영상)	recording	action	49	0.0374
+VideoMAE (영상)	riding	action	115	0.3330
+VideoMAE (영상)	river	object	76	0.3533
+VideoMAE (영상)	road	object	190	0.5931
+VideoMAE (영상)	room	object	141	0.2481
+VideoMAE (영상)	rope	object	43	0.2798
+VideoMAE (영상)	rotating	action	98	0.2821
+VideoMAE (영상)	row	object	50	0.1087
+VideoMAE (영상)	same	object	136	0.0601
+VideoMAE (영상)	sand	object	46	0.1385
+VideoMAE (영상)	scary	object	40	0.2317
+VideoMAE (영상)	screen	object	67	0.2602
+VideoMAE (영상)	sea	object	146	0.6463
+VideoMAE (영상)	second	object	75	0.1154
+VideoMAE (영상)	series	object	59	0.1713
+VideoMAE (영상)	shaking	action	53	0.0633
+VideoMAE (영상)	sheet	object	45	0.2107
+VideoMAE (영상)	shirtless	object	56	0.2996
+VideoMAE (영상)	shoulder	object	44	0.0391
+VideoMAE (영상)	single	object	49	0.0744
+VideoMAE (영상)	skin	object	71	0.2287
+VideoMAE (영상)	sky	object	143	0.5781
+VideoMAE (영상)	sliding	action	51	0.1403
+VideoMAE (영상)	smaller	object	53	0.0961
+VideoMAE (영상)	smiling	action	155	0.3542
+VideoMAE (영상)	snow	object	49	0.4144
+VideoMAE (영상)	speaking	action	60	0.3936
+VideoMAE (영상)	spinning	action	137	0.3139
+VideoMAE (영상)	sports	object	55	0.4177
+VideoMAE (영상)	square	object	44	0.1270
+VideoMAE (영상)	stage	object	62	0.3430
+VideoMAE (영상)	staring	action	67	0.0465
+VideoMAE (영상)	stomach	object	41	0.1513
+VideoMAE (영상)	stone	object	42	0.1867
+VideoMAE (영상)	strange	object	67	0.0987
+VideoMAE (영상)	street	object	169	0.4631
+VideoMAE (영상)	suit	object	110	0.2911
+VideoMAE (영상)	sun	object	66	0.5206
+VideoMAE (영상)	surface	object	117	0.2171
+VideoMAE (영상)	table	object	131	0.3189
+VideoMAE (영상)	talking	action	108	0.3892
+VideoMAE (영상)	times	object	67	0.1089
+VideoMAE (영상)	touching	action	133	0.1846
+VideoMAE (영상)	toy	object	75	0.2112
+VideoMAE (영상)	track	object	65	0.3696
+VideoMAE (영상)	train	object	60	0.4043
+VideoMAE (영상)	traveling	action	83	0.2754
+VideoMAE (영상)	tree	object	74	0.3952
+VideoMAE (영상)	truck	object	57	0.4689
+VideoMAE (영상)	underwear	object	43	0.2794
+VideoMAE (영상)	using	action	280	0.2459
+VideoMAE (영상)	vagina	object	45	0.5145
+VideoMAE (영상)	vehicle	object	147	0.5775
+VideoMAE (영상)	waiting	action	54	0.1178
+VideoMAE (영상)	walking	action	349	0.3760
+VideoMAE (영상)	wall	object	125	0.2354
+VideoMAE (영상)	watching	action	187	0.1156
+VideoMAE (영상)	water	object	290	0.5634
+VideoMAE (영상)	whole	object	42	0.0343
+VideoMAE (영상)	wild	object	64	0.2381
+VideoMAE (영상)	wind	object	42	0.0722
+VideoMAE (영상)	window	object	51	0.2207
+VideoMAE (영상)	wooden	object	81	0.1306
+VideoMAE (영상)	young	object	522	0.3714
+DINOv2 (이미지)	accident	object	53	0.3876
+DINOv2 (이미지)	air	object	259	0.3210
+DINOv2 (이미지)	american	object	48	0.3559
+DINOv2 (이미지)	animal	object	514	0.5971
+DINOv2 (이미지)	animated	object	129	0.5835
+DINOv2 (이미지)	animation	object	118	0.4695
+DINOv2 (이미지)	approaching	action	74	0.0851
+DINOv2 (이미지)	arms	object	241	0.1743
+DINOv2 (이미지)	athlete	object	42	0.5825
+DINOv2 (이미지)	audience	object	46	0.3929
+DINOv2 (이미지)	ball	object	160	0.5465
+DINOv2 (이미지)	beach	object	57	0.7344
+DINOv2 (이미지)	beautiful	object	153	0.5268
+DINOv2 (이미지)	bed	object	148	0.7758
+DINOv2 (이미지)	belly	object	42	0.1269
+DINOv2 (이미지)	bike	object	50	0.5985
+DINOv2 (이미지)	bird	object	62	0.6101
+DINOv2 (이미지)	biting	action	47	0.0448
+DINOv2 (이미지)	blonde	object	43	0.2433
+DINOv2 (이미지)	blowing	action	74	0.0835
+DINOv2 (이미지)	board	object	69	0.1824
+DINOv2 (이미지)	body	object	274	0.2194
+DINOv2 (이미지)	bouncing	action	45	0.0900
+DINOv2 (이미지)	bowl	object	46	0.1762
+DINOv2 (이미지)	box	object	78	0.3615
+DINOv2 (이미지)	bridge	object	44	0.4131
+DINOv2 (이미지)	bunch	object	87	0.1647
+DINOv2 (이미지)	butt	object	43	0.2740
+DINOv2 (이미지)	camera	object	300	0.2150
+DINOv2 (이미지)	car	object	180	0.7627
+DINOv2 (이미지)	caressing	action	68	0.2679
+DINOv2 (이미지)	carrying	action	91	0.1214
+DINOv2 (이미지)	cartoon	object	53	0.7561
+DINOv2 (이미지)	cat	object	84	0.8205
+DINOv2 (이미지)	causing	action	235	0.1443
+DINOv2 (이미지)	center	object	48	0.0432
+DINOv2 (이미지)	chair	object	70	0.2968
+DINOv2 (이미지)	cheering	action	44	0.2588
+DINOv2 (이미지)	chest	object	52	0.1185
+DINOv2 (이미지)	circular	object	66	0.4074
+DINOv2 (이미지)	city	object	90	0.6942
+DINOv2 (이미지)	cliff	object	53	0.5281
+DINOv2 (이미지)	coming	action	170	0.0833
+DINOv2 (이미지)	container	object	48	0.2826
+DINOv2 (이미지)	corner	object	56	0.1021
+DINOv2 (이미지)	couch	object	42	0.3801
+DINOv2 (이미지)	crawling	action	86	0.1123
+DINOv2 (이미지)	creating	action	91	0.3470
+DINOv2 (이미지)	crossing	action	122	0.4297
+DINOv2 (이미지)	cup	object	42	0.4691
+DINOv2 (이미지)	cute	object	56	0.3321
+DINOv2 (이미지)	dancing	action	94	0.3935
+DINOv2 (이미지)	dead	object	45	0.2190
+DINOv2 (이미지)	deep	object	57	0.1798
+DINOv2 (이미지)	desert	object	42	0.4532
+DINOv2 (이미지)	distance	object	74	0.2518
+DINOv2 (이미지)	dog	object	179	0.8577
+DINOv2 (이미지)	door	object	73	0.3686
+DINOv2 (이미지)	dragging	action	52	0.0374
+DINOv2 (이미지)	driving	action	89	0.4389
+DINOv2 (이미지)	driver	object	56	0.4209
+DINOv2 (이미지)	eating	action	121	0.2154
+DINOv2 (이미지)	edge	object	110	0.4449
+DINOv2 (이미지)	elderly	object	55	0.4663
+DINOv2 (이미지)	embracing	action	44	0.2723
+DINOv2 (이미지)	enjoying	action	156	0.2045
+DINOv2 (이미지)	everything	action	48	0.1407
+DINOv2 (이미지)	eyes	object	117	0.2557
+DINOv2 (이미지)	facing	action	69	0.2227
+DINOv2 (이미지)	face	object	384	0.3519
+DINOv2 (이미지)	father	object	51	0.3225
+DINOv2 (이미지)	feeding	action	44	0.0932
+DINOv2 (이미지)	feet	object	130	0.1828
+DINOv2 (이미지)	few	object	76	0.0498
+DINOv2 (이미지)	field	object	151	0.4986
+DINOv2 (이미지)	fighting	action	68	0.2014
+DINOv2 (이미지)	filming	action	132	0.0668
+DINOv2 (이미지)	finger	object	111	0.3483
+DINOv2 (이미지)	floating	action	66	0.1119
+DINOv2 (이미지)	floor	object	235	0.3868
+DINOv2 (이미지)	flying	action	179	0.3864
+DINOv2 (이미지)	following	action	68	0.0220
+DINOv2 (이미지)	foot	object	46	0.0823
+DINOv2 (이미지)	forest	object	68	0.3653
+DINOv2 (이미지)	friend	object	73	0.1958
+DINOv2 (이미지)	funny	object	44	0.2506
+DINOv2 (이미지)	genitals	object	45	0.2795
+DINOv2 (이미지)	giant	object	75	0.1995
+DINOv2 (이미지)	giving	action	109	0.2330
+DINOv2 (이미지)	glass	object	113	0.3266
+DINOv2 (이미지)	going	action	179	0.1205
+DINOv2 (이미지)	grass	object	72	0.2451
+DINOv2 (이미지)	ground	object	395	0.3897
+DINOv2 (이미지)	group	object	273	0.4016
+DINOv2 (이미지)	hand	object	616	0.3760
+DINOv2 (이미지)	hanging	action	92	0.3525
+DINOv2 (이미지)	head	object	379	0.2362
+DINOv2 (이미지)	hill	object	68	0.3748
+DINOv2 (이미지)	hole	object	68	0.1654
+DINOv2 (이미지)	house	object	109	0.2191
+DINOv2 (이미지)	hugging	action	121	0.4407
+DINOv2 (이미지)	human	object	178	0.3056
+DINOv2 (이미지)	ice	object	56	0.3711
+DINOv2 (이미지)	insect	object	43	0.4251
+DINOv2 (이미지)	kind	object	61	0.0643
+DINOv2 (이미지)	kissing	action	131	0.6308
+DINOv2 (이미지)	lake	object	45	0.3539
+DINOv2 (이미지)	lap	object	42	0.3238
+DINOv2 (이미지)	larger	object	57	0.1768
+DINOv2 (이미지)	laughing	action	82	0.2297
+DINOv2 (이미지)	laying	action	84	0.1604
+DINOv2 (이미지)	leaving	action	57	0.0822
+DINOv2 (이미지)	ledge	object	42	0.3294
+DINOv2 (이미지)	legs	object	234	0.1682
+DINOv2 (이미지)	licking	action	49	0.1835
+DINOv2 (이미지)	lips	object	47	0.3868
+DINOv2 (이미지)	live	object	42	0.4172
+DINOv2 (이미지)	lying	action	257	0.5408
+DINOv2 (이미지)	metal	object	123	0.3889
+DINOv2 (이미지)	middle	object	220	0.1174
+DINOv2 (이미지)	mother	object	67	0.3172
+DINOv2 (이미지)	mountain	object	103	0.7348
+DINOv2 (이미지)	mouth	object	220	0.3544
+DINOv2 (이미지)	naked	object	130	0.6268
+DINOv2 (이미지)	neck	object	73	0.1275
+DINOv2 (이미지)	nose	object	57	0.1478
+DINOv2 (이미지)	nude	object	59	0.4202
+DINOv2 (이미지)	number	object	104	0.1433
+DINOv2 (이미지)	ocean	object	93	0.5406
+DINOv2 (이미지)	old	object	133	0.4672
+DINOv2 (이미지)	older	object	74	0.3134
+DINOv2 (이미지)	opponent	object	41	0.5246
+DINOv2 (이미지)	opposite	object	45	0.0455
+DINOv2 (이미지)	optical	object	51	0.3678
+DINOv2 (이미지)	own	object	73	0.0149
+DINOv2 (이미지)	owner	object	42	0.1403
+DINOv2 (이미지)	pair	object	71	0.0987
+DINOv2 (이미지)	pants	object	57	0.1132
+DINOv2 (이미지)	park	object	68	0.2940
+DINOv2 (이미지)	path	object	51	0.2628
+DINOv2 (이미지)	paws	object	81	0.4356
+DINOv2 (이미지)	penis	object	57	0.4533
+DINOv2 (이미지)	photo	object	43	0.3303
+DINOv2 (이미지)	picture	object	127	0.2805
+DINOv2 (이미지)	piece	object	248	0.3876
+DINOv2 (이미지)	pile	object	53	0.2017
+DINOv2 (이미지)	plastic	object	62	0.2933
+DINOv2 (이미지)	plate	object	64	0.5226
+DINOv2 (이미지)	platform	object	73	0.5161
+DINOv2 (이미지)	playing	action	395	0.3735
+DINOv2 (이미지)	pool	object	67	0.6228
+DINOv2 (이미지)	rail	object	41	0.1906
+DINOv2 (이미지)	recording	action	49	-0.0223
+DINOv2 (이미지)	riding	action	115	0.3949
+DINOv2 (이미지)	river	object	76	0.4594
+DINOv2 (이미지)	road	object	190	0.6716
+DINOv2 (이미지)	room	object	141	0.3063
+DINOv2 (이미지)	rope	object	43	0.1595
+DINOv2 (이미지)	rotating	action	98	0.2428
+DINOv2 (이미지)	row	object	50	0.1840
+DINOv2 (이미지)	same	object	136	0.0824
+DINOv2 (이미지)	sand	object	46	0.3591
+DINOv2 (이미지)	scary	object	40	0.1883
+DINOv2 (이미지)	screen	object	67	0.1537
+DINOv2 (이미지)	sea	object	146	0.6831
+DINOv2 (이미지)	second	object	75	0.0794
+DINOv2 (이미지)	series	object	59	0.2511
+DINOv2 (이미지)	shaking	action	53	0.1545
+DINOv2 (이미지)	sheet	object	45	0.2365
+DINOv2 (이미지)	shirtless	object	56	0.3799
+DINOv2 (이미지)	shoulder	object	44	0.0689
+DINOv2 (이미지)	single	object	49	0.1525
+DINOv2 (이미지)	skin	object	71	0.4182
+DINOv2 (이미지)	sky	object	143	0.6502
+DINOv2 (이미지)	sliding	action	51	0.0551
+DINOv2 (이미지)	smaller	object	53	0.1044
+DINOv2 (이미지)	smiling	action	155	0.3422
+DINOv2 (이미지)	snow	object	49	0.6547
+DINOv2 (이미지)	speaking	action	60	0.4950
+DINOv2 (이미지)	spinning	action	137	0.3302
+DINOv2 (이미지)	sports	object	55	0.4242
+DINOv2 (이미지)	square	object	44	0.3495
+DINOv2 (이미지)	stage	object	62	0.5399
+DINOv2 (이미지)	staring	action	67	0.2890
+DINOv2 (이미지)	stomach	object	41	0.1127
+DINOv2 (이미지)	stone	object	42	0.1427
+DINOv2 (이미지)	strange	object	67	0.1279
+DINOv2 (이미지)	street	object	169	0.5904
+DINOv2 (이미지)	suit	object	110	0.3447
+DINOv2 (이미지)	sun	object	66	0.6241
+DINOv2 (이미지)	surface	object	117	0.3477
+DINOv2 (이미지)	table	object	131	0.4569
+DINOv2 (이미지)	talking	action	108	0.3938
+DINOv2 (이미지)	times	object	67	0.0731
+DINOv2 (이미지)	touching	action	133	0.1833
+DINOv2 (이미지)	toy	object	75	0.3335
+DINOv2 (이미지)	track	object	65	0.6549
+DINOv2 (이미지)	train	object	60	0.7710
+DINOv2 (이미지)	traveling	action	83	0.2456
+DINOv2 (이미지)	tree	object	74	0.3603
+DINOv2 (이미지)	truck	object	57	0.5205
+DINOv2 (이미지)	underwear	object	43	0.3887
+DINOv2 (이미지)	using	action	280	0.3256
+DINOv2 (이미지)	vagina	object	45	0.5751
+DINOv2 (이미지)	vehicle	object	147	0.5684
+DINOv2 (이미지)	waiting	action	54	0.1948
+DINOv2 (이미지)	walking	action	349	0.3019
+DINOv2 (이미지)	wall	object	125	0.3293
+DINOv2 (이미지)	watching	action	187	0.0971
+DINOv2 (이미지)	water	object	290	0.5722
+DINOv2 (이미지)	whole	object	42	0.1197
+DINOv2 (이미지)	wild	object	64	0.2776
+DINOv2 (이미지)	wind	object	42	0.0635
+DINOv2 (이미지)	window	object	51	0.1705
+DINOv2 (이미지)	wooden	object	81	0.1862
+DINOv2 (이미지)	young	object	522	0.5045
+CLIP (이미지)	accident	object	53	0.4271
+CLIP (이미지)	air	object	259	0.3373
+CLIP (이미지)	american	object	48	0.3675
+CLIP (이미지)	animal	object	514	0.6535
+CLIP (이미지)	animated	object	129	0.5486
+CLIP (이미지)	animation	object	118	0.5052
+CLIP (이미지)	approaching	action	74	0.1783
+CLIP (이미지)	arms	object	241	0.2495
+CLIP (이미지)	athlete	object	42	0.5731
+CLIP (이미지)	audience	object	46	0.2998
+CLIP (이미지)	ball	object	160	0.5847
+CLIP (이미지)	beach	object	57	0.5706
+CLIP (이미지)	beautiful	object	153	0.5862
+CLIP (이미지)	bed	object	148	0.6399
+CLIP (이미지)	belly	object	42	0.1116
+CLIP (이미지)	bike	object	50	0.5745
+CLIP (이미지)	bird	object	62	0.6172
+CLIP (이미지)	biting	action	47	0.0031
+CLIP (이미지)	blonde	object	43	0.2919
+CLIP (이미지)	blowing	action	74	0.1569
+CLIP (이미지)	board	object	69	0.2227
+CLIP (이미지)	body	object	274	0.2581
+CLIP (이미지)	bouncing	action	45	0.1195
+CLIP (이미지)	bowl	object	46	0.2687
+CLIP (이미지)	box	object	78	0.3582
+CLIP (이미지)	bridge	object	44	0.2586
+CLIP (이미지)	bunch	object	87	0.2288
+CLIP (이미지)	butt	object	43	0.2985
+CLIP (이미지)	camera	object	300	0.2753
+CLIP (이미지)	car	object	180	0.7624
+CLIP (이미지)	caressing	action	68	0.2950
+CLIP (이미지)	carrying	action	91	0.2080
+CLIP (이미지)	cartoon	object	53	0.6547
+CLIP (이미지)	cat	object	84	0.8038
+CLIP (이미지)	causing	action	235	0.1551
+CLIP (이미지)	center	object	48	0.0686
+CLIP (이미지)	chair	object	70	0.1709
+CLIP (이미지)	cheering	action	44	0.2961
+CLIP (이미지)	chest	object	52	0.1108
+CLIP (이미지)	circular	object	66	0.4265
+CLIP (이미지)	city	object	90	0.5805
+CLIP (이미지)	cliff	object	53	0.4721
+CLIP (이미지)	coming	action	170	0.1823
+CLIP (이미지)	container	object	48	0.2055
+CLIP (이미지)	corner	object	56	0.1233
+CLIP (이미지)	couch	object	42	0.2853
+CLIP (이미지)	crawling	action	86	0.1855
+CLIP (이미지)	creating	action	91	0.3543
+CLIP (이미지)	crossing	action	122	0.4237
+CLIP (이미지)	cup	object	42	0.4353
+CLIP (이미지)	cute	object	56	0.3199
+CLIP (이미지)	dancing	action	94	0.5571
+CLIP (이미지)	dead	object	45	0.2975
+CLIP (이미지)	deep	object	57	0.3573
+CLIP (이미지)	desert	object	42	0.3566
+CLIP (이미지)	distance	object	74	0.2745
+CLIP (이미지)	dog	object	179	0.8419
+CLIP (이미지)	door	object	73	0.3982
+CLIP (이미지)	dragging	action	52	0.0944
+CLIP (이미지)	driving	action	89	0.4423
+CLIP (이미지)	driver	object	56	0.3630
+CLIP (이미지)	eating	action	121	0.2609
+CLIP (이미지)	edge	object	110	0.4816
+CLIP (이미지)	elderly	object	55	0.6603
+CLIP (이미지)	embracing	action	44	0.2527
+CLIP (이미지)	enjoying	action	156	0.3093
+CLIP (이미지)	everything	action	48	0.1665
+CLIP (이미지)	eyes	object	117	0.3484
+CLIP (이미지)	facing	action	69	0.0922
+CLIP (이미지)	face	object	384	0.4286
+CLIP (이미지)	father	object	51	0.4066
+CLIP (이미지)	feeding	action	44	0.2048
+CLIP (이미지)	feet	object	130	0.2455
+CLIP (이미지)	few	object	76	0.0857
+CLIP (이미지)	field	object	151	0.4777
+CLIP (이미지)	fighting	action	68	0.3038
+CLIP (이미지)	filming	action	132	0.1721
+CLIP (이미지)	finger	object	111	0.3616
+CLIP (이미지)	floating	action	66	0.1172
+CLIP (이미지)	floor	object	235	0.3673
+CLIP (이미지)	flying	action	179	0.3497
+CLIP (이미지)	following	action	68	0.0413
+CLIP (이미지)	foot	object	46	0.0739
+CLIP (이미지)	forest	object	68	0.4196
+CLIP (이미지)	friend	object	73	0.2919
+CLIP (이미지)	funny	object	44	0.3154
+CLIP (이미지)	genitals	object	45	0.3095
+CLIP (이미지)	giant	object	75	0.2673
+CLIP (이미지)	giving	action	109	0.2042
+CLIP (이미지)	glass	object	113	0.3725
+CLIP (이미지)	going	action	179	0.1631
+CLIP (이미지)	grass	object	72	0.3094
+CLIP (이미지)	ground	object	395	0.4002
+CLIP (이미지)	group	object	273	0.5359
+CLIP (이미지)	hand	object	616	0.4893
+CLIP (이미지)	hanging	action	92	0.3596
+CLIP (이미지)	head	object	379	0.3029
+CLIP (이미지)	hill	object	68	0.3405
+CLIP (이미지)	hole	object	68	0.1756
+CLIP (이미지)	house	object	109	0.2792
+CLIP (이미지)	hugging	action	121	0.5277
+CLIP (이미지)	human	object	178	0.3501
+CLIP (이미지)	ice	object	56	0.3839
+CLIP (이미지)	insect	object	43	0.4622
+CLIP (이미지)	kind	object	61	0.1052
+CLIP (이미지)	kissing	action	131	0.6847
+CLIP (이미지)	lake	object	45	0.3376
+CLIP (이미지)	lap	object	42	0.1934
+CLIP (이미지)	larger	object	57	0.1567
+CLIP (이미지)	laughing	action	82	0.3637
+CLIP (이미지)	laying	action	84	0.1407
+CLIP (이미지)	leaving	action	57	0.0817
+CLIP (이미지)	ledge	object	42	0.3632
+CLIP (이미지)	legs	object	234	0.2881
+CLIP (이미지)	licking	action	49	0.3376
+CLIP (이미지)	lips	object	47	0.3078
+CLIP (이미지)	live	object	42	0.4130
+CLIP (이미지)	lying	action	257	0.5188
+CLIP (이미지)	metal	object	123	0.4210
+CLIP (이미지)	middle	object	220	0.1718
+CLIP (이미지)	mother	object	67	0.4526
+CLIP (이미지)	mountain	object	103	0.6884
+CLIP (이미지)	mouth	object	220	0.4022
+CLIP (이미지)	naked	object	130	0.6889
+CLIP (이미지)	neck	object	73	0.1650
+CLIP (이미지)	nose	object	57	0.1622
+CLIP (이미지)	nude	object	59	0.4625
+CLIP (이미지)	number	object	104	0.2681
+CLIP (이미지)	ocean	object	93	0.6165
+CLIP (이미지)	old	object	133	0.6931
+CLIP (이미지)	older	object	74	0.4498
+CLIP (이미지)	opponent	object	41	0.5608
+CLIP (이미지)	opposite	object	45	0.0134
+CLIP (이미지)	optical	object	51	0.3924
+CLIP (이미지)	own	object	73	0.1123
+CLIP (이미지)	owner	object	42	0.1966
+CLIP (이미지)	pair	object	71	0.0951
+CLIP (이미지)	pants	object	57	0.1631
+CLIP (이미지)	park	object	68	0.2354
+CLIP (이미지)	path	object	51	0.2030
+CLIP (이미지)	paws	object	81	0.3873
+CLIP (이미지)	penis	object	57	0.6379
+CLIP (이미지)	photo	object	43	0.3467
+CLIP (이미지)	picture	object	127	0.3407
+CLIP (이미지)	piece	object	248	0.4160
+CLIP (이미지)	pile	object	53	0.1685
+CLIP (이미지)	plastic	object	62	0.2419
+CLIP (이미지)	plate	object	64	0.4816
+CLIP (이미지)	platform	object	73	0.3486
+CLIP (이미지)	playing	action	395	0.3952
+CLIP (이미지)	pool	object	67	0.5143
+CLIP (이미지)	rail	object	41	0.2006
+CLIP (이미지)	recording	action	49	0.0386
+CLIP (이미지)	riding	action	115	0.4591
+CLIP (이미지)	river	object	76	0.4577
+CLIP (이미지)	road	object	190	0.6305
+CLIP (이미지)	room	object	141	0.2621
+CLIP (이미지)	rope	object	43	0.1745
+CLIP (이미지)	rotating	action	98	0.3668
+CLIP (이미지)	row	object	50	0.1893
+CLIP (이미지)	same	object	136	0.1464
+CLIP (이미지)	sand	object	46	0.3194
+CLIP (이미지)	scary	object	40	0.3499
+CLIP (이미지)	screen	object	67	0.2786
+CLIP (이미지)	sea	object	146	0.7487
+CLIP (이미지)	second	object	75	0.0878
+CLIP (이미지)	series	object	59	0.2383
+CLIP (이미지)	shaking	action	53	0.1547
+CLIP (이미지)	sheet	object	45	0.2343
+CLIP (이미지)	shirtless	object	56	0.3493
+CLIP (이미지)	shoulder	object	44	0.0248
+CLIP (이미지)	single	object	49	0.1323
+CLIP (이미지)	skin	object	71	0.3605
+CLIP (이미지)	sky	object	143	0.6134
+CLIP (이미지)	sliding	action	51	0.1223
+CLIP (이미지)	smaller	object	53	0.1678
+CLIP (이미지)	smiling	action	155	0.4161
+CLIP (이미지)	snow	object	49	0.6409
+CLIP (이미지)	speaking	action	60	0.5179
+CLIP (이미지)	spinning	action	137	0.3449
+CLIP (이미지)	sports	object	55	0.4275
+CLIP (이미지)	square	object	44	0.3214
+CLIP (이미지)	stage	object	62	0.3437
+CLIP (이미지)	staring	action	67	0.2439
+CLIP (이미지)	stomach	object	41	0.1600
+CLIP (이미지)	stone	object	42	0.2367
+CLIP (이미지)	strange	object	67	0.2136
+CLIP (이미지)	street	object	169	0.5628
+CLIP (이미지)	suit	object	110	0.3187
+CLIP (이미지)	sun	object	66	0.6200
+CLIP (이미지)	surface	object	117	0.2675
+CLIP (이미지)	table	object	131	0.4205
+CLIP (이미지)	talking	action	108	0.3979
+CLIP (이미지)	times	object	67	0.1219
+CLIP (이미지)	touching	action	133	0.2043
+CLIP (이미지)	toy	object	75	0.3302
+CLIP (이미지)	track	object	65	0.5312
+CLIP (이미지)	train	object	60	0.6683
+CLIP (이미지)	traveling	action	83	0.2733
+CLIP (이미지)	tree	object	74	0.4123
+CLIP (이미지)	truck	object	57	0.4588
+CLIP (이미지)	underwear	object	43	0.3702
+CLIP (이미지)	using	action	280	0.3343
+CLIP (이미지)	vagina	object	45	0.6443
+CLIP (이미지)	vehicle	object	147	0.5704
+CLIP (이미지)	waiting	action	54	0.1196
+CLIP (이미지)	walking	action	349	0.3783
+CLIP (이미지)	wall	object	125	0.3407
+CLIP (이미지)	watching	action	187	0.2154
+CLIP (이미지)	water	object	290	0.6132
+CLIP (이미지)	whole	object	42	0.0679
+CLIP (이미지)	wild	object	64	0.3457
+CLIP (이미지)	wind	object	42	0.0627
+CLIP (이미지)	window	object	51	0.2354
+CLIP (이미지)	wooden	object	81	0.2378
+CLIP (이미지)	young	object	522	0.5626
+VGG19 fc8 (이미지)	accident	object	53	0.2576
+VGG19 fc8 (이미지)	air	object	259	0.1763
+VGG19 fc8 (이미지)	american	object	48	0.1349
+VGG19 fc8 (이미지)	animal	object	514	0.4630
+VGG19 fc8 (이미지)	animated	object	129	0.3655
+VGG19 fc8 (이미지)	animation	object	118	0.3075
+VGG19 fc8 (이미지)	approaching	action	74	0.0659
+VGG19 fc8 (이미지)	arms	object	241	0.0622
+VGG19 fc8 (이미지)	athlete	object	42	0.2607
+VGG19 fc8 (이미지)	audience	object	46	0.2543
+VGG19 fc8 (이미지)	ball	object	160	0.3865
+VGG19 fc8 (이미지)	beach	object	57	0.3100
+VGG19 fc8 (이미지)	beautiful	object	153	0.3875
+VGG19 fc8 (이미지)	bed	object	148	0.4897
+VGG19 fc8 (이미지)	belly	object	42	0.0581
+VGG19 fc8 (이미지)	bike	object	50	0.2096
+VGG19 fc8 (이미지)	bird	object	62	0.3441
+VGG19 fc8 (이미지)	biting	action	47	0.0155
+VGG19 fc8 (이미지)	blonde	object	43	0.1665
+VGG19 fc8 (이미지)	blowing	action	74	0.0511
+VGG19 fc8 (이미지)	board	object	69	0.1530
+VGG19 fc8 (이미지)	body	object	274	0.1090
+VGG19 fc8 (이미지)	bouncing	action	45	0.0443
+VGG19 fc8 (이미지)	bowl	object	46	0.2822
+VGG19 fc8 (이미지)	box	object	78	0.1090
+VGG19 fc8 (이미지)	bridge	object	44	0.1337
+VGG19 fc8 (이미지)	bunch	object	87	0.0730
+VGG19 fc8 (이미지)	butt	object	43	0.0907
+VGG19 fc8 (이미지)	camera	object	300	0.1018
+VGG19 fc8 (이미지)	car	object	180	0.5317
+VGG19 fc8 (이미지)	caressing	action	68	0.1952
+VGG19 fc8 (이미지)	carrying	action	91	0.0797
+VGG19 fc8 (이미지)	cartoon	object	53	0.4414
+VGG19 fc8 (이미지)	cat	object	84	0.4065
+VGG19 fc8 (이미지)	causing	action	235	0.0786
+VGG19 fc8 (이미지)	center	object	48	0.0613
+VGG19 fc8 (이미지)	chair	object	70	0.1449
+VGG19 fc8 (이미지)	cheering	action	44	0.2376
+VGG19 fc8 (이미지)	chest	object	52	0.0492
+VGG19 fc8 (이미지)	circular	object	66	0.3240
+VGG19 fc8 (이미지)	city	object	90	0.2977
+VGG19 fc8 (이미지)	cliff	object	53	0.3270
+VGG19 fc8 (이미지)	coming	action	170	0.0705
+VGG19 fc8 (이미지)	container	object	48	0.0745
+VGG19 fc8 (이미지)	corner	object	56	0.0827
+VGG19 fc8 (이미지)	couch	object	42	0.1997
+VGG19 fc8 (이미지)	crawling	action	86	0.0859
+VGG19 fc8 (이미지)	creating	action	91	0.2894
+VGG19 fc8 (이미지)	crossing	action	122	0.2992
+VGG19 fc8 (이미지)	cup	object	42	0.3208
+VGG19 fc8 (이미지)	cute	object	56	0.3250
+VGG19 fc8 (이미지)	dancing	action	94	0.2349
+VGG19 fc8 (이미지)	dead	object	45	0.1765
+VGG19 fc8 (이미지)	deep	object	57	0.1125
+VGG19 fc8 (이미지)	desert	object	42	0.1568
+VGG19 fc8 (이미지)	distance	object	74	0.1813
+VGG19 fc8 (이미지)	dog	object	179	0.5308
+VGG19 fc8 (이미지)	door	object	73	0.2390
+VGG19 fc8 (이미지)	dragging	action	52	0.0571
+VGG19 fc8 (이미지)	driving	action	89	0.2908
+VGG19 fc8 (이미지)	driver	object	56	0.2668
+VGG19 fc8 (이미지)	eating	action	121	0.1315
+VGG19 fc8 (이미지)	edge	object	110	0.2447
+VGG19 fc8 (이미지)	elderly	object	55	0.1793
+VGG19 fc8 (이미지)	embracing	action	44	0.1119
+VGG19 fc8 (이미지)	enjoying	action	156	0.2081
+VGG19 fc8 (이미지)	everything	action	48	0.1032
+VGG19 fc8 (이미지)	eyes	object	117	0.2045
+VGG19 fc8 (이미지)	facing	action	69	0.1019
+VGG19 fc8 (이미지)	face	object	384	0.2763
+VGG19 fc8 (이미지)	father	object	51	0.1408
+VGG19 fc8 (이미지)	feeding	action	44	0.1052
+VGG19 fc8 (이미지)	feet	object	130	0.0887
+VGG19 fc8 (이미지)	few	object	76	0.0263
+VGG19 fc8 (이미지)	field	object	151	0.3985
+VGG19 fc8 (이미지)	fighting	action	68	0.0459
+VGG19 fc8 (이미지)	filming	action	132	0.1241
+VGG19 fc8 (이미지)	finger	object	111	0.1522
+VGG19 fc8 (이미지)	floating	action	66	0.1108
+VGG19 fc8 (이미지)	floor	object	235	0.2084
+VGG19 fc8 (이미지)	flying	action	179	0.1608
+VGG19 fc8 (이미지)	following	action	68	0.0405
+VGG19 fc8 (이미지)	foot	object	46	-0.0117
+VGG19 fc8 (이미지)	forest	object	68	0.2864
+VGG19 fc8 (이미지)	friend	object	73	0.1171
+VGG19 fc8 (이미지)	funny	object	44	0.2257
+VGG19 fc8 (이미지)	genitals	object	45	0.2394
+VGG19 fc8 (이미지)	giant	object	75	0.1225
+VGG19 fc8 (이미지)	giving	action	109	0.1286
+VGG19 fc8 (이미지)	glass	object	113	0.1869
+VGG19 fc8 (이미지)	going	action	179	0.1007
+VGG19 fc8 (이미지)	grass	object	72	0.3009
+VGG19 fc8 (이미지)	ground	object	395	0.2580
+VGG19 fc8 (이미지)	group	object	273	0.2942
+VGG19 fc8 (이미지)	hand	object	616	0.2640
+VGG19 fc8 (이미지)	hanging	action	92	0.0974
+VGG19 fc8 (이미지)	head	object	379	0.1530
+VGG19 fc8 (이미지)	hill	object	68	0.2429
+VGG19 fc8 (이미지)	hole	object	68	0.0740
+VGG19 fc8 (이미지)	house	object	109	0.1059
+VGG19 fc8 (이미지)	hugging	action	121	0.1870
+VGG19 fc8 (이미지)	human	object	178	0.1479
+VGG19 fc8 (이미지)	ice	object	56	0.1255
+VGG19 fc8 (이미지)	insect	object	43	0.3096
+VGG19 fc8 (이미지)	kind	object	61	0.1063
+VGG19 fc8 (이미지)	kissing	action	131	0.3677
+VGG19 fc8 (이미지)	lake	object	45	0.2613
+VGG19 fc8 (이미지)	lap	object	42	0.1094
+VGG19 fc8 (이미지)	larger	object	57	0.1217
+VGG19 fc8 (이미지)	laughing	action	82	0.1820
+VGG19 fc8 (이미지)	laying	action	84	0.0950
+VGG19 fc8 (이미지)	leaving	action	57	0.0328
+VGG19 fc8 (이미지)	ledge	object	42	0.1226
+VGG19 fc8 (이미지)	legs	object	234	0.1131
+VGG19 fc8 (이미지)	licking	action	49	0.1589
+VGG19 fc8 (이미지)	lips	object	47	0.2000
+VGG19 fc8 (이미지)	live	object	42	0.2627
+VGG19 fc8 (이미지)	lying	action	257	0.3743
+VGG19 fc8 (이미지)	metal	object	123	0.2329
+VGG19 fc8 (이미지)	middle	object	220	0.0982
+VGG19 fc8 (이미지)	mother	object	67	0.1887
+VGG19 fc8 (이미지)	mountain	object	103	0.4970
+VGG19 fc8 (이미지)	mouth	object	220	0.2359
+VGG19 fc8 (이미지)	naked	object	130	0.4757
+VGG19 fc8 (이미지)	neck	object	73	0.1460
+VGG19 fc8 (이미지)	nose	object	57	0.0785
+VGG19 fc8 (이미지)	nude	object	59	0.2863
+VGG19 fc8 (이미지)	number	object	104	0.1337
+VGG19 fc8 (이미지)	ocean	object	93	0.3653
+VGG19 fc8 (이미지)	old	object	133	0.2001
+VGG19 fc8 (이미지)	older	object	74	0.2191
+VGG19 fc8 (이미지)	opponent	object	41	0.3533
+VGG19 fc8 (이미지)	opposite	object	45	0.0182
+VGG19 fc8 (이미지)	optical	object	51	0.2454
+VGG19 fc8 (이미지)	own	object	73	0.0478
+VGG19 fc8 (이미지)	owner	object	42	0.1167
+VGG19 fc8 (이미지)	pair	object	71	0.0467
+VGG19 fc8 (이미지)	pants	object	57	0.0924
+VGG19 fc8 (이미지)	park	object	68	0.1668
+VGG19 fc8 (이미지)	path	object	51	0.1456
+VGG19 fc8 (이미지)	paws	object	81	0.2844
+VGG19 fc8 (이미지)	penis	object	57	0.3447
+VGG19 fc8 (이미지)	photo	object	43	0.1371
+VGG19 fc8 (이미지)	picture	object	127	0.1739
+VGG19 fc8 (이미지)	piece	object	248	0.3136
+VGG19 fc8 (이미지)	pile	object	53	0.0609
+VGG19 fc8 (이미지)	plastic	object	62	0.1100
+VGG19 fc8 (이미지)	plate	object	64	0.3832
+VGG19 fc8 (이미지)	platform	object	73	0.1626
+VGG19 fc8 (이미지)	playing	action	395	0.2188
+VGG19 fc8 (이미지)	pool	object	67	0.2131
+VGG19 fc8 (이미지)	rail	object	41	0.1160
+VGG19 fc8 (이미지)	recording	action	49	0.0320
+VGG19 fc8 (이미지)	riding	action	115	0.2057
+VGG19 fc8 (이미지)	river	object	76	0.3152
+VGG19 fc8 (이미지)	road	object	190	0.4225
+VGG19 fc8 (이미지)	room	object	141	0.2371
+VGG19 fc8 (이미지)	rope	object	43	0.0565
+VGG19 fc8 (이미지)	rotating	action	98	0.1667
+VGG19 fc8 (이미지)	row	object	50	0.0859
+VGG19 fc8 (이미지)	same	object	136	0.0236
+VGG19 fc8 (이미지)	sand	object	46	0.1722
+VGG19 fc8 (이미지)	scary	object	40	0.1773
+VGG19 fc8 (이미지)	screen	object	67	0.1407
+VGG19 fc8 (이미지)	sea	object	146	0.4685
+VGG19 fc8 (이미지)	second	object	75	0.1158
+VGG19 fc8 (이미지)	series	object	59	0.1756
+VGG19 fc8 (이미지)	shaking	action	53	0.0179
+VGG19 fc8 (이미지)	sheet	object	45	0.1424
+VGG19 fc8 (이미지)	shirtless	object	56	0.2028
+VGG19 fc8 (이미지)	shoulder	object	44	0.0200
+VGG19 fc8 (이미지)	single	object	49	0.0923
+VGG19 fc8 (이미지)	skin	object	71	0.1823
+VGG19 fc8 (이미지)	sky	object	143	0.3967
+VGG19 fc8 (이미지)	sliding	action	51	0.0458
+VGG19 fc8 (이미지)	smaller	object	53	0.0503
+VGG19 fc8 (이미지)	smiling	action	155	0.2935
+VGG19 fc8 (이미지)	snow	object	49	0.4290
+VGG19 fc8 (이미지)	speaking	action	60	0.2997
+VGG19 fc8 (이미지)	spinning	action	137	0.2177
+VGG19 fc8 (이미지)	sports	object	55	0.2330
+VGG19 fc8 (이미지)	square	object	44	0.2018
+VGG19 fc8 (이미지)	stage	object	62	0.2164
+VGG19 fc8 (이미지)	staring	action	67	0.0542
+VGG19 fc8 (이미지)	stomach	object	41	0.0384
+VGG19 fc8 (이미지)	stone	object	42	0.1201
+VGG19 fc8 (이미지)	strange	object	67	0.0666
+VGG19 fc8 (이미지)	street	object	169	0.3805
+VGG19 fc8 (이미지)	suit	object	110	0.2927
+VGG19 fc8 (이미지)	sun	object	66	0.4274
+VGG19 fc8 (이미지)	surface	object	117	0.1643
+VGG19 fc8 (이미지)	table	object	131	0.2553
+VGG19 fc8 (이미지)	talking	action	108	0.2772
+VGG19 fc8 (이미지)	times	object	67	0.0508
+VGG19 fc8 (이미지)	touching	action	133	0.1271
+VGG19 fc8 (이미지)	toy	object	75	0.1375
+VGG19 fc8 (이미지)	track	object	65	0.2544
+VGG19 fc8 (이미지)	train	object	60	0.2900
+VGG19 fc8 (이미지)	traveling	action	83	0.1906
+VGG19 fc8 (이미지)	tree	object	74	0.3473
+VGG19 fc8 (이미지)	truck	object	57	0.3116
+VGG19 fc8 (이미지)	underwear	object	43	0.2002
+VGG19 fc8 (이미지)	using	action	280	0.2067
+VGG19 fc8 (이미지)	vagina	object	45	0.4052
+VGG19 fc8 (이미지)	vehicle	object	147	0.4309
+VGG19 fc8 (이미지)	waiting	action	54	0.0901
+VGG19 fc8 (이미지)	walking	action	349	0.2481
+VGG19 fc8 (이미지)	wall	object	125	0.1904
+VGG19 fc8 (이미지)	watching	action	187	0.0857
+VGG19 fc8 (이미지)	water	object	290	0.4029
+VGG19 fc8 (이미지)	whole	object	42	0.0556
+VGG19 fc8 (이미지)	wild	object	64	0.2743
+VGG19 fc8 (이미지)	wind	object	42	0.0393
+VGG19 fc8 (이미지)	window	object	51	0.0887
+VGG19 fc8 (이미지)	wooden	object	81	0.0798
+VGG19 fc8 (이미지)	young	object	522	0.3521

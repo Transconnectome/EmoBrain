@@ -1,0 +1,127 @@
+model	fold	version	r	weight_decay	lr	epochs	val_r	block	kind	feature	at_cap
+Stimulus Model	1	all_ranks	0	0.001	0.001	150	0.533973				False
+Stimulus Model	1	additive	0	0.001	0.001	150	0.533973				False
+Stimulus Model	1	interaction	1	0.0001	0.001	37	0.399595				False
+Stimulus Model	1	nested_oof	0	0.01	0.001	189	0.523929				False
+Stimulus Model	2	all_ranks	0	0.01	0.001	150	0.542491				False
+Stimulus Model	2	additive	0	0.01	0.001	150	0.542491				False
+Stimulus Model	2	interaction	1	0.0001	0.001	37	0.407401				False
+Stimulus Model	2	nested_oof	0	0.0001	0.001	204	0.535552				False
+Stimulus Model	3	all_ranks	0	0.01	0.001	163	0.540837				False
+Stimulus Model	3	additive	0	0.01	0.001	163	0.540837				False
+Stimulus Model	3	interaction	1	0.0001	0.001	38	0.408264				False
+Stimulus Model	3	nested_oof	0	0.0001	0.001	199	0.524291				False
+Stimulus Model	4	all_ranks	0	0.0001	0.001	157	0.529701				False
+Stimulus Model	4	additive	0	0.0001	0.001	157	0.529701				False
+Stimulus Model	4	interaction	1	0.001	0.001	40	0.405796				False
+Stimulus Model	4	nested_oof	0	0.0001	0.001	200	0.517531				False
+Stimulus Model	5	all_ranks	0	0.0001	0.001	166	0.523721				False
+Stimulus Model	5	additive	0	0.0001	0.001	166	0.523721				False
+Stimulus Model	5	interaction	1	0.001	0.001	46	0.417688				False
+Stimulus Model	5	nested_oof	0	0.01	0.001	209	0.518414				False
+Stimulus Model	6	all_ranks	0	0.001	0.001	163	0.53377				False
+Stimulus Model	6	additive	0	0.001	0.001	163	0.53377				False
+Stimulus Model	6	interaction	1	0.001	0.001	43	0.404938				False
+Stimulus Model	6	nested_oof	0	0.01	0.001	195	0.517113				False
+K1a	1	additive	0	0.01	1e-05	104	0.605979				False
+K1a	1	interaction	1	0.01	1e-05	88	0.599118				False
+K1a	2	additive	0	0.01	1e-05	115	0.603454				False
+K1a	2	interaction	1	0.01	1e-05	115	0.598438				False
+K1a	3	additive	0	0.01	1e-05	116	0.617572				False
+K1a	3	interaction	1	0.01	1e-05	106	0.610852				False
+K1a	4	additive	0	0.01	1e-05	117	0.60662				False
+K1a	4	interaction	1	0.01	1e-05	100	0.600926				False
+K1a	5	additive	0	0.01	1e-05	120	0.613881				False
+K1a	5	interaction	1	0.01	1e-05	107	0.607515				False
+K1a	6	additive	0	0.01	1e-05	118	0.610902				False
+K1a	6	interaction	1	0.01	1e-05	114	0.605982				False
+noemo	1	all_ranks	0	0.001	0.001	150	0.533449				False
+noemo	2	all_ranks	0	0.01	0.001	150	0.541268				False
+noemo	3	all_ranks	0	0.001	0.001	161	0.537263				False
+noemo	4	all_ranks	0	0.0001	0.001	156	0.529458				False
+noemo	5	all_ranks	0	0.01	0.001	155	0.529695				False
+noemo	6	all_ranks	0	0.001	0.001	152	0.536461				False
+zone	1	all_ranks	0	0.001	0.001	208	0.507522	1	excluded		False
+zone	1	all_ranks	0	0.01	0.001	221	0.504334	1	control		False
+zone	2	all_ranks	0	0.001	0.001	227	0.506916	1	excluded		False
+zone	2	all_ranks	0	0.0001	0.001	230	0.522741	1	control		False
+zone	3	all_ranks	0	0.001	0.001	221	0.506337	1	excluded		False
+zone	3	all_ranks	0	0.001	0.001	234	0.508971	1	control		False
+zone	4	all_ranks	0	0.01	0.001	223	0.497275	1	excluded		False
+zone	4	all_ranks	0	0.01	0.001	213	0.515867	1	control		False
+zone	5	all_ranks	0	0.0001	0.001	225	0.496032	1	excluded		False
+zone	5	all_ranks	0	0.01	0.001	204	0.512504	1	control		False
+zone	6	all_ranks	0	0.01	0.001	250	0.507921	1	excluded		False
+zone	6	all_ranks	0	0.0001	0.001	202	0.515327	1	control		False
+zone	1	all_ranks	0	0.0001	0.001	208	0.504184	2	excluded		False
+zone	1	all_ranks	0	0.01	0.001	206	0.521708	2	control		False
+zone	2	all_ranks	0	0.01	0.001	211	0.512291	2	excluded		False
+zone	2	all_ranks	0	0.001	0.001	206	0.52109	2	control		False
+zone	3	all_ranks	0	0.001	0.001	220	0.512099	2	excluded		False
+zone	3	all_ranks	0	0.0001	0.001	217	0.520386	2	control		False
+zone	4	all_ranks	0	0.01	0.001	198	0.516015	2	excluded		False
+zone	4	all_ranks	0	0.001	0.001	197	0.52489	2	control		False
+zone	5	all_ranks	0	0.0001	0.001	211	0.508539	2	excluded		False
+zone	5	all_ranks	0	0.0001	0.001	224	0.518031	2	control		False
+zone	6	all_ranks	0	0.01	0.001	218	0.500386	2	excluded		False
+zone	6	all_ranks	0	0.01	0.001	217	0.529922	2	control		False
+zone	1	all_ranks	0	0.01	0.001	180	0.500619	3	excluded		False
+zone	1	all_ranks	0	0.001	0.001	194	0.521408	3	control		False
+zone	2	all_ranks	0	0.01	0.001	179	0.513418	3	excluded		False
+zone	2	all_ranks	0	0.01	0.001	188	0.516788	3	control		False
+zone	3	all_ranks	0	0.01	0.001	185	0.508672	3	excluded		False
+zone	3	all_ranks	0	0.01	0.001	187	0.539219	3	control		False
+zone	4	all_ranks	0	0.01	0.001	179	0.51324	3	excluded		False
+zone	4	all_ranks	0	0.01	0.001	204	0.532784	3	control		False
+zone	5	all_ranks	0	0.001	0.001	205	0.489952	3	excluded		False
+zone	5	all_ranks	0	0.01	0.001	189	0.518456	3	control		False
+zone	6	all_ranks	0	0.01	0.001	198	0.500996	3	excluded		False
+zone	6	all_ranks	0	0.01	0.001	197	0.520408	3	control		False
+zone	1	all_ranks	0	0.001	0.001	189	0.527197	4	excluded		False
+zone	1	all_ranks	0	0.01	0.001	175	0.531251	4	control		False
+zone	2	all_ranks	0	0.01	0.001	188	0.534272	4	excluded		False
+zone	2	all_ranks	0	0.01	0.001	182	0.526924	4	control		False
+zone	3	all_ranks	0	0.01	0.001	183	0.537166	4	excluded		False
+zone	3	all_ranks	0	0.0001	0.001	198	0.532403	4	control		False
+zone	4	all_ranks	0	0.001	0.001	183	0.533287	4	excluded		False
+zone	4	all_ranks	0	0.0001	0.001	180	0.524296	4	control		False
+zone	5	all_ranks	0	0.01	0.001	175	0.538839	4	excluded		False
+zone	5	all_ranks	0	0.01	0.001	188	0.522681	4	control		False
+zone	6	all_ranks	0	0.01	0.001	192	0.535362	4	excluded		False
+zone	6	all_ranks	0	0.001	0.001	180	0.525474	4	control		False
+zone	1	all_ranks	0	0.01	0.001	182	0.513423	5	excluded		False
+zone	1	all_ranks	0	0.0001	0.001	169	0.524576	5	control		False
+zone	2	all_ranks	0	0.01	0.001	198	0.522827	5	excluded		False
+zone	2	all_ranks	0	0.01	0.001	189	0.534545	5	control		False
+zone	3	all_ranks	0	0.001	0.001	166	0.526686	5	excluded		False
+zone	3	all_ranks	0	0.001	0.001	172	0.52886	5	control		False
+zone	4	all_ranks	0	0.01	0.001	185	0.521997	5	excluded		False
+zone	4	all_ranks	0	0.01	0.001	173	0.531282	5	control		False
+zone	5	all_ranks	0	0.0001	0.001	185	0.514488	5	excluded		False
+zone	5	all_ranks	0	0.01	0.001	175	0.524528	5	control		False
+zone	6	all_ranks	0	0.001	0.001	167	0.526613	5	excluded		False
+zone	6	all_ranks	0	0.001	0.001	181	0.521642	5	control		False
+baseline	1	all_ranks	0	0.01	0.001	158	0.522483			videomae	False
+baseline	2	all_ranks	0	0.01	0.001	157	0.53022			videomae	False
+baseline	3	all_ranks	0	0.01	0.001	165	0.532739			videomae	False
+baseline	4	all_ranks	0	0.01	0.001	158	0.529882			videomae	False
+baseline	5	all_ranks	0	0.01	0.001	167	0.521214			videomae	False
+baseline	6	all_ranks	0	0.01	0.001	150	0.530696			videomae	False
+baseline	1	all_ranks	0	0.01	0.001	162	0.517862			timesformer	False
+baseline	2	all_ranks	0	0.01	0.001	156	0.5232			timesformer	False
+baseline	3	all_ranks	0	0.01	0.001	169	0.523466			timesformer	False
+baseline	4	all_ranks	0	0.01	0.001	165	0.526631			timesformer	False
+baseline	5	all_ranks	0	0.01	0.001	159	0.516773			timesformer	False
+baseline	6	all_ranks	0	0.001	0.001	147	0.534761			timesformer	False
+baseline	1	all_ranks	0	0.01	0.001	169	0.557006			clip	False
+baseline	2	all_ranks	0	0.01	0.001	170	0.562569			clip	False
+baseline	3	all_ranks	0	0.01	0.001	165	0.572323			clip	False
+baseline	4	all_ranks	0	0.01	0.001	169	0.561966			clip	False
+baseline	5	all_ranks	0	0.01	0.001	169	0.563639			clip	False
+baseline	6	all_ranks	0	0.0001	0.001	160	0.565007			clip	False
+baseline	1	all_ranks	0	0.01	0.001	172	0.511319			mpnet	False
+baseline	2	all_ranks	0	0.01	0.001	172	0.516215			mpnet	False
+baseline	3	all_ranks	0	0.01	0.001	170	0.516549			mpnet	False
+baseline	4	all_ranks	0	0.0001	0.001	157	0.527587			mpnet	False
+baseline	5	all_ranks	0	0.01	0.001	165	0.519513			mpnet	False
+baseline	6	all_ranks	0	0.0001	0.001	158	0.519491			mpnet	False

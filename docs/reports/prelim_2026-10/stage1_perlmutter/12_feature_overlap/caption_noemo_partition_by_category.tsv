@@ -1,0 +1,137 @@
+caption	visual	category	r2_visual	r2_caption	r2_both
+caption_human_mpnet	V-JEPA 2 (영상)	admiration	0.0537	0.2026	0.2050
+caption_human_mpnet	V-JEPA 2 (영상)	adoration	0.4393	0.6061	0.6160
+caption_human_mpnet	V-JEPA 2 (영상)	aesthetic appreciation	0.5997	0.6640	0.6924
+caption_human_mpnet	V-JEPA 2 (영상)	amusement	0.3861	0.5536	0.5660
+caption_human_mpnet	V-JEPA 2 (영상)	anger	0.1251	0.3591	0.3666
+caption_human_mpnet	V-JEPA 2 (영상)	anxiety	0.3363	0.5028	0.5197
+caption_human_mpnet	V-JEPA 2 (영상)	awe	0.3371	0.4630	0.4812
+caption_human_mpnet	V-JEPA 2 (영상)	awkwardness	0.1097	0.2754	0.2814
+caption_human_mpnet	V-JEPA 2 (영상)	boredom	0.1744	0.1828	0.2300
+caption_human_mpnet	V-JEPA 2 (영상)	calmness	0.3676	0.4733	0.4957
+caption_human_mpnet	V-JEPA 2 (영상)	confusion	0.0649	0.1329	0.1457
+caption_human_mpnet	V-JEPA 2 (영상)	contempt	0.0719	0.0965	0.1180
+caption_human_mpnet	V-JEPA 2 (영상)	craving	0.5553	0.7477	0.7686
+caption_human_mpnet	V-JEPA 2 (영상)	disappointment	0.0359	0.1373	0.1381
+caption_human_mpnet	V-JEPA 2 (영상)	disgust	0.2790	0.6158	0.6240
+caption_human_mpnet	V-JEPA 2 (영상)	empathic pain	0.0633	0.3714	0.3705
+caption_human_mpnet	V-JEPA 2 (영상)	entrancement	0.4605	0.4779	0.5236
+caption_human_mpnet	V-JEPA 2 (영상)	envy	0.0287	0.0441	0.0517
+caption_human_mpnet	V-JEPA 2 (영상)	excitement	0.2069	0.3204	0.3378
+caption_human_mpnet	V-JEPA 2 (영상)	fear	0.3541	0.5605	0.5747
+caption_human_mpnet	V-JEPA 2 (영상)	guilt	0.0072	0.0292	0.0283
+caption_human_mpnet	V-JEPA 2 (영상)	horror	0.2393	0.5479	0.5587
+caption_human_mpnet	V-JEPA 2 (영상)	interest	0.2170	0.3463	0.3605
+caption_human_mpnet	V-JEPA 2 (영상)	joy	0.2798	0.4742	0.4836
+caption_human_mpnet	V-JEPA 2 (영상)	nostalgia	0.2926	0.3289	0.4010
+caption_human_mpnet	V-JEPA 2 (영상)	pride	0.0433	0.1686	0.1685
+caption_human_mpnet	V-JEPA 2 (영상)	relief	0.1655	0.4255	0.4294
+caption_human_mpnet	V-JEPA 2 (영상)	romance	0.3706	0.7419	0.7459
+caption_human_mpnet	V-JEPA 2 (영상)	sadness	0.1138	0.4591	0.4612
+caption_human_mpnet	V-JEPA 2 (영상)	satisfaction	0.0743	0.1324	0.1443
+caption_human_mpnet	V-JEPA 2 (영상)	sexual desire	0.6184	0.8076	0.8164
+caption_human_mpnet	V-JEPA 2 (영상)	surprise	0.2370	0.3470	0.3652
+caption_human_mpnet	V-JEPA 2 (영상)	sympathy	0.0866	0.3327	0.3354
+caption_human_mpnet	V-JEPA 2 (영상)	triumph	0.2403	0.4081	0.4156
+caption_human_mpnet	CLIP (이미지)	admiration	0.1176	0.2026	0.2142
+caption_human_mpnet	CLIP (이미지)	adoration	0.5965	0.6061	0.6449
+caption_human_mpnet	CLIP (이미지)	aesthetic appreciation	0.6820	0.6640	0.7153
+caption_human_mpnet	CLIP (이미지)	amusement	0.5471	0.5536	0.6070
+caption_human_mpnet	CLIP (이미지)	anger	0.3607	0.3591	0.4243
+caption_human_mpnet	CLIP (이미지)	anxiety	0.5162	0.5028	0.5612
+caption_human_mpnet	CLIP (이미지)	awe	0.4283	0.4630	0.4992
+caption_human_mpnet	CLIP (이미지)	awkwardness	0.2127	0.2754	0.3067
+caption_human_mpnet	CLIP (이미지)	boredom	0.2071	0.1828	0.2380
+caption_human_mpnet	CLIP (이미지)	calmness	0.4516	0.4733	0.5098
+caption_human_mpnet	CLIP (이미지)	confusion	0.1972	0.1329	0.2155
+caption_human_mpnet	CLIP (이미지)	contempt	0.1283	0.0965	0.1431
+caption_human_mpnet	CLIP (이미지)	craving	0.6928	0.7477	0.7791
+caption_human_mpnet	CLIP (이미지)	disappointment	0.1530	0.1373	0.1838
+caption_human_mpnet	CLIP (이미지)	disgust	0.5263	0.6158	0.6569
+caption_human_mpnet	CLIP (이미지)	empathic pain	0.1557	0.3714	0.3746
+caption_human_mpnet	CLIP (이미지)	entrancement	0.4900	0.4779	0.5271
+caption_human_mpnet	CLIP (이미지)	envy	0.0844	0.0441	0.0869
+caption_human_mpnet	CLIP (이미지)	excitement	0.2783	0.3204	0.3480
+caption_human_mpnet	CLIP (이미지)	fear	0.5571	0.5605	0.6146
+caption_human_mpnet	CLIP (이미지)	guilt	0.0882	0.0292	0.0853
+caption_human_mpnet	CLIP (이미지)	horror	0.4582	0.5479	0.5862
+caption_human_mpnet	CLIP (이미지)	interest	0.3602	0.3463	0.4000
+caption_human_mpnet	CLIP (이미지)	joy	0.4731	0.4742	0.5215
+caption_human_mpnet	CLIP (이미지)	nostalgia	0.6182	0.3289	0.6311
+caption_human_mpnet	CLIP (이미지)	pride	0.1664	0.1686	0.2065
+caption_human_mpnet	CLIP (이미지)	relief	0.1782	0.4255	0.4262
+caption_human_mpnet	CLIP (이미지)	romance	0.7270	0.7419	0.7884
+caption_human_mpnet	CLIP (이미지)	sadness	0.3933	0.4591	0.5102
+caption_human_mpnet	CLIP (이미지)	satisfaction	0.1120	0.1324	0.1525
+caption_human_mpnet	CLIP (이미지)	sexual desire	0.8232	0.8076	0.8466
+caption_human_mpnet	CLIP (이미지)	surprise	0.3055	0.3470	0.3846
+caption_human_mpnet	CLIP (이미지)	sympathy	0.2606	0.3327	0.3640
+caption_human_mpnet	CLIP (이미지)	triumph	0.3087	0.4081	0.4252
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	admiration	0.0537	0.2007	0.2033
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	adoration	0.4393	0.6041	0.6148
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	aesthetic appreciation	0.5997	0.6618	0.6910
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	amusement	0.3861	0.5511	0.5639
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	anger	0.1251	0.3599	0.3676
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	anxiety	0.3363	0.5015	0.5187
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	awe	0.3371	0.4601	0.4791
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	awkwardness	0.1097	0.2758	0.2817
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	boredom	0.1744	0.1788	0.2275
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	calmness	0.3676	0.4706	0.4940
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	confusion	0.0649	0.1317	0.1449
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	contempt	0.0719	0.0984	0.1197
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	craving	0.5553	0.7455	0.7670
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	disappointment	0.0359	0.1380	0.1388
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	disgust	0.2790	0.6157	0.6239
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	empathic pain	0.0633	0.3717	0.3708
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	entrancement	0.4605	0.4764	0.5227
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	envy	0.0287	0.0438	0.0516
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	excitement	0.2069	0.3178	0.3354
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	fear	0.3541	0.5560	0.5711
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	guilt	0.0072	0.0297	0.0288
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	horror	0.2393	0.5307	0.5434
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	interest	0.2170	0.3444	0.3588
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	joy	0.2798	0.4695	0.4799
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	nostalgia	0.2926	0.3295	0.4010
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	pride	0.0433	0.1694	0.1694
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	relief	0.1655	0.4248	0.4286
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	romance	0.3706	0.7397	0.7437
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	sadness	0.1138	0.4529	0.4549
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	satisfaction	0.0743	0.1316	0.1437
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	sexual desire	0.6184	0.8060	0.8153
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	surprise	0.2370	0.3453	0.3641
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	sympathy	0.0866	0.3315	0.3342
+caption_human_noemo_mpnet	V-JEPA 2 (영상)	triumph	0.2403	0.4070	0.4147
+caption_human_noemo_mpnet	CLIP (이미지)	admiration	0.1176	0.2007	0.2127
+caption_human_noemo_mpnet	CLIP (이미지)	adoration	0.5965	0.6041	0.6445
+caption_human_noemo_mpnet	CLIP (이미지)	aesthetic appreciation	0.6820	0.6618	0.7145
+caption_human_noemo_mpnet	CLIP (이미지)	amusement	0.5471	0.5511	0.6060
+caption_human_noemo_mpnet	CLIP (이미지)	anger	0.3607	0.3599	0.4250
+caption_human_noemo_mpnet	CLIP (이미지)	anxiety	0.5162	0.5015	0.5610
+caption_human_noemo_mpnet	CLIP (이미지)	awe	0.4283	0.4601	0.4981
+caption_human_noemo_mpnet	CLIP (이미지)	awkwardness	0.2127	0.2758	0.3070
+caption_human_noemo_mpnet	CLIP (이미지)	boredom	0.2071	0.1788	0.2358
+caption_human_noemo_mpnet	CLIP (이미지)	calmness	0.4516	0.4706	0.5085
+caption_human_noemo_mpnet	CLIP (이미지)	confusion	0.1972	0.1317	0.2150
+caption_human_noemo_mpnet	CLIP (이미지)	contempt	0.1283	0.0984	0.1443
+caption_human_noemo_mpnet	CLIP (이미지)	craving	0.6928	0.7455	0.7780
+caption_human_noemo_mpnet	CLIP (이미지)	disappointment	0.1530	0.1380	0.1845
+caption_human_noemo_mpnet	CLIP (이미지)	disgust	0.5263	0.6157	0.6571
+caption_human_noemo_mpnet	CLIP (이미지)	empathic pain	0.1557	0.3717	0.3750
+caption_human_noemo_mpnet	CLIP (이미지)	entrancement	0.4900	0.4764	0.5265
+caption_human_noemo_mpnet	CLIP (이미지)	envy	0.0844	0.0438	0.0869
+caption_human_noemo_mpnet	CLIP (이미지)	excitement	0.2783	0.3178	0.3459
+caption_human_noemo_mpnet	CLIP (이미지)	fear	0.5571	0.5560	0.6130
+caption_human_noemo_mpnet	CLIP (이미지)	guilt	0.0882	0.0297	0.0855
+caption_human_noemo_mpnet	CLIP (이미지)	horror	0.4582	0.5307	0.5754
+caption_human_noemo_mpnet	CLIP (이미지)	interest	0.3602	0.3444	0.3991
+caption_human_noemo_mpnet	CLIP (이미지)	joy	0.4731	0.4695	0.5197
+caption_human_noemo_mpnet	CLIP (이미지)	nostalgia	0.6182	0.3295	0.6309
+caption_human_noemo_mpnet	CLIP (이미지)	pride	0.1664	0.1694	0.2069
+caption_human_noemo_mpnet	CLIP (이미지)	relief	0.1782	0.4248	0.4254
+caption_human_noemo_mpnet	CLIP (이미지)	romance	0.7270	0.7397	0.7871
+caption_human_noemo_mpnet	CLIP (이미지)	sadness	0.3933	0.4529	0.5058
+caption_human_noemo_mpnet	CLIP (이미지)	satisfaction	0.1120	0.1316	0.1518
+caption_human_noemo_mpnet	CLIP (이미지)	sexual desire	0.8232	0.8060	0.8463
+caption_human_noemo_mpnet	CLIP (이미지)	surprise	0.3055	0.3453	0.3835
+caption_human_noemo_mpnet	CLIP (이미지)	sympathy	0.2606	0.3315	0.3632
+caption_human_noemo_mpnet	CLIP (이미지)	triumph	0.3087	0.4070	0.4244

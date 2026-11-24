@@ -1,0 +1,81 @@
+model	word	n_videos	r
+V-JEPA 2 (영상)	cute	56	0.2875
+V-JEPA 2 (영상)	beautiful	153	0.5296
+V-JEPA 2 (영상)	funny	44	0.2722
+V-JEPA 2 (영상)	scary	40	0.2352
+V-JEPA 2 (영상)	dirty	23	0.0719
+V-JEPA 2 (영상)	ugly	23	0.1264
+V-JEPA 2 (영상)	weird	31	0.1097
+V-JEPA 2 (영상)	strange	67	0.0577
+V-JEPA 2 (영상)	happy	110	0.2562
+V-JEPA 2 (영상)	sad	25	0.1170
+V-JEPA 2 (영상)	angry	35	0.0677
+V-JEPA 2 (영상)	dangerous	46	0.2388
+V-JEPA 2 (영상)	sick	26	0.1323
+V-JEPA 2 (영상)	dead	45	0.2131
+V-JEPA 2 (영상)	hot	48	0.1953
+V-JEPA 2 (영상)	excited	44	0.1482
+VideoMAE (영상)	cute	56	0.2609
+VideoMAE (영상)	beautiful	153	0.5094
+VideoMAE (영상)	funny	44	0.2321
+VideoMAE (영상)	scary	40	0.2308
+VideoMAE (영상)	dirty	23	0.0586
+VideoMAE (영상)	ugly	23	0.0724
+VideoMAE (영상)	weird	31	0.0758
+VideoMAE (영상)	strange	67	0.1086
+VideoMAE (영상)	happy	110	0.2606
+VideoMAE (영상)	sad	25	0.1929
+VideoMAE (영상)	angry	35	0.1296
+VideoMAE (영상)	dangerous	46	0.2712
+VideoMAE (영상)	sick	26	0.1142
+VideoMAE (영상)	dead	45	0.1450
+VideoMAE (영상)	hot	48	0.1953
+VideoMAE (영상)	excited	44	0.1603
+DINOv2 (이미지)	cute	56	0.3381
+DINOv2 (이미지)	beautiful	153	0.5301
+DINOv2 (이미지)	funny	44	0.2607
+DINOv2 (이미지)	scary	40	0.2042
+DINOv2 (이미지)	dirty	23	0.2300
+DINOv2 (이미지)	ugly	23	0.1511
+DINOv2 (이미지)	weird	31	0.1461
+DINOv2 (이미지)	strange	67	0.1421
+DINOv2 (이미지)	happy	110	0.2802
+DINOv2 (이미지)	sad	25	0.1808
+DINOv2 (이미지)	angry	35	0.1177
+DINOv2 (이미지)	dangerous	46	0.3254
+DINOv2 (이미지)	sick	26	0.4567
+DINOv2 (이미지)	dead	45	0.2330
+DINOv2 (이미지)	hot	48	0.2966
+DINOv2 (이미지)	excited	44	0.2090
+CLIP (이미지)	cute	56	0.3199
+CLIP (이미지)	beautiful	153	0.5862
+CLIP (이미지)	funny	44	0.3154
+CLIP (이미지)	scary	40	0.3499
+CLIP (이미지)	dirty	23	0.2402
+CLIP (이미지)	ugly	23	0.1627
+CLIP (이미지)	weird	31	0.1805
+CLIP (이미지)	strange	67	0.2136
+CLIP (이미지)	happy	110	0.3154
+CLIP (이미지)	sad	25	0.2132
+CLIP (이미지)	angry	35	0.1531
+CLIP (이미지)	dangerous	46	0.3612
+CLIP (이미지)	sick	26	0.4591
+CLIP (이미지)	dead	45	0.2975
+CLIP (이미지)	hot	48	0.3000
+CLIP (이미지)	excited	44	0.2569
+VGG19 fc8 (이미지)	cute	56	0.3185
+VGG19 fc8 (이미지)	beautiful	153	0.3735
+VGG19 fc8 (이미지)	funny	44	0.2060
+VGG19 fc8 (이미지)	scary	40	0.1611
+VGG19 fc8 (이미지)	dirty	23	0.0839
+VGG19 fc8 (이미지)	ugly	23	0.0606
+VGG19 fc8 (이미지)	weird	31	0.0611
+VGG19 fc8 (이미지)	strange	67	0.0749
+VGG19 fc8 (이미지)	happy	110	0.2227
+VGG19 fc8 (이미지)	sad	25	0.0811
+VGG19 fc8 (이미지)	angry	35	0.0968
+VGG19 fc8 (이미지)	dangerous	46	0.1800
+VGG19 fc8 (이미지)	sick	26	0.1579
+VGG19 fc8 (이미지)	dead	45	0.1688
+VGG19 fc8 (이미지)	hot	48	0.2074
+VGG19 fc8 (이미지)	excited	44	0.0919

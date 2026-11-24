@@ -1,0 +1,6 @@
+block	n_videos	top_labels	top_label_means	sample_videos
+1	633	People, Indoor scenes, Men	0.842, 0.550, 0.448	369,1089,473,1939,956
+2	507	People, Outdoor scenes, Men	0.820, 0.739, 0.497	1087,1687,341,1905,482
+3	367	Art, People, Indoor scenes	0.281, 0.267, 0.230	1920,1582,147,1641,317
+4	359	Land animals, Small animals, Outdoor scenes	0.863, 0.449, 0.417	2100,1328,1353,1880,1259
+5	243	Outdoor scenes, Daytime scenes, Nature	0.777, 0.446, 0.372	1020,786,553,118,1400

@@ -1,0 +1,10 @@
+{
+  "note": "11/14 석진 님. 본 실행(run_config_grid_main.json)에서 A-1 밖 조건이 A-1의 learning rate(1e-3)를 따르는 예산 규칙 때문에 C-1이 불안정했다. 원래 규칙(G13, 조건마다 learning rate를 고름)에 가깝게, 모든 조건에 learning rate 1e-4 후보를 더한다. 이 실행은 learning rate 1e-4만 학습하고(A-1은 본 실행이 고른 입력층 weight decay 100, d 64), 끝나면 조건과 fold마다 두 실행이 고른 후보 가운데 검증 r이 높은 쪽을 고른다(scripts/s6_merge_lr.py). 고른 후보를 모두 남긴다. 학습 코드는 본 실행과 같은 1bca774. 결과는 S6_OUT=s6_brain_grid_lr4",
+  "k_candidates": [[64, 100.0]],
+  "learning_rates": [0.0001],
+  "lr_follows_brain_only": false,
+  "keep_candidate_checkpoints": true,
+  "seeds": [0],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375
+}

@@ -1,0 +1,36 @@
+{
+  "note": "11/8 본실험 설정. K = d {32, 64} × 입력층 weight decay {0.1, 1, 10}. 예비 실행(d 64, 입력층 weight decay 0.01, learning rate 1e-4)의 검증 손실이 모든 조건에서 4~8 epoch에 가장 낮았다가 나빠져(검증 곡선 기준) 입력층 정칙화를 강한 쪽으로 넓혔다. AdamW에서 step마다 줄이는 비율은 learning rate × weight decay라 예비 실행은 1e-6이었고, 이 격자는 1e-6~1e-2를 덮는다. learning rate {1e-5, 1e-4, 1e-3}, seed 0, 1, 2(G13, L9).",
+  "k_candidates": [
+    [
+      32,
+      0.1
+    ],
+    [
+      32,
+      1.0
+    ],
+    [
+      32,
+      10.0
+    ],
+    [
+      64,
+      0.1
+    ],
+    [
+      64,
+      1.0
+    ],
+    [
+      64,
+      10.0
+    ]
+  ],
+  "learning_rates": [
+    1e-05,
+    0.0001,
+    0.001
+  ],
+  "lr_follows_brain_only": false,
+  "keep_candidate_checkpoints": false
+}

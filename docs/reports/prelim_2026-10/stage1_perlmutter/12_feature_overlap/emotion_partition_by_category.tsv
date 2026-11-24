@@ -1,0 +1,511 @@
+semantic	visual	category	r2_visual	r2_semantic	r2_both
+사람 캡션	V-JEPA 2 (영상)	admiration	0.0549	0.2035	0.2061
+사람 캡션	V-JEPA 2 (영상)	adoration	0.4391	0.6061	0.6159
+사람 캡션	V-JEPA 2 (영상)	aesthetic appreciation	0.5976	0.6645	0.6925
+사람 캡션	V-JEPA 2 (영상)	amusement	0.3882	0.5556	0.5680
+사람 캡션	V-JEPA 2 (영상)	anger	0.1253	0.3557	0.3636
+사람 캡션	V-JEPA 2 (영상)	anxiety	0.3364	0.5033	0.5198
+사람 캡션	V-JEPA 2 (영상)	awe	0.3374	0.4621	0.4809
+사람 캡션	V-JEPA 2 (영상)	awkwardness	0.1103	0.2750	0.2811
+사람 캡션	V-JEPA 2 (영상)	boredom	0.1740	0.1828	0.2300
+사람 캡션	V-JEPA 2 (영상)	calmness	0.3684	0.4749	0.4972
+사람 캡션	V-JEPA 2 (영상)	confusion	0.0640	0.1334	0.1457
+사람 캡션	V-JEPA 2 (영상)	contempt	0.0697	0.0928	0.1141
+사람 캡션	V-JEPA 2 (영상)	craving	0.5553	0.7477	0.7686
+사람 캡션	V-JEPA 2 (영상)	disappointment	0.0349	0.1346	0.1351
+사람 캡션	V-JEPA 2 (영상)	disgust	0.2792	0.6139	0.6225
+사람 캡션	V-JEPA 2 (영상)	empathic pain	0.0634	0.3713	0.3704
+사람 캡션	V-JEPA 2 (영상)	entrancement	0.4609	0.4768	0.5237
+사람 캡션	V-JEPA 2 (영상)	envy	0.0285	0.0442	0.0518
+사람 캡션	V-JEPA 2 (영상)	excitement	0.2072	0.3202	0.3377
+사람 캡션	V-JEPA 2 (영상)	fear	0.3545	0.5598	0.5742
+사람 캡션	V-JEPA 2 (영상)	guilt	0.0071	0.0286	0.0276
+사람 캡션	V-JEPA 2 (영상)	horror	0.2393	0.5470	0.5578
+사람 캡션	V-JEPA 2 (영상)	interest	0.2180	0.3464	0.3603
+사람 캡션	V-JEPA 2 (영상)	joy	0.2804	0.4741	0.4835
+사람 캡션	V-JEPA 2 (영상)	nostalgia	0.3007	0.3333	0.4075
+사람 캡션	V-JEPA 2 (영상)	pride	0.0427	0.1689	0.1688
+사람 캡션	V-JEPA 2 (영상)	relief	0.1650	0.4255	0.4293
+사람 캡션	V-JEPA 2 (영상)	romance	0.3705	0.7419	0.7458
+사람 캡션	V-JEPA 2 (영상)	sadness	0.1149	0.4591	0.4614
+사람 캡션	V-JEPA 2 (영상)	satisfaction	0.0747	0.1335	0.1452
+사람 캡션	V-JEPA 2 (영상)	sexual desire	0.6186	0.8076	0.8164
+사람 캡션	V-JEPA 2 (영상)	surprise	0.2376	0.3477	0.3659
+사람 캡션	V-JEPA 2 (영상)	sympathy	0.0863	0.3317	0.3343
+사람 캡션	V-JEPA 2 (영상)	triumph	0.2392	0.4078	0.4149
+사람 캡션	VideoMAE (영상)	admiration	0.0583	0.2035	0.2050
+사람 캡션	VideoMAE (영상)	adoration	0.4063	0.6061	0.6131
+사람 캡션	VideoMAE (영상)	aesthetic appreciation	0.5618	0.6645	0.6889
+사람 캡션	VideoMAE (영상)	amusement	0.3677	0.5556	0.5641
+사람 캡션	VideoMAE (영상)	anger	0.1641	0.3557	0.3666
+사람 캡션	VideoMAE (영상)	anxiety	0.3367	0.5033	0.5160
+사람 캡션	VideoMAE (영상)	awe	0.3173	0.4621	0.4768
+사람 캡션	VideoMAE (영상)	awkwardness	0.1332	0.2750	0.2836
+사람 캡션	VideoMAE (영상)	boredom	0.1765	0.1828	0.2303
+사람 캡션	VideoMAE (영상)	calmness	0.3436	0.4749	0.4939
+사람 캡션	VideoMAE (영상)	confusion	0.0574	0.1334	0.1436
+사람 캡션	VideoMAE (영상)	contempt	0.0615	0.0928	0.1053
+사람 캡션	VideoMAE (영상)	craving	0.4672	0.7477	0.7543
+사람 캡션	VideoMAE (영상)	disappointment	0.0583	0.1346	0.1400
+사람 캡션	VideoMAE (영상)	disgust	0.2794	0.6139	0.6218
+사람 캡션	VideoMAE (영상)	empathic pain	0.0960	0.3713	0.3687
+사람 캡션	VideoMAE (영상)	entrancement	0.3959	0.4768	0.5065
+사람 캡션	VideoMAE (영상)	envy	0.0255	0.0442	0.0500
+사람 캡션	VideoMAE (영상)	excitement	0.1884	0.3202	0.3317
+사람 캡션	VideoMAE (영상)	fear	0.3431	0.5598	0.5677
+사람 캡션	VideoMAE (영상)	guilt	0.0152	0.0286	0.0320
+사람 캡션	VideoMAE (영상)	horror	0.2511	0.5470	0.5555
+사람 캡션	VideoMAE (영상)	interest	0.2036	0.3464	0.3570
+사람 캡션	VideoMAE (영상)	joy	0.2826	0.4741	0.4822
+사람 캡션	VideoMAE (영상)	nostalgia	0.2451	0.3333	0.3816
+사람 캡션	VideoMAE (영상)	pride	0.0517	0.1689	0.1729
+사람 캡션	VideoMAE (영상)	relief	0.1263	0.4255	0.4245
+사람 캡션	VideoMAE (영상)	romance	0.4748	0.7419	0.7485
+사람 캡션	VideoMAE (영상)	sadness	0.1392	0.4591	0.4639
+사람 캡션	VideoMAE (영상)	satisfaction	0.0639	0.1335	0.1420
+사람 캡션	VideoMAE (영상)	sexual desire	0.6575	0.8076	0.8174
+사람 캡션	VideoMAE (영상)	surprise	0.2436	0.3477	0.3686
+사람 캡션	VideoMAE (영상)	sympathy	0.0819	0.3317	0.3331
+사람 캡션	VideoMAE (영상)	triumph	0.1963	0.4078	0.4116
+사람 캡션	CLIP (이미지)	admiration	0.1178	0.2035	0.2151
+사람 캡션	CLIP (이미지)	adoration	0.5965	0.6061	0.6449
+사람 캡션	CLIP (이미지)	aesthetic appreciation	0.6830	0.6645	0.7160
+사람 캡션	CLIP (이미지)	amusement	0.5487	0.5556	0.6088
+사람 캡션	CLIP (이미지)	anger	0.3601	0.3557	0.4224
+사람 캡션	CLIP (이미지)	anxiety	0.5166	0.5033	0.5614
+사람 캡션	CLIP (이미지)	awe	0.4281	0.4621	0.4987
+사람 캡션	CLIP (이미지)	awkwardness	0.2132	0.2750	0.3066
+사람 캡션	CLIP (이미지)	boredom	0.2065	0.1828	0.2377
+사람 캡션	CLIP (이미지)	calmness	0.4534	0.4749	0.5115
+사람 캡션	CLIP (이미지)	confusion	0.1935	0.1334	0.2130
+사람 캡션	CLIP (이미지)	contempt	0.1262	0.0928	0.1402
+사람 캡션	CLIP (이미지)	craving	0.6925	0.7477	0.7791
+사람 캡션	CLIP (이미지)	disappointment	0.1490	0.1346	0.1796
+사람 캡션	CLIP (이미지)	disgust	0.5255	0.6139	0.6553
+사람 캡션	CLIP (이미지)	empathic pain	0.1553	0.3713	0.3744
+사람 캡션	CLIP (이미지)	entrancement	0.4899	0.4768	0.5267
+사람 캡션	CLIP (이미지)	envy	0.0848	0.0442	0.0872
+사람 캡션	CLIP (이미지)	excitement	0.2780	0.3202	0.3476
+사람 캡션	CLIP (이미지)	fear	0.5566	0.5598	0.6139
+사람 캡션	CLIP (이미지)	guilt	0.0872	0.0286	0.0842
+사람 캡션	CLIP (이미지)	horror	0.4575	0.5470	0.5852
+사람 캡션	CLIP (이미지)	interest	0.3591	0.3464	0.3992
+사람 캡션	CLIP (이미지)	joy	0.4724	0.4741	0.5211
+사람 캡션	CLIP (이미지)	nostalgia	0.6229	0.3333	0.6355
+사람 캡션	CLIP (이미지)	pride	0.1665	0.1689	0.2068
+사람 캡션	CLIP (이미지)	relief	0.1784	0.4255	0.4263
+사람 캡션	CLIP (이미지)	romance	0.7271	0.7419	0.7885
+사람 캡션	CLIP (이미지)	sadness	0.3943	0.4591	0.5106
+사람 캡션	CLIP (이미지)	satisfaction	0.1131	0.1335	0.1538
+사람 캡션	CLIP (이미지)	sexual desire	0.8231	0.8076	0.8466
+사람 캡션	CLIP (이미지)	surprise	0.3064	0.3477	0.3855
+사람 캡션	CLIP (이미지)	sympathy	0.2603	0.3317	0.3631
+사람 캡션	CLIP (이미지)	triumph	0.3084	0.4078	0.4248
+사람 캡션	DINOv2 (이미지)	admiration	0.0443	0.2035	0.2016
+사람 캡션	DINOv2 (이미지)	adoration	0.4788	0.6061	0.6188
+사람 캡션	DINOv2 (이미지)	aesthetic appreciation	0.5638	0.6645	0.6832
+사람 캡션	DINOv2 (이미지)	amusement	0.4236	0.5556	0.5723
+사람 캡션	DINOv2 (이미지)	anger	0.2323	0.3557	0.3734
+사람 캡션	DINOv2 (이미지)	anxiety	0.4368	0.5033	0.5350
+사람 캡션	DINOv2 (이미지)	awe	0.3410	0.4621	0.4767
+사람 캡션	DINOv2 (이미지)	awkwardness	0.1657	0.2750	0.2916
+사람 캡션	DINOv2 (이미지)	boredom	0.1787	0.1828	0.2272
+사람 캡션	DINOv2 (이미지)	calmness	0.3071	0.4749	0.4814
+사람 캡션	DINOv2 (이미지)	confusion	0.0865	0.1334	0.1525
+사람 캡션	DINOv2 (이미지)	contempt	0.0910	0.0928	0.1172
+사람 캡션	DINOv2 (이미지)	craving	0.5697	0.7477	0.7562
+사람 캡션	DINOv2 (이미지)	disappointment	0.0903	0.1346	0.1523
+사람 캡션	DINOv2 (이미지)	disgust	0.3803	0.6139	0.6281
+사람 캡션	DINOv2 (이미지)	empathic pain	0.0716	0.3713	0.3685
+사람 캡션	DINOv2 (이미지)	entrancement	0.3986	0.4768	0.4979
+사람 캡션	DINOv2 (이미지)	envy	0.0369	0.0442	0.0529
+사람 캡션	DINOv2 (이미지)	excitement	0.2059	0.3202	0.3312
+사람 캡션	DINOv2 (이미지)	fear	0.4463	0.5598	0.5829
+사람 캡션	DINOv2 (이미지)	guilt	0.0278	0.0286	0.0358
+사람 캡션	DINOv2 (이미지)	horror	0.2940	0.5470	0.5576
+사람 캡션	DINOv2 (이미지)	interest	0.2487	0.3464	0.3630
+사람 캡션	DINOv2 (이미지)	joy	0.3281	0.4741	0.4860
+사람 캡션	DINOv2 (이미지)	nostalgia	0.3837	0.3333	0.4412
+사람 캡션	DINOv2 (이미지)	pride	0.0875	0.1689	0.1761
+사람 캡션	DINOv2 (이미지)	relief	0.1459	0.4255	0.4242
+사람 캡션	DINOv2 (이미지)	romance	0.5310	0.7419	0.7542
+사람 캡션	DINOv2 (이미지)	sadness	0.2729	0.4591	0.4817
+사람 캡션	DINOv2 (이미지)	satisfaction	0.0598	0.1335	0.1366
+사람 캡션	DINOv2 (이미지)	sexual desire	0.7263	0.8076	0.8221
+사람 캡션	DINOv2 (이미지)	surprise	0.2206	0.3477	0.3630
+사람 캡션	DINOv2 (이미지)	sympathy	0.1871	0.3317	0.3533
+사람 캡션	DINOv2 (이미지)	triumph	0.2394	0.4078	0.4127
+사람 캡션	VGG19 fc8 (이미지)	admiration	0.0412	0.2035	0.2081
+사람 캡션	VGG19 fc8 (이미지)	adoration	0.2931	0.6061	0.6106
+사람 캡션	VGG19 fc8 (이미지)	aesthetic appreciation	0.3879	0.6645	0.6690
+사람 캡션	VGG19 fc8 (이미지)	amusement	0.2836	0.5556	0.5641
+사람 캡션	VGG19 fc8 (이미지)	anger	0.0585	0.3557	0.3579
+사람 캡션	VGG19 fc8 (이미지)	anxiety	0.2089	0.5033	0.5071
+사람 캡션	VGG19 fc8 (이미지)	awe	0.2156	0.4621	0.4650
+사람 캡션	VGG19 fc8 (이미지)	awkwardness	0.0962	0.2750	0.2799
+사람 캡션	VGG19 fc8 (이미지)	boredom	0.0942	0.1828	0.1959
+사람 캡션	VGG19 fc8 (이미지)	calmness	0.1803	0.4749	0.4763
+사람 캡션	VGG19 fc8 (이미지)	confusion	0.0218	0.1334	0.1348
+사람 캡션	VGG19 fc8 (이미지)	contempt	0.0424	0.0928	0.1021
+사람 캡션	VGG19 fc8 (이미지)	craving	0.4390	0.7477	0.7538
+사람 캡션	VGG19 fc8 (이미지)	disappointment	0.0210	0.1346	0.1344
+사람 캡션	VGG19 fc8 (이미지)	disgust	0.1746	0.6139	0.6175
+사람 캡션	VGG19 fc8 (이미지)	empathic pain	0.0315	0.3713	0.3710
+사람 캡션	VGG19 fc8 (이미지)	entrancement	0.2956	0.4768	0.4915
+사람 캡션	VGG19 fc8 (이미지)	envy	0.0318	0.0442	0.0567
+사람 캡션	VGG19 fc8 (이미지)	excitement	0.0991	0.3202	0.3218
+사람 캡션	VGG19 fc8 (이미지)	fear	0.2223	0.5598	0.5612
+사람 캡션	VGG19 fc8 (이미지)	guilt	0.0058	0.0286	0.0280
+사람 캡션	VGG19 fc8 (이미지)	horror	0.1198	0.5470	0.5491
+사람 캡션	VGG19 fc8 (이미지)	interest	0.1273	0.3464	0.3504
+사람 캡션	VGG19 fc8 (이미지)	joy	0.1734	0.4741	0.4771
+사람 캡션	VGG19 fc8 (이미지)	nostalgia	0.1272	0.3333	0.3481
+사람 캡션	VGG19 fc8 (이미지)	pride	0.0420	0.1689	0.1742
+사람 캡션	VGG19 fc8 (이미지)	relief	0.1009	0.4255	0.4265
+사람 캡션	VGG19 fc8 (이미지)	romance	0.1758	0.7419	0.7436
+사람 캡션	VGG19 fc8 (이미지)	sadness	0.0770	0.4591	0.4615
+사람 캡션	VGG19 fc8 (이미지)	satisfaction	0.0494	0.1335	0.1421
+사람 캡션	VGG19 fc8 (이미지)	sexual desire	0.5035	0.8076	0.8109
+사람 캡션	VGG19 fc8 (이미지)	surprise	0.1381	0.3477	0.3570
+사람 캡션	VGG19 fc8 (이미지)	sympathy	0.0616	0.3317	0.3338
+사람 캡션	VGG19 fc8 (이미지)	triumph	0.1538	0.4078	0.4096
+의미 73 (사람 개념)	V-JEPA 2 (영상)	admiration	0.0549	0.1287	0.1348
+의미 73 (사람 개념)	V-JEPA 2 (영상)	adoration	0.4391	0.5060	0.5407
+의미 73 (사람 개념)	V-JEPA 2 (영상)	aesthetic appreciation	0.5976	0.5923	0.6641
+의미 73 (사람 개념)	V-JEPA 2 (영상)	amusement	0.3882	0.4114	0.4603
+의미 73 (사람 개념)	V-JEPA 2 (영상)	anger	0.1253	0.2436	0.2593
+의미 73 (사람 개념)	V-JEPA 2 (영상)	anxiety	0.3364	0.3610	0.4188
+의미 73 (사람 개념)	V-JEPA 2 (영상)	awe	0.3374	0.3857	0.4211
+의미 73 (사람 개념)	V-JEPA 2 (영상)	awkwardness	0.1103	0.1318	0.1524
+의미 73 (사람 개념)	V-JEPA 2 (영상)	boredom	0.1740	0.1767	0.2221
+의미 73 (사람 개념)	V-JEPA 2 (영상)	calmness	0.3684	0.2665	0.3940
+의미 73 (사람 개념)	V-JEPA 2 (영상)	confusion	0.0640	0.0945	0.1115
+의미 73 (사람 개념)	V-JEPA 2 (영상)	contempt	0.0697	0.1159	0.1295
+의미 73 (사람 개념)	V-JEPA 2 (영상)	craving	0.5553	0.6356	0.6970
+의미 73 (사람 개념)	V-JEPA 2 (영상)	disappointment	0.0349	0.1291	0.1284
+의미 73 (사람 개념)	V-JEPA 2 (영상)	disgust	0.2792	0.5190	0.5505
+의미 73 (사람 개념)	V-JEPA 2 (영상)	empathic pain	0.0634	0.4452	0.4449
+의미 73 (사람 개념)	V-JEPA 2 (영상)	entrancement	0.4609	0.4227	0.5142
+의미 73 (사람 개념)	V-JEPA 2 (영상)	envy	0.0285	0.0590	0.0620
+의미 73 (사람 개념)	V-JEPA 2 (영상)	excitement	0.2072	0.2799	0.3063
+의미 73 (사람 개념)	V-JEPA 2 (영상)	fear	0.3545	0.3885	0.4500
+의미 73 (사람 개념)	V-JEPA 2 (영상)	guilt	0.0071	0.0152	0.0162
+의미 73 (사람 개념)	V-JEPA 2 (영상)	horror	0.2393	0.5982	0.6050
+의미 73 (사람 개념)	V-JEPA 2 (영상)	interest	0.2180	0.3019	0.3238
+의미 73 (사람 개념)	V-JEPA 2 (영상)	joy	0.2804	0.3698	0.3980
+의미 73 (사람 개념)	V-JEPA 2 (영상)	nostalgia	0.3007	0.4660	0.4937
+의미 73 (사람 개념)	V-JEPA 2 (영상)	pride	0.0427	0.1462	0.1457
+의미 73 (사람 개념)	V-JEPA 2 (영상)	relief	0.1650	0.1679	0.2030
+의미 73 (사람 개념)	V-JEPA 2 (영상)	romance	0.3705	0.7094	0.7196
+의미 73 (사람 개념)	V-JEPA 2 (영상)	sadness	0.1149	0.3005	0.3082
+의미 73 (사람 개념)	V-JEPA 2 (영상)	satisfaction	0.0747	0.0982	0.1182
+의미 73 (사람 개념)	V-JEPA 2 (영상)	sexual desire	0.6186	0.7806	0.7957
+의미 73 (사람 개념)	V-JEPA 2 (영상)	surprise	0.2376	0.2217	0.2787
+의미 73 (사람 개념)	V-JEPA 2 (영상)	sympathy	0.0863	0.2183	0.2241
+의미 73 (사람 개념)	V-JEPA 2 (영상)	triumph	0.2392	0.2728	0.3009
+의미 73 (사람 개념)	VideoMAE (영상)	admiration	0.0583	0.1287	0.1349
+의미 73 (사람 개념)	VideoMAE (영상)	adoration	0.4063	0.5060	0.5325
+의미 73 (사람 개념)	VideoMAE (영상)	aesthetic appreciation	0.5618	0.5923	0.6516
+의미 73 (사람 개념)	VideoMAE (영상)	amusement	0.3677	0.4114	0.4559
+의미 73 (사람 개념)	VideoMAE (영상)	anger	0.1641	0.2436	0.2668
+의미 73 (사람 개념)	VideoMAE (영상)	anxiety	0.3367	0.3610	0.4098
+의미 73 (사람 개념)	VideoMAE (영상)	awe	0.3173	0.3857	0.4118
+의미 73 (사람 개념)	VideoMAE (영상)	awkwardness	0.1332	0.1318	0.1681
+의미 73 (사람 개념)	VideoMAE (영상)	boredom	0.1765	0.1767	0.2226
+의미 73 (사람 개념)	VideoMAE (영상)	calmness	0.3436	0.2665	0.3741
+의미 73 (사람 개념)	VideoMAE (영상)	confusion	0.0574	0.0945	0.1066
+의미 73 (사람 개념)	VideoMAE (영상)	contempt	0.0615	0.1159	0.1207
+의미 73 (사람 개념)	VideoMAE (영상)	craving	0.4672	0.6356	0.6609
+의미 73 (사람 개념)	VideoMAE (영상)	disappointment	0.0583	0.1291	0.1336
+의미 73 (사람 개념)	VideoMAE (영상)	disgust	0.2794	0.5190	0.5480
+의미 73 (사람 개념)	VideoMAE (영상)	empathic pain	0.0960	0.4452	0.4417
+의미 73 (사람 개념)	VideoMAE (영상)	entrancement	0.3959	0.4227	0.4837
+의미 73 (사람 개념)	VideoMAE (영상)	envy	0.0255	0.0590	0.0600
+의미 73 (사람 개념)	VideoMAE (영상)	excitement	0.1884	0.2799	0.2993
+의미 73 (사람 개념)	VideoMAE (영상)	fear	0.3431	0.3885	0.4379
+의미 73 (사람 개념)	VideoMAE (영상)	guilt	0.0152	0.0152	0.0213
+의미 73 (사람 개념)	VideoMAE (영상)	horror	0.2511	0.5982	0.6023
+의미 73 (사람 개념)	VideoMAE (영상)	interest	0.2036	0.3019	0.3182
+의미 73 (사람 개념)	VideoMAE (영상)	joy	0.2826	0.3698	0.4000
+의미 73 (사람 개념)	VideoMAE (영상)	nostalgia	0.2451	0.4660	0.4838
+의미 73 (사람 개념)	VideoMAE (영상)	pride	0.0517	0.1462	0.1492
+의미 73 (사람 개념)	VideoMAE (영상)	relief	0.1263	0.1679	0.1793
+의미 73 (사람 개념)	VideoMAE (영상)	romance	0.4748	0.7094	0.7324
+의미 73 (사람 개념)	VideoMAE (영상)	sadness	0.1392	0.3005	0.3165
+의미 73 (사람 개념)	VideoMAE (영상)	satisfaction	0.0639	0.0982	0.1114
+의미 73 (사람 개념)	VideoMAE (영상)	sexual desire	0.6575	0.7806	0.7945
+의미 73 (사람 개념)	VideoMAE (영상)	surprise	0.2436	0.2217	0.2832
+의미 73 (사람 개념)	VideoMAE (영상)	sympathy	0.0819	0.2183	0.2236
+의미 73 (사람 개념)	VideoMAE (영상)	triumph	0.1963	0.2728	0.2868
+의미 73 (사람 개념)	CLIP (이미지)	admiration	0.1178	0.1287	0.1541
+의미 73 (사람 개념)	CLIP (이미지)	adoration	0.5965	0.5060	0.6114
+의미 73 (사람 개념)	CLIP (이미지)	aesthetic appreciation	0.6830	0.5923	0.6997
+의미 73 (사람 개념)	CLIP (이미지)	amusement	0.5487	0.4114	0.5590
+의미 73 (사람 개념)	CLIP (이미지)	anger	0.3601	0.2436	0.3738
+의미 73 (사람 개념)	CLIP (이미지)	anxiety	0.5166	0.3610	0.5259
+의미 73 (사람 개념)	CLIP (이미지)	awe	0.4281	0.3857	0.4541
+의미 73 (사람 개념)	CLIP (이미지)	awkwardness	0.2132	0.1318	0.2208
+의미 73 (사람 개념)	CLIP (이미지)	boredom	0.2065	0.1767	0.2274
+의미 73 (사람 개념)	CLIP (이미지)	calmness	0.4534	0.2665	0.4559
+의미 73 (사람 개념)	CLIP (이미지)	confusion	0.1935	0.0945	0.1976
+의미 73 (사람 개념)	CLIP (이미지)	contempt	0.1262	0.1159	0.1463
+의미 73 (사람 개념)	CLIP (이미지)	craving	0.6925	0.6356	0.7328
+의미 73 (사람 개념)	CLIP (이미지)	disappointment	0.1490	0.1291	0.1692
+의미 73 (사람 개념)	CLIP (이미지)	disgust	0.5255	0.5190	0.6236
+의미 73 (사람 개념)	CLIP (이미지)	empathic pain	0.1553	0.4452	0.4448
+의미 73 (사람 개념)	CLIP (이미지)	entrancement	0.4899	0.4227	0.5109
+의미 73 (사람 개념)	CLIP (이미지)	envy	0.0848	0.0590	0.0903
+의미 73 (사람 개념)	CLIP (이미지)	excitement	0.2780	0.2799	0.3222
+의미 73 (사람 개념)	CLIP (이미지)	fear	0.5566	0.3885	0.5667
+의미 73 (사람 개념)	CLIP (이미지)	guilt	0.0872	0.0152	0.0870
+의미 73 (사람 개념)	CLIP (이미지)	horror	0.4575	0.5982	0.6286
+의미 73 (사람 개념)	CLIP (이미지)	interest	0.3591	0.3019	0.3810
+의미 73 (사람 개념)	CLIP (이미지)	joy	0.4724	0.3698	0.4849
+의미 73 (사람 개념)	CLIP (이미지)	nostalgia	0.6229	0.4660	0.6468
+의미 73 (사람 개념)	CLIP (이미지)	pride	0.1665	0.1462	0.1922
+의미 73 (사람 개념)	CLIP (이미지)	relief	0.1784	0.1679	0.2016
+의미 73 (사람 개념)	CLIP (이미지)	romance	0.7271	0.7094	0.7768
+의미 73 (사람 개념)	CLIP (이미지)	sadness	0.3943	0.3005	0.4410
+의미 73 (사람 개념)	CLIP (이미지)	satisfaction	0.1131	0.0982	0.1316
+의미 73 (사람 개념)	CLIP (이미지)	sexual desire	0.8231	0.7806	0.8400
+의미 73 (사람 개념)	CLIP (이미지)	surprise	0.3064	0.2217	0.3181
+의미 73 (사람 개념)	CLIP (이미지)	sympathy	0.2603	0.2183	0.2990
+의미 73 (사람 개념)	CLIP (이미지)	triumph	0.3084	0.2728	0.3267
+의미 73 (사람 개념)	DINOv2 (이미지)	admiration	0.0443	0.1287	0.1277
+의미 73 (사람 개념)	DINOv2 (이미지)	adoration	0.4788	0.5060	0.5499
+의미 73 (사람 개념)	DINOv2 (이미지)	aesthetic appreciation	0.5638	0.5923	0.6398
+의미 73 (사람 개념)	DINOv2 (이미지)	amusement	0.4236	0.4114	0.4756
+의미 73 (사람 개념)	DINOv2 (이미지)	anger	0.2323	0.2436	0.2932
+의미 73 (사람 개념)	DINOv2 (이미지)	anxiety	0.4368	0.3610	0.4684
+의미 73 (사람 개념)	DINOv2 (이미지)	awe	0.3410	0.3857	0.4152
+의미 73 (사람 개념)	DINOv2 (이미지)	awkwardness	0.1657	0.1318	0.1844
+의미 73 (사람 개념)	DINOv2 (이미지)	boredom	0.1787	0.1767	0.2197
+의미 73 (사람 개념)	DINOv2 (이미지)	calmness	0.3071	0.2665	0.3453
+의미 73 (사람 개념)	DINOv2 (이미지)	confusion	0.0865	0.0945	0.1213
+의미 73 (사람 개념)	DINOv2 (이미지)	contempt	0.0910	0.1159	0.1273
+의미 73 (사람 개념)	DINOv2 (이미지)	craving	0.5697	0.6356	0.6816
+의미 73 (사람 개념)	DINOv2 (이미지)	disappointment	0.0903	0.1291	0.1418
+의미 73 (사람 개념)	DINOv2 (이미지)	disgust	0.3803	0.5190	0.5766
+의미 73 (사람 개념)	DINOv2 (이미지)	empathic pain	0.0716	0.4452	0.4453
+의미 73 (사람 개념)	DINOv2 (이미지)	entrancement	0.3986	0.4227	0.4695
+의미 73 (사람 개념)	DINOv2 (이미지)	envy	0.0369	0.0590	0.0637
+의미 73 (사람 개념)	DINOv2 (이미지)	excitement	0.2059	0.2799	0.2962
+의미 73 (사람 개념)	DINOv2 (이미지)	fear	0.4463	0.3885	0.4936
+의미 73 (사람 개념)	DINOv2 (이미지)	guilt	0.0278	0.0152	0.0307
+의미 73 (사람 개념)	DINOv2 (이미지)	horror	0.2940	0.5982	0.6079
+의미 73 (사람 개념)	DINOv2 (이미지)	interest	0.2487	0.3019	0.3309
+의미 73 (사람 개념)	DINOv2 (이미지)	joy	0.3281	0.3698	0.4102
+의미 73 (사람 개념)	DINOv2 (이미지)	nostalgia	0.3837	0.4660	0.5107
+의미 73 (사람 개념)	DINOv2 (이미지)	pride	0.0875	0.1462	0.1533
+의미 73 (사람 개념)	DINOv2 (이미지)	relief	0.1459	0.1679	0.1867
+의미 73 (사람 개념)	DINOv2 (이미지)	romance	0.5310	0.7094	0.7349
+의미 73 (사람 개념)	DINOv2 (이미지)	sadness	0.2729	0.3005	0.3743
+의미 73 (사람 개념)	DINOv2 (이미지)	satisfaction	0.0598	0.0982	0.1066
+의미 73 (사람 개념)	DINOv2 (이미지)	sexual desire	0.7263	0.7806	0.8094
+의미 73 (사람 개념)	DINOv2 (이미지)	surprise	0.2206	0.2217	0.2634
+의미 73 (사람 개념)	DINOv2 (이미지)	sympathy	0.1871	0.2183	0.2707
+의미 73 (사람 개념)	DINOv2 (이미지)	triumph	0.2394	0.2728	0.2918
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	admiration	0.0412	0.1287	0.1331
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	adoration	0.2931	0.5060	0.5207
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	aesthetic appreciation	0.3879	0.5923	0.6075
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	amusement	0.2836	0.4114	0.4362
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	anger	0.0585	0.2436	0.2483
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	anxiety	0.2089	0.3610	0.3812
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	awe	0.2156	0.3857	0.3925
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	awkwardness	0.0962	0.1318	0.1467
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	boredom	0.0942	0.1767	0.1856
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	calmness	0.1803	0.2665	0.2876
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	confusion	0.0218	0.0945	0.0965
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	contempt	0.0424	0.1159	0.1197
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	craving	0.4390	0.6356	0.6537
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	disappointment	0.0210	0.1291	0.1280
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	disgust	0.1746	0.5190	0.5322
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	empathic pain	0.0315	0.4452	0.4452
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	entrancement	0.2956	0.4227	0.4540
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	envy	0.0318	0.0590	0.0668
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	excitement	0.0991	0.2799	0.2805
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	fear	0.2223	0.3885	0.4082
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	guilt	0.0058	0.0152	0.0162
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	horror	0.1198	0.5982	0.6001
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	interest	0.1273	0.3019	0.3081
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	joy	0.1734	0.3698	0.3777
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	nostalgia	0.1272	0.4660	0.4678
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	pride	0.0420	0.1462	0.1493
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	relief	0.1009	0.1679	0.1803
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	romance	0.1758	0.7094	0.7116
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	sadness	0.0770	0.3005	0.3124
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	satisfaction	0.0494	0.0982	0.1089
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	sexual desire	0.5035	0.7806	0.7895
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	surprise	0.1381	0.2217	0.2431
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	sympathy	0.0616	0.2183	0.2258
+의미 73 (사람 개념)	VGG19 fc8 (이미지)	triumph	0.1538	0.2728	0.2805
+VLM 캡션 v1	V-JEPA 2 (영상)	admiration	0.0549	0.0754	0.0930
+VLM 캡션 v1	V-JEPA 2 (영상)	adoration	0.4391	0.4880	0.5285
+VLM 캡션 v1	V-JEPA 2 (영상)	aesthetic appreciation	0.5976	0.5217	0.6312
+VLM 캡션 v1	V-JEPA 2 (영상)	amusement	0.3882	0.3997	0.4557
+VLM 캡션 v1	V-JEPA 2 (영상)	anger	0.1253	0.1957	0.2248
+VLM 캡션 v1	V-JEPA 2 (영상)	anxiety	0.3364	0.3495	0.4128
+VLM 캡션 v1	V-JEPA 2 (영상)	awe	0.3374	0.3174	0.3798
+VLM 캡션 v1	V-JEPA 2 (영상)	awkwardness	0.1103	0.1020	0.1351
+VLM 캡션 v1	V-JEPA 2 (영상)	boredom	0.1740	0.1117	0.1918
+VLM 캡션 v1	V-JEPA 2 (영상)	calmness	0.3684	0.3094	0.4075
+VLM 캡션 v1	V-JEPA 2 (영상)	confusion	0.0640	0.0460	0.0809
+VLM 캡션 v1	V-JEPA 2 (영상)	contempt	0.0697	0.0637	0.0895
+VLM 캡션 v1	V-JEPA 2 (영상)	craving	0.5553	0.5568	0.6536
+VLM 캡션 v1	V-JEPA 2 (영상)	disappointment	0.0349	0.0582	0.0650
+VLM 캡션 v1	V-JEPA 2 (영상)	disgust	0.2792	0.2829	0.3551
+VLM 캡션 v1	V-JEPA 2 (영상)	empathic pain	0.0634	0.1101	0.1253
+VLM 캡션 v1	V-JEPA 2 (영상)	entrancement	0.4609	0.3757	0.4933
+VLM 캡션 v1	V-JEPA 2 (영상)	envy	0.0285	0.0195	0.0323
+VLM 캡션 v1	V-JEPA 2 (영상)	excitement	0.2072	0.1827	0.2441
+VLM 캡션 v1	V-JEPA 2 (영상)	fear	0.3545	0.3777	0.4424
+VLM 캡션 v1	V-JEPA 2 (영상)	guilt	0.0071	0.0122	0.0140
+VLM 캡션 v1	V-JEPA 2 (영상)	horror	0.2393	0.2514	0.3306
+VLM 캡션 v1	V-JEPA 2 (영상)	interest	0.2180	0.2253	0.2713
+VLM 캡션 v1	V-JEPA 2 (영상)	joy	0.2804	0.3480	0.3811
+VLM 캡션 v1	V-JEPA 2 (영상)	nostalgia	0.3007	0.2734	0.3799
+VLM 캡션 v1	V-JEPA 2 (영상)	pride	0.0427	0.1152	0.1197
+VLM 캡션 v1	V-JEPA 2 (영상)	relief	0.1650	0.0937	0.1716
+VLM 캡션 v1	V-JEPA 2 (영상)	romance	0.3705	0.4258	0.4854
+VLM 캡션 v1	V-JEPA 2 (영상)	sadness	0.1149	0.1839	0.2118
+VLM 캡션 v1	V-JEPA 2 (영상)	satisfaction	0.0747	0.0592	0.0931
+VLM 캡션 v1	V-JEPA 2 (영상)	sexual desire	0.6186	0.5176	0.6493
+VLM 캡션 v1	V-JEPA 2 (영상)	surprise	0.2376	0.1801	0.2588
+VLM 캡션 v1	V-JEPA 2 (영상)	sympathy	0.0863	0.1177	0.1407
+VLM 캡션 v1	V-JEPA 2 (영상)	triumph	0.2392	0.2469	0.2936
+VLM 캡션 v1	VideoMAE (영상)	admiration	0.0583	0.0754	0.0951
+VLM 캡션 v1	VideoMAE (영상)	adoration	0.4063	0.4880	0.5188
+VLM 캡션 v1	VideoMAE (영상)	aesthetic appreciation	0.5618	0.5217	0.6133
+VLM 캡션 v1	VideoMAE (영상)	amusement	0.3677	0.3997	0.4458
+VLM 캡션 v1	VideoMAE (영상)	anger	0.1641	0.1957	0.2377
+VLM 캡션 v1	VideoMAE (영상)	anxiety	0.3367	0.3495	0.4071
+VLM 캡션 v1	VideoMAE (영상)	awe	0.3173	0.3174	0.3695
+VLM 캡션 v1	VideoMAE (영상)	awkwardness	0.1332	0.1020	0.1520
+VLM 캡션 v1	VideoMAE (영상)	boredom	0.1765	0.1117	0.1945
+VLM 캡션 v1	VideoMAE (영상)	calmness	0.3436	0.3094	0.3942
+VLM 캡션 v1	VideoMAE (영상)	confusion	0.0574	0.0460	0.0751
+VLM 캡션 v1	VideoMAE (영상)	contempt	0.0615	0.0637	0.0822
+VLM 캡션 v1	VideoMAE (영상)	craving	0.4672	0.5568	0.6037
+VLM 캡션 v1	VideoMAE (영상)	disappointment	0.0583	0.0582	0.0778
+VLM 캡션 v1	VideoMAE (영상)	disgust	0.2794	0.2829	0.3540
+VLM 캡션 v1	VideoMAE (영상)	empathic pain	0.0960	0.1101	0.1406
+VLM 캡션 v1	VideoMAE (영상)	entrancement	0.3959	0.3757	0.4545
+VLM 캡션 v1	VideoMAE (영상)	envy	0.0255	0.0195	0.0309
+VLM 캡션 v1	VideoMAE (영상)	excitement	0.1884	0.1827	0.2336
+VLM 캡션 v1	VideoMAE (영상)	fear	0.3431	0.3777	0.4311
+VLM 캡션 v1	VideoMAE (영상)	guilt	0.0152	0.0122	0.0191
+VLM 캡션 v1	VideoMAE (영상)	horror	0.2511	0.2514	0.3275
+VLM 캡션 v1	VideoMAE (영상)	interest	0.2036	0.2253	0.2620
+VLM 캡션 v1	VideoMAE (영상)	joy	0.2826	0.3480	0.3817
+VLM 캡션 v1	VideoMAE (영상)	nostalgia	0.2451	0.2734	0.3449
+VLM 캡션 v1	VideoMAE (영상)	pride	0.0517	0.1152	0.1225
+VLM 캡션 v1	VideoMAE (영상)	relief	0.1263	0.0937	0.1375
+VLM 캡션 v1	VideoMAE (영상)	romance	0.4748	0.4258	0.5344
+VLM 캡션 v1	VideoMAE (영상)	sadness	0.1392	0.1839	0.2217
+VLM 캡션 v1	VideoMAE (영상)	satisfaction	0.0639	0.0592	0.0851
+VLM 캡션 v1	VideoMAE (영상)	sexual desire	0.6575	0.5176	0.6791
+VLM 캡션 v1	VideoMAE (영상)	surprise	0.2436	0.1801	0.2607
+VLM 캡션 v1	VideoMAE (영상)	sympathy	0.0819	0.1177	0.1370
+VLM 캡션 v1	VideoMAE (영상)	triumph	0.1963	0.2469	0.2728
+VLM 캡션 v1	CLIP (이미지)	admiration	0.1178	0.0754	0.1273
+VLM 캡션 v1	CLIP (이미지)	adoration	0.5965	0.4880	0.6021
+VLM 캡션 v1	CLIP (이미지)	aesthetic appreciation	0.6830	0.5217	0.6862
+VLM 캡션 v1	CLIP (이미지)	amusement	0.5487	0.3997	0.5531
+VLM 캡션 v1	CLIP (이미지)	anger	0.3601	0.1957	0.3630
+VLM 캡션 v1	CLIP (이미지)	anxiety	0.5166	0.3495	0.5206
+VLM 캡션 v1	CLIP (이미지)	awe	0.4281	0.3174	0.4326
+VLM 캡션 v1	CLIP (이미지)	awkwardness	0.2132	0.1020	0.2126
+VLM 캡션 v1	CLIP (이미지)	boredom	0.2065	0.1117	0.2113
+VLM 캡션 v1	CLIP (이미지)	calmness	0.4534	0.3094	0.4595
+VLM 캡션 v1	CLIP (이미지)	confusion	0.1935	0.0460	0.1921
+VLM 캡션 v1	CLIP (이미지)	contempt	0.1262	0.0637	0.1279
+VLM 캡션 v1	CLIP (이미지)	craving	0.6925	0.5568	0.7111
+VLM 캡션 v1	CLIP (이미지)	disappointment	0.1490	0.0582	0.1474
+VLM 캡션 v1	CLIP (이미지)	disgust	0.5255	0.2829	0.5257
+VLM 캡션 v1	CLIP (이미지)	empathic pain	0.1553	0.1101	0.1706
+VLM 캡션 v1	CLIP (이미지)	entrancement	0.4899	0.3757	0.4982
+VLM 캡션 v1	CLIP (이미지)	envy	0.0848	0.0195	0.0822
+VLM 캡션 v1	CLIP (이미지)	excitement	0.2780	0.1827	0.2820
+VLM 캡션 v1	CLIP (이미지)	fear	0.5566	0.3777	0.5610
+VLM 캡션 v1	CLIP (이미지)	guilt	0.0872	0.0122	0.0826
+VLM 캡션 v1	CLIP (이미지)	horror	0.4575	0.2514	0.4617
+VLM 캡션 v1	CLIP (이미지)	interest	0.3591	0.2253	0.3608
+VLM 캡션 v1	CLIP (이미지)	joy	0.4724	0.3480	0.4764
+VLM 캡션 v1	CLIP (이미지)	nostalgia	0.6229	0.2734	0.6275
+VLM 캡션 v1	CLIP (이미지)	pride	0.1665	0.1152	0.1795
+VLM 캡션 v1	CLIP (이미지)	relief	0.1784	0.0937	0.1775
+VLM 캡션 v1	CLIP (이미지)	romance	0.7271	0.4258	0.7278
+VLM 캡션 v1	CLIP (이미지)	sadness	0.3943	0.1839	0.3988
+VLM 캡션 v1	CLIP (이미지)	satisfaction	0.1131	0.0592	0.1153
+VLM 캡션 v1	CLIP (이미지)	sexual desire	0.8231	0.5176	0.8224
+VLM 캡션 v1	CLIP (이미지)	surprise	0.3064	0.1801	0.3078
+VLM 캡션 v1	CLIP (이미지)	sympathy	0.2603	0.1177	0.2612
+VLM 캡션 v1	CLIP (이미지)	triumph	0.3084	0.2469	0.3254
+VLM 캡션 v1	DINOv2 (이미지)	admiration	0.0443	0.0754	0.0801
+VLM 캡션 v1	DINOv2 (이미지)	adoration	0.4788	0.4880	0.5358
+VLM 캡션 v1	DINOv2 (이미지)	aesthetic appreciation	0.5638	0.5217	0.6085
+VLM 캡션 v1	DINOv2 (이미지)	amusement	0.4236	0.3997	0.4652
+VLM 캡션 v1	DINOv2 (이미지)	anger	0.2323	0.1957	0.2611
+VLM 캡션 v1	DINOv2 (이미지)	anxiety	0.4368	0.3495	0.4592
+VLM 캡션 v1	DINOv2 (이미지)	awe	0.3410	0.3174	0.3761
+VLM 캡션 v1	DINOv2 (이미지)	awkwardness	0.1657	0.1020	0.1685
+VLM 캡션 v1	DINOv2 (이미지)	boredom	0.1787	0.1117	0.1900
+VLM 캡션 v1	DINOv2 (이미지)	calmness	0.3071	0.3094	0.3641
+VLM 캡션 v1	DINOv2 (이미지)	confusion	0.0865	0.0460	0.0932
+VLM 캡션 v1	DINOv2 (이미지)	contempt	0.0910	0.0637	0.0997
+VLM 캡션 v1	DINOv2 (이미지)	craving	0.5697	0.5568	0.6455
+VLM 캡션 v1	DINOv2 (이미지)	disappointment	0.0903	0.0582	0.0979
+VLM 캡션 v1	DINOv2 (이미지)	disgust	0.3803	0.2829	0.4063
+VLM 캡션 v1	DINOv2 (이미지)	empathic pain	0.0716	0.1101	0.1223
+VLM 캡션 v1	DINOv2 (이미지)	entrancement	0.3986	0.3757	0.4458
+VLM 캡션 v1	DINOv2 (이미지)	envy	0.0369	0.0195	0.0391
+VLM 캡션 v1	DINOv2 (이미지)	excitement	0.2059	0.1827	0.2335
+VLM 캡션 v1	DINOv2 (이미지)	fear	0.4463	0.3777	0.4787
+VLM 캡션 v1	DINOv2 (이미지)	guilt	0.0278	0.0122	0.0286
+VLM 캡션 v1	DINOv2 (이미지)	horror	0.2940	0.2514	0.3403
+VLM 캡션 v1	DINOv2 (이미지)	interest	0.2487	0.2253	0.2805
+VLM 캡션 v1	DINOv2 (이미지)	joy	0.3281	0.3480	0.3866
+VLM 캡션 v1	DINOv2 (이미지)	nostalgia	0.3837	0.2734	0.4184
+VLM 캡션 v1	DINOv2 (이미지)	pride	0.0875	0.1152	0.1325
+VLM 캡션 v1	DINOv2 (이미지)	relief	0.1459	0.0937	0.1499
+VLM 캡션 v1	DINOv2 (이미지)	romance	0.5310	0.4258	0.5580
+VLM 캡션 v1	DINOv2 (이미지)	sadness	0.2729	0.1839	0.3006
+VLM 캡션 v1	DINOv2 (이미지)	satisfaction	0.0598	0.0592	0.0761
+VLM 캡션 v1	DINOv2 (이미지)	sexual desire	0.7263	0.5176	0.7282
+VLM 캡션 v1	DINOv2 (이미지)	surprise	0.2206	0.1801	0.2412
+VLM 캡션 v1	DINOv2 (이미지)	sympathy	0.1871	0.1177	0.2055
+VLM 캡션 v1	DINOv2 (이미지)	triumph	0.2394	0.2469	0.2809
+VLM 캡션 v1	VGG19 fc8 (이미지)	admiration	0.0412	0.0754	0.0895
+VLM 캡션 v1	VGG19 fc8 (이미지)	adoration	0.2931	0.4880	0.5011
+VLM 캡션 v1	VGG19 fc8 (이미지)	aesthetic appreciation	0.3879	0.5217	0.5493
+VLM 캡션 v1	VGG19 fc8 (이미지)	amusement	0.2836	0.3997	0.4250
+VLM 캡션 v1	VGG19 fc8 (이미지)	anger	0.0585	0.1957	0.2037
+VLM 캡션 v1	VGG19 fc8 (이미지)	anxiety	0.2089	0.3495	0.3708
+VLM 캡션 v1	VGG19 fc8 (이미지)	awe	0.2156	0.3174	0.3337
+VLM 캡션 v1	VGG19 fc8 (이미지)	awkwardness	0.0962	0.1020	0.1269
+VLM 캡션 v1	VGG19 fc8 (이미지)	boredom	0.0942	0.1117	0.1368
+VLM 캡션 v1	VGG19 fc8 (이미지)	calmness	0.1803	0.3094	0.3249
+VLM 캡션 v1	VGG19 fc8 (이미지)	confusion	0.0218	0.0460	0.0531
+VLM 캡션 v1	VGG19 fc8 (이미지)	contempt	0.0424	0.0637	0.0740
+VLM 캡션 v1	VGG19 fc8 (이미지)	craving	0.4390	0.5568	0.6025
+VLM 캡션 v1	VGG19 fc8 (이미지)	disappointment	0.0210	0.0582	0.0585
+VLM 캡션 v1	VGG19 fc8 (이미지)	disgust	0.1746	0.2829	0.3133
+VLM 캡션 v1	VGG19 fc8 (이미지)	empathic pain	0.0315	0.1101	0.1139
+VLM 캡션 v1	VGG19 fc8 (이미지)	entrancement	0.2956	0.3757	0.4141
+VLM 캡션 v1	VGG19 fc8 (이미지)	envy	0.0318	0.0195	0.0363
+VLM 캡션 v1	VGG19 fc8 (이미지)	excitement	0.0991	0.1827	0.1910
+VLM 캡션 v1	VGG19 fc8 (이미지)	fear	0.2223	0.3777	0.3993
+VLM 캡션 v1	VGG19 fc8 (이미지)	guilt	0.0058	0.0122	0.0142
+VLM 캡션 v1	VGG19 fc8 (이미지)	horror	0.1198	0.2514	0.2779
+VLM 캡션 v1	VGG19 fc8 (이미지)	interest	0.1273	0.2253	0.2375
+VLM 캡션 v1	VGG19 fc8 (이미지)	joy	0.1734	0.3480	0.3560
+VLM 캡션 v1	VGG19 fc8 (이미지)	nostalgia	0.1272	0.2734	0.2944
+VLM 캡션 v1	VGG19 fc8 (이미지)	pride	0.0420	0.1152	0.1196
+VLM 캡션 v1	VGG19 fc8 (이미지)	relief	0.1009	0.0937	0.1224
+VLM 캡션 v1	VGG19 fc8 (이미지)	romance	0.1758	0.4258	0.4349
+VLM 캡션 v1	VGG19 fc8 (이미지)	sadness	0.0770	0.1839	0.2044
+VLM 캡션 v1	VGG19 fc8 (이미지)	satisfaction	0.0494	0.0592	0.0761
+VLM 캡션 v1	VGG19 fc8 (이미지)	sexual desire	0.5035	0.5176	0.5966
+VLM 캡션 v1	VGG19 fc8 (이미지)	surprise	0.1381	0.1801	0.2045
+VLM 캡션 v1	VGG19 fc8 (이미지)	sympathy	0.0616	0.1177	0.1314
+VLM 캡션 v1	VGG19 fc8 (이미지)	triumph	0.1538	0.2469	0.2585

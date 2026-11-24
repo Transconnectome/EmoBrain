@@ -1,0 +1,8 @@
+{
+  "note": "11/10 2순위 본 실행. 입력층 Brain-IT tokenizer(s6_model.BrainItRoiInput, voxel 뽑기 0.375, Brain-IT 부록 D.1). d 64 하나, 입력층 weight decay {0.01, 0.1, 1}(11/9 입력층 점검이 0.01에서 돌았고, voxel embedding에는 선형판의 10이 지나치게 세다고 보아 한 단계 낮춤), learning rate 1e-4, seed 0. 결과는 S6_OUT=s6_brain_p1_brainit",
+  "k_candidates": [[64, 0.01], [64, 0.1], [64, 1.0]],
+  "learning_rates": [0.0001],
+  "seeds": [0],
+  "tokenizer": "brainit",
+  "voxel_sampling": 0.375
+}

@@ -1,0 +1,9 @@
+{
+  "note": "11/13 본 실행(석진 님). 선형 입력층 + voxel 뽑기 0.375, d 64(같은 자료 선행 연구 GED, ML-BVAE, EmoGrowth의 64차원). A-1의 learning rate {1e-5, 1e-4, 1e-3}(G13 원래 후보) × 입력층 weight decay {0.01, 0.1, 1, 10, 100, 1000}의 grid에서 learning rate × weight decay가 1 이상인 조합(1e-3, 1000)을 뺀 17개를 검증 fold로 고른다. 나머지 조건은 그 fold의 A-1이 고른 d, 입력층 weight decay, learning rate를 따른다(G13의 실행 예산 규칙). seed 0. 결과를 본 뒤 바꾼 설정이다(04 기록). 결과는 S6_OUT=s6_brain_grid_main",
+  "k_candidates": [[64, 0.01], [64, 0.1], [64, 1.0], [64, 10.0], [64, 100.0], [64, 1000.0]],
+  "learning_rates": [1e-05, 0.0001, 0.001],
+  "lr_follows_brain_only": true,
+  "seeds": [0],
+  "tokenizer": "linear",
+  "voxel_sampling": 0.375
+}

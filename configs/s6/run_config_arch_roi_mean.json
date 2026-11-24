@@ -1,0 +1,27 @@
+{
+  "learning_rates": [
+    0.001
+  ],
+  "lr_follows_brain_only": false,
+  "keep_candidate_checkpoints": false,
+  "seeds": [
+    0
+  ],
+  "note": "11/19. 입력층 점검을 최종 설정으로 다시. ROI마다 voxel 평균 하나(11/9 s6_check_roi_mean과 같은 입력층). voxel 뽑기는 이 입력층에 없다. learning rate 1e-3, 입력층 weight decay {0.01, 1, 100}을 검증 fold로 고른다. 결과는 S6_OUT=s6_brain_arch_roi_mean",
+  "k_candidates": [
+    [
+      64,
+      0.01
+    ],
+    [
+      64,
+      1.0
+    ],
+    [
+      64,
+      100.0
+    ]
+  ],
+  "tokenizer": "roi_mean",
+  "voxel_sampling": 0.0
+}

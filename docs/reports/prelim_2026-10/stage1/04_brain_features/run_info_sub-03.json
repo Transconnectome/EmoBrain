@@ -1,0 +1,20 @@
+{
+ "features": [
+  "lowlevel_L",
+  "hk_vision1000",
+  "hk_semantic73"
+ ],
+ "seconds": 3029,
+ "n_rows": 2172,
+ "n_roi_valid": 468,
+ "n_roi_total": 469,
+ "n_a14_observed": 2165,
+ "fold_sizes": {
+  "0": 393,
+  "1": 355,
+  "2": 357,
+  "3": 356,
+  "4": 357,
+  "5": 354
+ }
+}

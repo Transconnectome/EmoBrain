@@ -1,0 +1,8 @@
+{
+  "note": "11/14 석진 님. MindEye2 형식 입력층 비교. ROI로 묶지 않고 모든 voxel 열을 참가자별 선형층 하나로 64차원 token 하나에 보낸다(s6_model.DenseVoxelInput). 입력 가중치 수는 본 실행의 ROI 입력층과 같다. 나머지(공유 encoder, 정서 query, voxel 뽑기 0.375)는 본 실행 A-1과 같다. learning rate 1e-3, 입력층 weight decay {1, 10, 100}. A-1만, seed 0. 결과는 S6_OUT=s6_brain_dense_check",
+  "k_candidates": [[64, 1.0], [64, 10.0], [64, 100.0]],
+  "learning_rates": [0.001],
+  "seeds": [0],
+  "tokenizer": "dense",
+  "voxel_sampling": 0.375
+}
