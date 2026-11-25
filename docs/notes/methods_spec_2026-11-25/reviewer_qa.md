@@ -204,3 +204,26 @@ Fu, K., Du, C., Wang, S., & He, H. (2024). Improved video emotion recognition wi
 - 방향이 반대다. Fu는 뇌를 교사로 써서 모델을 고치고, 다른 영상 자료의 범주 분류(top-1)로 평가한다. 우리는 뇌를 보지 않은 모델이 쓰는 단서를 단위 조작으로 찾고, 그 단서와 뇌 영역의 대응, 뇌에서 해독한 단서로 정서 프로파일이 복원되는지를 본다.
 - 구조상 주의할 점(우리의 읽기): Fu의 "denoised fMRI"는 34개 정서 평정으로 맞춘 encoding 모형의 예측값이다. 따라서 정렬 대상 유사도 행렬에는 평정의 구조가 voxel 가중치를 거쳐 들어 있다. 저자들은 뇌 신호가 행동 평정보다 낫다고 해석했지만, 두 신호가 독립은 아니다.
 - 쓸 수 있는 근거: 영역 결과(TPJ, DMPFC, 전뇌 정서 voxel)와 motion energy를 함께 넣어 시각 정보를 떼어 내는 banded ridge 절차는 우리 2단계의 예상 영역과 분해 방식에 대한 선행 근거다. "a lack of data hinders..." 문장은 분리 학습 답변의 자료 규모 논거에 더한다.
+
+## 추가: Cammarota 등 2025 (전문 확인, 2026-11-25)
+
+Cammarota, S., Ferrante, M., & Toschi, N. (2025). One question at a time: A semantic bottleneck for interpretable visual brain decoding from fMRI. 읽은 판은 첫 쪽에 "Preprint."라고 적힌 판이다(본문, 부록 5.1-5.8 포함). NeurIPS 2025 사이트에는 이 제목과 "Bridging Brains and Concepts: Interpretable Visual Decoding from fMRI with Semantic Bottlenecks" 두 제목이 함께 올라 있어, 최종 서지는 출판본으로 확인해야 한다.
+
+**무엇을 했나**
+- NSD 4명(Subj01/02/05/07), 시각피질 마스크 약 15,000 voxel, 자극당 최대 3회 반복 평균(부록 5.1).
+- BrainDiffuser의 뇌 → CLIP 선형 사상 W를 두 단계로 나눴다: "we factorize the decoding weight matrix W in two separate matrices A of size nvoxels × a and B of size a × CLIPdimension such that W = AB ... This decomposition allows for direct inspection of A".
+- 중간 공간 L은 214개 예/아니오 질문이다. GPT-4o가 캡션에서 질문을 만들고 BLIP-2가 이미지마다 답했다.
+- B(L → CLIP)는 뇌 자료 없이 실제 L로 학습한 뒤 고정한다: "this model is subsequently frozen and applied to the interpretable embeddings inferred from brain activity". A(뇌 → L)는 피험자별 ridge다.
+- 결과(Table 1, 평균 ± 표준편차): CLIP 점수 BrainDiffuser(직접) 0.915, 병목(Int-BD) 0.877, 실제 L을 넣은 상한(Int to CLIP) 0.952. 50-way top-1은 0.525, 0.445, 0.688. 저자 요약: "on average −4% on CLIP score and −8% on 50-way-top-1 accuracy".
+- A의 열을 voxel 지도로 그리면 얼굴, 몸, 장소, 글자 선택 영역과 겹친다(상위 4% voxel만 표시).
+- 한계(저자): 질문 집합의 완결성, BLIP-2 성능, NSD와 시각 해독에 한정.
+
+**우리 설계와의 관계**
+- 3단계 구조(뇌 → 해석 가능한 중간 공간 → 자극만으로 학습해 고정한 사상 → 출력)의 직접 선례다. 직접 사상, 병목, 상한 세 값을 나란히 보고하는 형식도 같다. 따라서 "뇌 해독에 고정 판독층 병목을 처음 썼다"고 주장할 수 없다.
+- 다른 점:
+  - 중간 공간: Cammarota는 연구자가 질문으로 설계했다. 우리는 자극 → 정서 모델 안에서 head 제거로 찾은, 정서 예측이 의존하는 단서다.
+  - 고정 사상의 내용: Cammarota는 해석 공간 → CLIP(이미지 생성용). 우리는 단서 → 27개 정서(외부 영상-정서 자료 6만 개에서 배운 시각-정서 관계).
+  - 표적: 이미지 재구성 대 사람의 정서 평정 프로파일.
+  - 자료: 7T, 반복 평균, 시각피질 대 3T, 단일 제시, 전뇌.
+  - 무작위 단위 대조, 정서별 영역 지도는 Cammarota에 없다.
+- 심사 답변에 쓸 것: 분리의 목적이 해석 가능성이라는 논거(W = AB 분해로 A를 직접 볼 수 있음)와, 병목의 비용이 작았다는 결과(CLIP −4%). 다만 그 비용은 7T 반복 평균 자료에서의 값이라, 단일 제시 자료에서는 더 클 수 있다.
