@@ -2,7 +2,7 @@
 """S10 6-3 MC 시청 전이 (04 S10 MC 시청 전이, 01 6-3, 6-1, G14, O4 (1), (5), O30, 2026-11-15). GPU 없음.
 
 입력: S8 결과(s8_mc_transfer.py). <S8 폴더>/<조건>/seed<k>/mc-0X/{done.json, test_pred_wd<고른 값>.npz, scoring.npz}.
-- 조건 A-1, C-1 × seed 0, 1, 2 × MC 참가자 6명이 모두 있어야 최종 표를 낸다. 빠지면 목록을 적고 멈춘다(--partial-check는 점검용).
+- 조건 A-1, C-1 × seed 0, 1, 2 × MC 참가자 5명(S2~S6, MC_PIDS)이 모두 있어야 최종 표를 낸다. 빠지면 목록을 적고 멈춘다(--partial-check는 점검용).
 - done.json의 hk_plan이 final_for_mc가 아니면(S8 확인용 실행) 멈춘다. --allow-check-run을 주면 읽기 점검만 한다.
 - 확인: 시험 영상이 72개이고 서로 다른 내용이며, 한 참가자의 두 조건, 세 seed가 같은 영상과 같은 사람 평정(scoring.npz)을 쓴다.
 계산(01 6-3)
@@ -32,7 +32,7 @@ import s10_stats as st
 MODELS = ("brain_only", "brain_decoded")
 SHORT = {"brain_only": "A-1", "brain_decoded": "C-1"}
 SEEDS = (0, 1, 2)  # G14, 6-3
-MC_PIDS = tuple(f"mc-0{i}" for i in range(1, 7))
+MC_PIDS = tuple(f"mc-0{i}" for i in range(2, 7))  # 11/25 석진 님: S1은 MC에서 뺀다(이유는 01 6-3)
 SCOPES = ("unit", "all")
 WIDE_NOTE = "시험 영상이 72개뿐이라 구간이 넓을 수 있다(6-3). 보정 없음(O4 (5))"
 

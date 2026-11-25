@@ -4,7 +4,7 @@
 set -euo pipefail
 HERE="${SLURM_SUBMIT_DIR:+$SLURM_SUBMIT_DIR/scripts}"; source "${HERE:-$(dirname "$0")}/_env.sh"
 "$PY" s10_mc_dgroup.py --mc-dir "$OUT_ROOT/s8_mc" --out "$OUT_ROOT/s10_stats/6-3_mc_dgroup"
-# 11/18 B-1을 더한 판(C-1 − B-1, B-1 − A-1). B-1의 MC 전이 6명이 다 끝났을 때만
-if [ "$(ls "$OUT_ROOT"/s8_mc/brain_only_featdec/seed0/mc-0{1,2,3,4,5,6}/done.json 2>/dev/null | wc -l)" -eq 6 ]; then
+# 11/18 B-1을 더한 판(C-1 − B-1, B-1 − A-1). B-1의 MC 전이 5명(S2~S6)이 다 끝났을 때만
+if [ "$(ls "$OUT_ROOT"/s8_mc/brain_only_featdec/seed0/mc-0{2,3,4,5,6}/done.json 2>/dev/null | wc -l)" -eq 5 ]; then
   "$PY" s10_mc_dgroup.py --mc-dir "$OUT_ROOT/s8_mc" --out "$OUT_ROOT/s10_stats/6-3_mc_b1" --with-b1
 fi
