@@ -25,7 +25,7 @@
   다른 방식으로 담긴 곳"이다.
 
 사용(run worktree의 src에서):
-  python s8_mc_individual.py train --final <s6_brain_final_for_mc> --out <s8_mc_individual> --participants 01 --design-freeze <커밋> [--device cuda]
+  python s8_mc_individual.py train --final <s6_brain_final_for_mc> --out <s8_mc_individual> --participants 02 --design-freeze <커밋> [--device cuda]
   python s8_mc_individual.py perturb --final <s6_brain_final_for_mc> --transfer <s8_mc> --individual <s8_mc_individual> --out <폴더> --design-freeze <커밋>
 """
 import argparse

@@ -24,7 +24,7 @@
 출력: <out>/<조건>/seed<k>/mc-0X/{selection.tsv, test_pred_<후보>.npz, input_layer.pt, done.json}
 확인용 실행(11/15): --plan outer_fold1로 바깥 fold 모델을 옮겨 오류, 메모리, 시간만 본다. 출력 폴더를 따로 두고 결과로 쓰지 않는다.
 사용(run worktree의 src에서): python s8_mc_transfer.py --final <s6_brain_final_for_mc> --out <s8_mc> --conditions brain_only,brain_decoded --seeds 0,1,2
-                               --participants 01,02,03,04,05,06 --design-freeze <커밋> [--device cuda]
+                               --participants 02,03,04,05,06 --design-freeze <커밋> [--device cuda]
 """
 import argparse
 import dataclasses
