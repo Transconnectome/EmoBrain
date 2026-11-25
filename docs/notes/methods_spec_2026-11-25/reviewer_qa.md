@@ -186,3 +186,21 @@
 - Palazzo 등 블록 설계 교란을 지적한 후속 비판 논문들 (미독). Palazzo를 인용하기 전에 확인 필요.
 - Doerig 등 The neuroconnectionist research programme 정식 출판본 (preprint v1만 읽음; 인용 문구가 출판본에서 달라졌을 수 있음).
 - 읽지 않은 보충 자료: Kragel 2019 Supplementary Text 및 fig. S6; Horikawa & Kamitani 2017 Supplementary Figs. 15, 17; Mind captioning figs. S5-S10; Gryshchuk 2025 Supplementary Material; Takagi & Nishimoto 2023 Appendix A-C; Gao 2025 Supplementary information. 본문에서 언급된 내용만 인용함.
+
+## 추가: Fu 등 2024 (전문 확인, 2026-11-25)
+
+Fu, K., Du, C., Wang, S., & He, H. (2024). Improved video emotion recognition with alignment of CNN and human brain representations. IEEE Transactions on Affective Computing, 15(3), 1026-1040. https://doi.org/10.1109/TAFFC.2023.3316173 (2023년 9월 온라인 공개). 본문 pp.1026-1039를 읽었고 부록은 보지 못했다. 코드: https://osf.io/ucx57
+
+**무엇을 했나**
+- 같은 자료다. Horikawa 2020의 2,196개 영상, 5명(S01-S05)을 쓰고, 2,181개 고유 영상을 공동 학습에 썼다.
+- Kinetics로 사전학습한 3D CNN 여섯 종과 VAANet-V를 다른 영상 정서 자료(VideoEmotion8 1,101개, Ekman6 1,637개)로 분류 학습하면서, 같은 망에 HK 영상을 넣어 얻은 층별 유사도 행렬을 뇌 유사도 행렬에 맞추는 손실을 더했다: "L = Lcls + αLsim" (식 8).
+- 뇌 쪽 신호는 banded ridge encoding으로 만든다. 34개 정서 평정과 motion energy 6,555개를 함께 넣어 맞춘 뒤, "Compute the prediction of the banded ridge model with only emotion features X1 as input to obain denoised fMRI" (Algorithm 1)이고, 정서 encoding 정확도가 문턱(p<0.01, FDR)을 넘는 voxel만 쓴다.
+- 결과: 뇌 정렬 학습이 두 영상 자료의 분류 정확도를 높였다. 영역별로는 TPJ와 DMPFC가 가장 도움이 되었고, 전뇌 정서 관련 voxel이 개별 영역보다 나았으며, VMPFC는 encoding 정확도가 낮아 빠졌다. 학습 후 망의 유사도 행렬이 뇌와 더 닮았다(Spearman ρ 0.55 대 0.46, 0.53 대 0.47).
+- 저자들의 목표: "our goal here is not to achieve SOTA video emotion classification performance, but rather to determine whether and how we could use the brain to guide the training of ANN".
+- 저자들의 한계: "a lack of data hinders the application of our framework to larger models".
+
+**우리 설계와의 관계**
+- 같은 자료에서 뇌 정렬 학습(앞서 뺀 (ㄴ))을 한 직접 선례다. 심사위원이 "왜 뇌와 함께 학습하지 않았나"를 물을 때 가장 먼저 들 논문이다.
+- 방향이 반대다. Fu는 뇌를 교사로 써서 모델을 고치고, 다른 영상 자료의 범주 분류(top-1)로 평가한다. 우리는 뇌를 보지 않은 모델이 쓰는 단서를 단위 조작으로 찾고, 그 단서와 뇌 영역의 대응, 뇌에서 해독한 단서로 정서 프로파일이 복원되는지를 본다.
+- 구조상 주의할 점(우리의 읽기): Fu의 "denoised fMRI"는 34개 정서 평정으로 맞춘 encoding 모형의 예측값이다. 따라서 정렬 대상 유사도 행렬에는 평정의 구조가 voxel 가중치를 거쳐 들어 있다. 저자들은 뇌 신호가 행동 평정보다 낫다고 해석했지만, 두 신호가 독립은 아니다.
+- 쓸 수 있는 근거: 영역 결과(TPJ, DMPFC, 전뇌 정서 voxel)와 motion energy를 함께 넣어 시각 정보를 떼어 내는 banded ridge 절차는 우리 2단계의 예상 영역과 분해 방식에 대한 선행 근거다. "a lack of data hinders..." 문장은 분리 학습 답변의 자료 규모 논거에 더한다.
