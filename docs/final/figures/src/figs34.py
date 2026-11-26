@@ -77,17 +77,19 @@ def fig3a():
     arrow(ax, 17.5, y + 8, 21.5, y + 8)
     hb, hh = 9, 4          # example head h = block 9, head 4 (one of the fear-list heads in b)
     keep_h = [True, False, True]
+    mrng = np.random.default_rng(70)
     cell, gap = 0.85, 0.1
     for k in range(3):
         x0 = 22 + k * 13
-        masked = [(b + 1, q + 1) for b in range(12) for q in range(12) if rng.random() < 0.5]
-        masked = [m for m in masked if m != (hb, hh)] + ([] if keep_h[k] else [(hb, hh)])
+        others = [(b + 1, q + 1) for b in range(12) for q in range(12) if (b + 1, q + 1) != (hb, hh)]
+        n_off = 72 if keep_h[k] else 71          # exactly 72 of 144 heads off in every mask
+        masked = [others[i] for i in mrng.choice(143, n_off, replace=False)] + ([] if keep_h[k] else [(hb, hh)])
         head_grid(ax, x0, y + 2.5, cell=cell, gap=gap, masked=masked)
         ring(ax, x0, y + 2.5, cell, gap, hb, hh)
         T(ax, x0 + 5.6, y + 0.4, ['mask 1', 'mask 2', 'mask M'][k], size=5.6, c=GREY)
         T(ax, x0 + 5.6, y - 3.0, ['r = 0.41', 'r = 0.33', 'r = 0.39'][k], size=6.0, c=RATE)
         T(ax, x0 + 5.6, y - 5.9, ['h on', 'h off', 'h on'][k], size=5.4, c=HEAD)
-    T(ax, 22 + 3 * 13 - 1.2, y + 7.6, '…', size=9, c=GREY)
+    T(ax, 61.4, y + 7.6, '…', size=7, c=GREY)
     T(ax, 22, y + 19.8, 'Each mask switches off 72 of 144 heads (grey) for all validation videos.', size=5.8, c=GREY, ha='left')
     T(ax, 22, y + 16.6, 'r = Pearson r between predicted and rated fear across those videos.', size=5.8, c=GREY, ha='left')
     # worked example for head h
@@ -99,14 +101,19 @@ def fig3a():
     T(ax, ex, y - 6.4, '0 means "as useful as an average head\nwhen half are off", not "no effect"',
       size=5.2, c=GREY, ha='left', va='top', linespacing=1.2)
     # ranked bars
-    yr = y - 30
+    yr = y - 26.5
     vals = np.sort(rng.gamma(1.4, 0.004, 144))[::-1]
     vals[:4] += 0.012
-    for i, v in enumerate(vals[:56]):
-        ax.add_patch(Rectangle((4 + i * 1.45, yr), 1.1, 300 * v, fc=HEAD if i < 4 else '#C9CFD6', ec='none', zorder=4))
-    line(ax, [3.6, 4 + 56 * 1.45], [yr, yr], c=INK, lw=0.5)
+    vals = vals - vals.mean()                     # contributions average to 0 over the 144 heads
+    bw = 81.0 / 144
+    for i, v in enumerate(vals):
+        h = 300 * v
+        ax.add_patch(Rectangle((4 + i * bw, yr if h >= 0 else yr + h), bw * 0.8, abs(h), fc=HEAD if i < 4 else '#C9CFD6',
+                               ec='none', zorder=4))
+    line(ax, [3.6, 4 + 144 * bw], [yr, yr], c=INK, lw=0.5)
+    T(ax, 4 + 144 * bw + 1.0, yr, '0 = average head', size=5.2, c=GREY, ha='left')
     T(ax, 10.5, yr + 300 * vals[0] + 1.6, 'top K = fear list (candidates)', size=6.0, c=HEAD, ha='left', va='bottom')
-    T(ax, 4 + 56 * 1.45, yr + 4.6, 'all heads, ranked by contribution', size=5.6, c=GREY, ha='right', va='bottom')
+    T(ax, 4 + 144 * bw, yr + 4.6, 'all 144 heads, ranked by contribution', size=5.6, c=GREY, ha='right', va='bottom')
 
     # ---- b: where the list sits
     bx = 100
@@ -125,6 +132,7 @@ def fig3a():
     for b, n in {3: 1, 8: 1, 9: 2}.items():
         for k in range(n):
             ax.add_patch(Circle((bx + 8 + (b - 1) * 2.55 + 1.05, yd + k * 2.0), 0.75, fc=HEAD, ec=INK, lw=0.4, zorder=6))
+    T(ax, bx + 8 + gw + 1.5, gy + gh - 7.2, 'black outline\n= head h in a', size=5.0, c=GREY, ha='left', va='top', linespacing=1.15)
     T(ax, bx + 8 + gw / 2, yd - 3.4, 'heads per layer: 1 in layer 3, 1 in layer 8, 2 in layer 9', size=5.4, c=GREY)
     T(ax, bx + 8 + gw / 2, yd - 6.6, 'Depth is not read as abstraction.', size=5.4, c=GREY, st='italic')
     line(ax, [3, W - 3], [H - 66, H - 66], c='#DDDDDD', lw=0.6)
@@ -144,7 +152,8 @@ def fig3a():
         T(ax, xx + 4, b0 + v * sc1 + (4.0 if j == 1 else 1.4), f'{v:.2f}', size=5.4)
         T(ax, xx + 4, b0 - 1.6, lab, size=5.2, va='top', linespacing=1.1)
     rr = np.random.default_rng(31)
-    for v2 in 0.03 + rr.normal(0, 0.008, 14):
+    dv = rr.normal(0, 0.008, 14)
+    for v2 in 0.03 + dv - dv.mean():
         ax.add_patch(Circle((26 + 4 + rr.uniform(-3, 3), b0 + v2 * sc1), 0.35, fc='#555555', ec='none', zorder=6))
     line(ax, [10, 38], [b0, b0], c=INK, lw=0.5)
     T(ax, 42, b0 + 15, 'same layers and number;', size=5.4, c=GREY, ha='left')
@@ -182,7 +191,7 @@ def fig3a():
     T(ax, tx, b0 + 8.6, '= 0.07 →', size=5.8, ha='left')
     T(ax, tx, b0 + 5.4, '"especially important', size=5.8, ha='left', w='bold')
     T(ax, tx, b0 + 2.4, 'for fear"', size=5.8, ha='left', w='bold')
-    T(ax, cx, 1.8, 'Claim 2 is tested on the average over the 27 emotions; one emotion gets an interval only.',
+    T(ax, cx, 1.8, 'Claim 2 is tested on the average over the computable emotions; one emotion gets an interval only.',
       size=5.2, c=GREY, ha='left')
     save(fig, 'emobrain_head_layers')
     return fig
