@@ -43,6 +43,8 @@ def hstack(ax, x, y, h, parts, scale, labels=True, size=5.6):
         ax.add_patch(Rectangle((xx, y), w, h, fc=c, ec='white', lw=0.6, zorder=5))
         if labels and w > 4.5:
             T(ax, xx + w / 2, y + h / 2, f'{v:.2f}', size=size, c='white' if c not in (SHARED_C, HEAD_F, RATE_F) else INK, z=6)
+        elif labels:
+            T(ax, xx + w / 2, y + h + 1.5, f'{v:.2f}', size=size - 0.6, c=c, z=6)
         xx += w
     return xx
 
@@ -129,101 +131,104 @@ def fig3a():
 
 # ---------------------------------------------------------------- 3b
 def fig3b():
-    W, H = 180, 104
+    W, H = 180, 110
     fig, ax = canvas(W, H)
-    title(ax, 3, H - 3.5, 'Does the full caption explain the fear heads beyond motion and object names?')
+    title(ax, 3, H - 3.5, 'Does the full caption explain the fear-list heads beyond motion and object names?')
     # ---- a: inputs and two predictions
     panel(ax, 1, H - 8, 'a')
-    sub(ax, 7, H - 10.4, 'Three inputs from each Cowen video, two separate predictions')
+    sub(ax, 7, H - 10.4, 'Inputs from each Cowen video, two separate predictions')
     ytop = H - 16
     stack(ax, ['cowen_1374_f3.png', 'cowen_1374_f4.png', 'cowen_1374_f1.png'], 5, ytop - 17, 15, dx=1.6, dy=1.6)
     T(ax, 13.5, ytop - 19.8, 'video 1374', size=5.8, c=GREY)
-    caption_box(ax, 3, ytop - 40, 32, 17, '"A large lizard chases\na woman in a kimono ..."\n'
+    caption_box(ax, 3, ytop - 41, 32, 17, '"A large lizard chases\na woman in a kimono ..."\n'
                                           '"A woman runs while\nholding a rope ..."\n... 20 captions', size=5.2)
-    # three input rows
-    rows = [('L', C_L, 'low-level visual', 'brightness, colour, motion energy', ytop - 4),
-            ('O', C_O, 'object names', 'nouns: woman, lizard, rope', ytop - 18),
-            ('S', C_S, 'full sentences', 'whole captions, emotion words removed', ytop - 32)]
+    rows = [('L', C_L, 'low-level visual', 'brightness, colour, motion energy', ytop - 3),
+            ('O', C_O, 'object names', 'nouns: woman, lizard, rope', ytop - 14),
+            ('S', C_S, 'full sentences', 'whole captions, emotion words removed', ytop - 25),
+            ('C', GREY, 'common variables', 'caption length, emotion-word counts', ytop - 36)]
     for k, c, name, ex, y in rows:
         badge(ax, 44, y, k, c=c, r=2.2, size=7)
         T(ax, 47.6, y + 1.5, name, size=6.6, c=c, w='bold', ha='left')
         T(ax, 47.6, y - 1.8, ex, size=5.6, c=GREY, ha='left')
-    arrow(ax, 22, ytop - 6, 41.2, ytop - 4.2, lw=0.6)
-    arrow(ax, 35.5, ytop - 29, 41.2, ytop - 18.5, lw=0.6)
-    arrow(ax, 35.5, ytop - 32, 41.2, ytop - 32, lw=0.6)
-    T(ax, 47.6, ytop - 39.6, 'O and S: frozen DeBERTa-large, mean over the 20 captions', size=5.2, c=GREY, ha='left')
+    arrow(ax, 22, ytop - 6, 41.2, ytop - 3.2, lw=0.6)
+    arrow(ax, 35.5, ytop - 30, 41.2, ytop - 14.5, lw=0.6)
+    arrow(ax, 35.5, ytop - 32, 41.2, ytop - 25.2, lw=0.6)
+    arrow(ax, 35.5, ytop - 35, 41.2, ytop - 36, lw=0.6)
+    T(ax, 47.6, ytop - 40.6, 'O and S: frozen DeBERTa-large, mean over the 20 captions.\n'
+                             'C: counted before removal; in every model;\nthe baseline model has C only.', size=5.0, c=GREY, ha='left',
+      va='top', linespacing=1.2)
     # bracket from inputs to the two ridges
     bx = 90
-    line(ax, [bx, bx], [ytop - 2, ytop - 34], c=INK, lw=0.7)
-    for y in (ytop - 4, ytop - 18, ytop - 32):
+    line(ax, [bx, bx], [ytop - 1, ytop - 38], c=INK, lw=0.7)
+    for k, c, name, ex, y in rows:
         line(ax, [bx - 1.5, bx], [y, y], c=INK, lw=0.7)
-    # two lanes
-    lanes = [(ytop - 9, HEAD, HEAD_F, 'activity of the fear heads', 'read from VideoMAE (Fig. 3a)'),
+    lanes = [(ytop - 9, HEAD, HEAD_F, 'activity of the fear-list heads', 'intact VideoMAE on this video;\nhead list from Fig. 3a'),
              (ytop - 27, RATE, RATE_F, 'fear rating', 'share of Cowen raters who chose fear')]
     for y, c, cf, tgt, note in lanes:
         arrow(ax, bx, y, bx + 4.5, y, lw=0.8)
         block(ax, bx + 5, y - 4, 13, 8, 'banded', 'ridge', fc='white', ec=INK, size=6.2, subsize=6.2)
         fire(ax, bx + 17, y + 3.4, 0.6)
         arrow(ax, bx + 18.5, y, bx + 22.5, y, lw=0.8)
-        rbox(ax, bx + 23, y - 4.5, 28, 9, fc='white', ec=c, lw=0.9, ls=(0, (2.5, 1.2)))
-        T(ax, bx + 37, y + 1.4, 'predicted', size=5.8, c=c)
-        T(ax, bx + 37, y - 1.8, tgt, size=6.0, c=c, w='bold')
-        T(ax, bx + 53.5, y, 'vs', size=6.2, c=GREY)
-        rbox(ax, bx + 56, y - 4.5, 28, 9, fc=cf, ec=c, lw=0.9)
-        T(ax, bx + 70, y + 1.4, 'actual', size=5.8, c=c)
-        T(ax, bx + 70, y - 1.8, tgt, size=6.0, c=c, w='bold')
-        T(ax, bx + 70, y - 7.0, note, size=5.2, c=GREY)
-    T(ax, bx + 47, ytop - 38.5, 'Each combination of inputs is fitted on training videos; R² is computed on new videos.',
-      size=5.6, c=INK, st='italic')
-    line(ax, [3, W - 3], [ytop - 43, ytop - 43], c='#DDDDDD', lw=0.6)
+        rbox(ax, bx + 23, y - 4.5, 29, 9, fc='white', ec=c, lw=0.9, ls=(0, (2.5, 1.2)))
+        T(ax, bx + 37.5, y + 1.4, 'predicted', size=5.8, c=c)
+        T(ax, bx + 37.5, y - 1.8, tgt, size=5.8, c=c, w='bold')
+        T(ax, bx + 54.2, y, 'vs', size=6.2, c=GREY)
+        rbox(ax, bx + 56.5, y - 4.5, 29, 9, fc=cf, ec=c, lw=0.9)
+        T(ax, bx + 71, y + 1.4, 'actual', size=5.8, c=c)
+        T(ax, bx + 71, y - 1.8, tgt, size=5.8, c=c, w='bold')
+        T(ax, bx + 71, y - 5.6, note, size=5.2, c=GREY, va='top', linespacing=1.15)
+    T(ax, bx + 11, ytop - 40.6, 'Cowen videos except the 72 MC test videos.\n'
+                               'Each model is fitted on training videos; R² is computed on new videos.', size=5.4, c=INK,
+      st='italic', ha='left', va='top', linespacing=1.2)
+    line(ax, [3, W - 3], [ytop - 49, ytop - 49], c='#DDDDDD', lw=0.6)
 
     # ---- b: the key comparison
-    yb = ytop - 45
+    yb = ytop - 51
     panel(ax, 1, yb, 'b')
-    sub(ax, 7, yb - 2.4, 'Key comparison: add the full sentences last')
-    y0, hh, vmax = 9, 30, 0.35
+    sub(ax, 7, yb - 2.4, 'Key comparison: add the full sentences last (illustrative values)')
+    y0, hh, vmax = 9, 28, 0.35
     yaxis(ax, 16, y0, hh, vmax, (0, 0.1, 0.2, 0.3), 'test R² on new videos')
-    groups = [('fear heads', 'head', HEAD, HEAD_F, 22), ('fear rating', 'rating', RATE, RATE_F, 52)]
+    groups = [('fear-list heads', 'head', HEAD, HEAD_F, 22), ('fear rating', 'rating', RATE, RATE_F, 52)]
     for name, key, c, cf, gx in groups:
         a, b = r2(REG[key], 'LO'), r2(REG[key], 'LOS')
         ax.add_patch(Rectangle((gx, y0), 8, a / vmax * hh, fc=cf, ec=c, lw=0.8, zorder=4))
         ax.add_patch(Rectangle((gx + 11, y0), 8, b / vmax * hh, fc=c, ec=c, lw=0.8, zorder=4))
         T(ax, gx + 4, y0 + a / vmax * hh + 1.6, f'{a:.2f}', size=5.6)
         T(ax, gx + 15, y0 + b / vmax * hh + 1.6, f'{b:.2f}', size=5.6)
-        T(ax, gx + 4, y0 - 2.2, 'L + O', size=5.8)
-        T(ax, gx + 15, y0 - 2.2, 'L + O + S', size=5.8)
+        T(ax, gx + 4, y0 - 2.2, 'C + L + O', size=5.4)
+        T(ax, gx + 15, y0 - 2.2, 'C + L + O + S', size=5.4)
         T(ax, gx + 9.5, y0 - 5.6, name, size=6.4, c=c, w='bold')
-        # gain bracket
         ya, yb2 = y0 + a / vmax * hh, y0 + b / vmax * hh
         line(ax, [gx + 8.2, gx + 20.8], [ya, ya], c=GREY, lw=0.5, ls=(0, (1.5, 1)))
         xg = gx + 21.6
         line(ax, [xg, xg], [ya, yb2], c=C_S, lw=1.0)
         line(ax, [xg - 0.6, xg], [ya, ya], c=C_S, lw=1.0)
         line(ax, [xg - 0.6, xg], [yb2, yb2], c=C_S, lw=1.0)
-        T(ax, xg + 1.0, (ya + yb2) / 2 + 1.2, f'S adds', size=5.6, c=C_S, ha='left')
+        T(ax, xg + 1.0, (ya + yb2) / 2 + 1.2, 'S adds', size=5.6, c=C_S, ha='left')
         T(ax, xg + 1.0, (ya + yb2) / 2 - 1.6, f'{b - a:.2f}', size=6.2, c=C_S, ha='left', w='bold')
     line(ax, [16, 84], [y0, y0], c=INK, lw=0.5)
 
     # ---- c: where the full R2 comes from
     cx = 96
     panel(ax, cx - 3, yb, 'c')
-    sub(ax, cx + 3, yb - 2.4, 'Where the full R² comes from')
-    T(ax, cx + 3, yb - 6.6, 'unique = what is lost when only that input is removed', size=5.6, c=GREY, ha='left')
+    sub(ax, cx + 3, yb - 2.4, 'Where the full R² comes from (illustrative values)')
+    T(ax, cx + 3, yb - 6.6, 'unique = what is lost when only that input is removed;\nbaseline R² with C only is 0.00 in this example',
+      size=5.4, c=GREY, ha='left', va='top', linespacing=1.2)
     scale = 190
-    for i, (name, key, c) in enumerate((('fear heads', 'head', HEAD), ('fear rating', 'rating', RATE))):
-        y = yb - 17 - i * 11
+    for i, (name, key, c) in enumerate((('fear-list heads', 'head', HEAD), ('fear rating', 'rating', RATE))):
+        y = yb - 19 - i * 10
         reg = REG[key]
         shared = reg['LO'] + reg['LS'] + reg['OS'] + reg['LOS']
-        T(ax, cx + 13, y + 2.5, name, size=6.2, c=c, w='bold', ha='right')
+        T(ax, cx + 13.5, y + 2.5, name, size=6.0, c=c, w='bold', ha='right')
         end = hstack(ax, cx + 15, y, 5, [(reg['L'], C_L, 'L'), (reg['O'], C_O, 'O'), (reg['S'], C_S, 'S'), (shared, SHARED_C, 'shared')], scale)
         T(ax, end + 1.2, y + 2.5, f'= {r2(reg, "LOS"):.2f}', size=5.8, ha='left')
-    # legend
-    ly = 10.5
+    ly = 11.5
     for k, (lab, c) in enumerate((('unique L', C_L), ('unique O', C_O), ('unique S', C_S), ('shared by two or more', SHARED_C))):
         xx = cx + 15 + [0, 15, 30, 45][k]
         ax.add_patch(Rectangle((xx, ly - 1), 2.2, 2.2, fc=c, ec='none', zorder=5))
         T(ax, xx + 3, ly + 0.1, lab, size=5.6, ha='left')
-    T(ax, cx + 15, 5.4, 'The shared part is split into L–O, L–S, O–S and all three in the results table.', size=5.2, c=GREY, ha='left')
+    T(ax, cx + 15, 7.0, 'The results table splits the shared part into\nL and O, L and S, O and S, and all three.',
+      size=5.2, c=GREY, ha='left', va='top', linespacing=1.2)
     illus(ax, W, 1.4)
     save(fig, 'emobrain_head_captions')
     return fig
@@ -299,17 +304,18 @@ def fig3c():
 
 # ---------------------------------------------------------------- 4a
 def fig4a():
-    W, H = 180, 100
+    W, H = 180, 104
     fig, ax = canvas(W, H)
-    title(ax, 3, H - 3.5, 'In one brain region, what do the fear heads explain that the 27 human ratings do not?')
+    title(ax, 3, H - 3.5, 'In one brain region, how much do the fear-list heads and the 27 ratings explain, separately and together?',
+          size=8.2)
     # ---- a
     panel(ax, 1, H - 8, 'a')
     sub(ax, 7, H - 10.4, 'Predict the same voxels on new videos in three ways')
     img(ax, 'cortex_roi.png', 3, H - 38, 22, border=False, trim=True)
     T(ax, 14, H - 40.5, 'one region,\none participant', size=5.4, c=BRAIN, va='top', linespacing=1.15)
-    rows = [('H', 'fear-head activity', HEAD, HEAD_F, 0.10), ('E', '27 human ratings', RATE, RATE_F, 0.08),
-            ('H+E', 'both together', INK, '#F2F2F2', 0.13)]
-    for i, (k, name, c, cf, v) in enumerate(rows):
+    rows = [('H', 'fear-list head activity', HEAD, HEAD_F, 0.10, 13), ('E', '27 Cowen ratings', RATE, RATE_F, 0.08, 23),
+            ('H+E', 'both together', INK, '#F2F2F2', 0.13, 33)]
+    for i, (k, name, c, cf, v, seed) in enumerate(rows):
         y = H - 17 - i * 10.5
         if k == 'H+E':
             rbox(ax, 44, y - 3.5, 6.5, 7, fc=HEAD_F, ec=HEAD, lw=0.8)
@@ -327,74 +333,93 @@ def fig4a():
             block(ax, 61, y - 3.5, 11, 7, 'ridge', fc='white', ec=INK, size=6.2)
         fire(ax, 71.2, y + 3.0, 0.5)
         arrow(ax, 72.5, y, 76, y, lw=0.7)
-        mini_map(ax, 76.5, y - 3, 11, 6, 3, 'Greys', GREY)
+        mini_map(ax, 76.5, y - 3, 11, 6, seed, 'Greys', GREY)
         T(ax, 90, y, 'vs', size=5.8, c=GREY)
-        mini_map(ax, 92.5, y - 3, 11, 6, 3 + 1, 'Reds', BRAIN)
+        mini_map(ax, 92.5, y - 3, 11, 6, 4, 'Reds', BRAIN)
         T(ax, 106, y, '→', size=7, c=INK)
         T(ax, 108.5, y, f'$R^2_{{{k.replace("+", "")}}}$ = {v:.2f}', size=6.8, c=c, ha='left')
     yb = H - 17 - 2 * 10.5 - 6.5
     T(ax, 82, yb, 'predicted', size=5.4, c=GREY)
     T(ax, 98, yb, 'actual voxels', size=5.4, c=BRAIN)
-    T(ax, 44, yb - 4.2, 'Same new videos, same voxels and the same baseline for all three. E is the same for every emotion.',
-      size=5.4, c=GREY, ha='left')
+    T(ax, 90, yb - 2.6, '(new videos × voxels)', size=5.0, c=GREY)
+    T(ax, 44, yb - 6.2, 'Ridge fitted on training videos. R² on the same new videos and voxels, against the training-video mean.\n'
+                        'E is the same for every emotion. Ratings are Cowen raters\', not the participant\'s.',
+      size=5.2, c=GREY, ha='left', va='top', linespacing=1.2)
     # ---- b: split
     bx = 130
     panel(ax, bx - 3, H - 8, 'b')
     sub(ax, bx + 3, H - 10.4, 'Split into three parts')
-    vx, vy = bx + 13, H - 24
-    ax.add_patch(Circle((vx - 4.0, vy), 7.0, fc=HEAD, alpha=0.25, ec=HEAD, lw=0.9, zorder=4))
-    ax.add_patch(Circle((vx + 4.0, vy), 7.0, fc=RATE, alpha=0.25, ec=RATE, lw=0.9, zorder=4))
-    T(ax, vx - 7.2, vy, '0.05', size=6.2, c=HEAD, w='bold')
-    T(ax, vx, vy, '0.05', size=6.2, c='#4A4A4A', w='bold')
-    T(ax, vx + 7.2, vy, '0.03', size=6.2, c=RATE, w='bold')
-    T(ax, vx - 8.5, vy - 9.4, 'head only', size=5.6, c=HEAD)
-    T(ax, vx, vy + 9.0, 'shared', size=5.6, c='#4A4A4A')
-    T(ax, vx + 8.5, vy - 9.4, 'ratings only', size=5.6, c=RATE)
-    tx = bx + 28
-    T(ax, tx, H - 17, 'head only', size=5.8, c=HEAD, ha='left', w='bold')
-    T(ax, tx, H - 20, '= 0.13 − 0.08', size=5.8, ha='left')
-    T(ax, tx, H - 24.5, 'ratings only', size=5.8, c=RATE, ha='left', w='bold')
-    T(ax, tx, H - 27.5, '= 0.13 − 0.10', size=5.8, ha='left')
-    T(ax, tx, H - 32, 'shared', size=5.8, c='#4A4A4A', ha='left', w='bold')
-    T(ax, tx, H - 35, '= 0.10 + 0.08 − 0.13', size=5.8, ha='left')
-    T(ax, bx + 3, H - 40.5, 'The three add up to 0.13. "Shared" is overlap\nwith all 27 ratings, not only with fear.\nNegative values are kept.',
+    vx, vy = bx + 11, H - 24
+    ax.add_patch(Circle((vx - 3.7, vy), 6.5, fc=HEAD, alpha=0.25, ec=HEAD, lw=0.9, zorder=4))
+    ax.add_patch(Circle((vx + 3.7, vy), 6.5, fc=RATE, alpha=0.25, ec=RATE, lw=0.9, zorder=4))
+    T(ax, vx - 6.8, vy, '0.05', size=6.0, c=HEAD, w='bold')
+    T(ax, vx, vy, '0.05', size=6.0, c='#4A4A4A', w='bold')
+    T(ax, vx + 6.8, vy, '0.03', size=6.0, c=RATE, w='bold')
+    T(ax, vx - 6.5, vy - 8.6, 'head only', size=5.4, c=HEAD)
+    T(ax, vx, vy + 8.4, 'shared', size=5.4, c='#4A4A4A')
+    T(ax, vx + 6.5, vy - 8.6, 'ratings only', size=5.4, c=RATE)
+    tx = bx + 25
+    T(ax, tx, H - 16.5, 'head only', size=5.8, c=HEAD, ha='left', w='bold')
+    T(ax, tx, H - 19.7, r'$= R^2_{HE} - R^2_{E}$ = 0.13 − 0.08', size=5.6, ha='left')
+    T(ax, tx, H - 24.2, 'ratings only', size=5.8, c=RATE, ha='left', w='bold')
+    T(ax, tx, H - 27.4, r'$= R^2_{HE} - R^2_{H}$ = 0.13 − 0.10', size=5.6, ha='left')
+    T(ax, tx, H - 31.9, 'shared', size=5.8, c='#4A4A4A', ha='left', w='bold')
+    T(ax, tx, H - 35.1, r'$= R^2_{H} + R^2_{E} - R^2_{HE}$', size=5.6, ha='left')
+    T(ax, tx, H - 38.1, '= 0.10 + 0.08 − 0.13', size=5.6, ha='left')
+    T(ax, bx + 3, H - 42.0, 'The three add up to 0.13. "Shared" is overlap\nwith all 27 ratings, not only with fear.\nNegative values are kept.',
       size=5.2, c=GREY, ha='left', va='top', linespacing=1.25)
-    line(ax, [3, W - 3], [H - 50, H - 50], c='#DDDDDD', lw=0.6)
+    line(ax, [3, W - 3], [H - 57, H - 57], c='#DDDDDD', lw=0.6)
 
-    # ---- c: repeat for regions
-    yc = H - 52
+    # ---- c: repeat for regions, bars side by side
+    yc = H - 59
     panel(ax, 1, yc, 'c')
-    sub(ax, 7, yc - 2.4, 'Repeat in every region (fear, one participant)')
-    regs = [('visual region 1', 'visual', (0.07, 0.04, 0.02)), ('visual region 2', 'visual', (0.05, 0.04, 0.03)),
-            ('association region 1', 'association', (0.02, 0.05, 0.05)), ('association region 2', 'association', (0.03, 0.04, 0.06))]
-    scale = 300
-    for i, (nm, grp, (ho, sh, ro)) in enumerate(regs):
-        y = yc - 11 - i * 7.2
-        T(ax, 36, y + 2, nm, size=5.8, ha='right', c='#1B9E77' if grp == 'visual' else '#C2477A')
-        hstack(ax, 38, y, 4, [(ho, HEAD, ''), (sh, SHARED_C, ''), (ro, RATE, '')], scale, size=5.2)
+    sub(ax, 7, yc - 2.4, 'Repeat in every region (fear, one participant, illustrative values)')
+    regs = [('visual\nregion 1', 'visual', (0.07, 0.04, 0.02)), ('visual\nregion 2', 'visual', (0.05, 0.04, 0.03)),
+            ('association\nregion 1 (in a)', 'association', (0.05, 0.05, 0.03)),
+            ('association\nregion 2', 'association', (0.03, -0.01, 0.06))]
+    z0, sc = 15, 260
+    line(ax, [10, 104], [z0, z0], c=INK, lw=0.5)
+    T(ax, 9, z0, '0', size=5.2, ha='right')
+    for i, (nm, grp, vals) in enumerate(regs):
+        gx = 14 + i * 23
+        for j, (v, c) in enumerate(zip(vals, (HEAD, SHARED_C, RATE))):
+            xx = gx + j * 5.6
+            h = v * sc
+            ax.add_patch(Rectangle((xx, z0 if h >= 0 else z0 + h), 4.6, abs(h), fc=c, ec='none', zorder=4))
+            T(ax, xx + 2.3, z0 + h + (1.3 if h >= 0 else -1.5), f'{v:.2f}', size=4.8)
+        T(ax, gx + 7.9, z0 - 5.2, nm, size=5.4, c='#1B9E77' if grp == 'visual' else '#C2477A', va='top', linespacing=1.1)
     for k, (lab, c) in enumerate((('head only', HEAD), ('shared', SHARED_C), ('ratings only', RATE))):
-        xx = 38 + k * 18
-        ax.add_patch(Rectangle((xx, 6.0), 2.2, 2.2, fc=c, ec='none', zorder=5))
-        T(ax, xx + 3, 7.1, lab, size=5.6, ha='left')
-    T(ax, 38, 2.6, 'Every region keeps all three numbers; no region is labelled by one part.', size=5.2, c=GREY, ha='left')
+        xx = 60 + k * 15
+        ax.add_patch(Rectangle((xx, yc - 8.0), 2.2, 2.2, fc=c, ec='none', zorder=5))
+        T(ax, xx + 3, yc - 6.9, lab, size=5.4, ha='left')
+    T(ax, 10, 2.4, 'Every region keeps all three numbers side by side; values can be negative.', size=5.2, c=GREY, ha='left')
 
     # ---- d: link to 3b
     dx0 = 112
     panel(ax, dx0 - 3, yc, 'd')
     sub(ax, dx0 + 3, yc - 2.4, 'Link to Fig. 3b across the 27 emotions')
     rng = np.random.default_rng(11)
-    sx, sy, sw, sh = dx0 + 14, 11, 36, 25
+    sx, sy, sw, sh = dx0 + 14, 11, 34, 28
+    xmax, ylo, yhi = 0.12, -0.05, 0.07
+    X = lambda v: sx + v / xmax * sw
+    Y = lambda v: sy + (v - ylo) / (yhi - ylo) * sh
     line(ax, [sx, sx + sw], [sy, sy], c=INK, lw=0.5)
     line(ax, [sx, sx], [sy, sy + sh], c=INK, lw=0.5)
-    xs = rng.uniform(0, 1, 27)
-    ys = 0.15 + 0.55 * xs + rng.normal(0, 0.12, 27)
+    line(ax, [sx, sx + sw], [Y(0), Y(0)], c=GREY, lw=0.5, ls=(0, (2, 1.2)))
+    T(ax, sx + 0.8, Y(0) + 1.2, '0', size=5.0, ha='left', c=GREY)
+    xs = rng.uniform(0.005, 0.115, 26)
+    ys = -0.045 + 0.7 * xs + rng.normal(0, 0.012, 26)
     for a, b in zip(xs, ys):
-        ax.add_patch(Circle((sx + 1 + a * (sw - 2), sy + 1 + b * (sh - 3)), 0.65, fc=HEAD, ec='white', lw=0.3, zorder=5))
-    line(ax, [sx + 1, sx + sw - 1], [sy + 1 + 0.15 * (sh - 3), sy + 1 + 0.70 * (sh - 3)], c=INK, lw=0.8)
-    T(ax, sx + sw / 2, sy - 2.6, 'what full sentences add to the heads (Fig. 3b, b)', size=5.4)
-    T(ax, sx - 3.0, sy + sh / 2, 'head only:\nassociation − visual (c)', size=5.4, rotation=90, linespacing=1.15)
-    T(ax, sx + sw + 1, sy + sh - 1, 'one dot =\none emotion', size=5.2, c=GREY, ha='left', va='top', linespacing=1.15)
-    T(ax, sx + sw + 1, sy + sh - 7.5, 'slope per\nparticipant', size=5.2, c=GREY, ha='left', va='top', linespacing=1.15)
+        ax.add_patch(Circle((X(a), Y(b)), 0.6, fc='#F2B56B', ec='white', lw=0.3, zorder=5))
+    fx, fy = 0.05, (0.05 + 0.03) / 2 - (0.07 + 0.05) / 2
+    ax.add_patch(Circle((X(fx), Y(fy)), 0.85, fc=HEAD, ec=INK, lw=0.5, zorder=6))
+    T(ax, X(fx) + 1.4, Y(fy) - 1.6, 'fear', size=5.4, c=HEAD, w='bold', ha='left')
+    line(ax, [X(0.0), X(0.12)], [Y(-0.045), Y(-0.045 + 0.7 * 0.12)], c=INK, lw=0.8)
+    T(ax, sx + sw / 2, sy - 2.6, 'what full sentences add to the heads (as in Fig. 3b, b)', size=5.4)
+    T(ax, sx - 3.6, sy + sh / 2, 'head only:\nassociation − visual (c)', size=5.4, rotation=90, linespacing=1.15)
+    T(ax, sx + sw + 1, sy + sh, 'one dot = one\nemotion\'s list', size=5.0, c=GREY, ha='left', va='top', linespacing=1.15)
+    T(ax, sx + sw + 1, sy + sh - 7, 'x: training\nvideos\ny: new videos', size=5.0, c=GREY, ha='left', va='top', linespacing=1.15)
+    T(ax, sx + sw + 1, sy + sh - 16.5, 'slope within\neach participant\nand fold', size=5.0, c=GREY, ha='left', va='top', linespacing=1.15)
     illus(ax, W, 1.2)
     save(fig, 'emobrain_roi_partition')
     return fig
@@ -410,48 +435,51 @@ def rdm(ax, x, y, s, seed, cmap, c):
     ax.add_patch(Rectangle((x, y), s, s, fc='none', ec=c, lw=0.8, zorder=5))
 
 
-RAND = [(2, 5), (3, 9), (5, 2), (8, 11), (9, 7), (10, 1)]
+# one matched random list: same layers and number as SEL = [(3, 7), (8, 2), (9, 4), (9, 9)], no overlap
+RAND = [(3, 11), (8, 6), (9, 1), (9, 12)]
 
 
 def fig4b():
     W, H = 180, 106
     fig, ax = canvas(W, H)
-    title(ax, 3, H - 3.5, 'Comparing a model with a brain region, and what happens when the fear heads are removed')
+    title(ax, 3, H - 3.5, 'Comparing a model with a brain region, and what happens when the fear-list heads are switched off')
     # ---- a: model versions
     panel(ax, 1, H - 8, 'a')
     sub(ax, 7, H - 10.4, 'Model versions, all fed the same Cowen videos')
-    T(ax, 7, H - 16, 'Analysis 4 (before vs after emotion training)', size=6.2, c=MODEL, w='bold', ha='left')
+    T(ax, 7, H - 16, 'Analysis 4, supplementary comparison (before vs after emotion training)', size=6.0, c=MODEL, w='bold', ha='left')
     for i, (nm, note) in enumerate((('video only', 'self-supervised on VCE'), ('emotion-trained', 'fine-tuned on 27 ratings'))):
         x = 9 + i * 38
         trapezoid(ax, x, H - 29, 13, 9, '', size=6)
         snow(ax, x + 11.6, H - 21.2, 0.9)
         T(ax, x + 15, H - 22.5, nm, size=6.0, ha='left', w='bold')
         T(ax, x + 15, H - 25.5, note, size=5.2, c=GREY, ha='left')
-    T(ax, 7, H - 35, 'Analysis 5 (emotion-trained model, heads set to 0)', size=6.2, c=HEAD, w='bold', ha='left')
-    conds = [('intact', (), ()), ('fear heads off', SEL, ()), ('matched random off', (), RAND)]
+    T(ax, 7, H - 35, 'Analysis 5 (emotion-trained model, heads set to 0)', size=6.0, c=HEAD, w='bold', ha='left')
+    conds = [('intact', (), ()), ('fear-list heads off', SEL, ()), ('matched random list off', (), RAND)]
     for i, (nm, sel, msk) in enumerate(conds):
         x = 9 + i * 24
         head_grid(ax, x, H - 53, cell=1.25, gap=0.15, sel=sel, masked=msk)
-        T(ax, x + 8.3, H - 55.8, nm, size=5.8, c=HEAD if i == 1 else (GREY if i == 2 else INK), w='bold')
-    T(ax, 7, H - 60, '12 layers (columns) × 12 heads. Orange: fear heads; grey: random heads matched in layer, number\nand size of the change on VCE validation videos.',
-      size=5.2, c=GREY, ha='left', va='top', linespacing=1.25)
-    T(ax, 7, H - 67.5, 'Every version gives one 768-value vector per video from the last layer.', size=5.6, c=POOL, ha='left')
+        T(ax, x + 8.3, H - 55.8, nm, size=5.6, c=HEAD if i == 1 else (GREY if i == 2 else INK), w='bold')
+    T(ax, 7, H - 59.6, '12 layers (columns) × 12 heads. Orange: fear-list heads. Grey: one matched\n'
+                     'random list (same layers and number, similar size of change on VCE validation\n'
+                     'videos). Many such lists are drawn.', size=5.2, c=GREY, ha='left', va='top', linespacing=1.2)
+    T(ax, 7, H - 69.3, 'Every version gives one 768-value vector per video from the last layer.', size=5.6, c=POOL, ha='left')
 
     # ---- b: two comparisons
     bx = 86
     panel(ax, bx - 3, H - 8, 'b')
     sub(ax, bx + 3, H - 10.4, 'Two ways to compare one version with one region')
-    T(ax, bx + 3, H - 16, 'RSA: are the same videos similar?', size=6.2, w='bold', ha='left')
+    T(ax, bx + 3, H - 16, 'RSA: do model and region find the same video pairs similar?', size=6.0, w='bold', ha='left')
     rdm(ax, bx + 5, H - 34, 14, 1, 'Greens', POOL)
     T(ax, bx + 12, H - 36.5, 'model', size=5.6, c=POOL)
     T(ax, bx + 23.5, H - 27, 'vs', size=6, c=GREY)
     rdm(ax, bx + 28, H - 34, 14, 2, 'Reds', BRAIN)
     T(ax, bx + 35, H - 36.5, 'region', size=5.6, c=BRAIN)
     T(ax, bx + 44, H - 27, '→  Spearman ρ', size=6.2, ha='left')
-    T(ax, bx + 5, H - 40.5, 'each cell = how different two videos are', size=5.2, c=GREY, ha='left')
-    T(ax, bx + 3, H - 47, 'Encoding: can the vector predict the voxels?', size=6.2, w='bold', ha='left')
+    T(ax, bx + 5, H - 40.5, 'videos × videos; each cell = how different two videos are', size=5.2, c=GREY, ha='left')
+    T(ax, bx + 3, H - 47, 'Encoding: can the vectors predict each voxel across new videos?', size=6.0, w='bold', ha='left')
     rbox(ax, bx + 5, H - 58, 12, 7, fc=POOL_F, ec=POOL, lw=0.8)
-    T(ax, bx + 11, H - 54.5, '768 values', size=5.4, c=POOL)
+    T(ax, bx + 11, H - 53.4, '768 values', size=5.2, c=POOL)
+    T(ax, bx + 11, H - 56.0, 'per video', size=5.0, c=POOL)
     arrow(ax, bx + 17.5, H - 54.5, bx + 20.5, H - 54.5, lw=0.7)
     block(ax, bx + 21, H - 58, 10, 7, 'ridge', fc='white', ec=INK, size=6.0)
     fire(ax, bx + 30.2, H - 51.4, 0.5)
@@ -460,13 +488,15 @@ def fig4b():
     T(ax, bx + 47.5, H - 54.5, 'vs', size=5.8, c=GREY)
     mini_map(ax, bx + 50, H - 57.5, 10, 6, 6, 'Reds', BRAIN)
     T(ax, bx + 62, H - 54.5, '→  R²', size=6.2, ha='left')
-    T(ax, bx + 5, H - 62, 'ridge refitted for each version on training videos; scored on new videos', size=5.2, c=GREY, ha='left')
-    line(ax, [3, W - 3], [H - 71, H - 71], c='#DDDDDD', lw=0.6)
+    T(ax, bx + 47.5, H - 59.8, 'new videos × voxels', size=5.0, c=GREY)
+    T(ax, bx + 5, H - 63.5, 'ridge refitted for each version on training videos; R² per voxel across new videos,\naveraged over the region',
+      size=5.2, c=GREY, ha='left', va='top', linespacing=1.2)
+    line(ax, [3, W - 3], [H - 72, H - 72], c='#DDDDDD', lw=0.6)
 
     # ---- c: analysis 5 readout
-    yc = H - 73
+    yc = H - 74
     panel(ax, 1, yc, 'c')
-    sub(ax, 7, yc - 2.4, 'Analysis 5 result for one emotion: extra drop = drop with fear heads off − drop with matched random heads off')
+    sub(ax, 7, yc - 2.4, 'Analysis 5, worked example (illustrative values): extra drop = fear-list drop − mean matched-random drop')
     y0, hh, vmax = 8.5, 12.5, 0.22
     groups = [('association region', (0.20, 0.12, 0.17)), ('visual region', (0.18, 0.15, 0.16))]
     for g, (gname, (vi, vf, vr)) in enumerate(groups):
@@ -475,15 +505,16 @@ def fig4b():
         rr = np.random.default_rng(20 + g)
         for v2 in vr + rr.normal(0, 0.012, 14):
             ax.add_patch(Circle((gx + 18 + 3.25 + rr.uniform(-2.2, 2.2), y0 + v2 / vmax * hh), 0.35, fc='#555555', ec='none', zorder=6))
-        for j, (lab, v, fc, ec) in enumerate((('intact', vi, POOL_F, POOL), ('fear off', vf, HEAD, HEAD), ('random off', vr, '#C9C9C9', '#8A8A8A'))):
+        for j, (lab, v, fc, ec) in enumerate((('intact', vi, POOL_F, POOL), ('fear-list off', vf, HEAD, HEAD),
+                                               ('random off', vr, '#C9C9C9', '#8A8A8A'))):
             xx = gx + j * 9
             ax.add_patch(Rectangle((xx, y0), 6.5, v / vmax * hh, fc=fc, ec=ec, lw=0.7, zorder=4))
             T(ax, xx + 3.25, y0 - 2.0, lab, size=5.0)
             T(ax, xx + 3.25, y0 + v / vmax * hh + (3.0 if j == 2 else 1.4), f'{v:.2f}', size=5.0)
         line(ax, [gx - 0.5, gx + 26], [y0, y0], c=INK, lw=0.5)
         tx = gx + 30
-        T(ax, tx, y0 + 11, f'drop, fear off = {vi - vf:.2f}', size=5.8, ha='left', c=HEAD)
-        T(ax, tx, y0 + 7, f'drop, random off = {vi - vr:.2f}', size=5.8, ha='left', c='#6E6E6E')
+        T(ax, tx, y0 + 11, f'drop, fear-list off = {vi - vf:.2f}', size=5.8, ha='left', c=HEAD)
+        T(ax, tx, y0 + 7, f'mean drop, random off = {vi - vr:.2f}', size=5.8, ha='left', c='#6E6E6E')
         T(ax, tx, y0 + 2.6, f'extra drop = {(vi - vf) - (vi - vr):.2f}', size=6.2, ha='left', w='bold')
     T(ax, 9, y0 - 5.6, 'Dots: individual matched random lists (bar = their mean). Computed for RSA (ρ) and for encoding (R²);'
       ' regions are compared by subtracting their extra drops.', size=5.2, c=GREY, ha='left')
