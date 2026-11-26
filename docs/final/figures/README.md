@@ -7,15 +7,15 @@
 | 그림 1 | `emobrain_ridge_overview` | VCE 학습과 head 선택, 같은 head 출력이 분석 3, 4, 5, 6으로 이어지는 흐름 |
 | 그림 2 | `emobrain_videomae_methods` | 두 학습 단계와 head를 읽거나 제거하는 위치 |
 | 그림 3a | `emobrain_head_layers` | head 순위 추정, 선택 head 위치, 시험 영상의 선택성 |
-| 그림 3b | `emobrain_head_captions` | L, O, S가 두 대상을 예측하는 경로, 일곱 조합, 고유분과 공유분 |
+| 그림 3b | `emobrain_head_captions` | 전체 캡션이 움직임과 물체 이름을 고려한 뒤 더하는 설명력: 두 예측 경로, L+O 대 L+O+S, 고유분과 공유분 |
 | 그림 3c | `emobrain_chase_head_roi` | ‘쫓다’ 예시(보조) |
-| 그림 4a | `emobrain_roi_partition` | head 출력과 27개 평정의 영역별 분할 |
-| 그림 4b | `emobrain_regional_alignment` | 온전한 모델과 제거 모델의 RSA와 encoding |
+| 그림 4a | `emobrain_roi_partition` | 한 영역에서 세 모형의 예측, 분할 계산 예시, 영역별 세 값, 그림 3b와의 연결 |
+| 그림 4b | `emobrain_regional_alignment` | 비교하는 모델 판(학습 전후, 공포 목록 head와 무작위 head를 끔), RSA와 encoding, 추가 하락 예시 |
 | 그림 5 | `emobrain_brain_decoding` | 참가자별 특징 복원과 고정 판독기 |
 | 그림 2~5 묶음 | `emobrain_methods_figures.pdf` | 방법론 그림 한 파일 |
 | 그림 3a, 3b 묶음 | `emobrain_head_interpretation.pdf` | head 해석 그림 한 파일 |
 
-이전 그림 묶음(글 상자 중심, 커밋 abf6eee3)과 그 코드는 git 기록에 남아 있다. 11/26 석진 님 결정으로 실제 영상 프레임과 뇌 그림을 쓰는 이 묶음으로 바꿨다.
+이전 그림 묶음(글 상자 중심, 커밋 abf6eee3)과 그 코드는 git 기록에 남아 있다. 11/26 석진 님 결정으로 실제 영상 프레임과 뇌 그림을 쓰는 이 묶음으로 바꿨다. 같은 날 그림 3b, 4a, 4b는 그림 하나가 질문 하나에 답하도록 숫자 예시 중심으로 다시 그렸다(이전 판은 커밋 36c34a5d).
 
 ## 실제 이미지의 출처
 
