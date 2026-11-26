@@ -57,74 +57,133 @@ def mini_map(ax, x, y, w, h, seed, cmap, ec):
 
 
 # ---------------------------------------------------------------- 3a
+def ring(ax, x, y, cell, gap, b, h, c=HEAD, lw=1.1):
+    """Outline one cell of a head_grid drawn at (x, y)."""
+    xx, yy = x + (b - 1) * (cell + gap), y + (11 - (h - 1)) * cell
+    ax.add_patch(Rectangle((xx - 0.15, yy - 0.15), cell + 0.3, cell + 0.3, fc='none', ec=c, lw=lw, zorder=8))
+
+
 def fig3a():
-    W, H = 180, 70
+    W, H = 180, 112
     fig, ax = canvas(W, H)
     rng = np.random.default_rng(7)
-    panel(ax, 1, H - 1, 'a')
-    T(ax, 7, H - 3.6, 'Rank heads on VCE validation videos', size=8, w='bold', ha='left')
-    y = H - 30
+    title(ax, 3, H - 3.5, 'Which heads does the model rely on when it predicts fear across videos?')
+
+    # ---- a: rank on validation videos
+    panel(ax, 1, H - 8, 'a')
+    sub(ax, 7, H - 10.4, 'Rank all 144 heads on VCE validation videos (illustrative values)')
+    y = H - 35
     tensor(ax, 4, y + 3, 13, 10, 'validation\nvideos', size=6.0)
     arrow(ax, 17.5, y + 8, 21.5, y + 8)
+    hb, hh = 9, 4          # example head h = block 9, head 4 (one of the fear-list heads in b)
+    keep_h = [True, False, True]
+    cell, gap = 0.85, 0.1
     for k in range(3):
         x0 = 22 + k * 13
-        masked = [(b + 1, h + 1) for b in range(12) for h in range(12) if rng.random() < 0.5]
-        head_grid(ax, x0, y + 2.5, cell=0.85, gap=0.1, masked=masked)
+        masked = [(b + 1, q + 1) for b in range(12) for q in range(12) if rng.random() < 0.5]
+        masked = [m for m in masked if m != (hb, hh)] + ([] if keep_h[k] else [(hb, hh)])
+        head_grid(ax, x0, y + 2.5, cell=cell, gap=gap, masked=masked)
+        ring(ax, x0, y + 2.5, cell, gap, hb, hh)
         T(ax, x0 + 5.6, y + 0.4, ['mask 1', 'mask 2', 'mask M'][k], size=5.6, c=GREY)
-        T(ax, x0 + 5.6, y - 3.0, ['r = 0.41', 'r = 0.33', 'r = …'][k], size=6.0, c=RATE)
+        T(ax, x0 + 5.6, y - 3.0, ['r = 0.41', 'r = 0.33', 'r = 0.39'][k], size=6.0, c=RATE)
+        T(ax, x0 + 5.6, y - 5.9, ['h on', 'h off', 'h on'][k], size=5.4, c=HEAD)
     T(ax, 22 + 3 * 13 - 1.2, y + 7.6, '…', size=9, c=GREY)
-    T(ax, 22, y + 16.6, 'each mask: 72 of 144 heads set to 0 (grey) for all videos', size=6.0, c=GREY, ha='left')
-    T(ax, 22, y - 7.4, 'r = Pearson r for fear across validation videos', size=5.8, c=GREY, ha='left')
-    # formula + ranked bars
-    T(ax, 4, y - 13, r'contribution$(h)$ = mean $r$ (masks keeping $h$) − mean $r$ (masks ablating $h$)', size=6.4, ha='left')
+    T(ax, 22, y + 19.8, 'Each mask switches off 72 of 144 heads (grey) for all validation videos.', size=5.8, c=GREY, ha='left')
+    T(ax, 22, y + 16.6, 'r = Pearson r between predicted and rated fear across those videos.', size=5.8, c=GREY, ha='left')
+    # worked example for head h
+    ex = 64
+    T(ax, ex, y + 9.0, 'one head h (orange outline)', size=6.0, c=HEAD, w='bold', ha='left')
+    T(ax, ex, y + 5.0, 'masks with h on:   mean r = 0.40', size=5.8, ha='left')
+    T(ax, ex, y + 1.6, 'masks with h off:  mean r = 0.34', size=5.8, ha='left')
+    T(ax, ex, y - 2.6, 'contribution of h = 0.40 − 0.34 = 0.06', size=6.0, ha='left', w='bold')
+    T(ax, ex, y - 6.4, '0 means "as useful as an average head\nwhen half are off", not "no effect"',
+      size=5.2, c=GREY, ha='left', va='top', linespacing=1.2)
+    # ranked bars
+    yr = y - 30
     vals = np.sort(rng.gamma(1.4, 0.004, 144))[::-1]
     vals[:4] += 0.012
     for i, v in enumerate(vals[:56]):
-        ax.add_patch(Rectangle((4 + i * 1.45, 4), 1.1, 300 * v, fc=HEAD if i < 4 else '#C9CFD6', ec='none', zorder=4))
-    line(ax, [3.6, 4 + 56 * 1.45], [4, 4], c=INK, lw=0.5)
-    T(ax, 10.5, 4 + 300 * vals[0] + 1.6, 'top K for fear', size=6.0, c=HEAD, ha='left', va='bottom')
-    T(ax, 4 + 56 * 1.45, 5.2, 'heads ranked', size=5.6, c=GREY, ha='right', va='bottom')
+        ax.add_patch(Rectangle((4 + i * 1.45, yr), 1.1, 300 * v, fc=HEAD if i < 4 else '#C9CFD6', ec='none', zorder=4))
+    line(ax, [3.6, 4 + 56 * 1.45], [yr, yr], c=INK, lw=0.5)
+    T(ax, 10.5, yr + 300 * vals[0] + 1.6, 'top K = fear list (candidates)', size=6.0, c=HEAD, ha='left', va='bottom')
+    T(ax, 4 + 56 * 1.45, yr + 4.6, 'all heads, ranked by contribution', size=5.6, c=GREY, ha='right', va='bottom')
 
-    # b: selected heads
-    bx = 92
-    panel(ax, bx - 3, H - 1, 'b')
-    T(ax, bx + 3, H - 3.6, 'Selected fear heads', size=8, w='bold', ha='left')
-    gw, gh = head_grid(ax, bx + 4, 24, cell=2.2, gap=0.45, sel=SEL)
+    # ---- b: where the list sits
+    bx = 100
+    panel(ax, bx - 3, H - 8, 'b')
+    sub(ax, bx + 3, H - 10.4, 'Where the fear-list heads sit (example)')
+    gy = H - 50
+    gw, gh = head_grid(ax, bx + 8, gy, cell=2.1, gap=0.45, sel=SEL)
+    ring(ax, bx + 8, gy, 2.1, 0.45, hb, hh, c=INK, lw=0.9)
     for b in range(12):
-        T(ax, bx + 4 + b * 2.65 + 1.1, 24 + gh + 1.6, str(b + 1), size=5.4, c=HEAD if b + 1 in (3, 8, 9) else GREY, w='bold' if b + 1 in (3, 8, 9) else 'normal')
-    T(ax, bx + 4 + gw / 2, 24 + gh + 4.8, 'block (input → output)', size=6.0, c=MODEL)
-    T(ax, bx + 1.6, 24 + gh / 2, 'head', size=6.0, c=GREY, rotation=90)
-    yd = 19.5
-    line(ax, [bx + 4, bx + 4 + gw], [yd, yd], c='#CCCCCC', lw=0.5)
+        T(ax, bx + 8 + b * 2.55 + 1.05, gy + gh + 1.6, str(b + 1), size=5.4, c=HEAD if b + 1 in (3, 8, 9) else GREY,
+          w='bold' if b + 1 in (3, 8, 9) else 'normal')
+    T(ax, bx + 8 + gw / 2, gy + gh + 4.8, 'layer (input → output)', size=6.0, c=MODEL)
+    T(ax, bx + 5.6, gy + gh / 2, '12 heads per layer', size=5.6, c=GREY, rotation=90)
+    yd = gy - 4.5
+    line(ax, [bx + 8, bx + 8 + gw], [yd, yd], c='#CCCCCC', lw=0.5)
     for b, n in {3: 1, 8: 1, 9: 2}.items():
         for k in range(n):
-            ax.add_patch(Circle((bx + 4 + (b - 1) * 2.65 + 1.1, yd + k * 2.1), 0.8, fc=HEAD, ec=INK, lw=0.4, zorder=6))
-    T(ax, bx + 4 + gw / 2, 13.6, 'heads per block (example)', size=6.0, c=GREY)
-    T(ax, bx + 4 + gw / 2, 9.8, 'depth is not read as abstraction', size=5.6, c=GREY, st='italic')
+            ax.add_patch(Circle((bx + 8 + (b - 1) * 2.55 + 1.05, yd + k * 2.0), 0.75, fc=HEAD, ec=INK, lw=0.4, zorder=6))
+    T(ax, bx + 8 + gw / 2, yd - 3.4, 'heads per layer: 1 in layer 3, 1 in layer 8, 2 in layer 9', size=5.4, c=GREY)
+    T(ax, bx + 8 + gw / 2, yd - 6.6, 'Depth is not read as abstraction.', size=5.4, c=GREY, st='italic')
+    line(ax, [3, W - 3], [H - 66, H - 66], c='#DDDDDD', lw=0.6)
 
-    # c: selectivity test
-    cx = 136
-    panel(ax, cx - 3, H - 1, 'c')
-    T(ax, cx + 3, H - 3.6, 'Test videos: specific to fear?', size=8, w='bold', ha='left')
-    emos = ['fear', 'anxiety', 'horror', 'amuse.', 'awe', 'joy']
-    sel_drop = [0.12, 0.05, 0.04, 0.01, 0.0, 0.01]
-    rnd_drop = [0.03, 0.02, 0.02, 0.01, 0.01, 0.01]
-    base, sc = 20, 230
-    for i, (e, s_, r_) in enumerate(zip(emos, sel_drop, rnd_drop)):
-        x = cx + 5 + i * 6.6
-        ax.add_patch(Rectangle((x, base), 2.4, s_ * sc, fc=HEAD, ec='none', zorder=4))
-        ax.add_patch(Rectangle((x + 2.6, base), 2.4, r_ * sc, fc='#BDBDBD', ec='none', zorder=4))
-        T(ax, x + 2.5, base - 2.4, e, size=5.6, c=RATE if e == 'fear' else INK, w='bold' if e == 'fear' else 'normal')
-    line(ax, [cx + 4, cx + 44], [base, base], c=INK, lw=0.5)
-    line(ax, [cx + 4, cx + 4], [base, base + 32], c=INK, lw=0.5)
-    T(ax, cx + 2.2, base + 16, 'drop in r', size=5.8, c=GREY, rotation=90)
-    ax.add_patch(Rectangle((cx + 20, base + 30), 2, 2, fc=HEAD, ec='none', zorder=4))
-    T(ax, cx + 22.8, base + 31, 'fear list', size=5.6, ha='left')
-    ax.add_patch(Rectangle((cx + 20, base + 26.4), 2, 2, fc='#BDBDBD', ec='none', zorder=4))
-    T(ax, cx + 22.8, base + 27.4, 'layer-matched random', size=5.6, ha='left')
-    T(ax, cx + 2, 11.4, 'selectivity = own-list drop − mean other-list', size=5.8, ha='left')
-    T(ax, cx + 2, 8.0, 'drop (each after subtracting random)', size=5.8, ha='left')
-    illus(ax, W)
+    # ---- c: two claims on new videos
+    yc = H - 68
+    panel(ax, 1, yc, 'c')
+    sub(ax, 7, yc - 2.4, 'Check on new VCE test videos, with the intact model: two separate claims (illustrative values)')
+    # c1
+    sc1 = 130
+    T(ax, 7, yc - 8.2, '1. Did the fear list contribute?', size=6.4, w='bold', ha='left')
+    T(ax, 7, yc - 11.2, 'drop in fear r when the list is switched off', size=5.4, c=GREY, ha='left')
+    b0, sc = 11.5, 160
+    for j, (lab, v, fc) in enumerate((('fear list off', 0.12, HEAD), ('matched random\nlists off', 0.03, '#C9C9C9'))):
+        xx = 12 + j * 14
+        ax.add_patch(Rectangle((xx, b0), 8, v * sc1, fc=fc, ec='none', zorder=4))
+        T(ax, xx + 4, b0 + v * sc1 + (4.0 if j == 1 else 1.4), f'{v:.2f}', size=5.4)
+        T(ax, xx + 4, b0 - 1.6, lab, size=5.2, va='top', linespacing=1.1)
+    rr = np.random.default_rng(31)
+    for v2 in 0.03 + rr.normal(0, 0.008, 14):
+        ax.add_patch(Circle((26 + 4 + rr.uniform(-3, 3), b0 + v2 * sc1), 0.35, fc='#555555', ec='none', zorder=6))
+    line(ax, [10, 38], [b0, b0], c=INK, lw=0.5)
+    T(ax, 42, b0 + 15, 'same layers and number;', size=5.4, c=GREY, ha='left')
+    T(ax, 42, b0 + 12, 'many lists (dots), bar = mean', size=5.4, c=GREY, ha='left')
+    T(ax, 42, b0 + 6.5, 'fear list drops more →', size=5.8, ha='left')
+    T(ax, 42, b0 + 3.3, '"the list contributed to', size=5.8, ha='left', w='bold')
+    T(ax, 42, b0 + 0.3, 'fear prediction"', size=5.8, ha='left', w='bold')
+    # c2
+    cx = 92
+    T(ax, cx, yc - 8.2, '2. Is it special to fear?', size=6.4, w='bold', ha='left')
+    T(ax, cx, yc - 11.2, 'still evaluating fear r: switch off each emotion\'s list, after subtracting its random drop',
+      size=5.4, c=GREY, ha='left')
+    # mini 27 x 27 table icon
+    mx, my, ms = cx + 1, b0 + 1, 2.0
+    for i in range(6):
+        for j in range(6):
+            fc = '#F3E3CF' if j == 0 else '#F2F2F2'
+            ax.add_patch(Rectangle((mx + j * ms, my + (5 - i) * ms), ms, ms, fc=fc, ec='white', lw=0.4, zorder=4))
+    ax.add_patch(Rectangle((mx, my), ms, 6 * ms, fc='none', ec=HEAD, lw=0.9, zorder=5))
+    T(ax, mx + 3 * ms, my + 6 * ms + 1.6, 'fear column', size=5.0, c=HEAD)
+    T(ax, mx + 3 * ms, my - 1.6, 'list off × emotion', size=4.8, c=GREY, va='top')
+    T(ax, mx + 3 * ms, my - 3.8, '(27 × 27)', size=4.8, c=GREY, va='top')
+    lists = [('fear', 0.09), ('anxiety', 0.05), ('horror', 0.04), ('amuse.', 0.01), ('awe', 0.00), ('joy', 0.01)]
+    lx = cx + 17
+    for i, (nm, v) in enumerate(lists):
+        xx = lx + i * 6.6
+        ax.add_patch(Rectangle((xx, b0), 5, max(0.25, v * sc), fc=HEAD if i == 0 else '#E8C9A3', ec='none', zorder=4))
+        T(ax, xx + 2.5, b0 + v * sc + 1.4, f'{v:.2f}', size=5.0)
+        T(ax, xx + 2.5, b0 - 1.6, nm + '\nlist', size=5.0, va='top', linespacing=1.05, c=HEAD if i == 0 else INK)
+    T(ax, lx + 6 * 6.6 - 0.6, b0 + 7, '…', size=8, c=GREY)
+    line(ax, [lx - 1, lx + 6 * 6.6 + 2], [b0, b0], c=INK, lw=0.5)
+    tx = lx + 6 * 6.6 + 4
+    T(ax, tx, b0 + 15, 'own list 0.09', size=5.6, ha='left')
+    T(ax, tx, b0 + 12, '− others\' mean 0.02', size=5.6, ha='left')
+    T(ax, tx, b0 + 8.6, '= 0.07 →', size=5.8, ha='left')
+    T(ax, tx, b0 + 5.4, '"especially important', size=5.8, ha='left', w='bold')
+    T(ax, tx, b0 + 2.4, 'for fear"', size=5.8, ha='left', w='bold')
+    T(ax, cx, 1.8, 'Claim 2 is tested on the average over the 27 emotions; one emotion gets an interval only.',
+      size=5.2, c=GREY, ha='left')
     save(fig, 'emobrain_head_layers')
     return fig
 
