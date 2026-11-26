@@ -8,7 +8,7 @@
 | 그림 2 | `emobrain_videomae_methods` | 두 학습 단계와 head를 읽거나 제거하는 위치 |
 | 그림 3a | `emobrain_head_layers` | 공포 목록 고르기(켜진 마스크와 꺼진 마스크의 평균 r 차이 예시), 목록의 층 위치, 시험 영상의 두 결론(무작위 대조, 다른 정서 목록 대조) |
 | 그림 3b | `emobrain_head_captions` | 전체 캡션이 움직임과 물체 이름을 고려한 뒤 더하는 설명력: 두 예측 경로, L+O 대 L+O+S, 고유분과 공유분 |
-| 그림 3c | `emobrain_chase_head_roi` | ‘쫓다’ 예시(보조) |
+| 보충 그림 S1 | `emobrain_chase_head_roi` | ‘쫓다’ 예시(부록, 11/26에 그림 3c에서 이름을 바꿈) |
 | 그림 4a | `emobrain_roi_partition` | 한 영역에서 세 모형의 예측, 분할 계산 예시, 영역별 세 값, 그림 3b와의 연결 |
 | 그림 4b | `emobrain_regional_alignment` | 비교하는 모델 판(학습 전후, 공포 목록 head와 무작위 head를 끔), RSA와 encoding, 추가 하락 예시 |
 | 그림 5 | `emobrain_brain_decoding` | 참가자별 특징 복원과 고정 판독기 |

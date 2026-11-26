@@ -191,7 +191,7 @@ def fig3a():
     T(ax, tx, b0 + 8.6, '= 0.07 →', size=5.8, ha='left')
     T(ax, tx, b0 + 5.4, '"especially important', size=5.8, ha='left', w='bold')
     T(ax, tx, b0 + 2.4, 'for fear"', size=5.8, ha='left', w='bold')
-    T(ax, cx, 1.8, 'Claim 2 is tested on the average over the computable emotions; one emotion gets an interval only.',
+    T(ax, cx, 1.8, 'The test for claim 2 is fixed before testing; by list relabelling, one emotion alone cannot pass correction.',
       size=5.2, c=GREY, ha='left')
     save(fig, 'emobrain_head_layers')
     return fig
