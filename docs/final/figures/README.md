@@ -1,38 +1,52 @@
-# 연구설계 그림 (07_research_design.md)
+# Figures for the research design
 
-`07_research_design.md`가 상대 경로 `figures/`로 참조하는 그림이다. 파일 이름과 그림 번호는 문서의 링크와 같다.
+The Markdown reads its eight PNGs from this folder. The [standalone HTML](../07_research_design.html) embeds the same PNGs and the linked PDF and SVG downloads.
 
-| 문서 그림 | 파일 | 내용 |
+| Figure | Filename stem (prefix `emobrain_`) | What it shows |
 |---|---|---|
-| 그림 1 | `emobrain_ridge_overview` | 선택 head가 분석 3, 4, 5, 6을 잇는 전체 흐름 |
-| 그림 2 | `emobrain_videomae_methods` | VideoMAE 구조와 head를 읽거나 제거하는 위치 |
-| 그림 3a | `emobrain_head_layers` | 선택 head의 층 분포, 순위 추정, 시험 영상의 선택성 대비 |
-| 그림 3b | `emobrain_head_captions` | L, O, S 일곱 조합과 고유분·공유분 |
-| 그림 3c | `emobrain_chase_head_roi` | ‘쫓다’ 단어 예시(보조) |
-| 그림 4a | `emobrain_roi_partition` | head 특징과 27개 평정의 영역별 분할 |
-| 그림 4b | `emobrain_regional_alignment` | 온전한 모델과 제거 모델의 RSA와 encoding |
-| 그림 5 | `emobrain_brain_decoding` | 참가자별 특징 복원과 고정 판독기 |
-| 그림 2~5 묶음 | `emobrain_methods_figures.pdf` | 방법론 그림 한 파일 |
-| 그림 3a, 3b 묶음 | `emobrain_head_interpretation.pdf` | head 해석 그림 한 파일 |
+| 1 | `ridge_overview` | How analyses ③, ④ and ⑥ use the same heads |
+| 2 | `videomae_methods` | VideoMAE blocks and the point of head readout or masking |
+| 3a | `head_layers` | Head selection and location within 12 blocks |
+| 3b | `head_captions` | Seven combinations of visual features, object names and captions |
+| 3c (appendix) | `chase_head_roi` | A worked example using one caption word |
+| 4a | `roi_partition` | Unique and shared regional predictions from heads and ratings |
+| 4b | `regional_alignment` | RSA and voxel encoding with intact or masked features |
+| 5 | `brain_decoding` | Subject-specific feature decoding and the fixed readout |
 
-## 형식
+The [methods PDF](emobrain_methods_figures.pdf) puts the six main methods panels first and appendix figure 3c last. The [head analysis PDF](emobrain_head_interpretation.pdf) contains 3a and 3b.
 
-- 학술지 양식: 폭 180 mm(두 단), Liberation Sans(Arial 호환) 5~7 pt, 굵은 소문자 패널 기호.
-- 색의 역할은 모든 그림에서 고정했다.
-  - 주황: 선택 head 출력, 읽기·제거 위치
-  - 녹색: 마지막 층 768차원 벡터
-  - 보라: 사람 정서 평정
-  - 붉은색: fMRI
-  - 파랑, 갈색, 자주: L, O, S
-- 가상 예시 수치는 그림마다 "Values illustrative"로 표시했다. 그림 3b의 수치는 본문 예시(0.30 − 0.20 = 0.10, 0.28 − 0.23 = 0.05, 공유분 합 0.14와 0.11)와 맞춘 하나의 분해에서 계산했다.
-- PDF와 SVG는 글자를 텍스트로 남겨 편집할 수 있다. PNG는 300 dpi다.
+## Rebuild
+
+Install Poppler (`pdftoppm`) and the Python dependencies below. Run from the repository root. The reference figures use Apple SD Gothic Neo and Arial on macOS. On other systems, set `EMOBRAIN_FIGURE_FONT_NORMAL` and `EMOBRAIN_FIGURE_FONT_BOLD` to Korean TrueType font files and `EMOBRAIN_FIGURE_ARIAL` to the directory containing `Arial.ttf`, `Arial Bold.ttf` and `Arial Italic.ttf`. Other fonts can change text widths.
+
+```sh
+python3 -m pip install matplotlib fonttools pymupdf reportlab beautifulsoup4
+python3 docs/final/figures/src/build_all.py
+```
+
+The command redraws all eight figures, assembles the PDFs and updates the images embedded in the HTML. Pass `--out /path/to/preview` to render figures separately for inspection.
+
+---
+
+# 연구설계 통합문서 그림
+
+Markdown은 이 폴더에서 그림 8개의 PNG를 불러온다. [단일 파일 HTML](../07_research_design.html)에는 같은 PNG와 본문에서 내려받는 PDF, SVG가 들어 있다.
+
+| 그림 | 파일 이름 (`emobrain_` 뒤) | 내용 |
+|---|---|---|
+| 1 | `ridge_overview` | ③, ④, ⑥에서 같은 head가 어떻게 쓰이는가 |
+| 2 | `videomae_methods` | VideoMAE 구조와 head를 읽거나 가리는 위치 |
+| 3a | `head_layers` | 정서별로 선택한 head와 12개 블록에서의 위치 |
+| 3b | `head_captions` | 저수준 시각, 물체 이름, 전체 캡션의 일곱 조합 |
+| 3c (부록) | `chase_head_roi` | 캡션 단어 하나로 읽는 예시 |
+| 4a | `roi_partition` | head 특징과 사람 평정이 영역별 뇌 반응을 따로 또는 함께 설명하는 몫 |
+| 4b | `regional_alignment` | 온전한 모델과 head를 가린 모델의 RSA 및 복셀 예측 |
+| 5 | `brain_decoding` | 참가자별 ridge로 복원한 특징과 고정된 정서 판독기 |
+
+[방법론 그림 PDF](emobrain_methods_figures.pdf)는 본문 패널 6개 다음에 부록 그림 3c를 싣는다. [head 분석 그림 PDF](emobrain_head_interpretation.pdf)에는 3a와 3b가 들어 있다.
 
 ## 다시 그리기
 
-```bash
-pip install matplotlib
-```
+Poppler(`pdftoppm`)를 설치하고 저장소 루트에서 위의 Python 명령 두 줄을 실행한다. 원본 글꼴은 macOS의 Apple SD Gothic Neo와 Arial이다. 다른 환경에서는 `EMOBRAIN_FIGURE_FONT_NORMAL`과 `EMOBRAIN_FIGURE_FONT_BOLD`에 한글 TrueType 파일을, `EMOBRAIN_FIGURE_ARIAL`에 `Arial.ttf`, `Arial Bold.ttf`, `Arial Italic.ttf`가 있는 폴더를 지정한다. 글꼴을 바꾸면 글자 폭이 달라질 수 있다.
 
-```bash
-python3 docs/final/figures/src/build_all.py
-```
+기본 명령은 그림 8개와 PDF 묶음을 만들고 HTML 안의 그림까지 갱신한다. `--out /path/to/preview`를 주면 별도 폴더에서 그림을 검토할 수 있다.

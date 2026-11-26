@@ -1,152 +1,80 @@
-"""Shared drawing helpers for the EmoBrain methods figures (Nature-style schematics)."""
-import matplotlib as mpl
+from pathlib import Path
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch, Rectangle, Circle, FancyArrowPatch, Polygon, Ellipse
+from matplotlib.patches import Rectangle,FancyBboxPatch,Circle,Ellipse,FancyArrowPatch,Polygon
+from matplotlib.font_manager import FontProperties
+from matplotlib.backends.backend_pdf import PdfPages
+from fontTools.ttLib import TTCollection
+from fontTools import subset
+from fontTools.fontBuilder import FontBuilder
+from fontTools.pens.ttGlyphPen import TTGlyphPen
+from fontTools.pens.cu2quPen import Cu2QuPen
 
-MM = 1 / 25.4
+import os
+from tempfile import TemporaryDirectory
+font_cache = TemporaryDirectory()
+OUT = Path(os.environ.get('EMOBRAIN_FIGURE_OUT', Path(__file__).resolve().parents[1]))
+W,H=1700,758
+INK='#173746';MUTE='#506671';SOFT='#71818A';LINE='#CCD9DB';TEAL='#186F79'
+LIGHT='#F0F6F6';PAPER='#FFFFFF';ORANGE='#AA4928';PEACH='#FCF0E9';OCHRE='#895B0C';YELLOW='#FFF4D7'
+LOW='#376E96';OBJ='#287A68';CAP='#79598E';SHARED='#435967'
+LC='#EAF2F7';OC='#E8F3EE';SC='#F2ECF6'
+def fonts():
+    chars=set(''.join(p.read_text() for p in Path(__file__).parent.glob('*.py')))|set('0123456789.+×−')
+    faces={}
+    for w,i,k in [('normal',0,400),('bold',6,700)]:
+        font_file = os.environ.get('EMOBRAIN_FIGURE_FONT_' + w.upper())
+        if font_file:
+            faces[w] = FontProperties(fname=font_file, weight=w)
+            continue
+        collection = Path('/System/Library/Fonts/AppleSDGothicNeo.ttc')
+        if not collection.is_file():
+            raise FileNotFoundError('Set EMOBRAIN_FIGURE_FONT_NORMAL and EMOBRAIN_FIGURE_FONT_BOLD to Hangul TrueType fonts.')
+        f=TTCollection(collection,lazy=True).fonts[i]
+        s=subset.Subsetter();s.populate(text=''.join(chars));s.subset(f)
+        fb=FontBuilder(f['head'].unitsPerEm,isTTF=True); order=f.getGlyphOrder();fb.setupGlyphOrder(order);fb.setupCharacterMap(f.getBestCmap())
+        glyphs={};gs=f.getGlyphSet()
+        for name in order:
+            pen=TTGlyphPen(None);gs[name].draw(Cu2QuPen(pen,1,reverse_direction=True));glyphs[name]=pen.glyph()
+        fb.setupGlyf(glyphs);fb.setupHorizontalMetrics(f['hmtx'].metrics)
+        h=f['hhea'];o=f['OS/2'];fb.setupHorizontalHeader(ascent=h.ascent,descent=h.descent)
+        style='Bold' if w=='bold' else 'Regular'
+        fb.setupNameTable({'familyName':'Apple SD Gothic Neo','styleName':style,'psName':'AppleSDGothicNeo-'+style,'fullName':'Apple SD Gothic Neo '+style})
+        fb.setupOS2(sTypoAscender=o.sTypoAscender,sTypoDescender=o.sTypoDescender,usWinAscent=o.usWinAscent,usWinDescent=o.usWinDescent,usWeightClass=k)
+        fb.setupPost();face=Path(font_cache.name)/(w+'.ttf');fb.save(face)
+        faces[w]=FontProperties(fname=str(face),family=['Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic','sans-serif'],weight=w)
+    return faces
+FACE=fonts()
+plt.rcParams.update({'svg.fonttype':'none','pdf.fonttype':42,'svg.hashsalt':'emobrain-f3-blocks-subsets'})
+def T(a,x,y,s,sz=22,c=INK,b=False,ha='left',va='center'):
+    return a.text(x,y,s,fontsize=.72*sz,fontproperties=FACE['bold' if b else 'normal'],color=c,ha=ha,va=va,zorder=8)
+def R(a,x,y,w,h,fc='none',ec='none',lw=1,r=0,z=1):
+    p=FancyBboxPatch((x,y),w,h,boxstyle='round,pad=0,rounding_size='+str(r),facecolor=fc,edgecolor=ec,linewidth=lw,zorder=z)
+    a.add_patch(p);return p
+def L(a,points,c=LINE,lw=1.2,ls='-',z=3):
+    a.plot(*zip(*points),color=c,lw=lw,ls=ls,solid_capstyle='round',solid_joinstyle='round',zorder=z)
+def A(a,x,y,xx,yy,c=MUTE,lw=1.4):
+    a.add_patch(FancyArrowPatch((x,y),(xx,yy),arrowstyle='-|>',mutation_scale=11,shrinkA=0,shrinkB=0,lw=lw,color=c,zorder=4))
+def D(a,x,y,rad,fc,ec='none',lw=1,z=5):
+    a.add_patch(Circle((x,y),rad,fc=fc,ec=ec,lw=lw,zorder=z))
+def E(a,x,y,w,h,c,angle=0):
+    a.add_patch(Ellipse((x,y),w,h,angle=angle,facecolor=c,edgecolor='none',zorder=5))
 
-mpl.rcParams.update({
-    'font.family': 'Liberation Sans',
-    'font.size': 6.5,
-    'axes.linewidth': 0.5,
-    'pdf.fonttype': 42,
-    'ps.fonttype': 42,
-    'svg.fonttype': 'none',
-    'savefig.dpi': 600,
-    'lines.linewidth': 0.6,
-    'mathtext.fontset': 'custom',
-    'mathtext.rm': 'Liberation Sans',
-    'mathtext.it': 'Liberation Sans:italic',
-    'mathtext.bf': 'Liberation Sans:bold',
-    'xtick.major.width': 0.5, 'ytick.major.width': 0.5,
-    'xtick.major.size': 2, 'ytick.major.size': 2,
-    'xtick.labelsize': 6, 'ytick.labelsize': 6,
-    'axes.labelsize': 6.5, 'axes.titlesize': 7,
-    'legend.fontsize': 6, 'legend.frameon': False,
-})
+def film(a,x,y,w=141,h=84):
+    R(a,x+7,y-8,w,h,'#E8F0F0','#C5D6D9',.8,4)
+    R(a,x+3.5,y-4,w,h,'#F1F6F6','#C5D6D9',.8,4)
+    R(a,x,y,w,h,'#E9F2F3','#AAC0C6',.9,4)
+    def pos(xx,yy):return x+w*xx/140,y+h*yy/80
+    def ln(pts,col,weight):L(a,[pos(*p) for p in pts],col,weight)
+    s=w/140
+    ln([(4,65),(135,65)],'#9BB9A9',1)
+    xx,yy=pos(38,54);E(a,xx,yy,29*s,12*s,'#946446')
+    xx,yy=pos(52,46);D(a,xx,yy,6*s,'#946446')
+    ln([(52,46),(59,48)],'#946446',2.8*s);ln([(25,52),(17,45),(13,46)],'#946446',2*s)
+    ln([(30,58),(23,65),(18,63)],'#946446',2.1*s);ln([(46,58),(55,65),(60,64)],'#946446',2.1*s)
+    xx,yy=pos(100,24);D(a,xx,yy,5.7*s,'#AA7659')
+    ln([(98,33),(91,47)],LOW,4.4*s);ln([(97,34),(104,40),(113,33)],LOW,2.4*s)
+    ln([(91,48),(103,56),(110,64)],INK,2.9*s);ln([(91,48),(81,57),(73,50)],INK,2.9*s)
 
-# palette (colour-blind safe, muted). Roles are fixed across all figures.
-INK = '#222222'
-GREY = '#8A8A8A'
-LIGHT = '#F2F2F2'
-MODEL = '#4C6A8A'      # VideoMAE / model structure
-MODEL_F = '#E7EDF4'
-HEAD = '#E8871E'       # selected attention heads, read / ablate position
-HEAD_F = '#FCE9D2'
-POOL = '#3A9E5F'       # last-layer pooled 768-d vector
-POOL_F = '#DCEFE3'
-RATE = '#6E5AA8'       # human emotion ratings (VCE / Cowen)
-RATE_F = '#ECE8F5'
-BRAIN = '#C0504D'      # fMRI / brain
-BRAIN_F = '#F6E1E0'
-C_L = '#4A86C5'        # low-level visual (L)
-C_O = '#A0773E'        # object nouns (O)
-C_S = '#C2477A'        # full caption (S)
-SHARED = '#B8B8B8'
-
-
-def canvas(w_mm, h_mm):
-    fig = plt.figure(figsize=(w_mm * MM, h_mm * MM))
-    ax = fig.add_axes([0, 0, 1, 1])
-    ax.set_xlim(0, w_mm)
-    ax.set_ylim(0, h_mm)
-    ax.axis('off')
-    return fig, ax
-
-
-def box(ax, x, y, w, h, fc='white', ec=INK, lw=0.6, r=1.2, z=2, ls='-', alpha=1.0):
-    p = FancyBboxPatch((x, y), w, h, boxstyle=f'round,pad=0,rounding_size={r}',
-                       fc=fc, ec=ec, lw=lw, zorder=z, ls=ls, alpha=alpha)
-    ax.add_patch(p)
-    return p
-
-
-def rect(ax, x, y, w, h, fc='white', ec=INK, lw=0.5, z=2, hatch=None, alpha=1.0):
-    p = Rectangle((x, y), w, h, fc=fc, ec=ec, lw=lw, zorder=z, hatch=hatch, alpha=alpha)
-    ax.add_patch(p)
-    return p
-
-
-def arrow(ax, x1, y1, x2, y2, c=INK, lw=0.7, ms=5.5, style='-|>', ls='-', rad=0.0, z=4, sa=0, sb=0):
-    a = FancyArrowPatch((x1, y1), (x2, y2), arrowstyle=style, mutation_scale=ms, color=c, lw=lw,
-                        ls=ls, connectionstyle=f'arc3,rad={rad}', zorder=z, shrinkA=sa, shrinkB=sb)
-    ax.add_patch(a)
-    return a
-
-
-def line(ax, xs, ys, c=INK, lw=0.6, ls='-', z=3):
-    ax.plot(xs, ys, color=c, lw=lw, ls=ls, zorder=z, solid_capstyle='butt')
-
-
-def txt(ax, x, y, s, size=6.5, c=INK, ha='center', va='center', w='normal', style='normal', z=6, **kw):
-    return ax.text(x, y, s, fontsize=size, color=c, ha=ha, va=va, fontweight=w, fontstyle=style,
-                   zorder=z, **kw)
-
-
-def panel(ax, x, y, letter, size=9):
-    txt(ax, x, y, letter, size=size, w='bold', ha='left', va='top')
-
-
-def num(ax, x, y, n, c=INK, r=2.0, size=6.5, fc='white'):
-    ax.add_patch(Circle((x, y), r, fc=fc, ec=c, lw=0.7, zorder=7))
-    txt(ax, x, y - 0.05, str(n), size=size, c=c, w='bold', z=8)
-
-
-def frames(ax, x, y, w=10, h=7.5, n=3, dx=1.3, dy=1.1, ec=INK, fc='#FFFFFF', scene=True):
-    """Stacked video frames with a tiny abstract scene."""
-    for i in range(n - 1, -1, -1):
-        xx, yy = x + i * dx, y + i * dy
-        rect(ax, xx, yy, w, h, fc=fc, ec=ec, lw=0.5, z=3 + (n - i))
-    if scene:
-        xx, yy = x, y
-        # ground, a figure and a dog-like blob (abstract)
-        rect(ax, xx, yy, w, h * 0.28, fc='#E9E4D8', ec='none', z=3 + n + 1)
-        ax.add_patch(Circle((xx + w * 0.30, yy + h * 0.62), h * 0.09, fc='#7A7A7A', ec='none', zorder=3 + n + 2))
-        rect(ax, xx + w * 0.27, yy + h * 0.28, w * 0.06, h * 0.26, fc='#7A7A7A', ec='none', z=3 + n + 2)
-        ax.add_patch(Ellipse((xx + w * 0.68, yy + h * 0.36), w * 0.22, h * 0.14, fc='#A47C52', ec='none', zorder=3 + n + 2))
-        ax.add_patch(Circle((xx + w * 0.80, yy + h * 0.44), h * 0.07, fc='#A47C52', ec='none', zorder=3 + n + 2))
-
-
-def brain(ax, x, y, w=12, h=8.5, fc=BRAIN_F, ec=BRAIN, lw=0.7, roi=True, roi_c=None):
-    """Simple lateral brain silhouette."""
-    import numpy as np
-    t = np.linspace(0, 2 * np.pi, 200)
-    bx = x + w / 2 + (w / 2) * np.cos(t) * (1 + 0.08 * np.cos(2 * t))
-    by = y + h / 2 + (h / 2) * np.sin(t) * (0.92 + 0.10 * np.sin(t))
-    ax.add_patch(Polygon(np.c_[bx, by], closed=True, fc=fc, ec=ec, lw=lw, zorder=4))
-    # temporal lobe notch / cerebellum
-    ax.add_patch(Ellipse((x + w * 0.78, y + h * 0.10), w * 0.26, h * 0.22, fc=fc, ec=ec, lw=lw, zorder=3))
-    # sulci
-    for (a, b, c, d) in [(0.25, 0.75, 0.42, 0.55), (0.45, 0.85, 0.55, 0.62), (0.30, 0.45, 0.65, 0.40)]:
-        ax.plot([x + w * a, x + w * c], [y + h * b, y + h * d], color=ec, lw=0.4, zorder=5)
-    if roi:
-        ax.add_patch(Ellipse((x + w * 0.70, y + h * 0.52), w * 0.20, h * 0.20,
-                             fc=roi_c or BRAIN, ec='none', alpha=0.85, zorder=6))
-
-
-def head_grid(ax, x, y, cell=1.6, gap=0.35, n_blocks=12, n_heads=12, selected=(), ec='#9AA8B8',
-              fc='white', sel_fc=HEAD, lw=0.35):
-    """12 x 12 grid: columns = blocks (layers), rows = heads. selected = list of (block, head), 1-based."""
-    sel = set(selected)
-    for b in range(1, n_blocks + 1):
-        for h in range(1, n_heads + 1):
-            xx = x + (b - 1) * (cell + gap)
-            yy = y + (n_heads - h) * cell
-            on = (b, h) in sel
-            rect(ax, xx, yy, cell, cell, fc=sel_fc if on else fc, ec=INK if on else ec, lw=0.6 if on else lw, z=4 if on else 3)
-    return (cell + gap)
-
-
-def bars_h(ax, x, y, vals, maxv, length, height, colors, gap=0.6):
-    for i, (v, c) in enumerate(zip(vals, colors)):
-        yy = y - i * (height + gap)
-        rect(ax, x, yy, length, height, fc=LIGHT, ec='none', z=2)
-        rect(ax, x, yy, length * v / maxv, height, fc=c, ec='none', z=3)
-
-
-def save(fig, stem, outdir):
-    import os
-    os.makedirs(outdir, exist_ok=True)
-    fig.savefig(os.path.join(outdir, stem + '.pdf'))
-    fig.savefig(os.path.join(outdir, stem + '.svg'))
-    fig.savefig(os.path.join(outdir, stem + '.png'), dpi=300)
+selected={3:{6},8:{2},9:{4,9}}
