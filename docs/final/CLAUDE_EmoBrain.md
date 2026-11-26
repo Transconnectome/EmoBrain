@@ -2,6 +2,8 @@
 
 2026-11-03. claude.ai 프로젝트 "EmoBrain"의 지침과 글쓰기 규칙을 Claude Code용으로 옮긴 파일이다. EmoBrain 작업을 하는 세션은 매번 이 파일을 먼저 읽는다.
 
+**11/26 방향 전환.** 기준 설계 문서는 `docs/final/07_research_design.md`다. 01은 11/22까지의 설계 기록이며, 07과 다르면 07을 따른다. 결정 기록은 `docs/notes/methods_spec_2026-11-25/decisions.md`, 그림과 다시 그리는 코드는 `docs/final/figures/`(README 참조)에 있다. 아래 1절의 34개 범주와 공유 모델 서술은 11/22까지의 설계이며, 현재는 27개 범주와 VCE로 학습한 VideoMAE의 정서별 head를 쓴다(07 참조).
+
 레포 규칙과의 관계(11/3 석진 님 결정)
 
 - 연구 설계, 기준 문서, 문서를 누가 고치는지는 이 파일과 01이 레포의 AGENTS.md와 docs/coordination(10/7)보다 우선한다. 10/7 규칙의 경로와 역할 문구는 11/7에 docs/final 기준으로 고쳤다. 그 전까지 이 차이 때문에 멈추지 않는다.
@@ -23,7 +25,8 @@
 
 | 파일 | 역할 |
 | --- | --- |
-| 01_integrated_document.md | 통합문서. 유일한 기준이다. 설계, 근거, 결정 상태가 모두 여기 있다 |
+| 07_research_design.md | 11/26부터의 기준 설계(12/7 원고, 12/15 심사). 01과 다르면 07을 따른다. 그림은 figures/ |
+| 01_integrated_document.md | 통합문서. 11/22까지의 설계, 근거, 결정 상태. 11/26부터 설계는 07이 우선한다 |
 | 02_proposal.md | 한국어 proposal. 결정과 이유만 담는다 |
 | 03_thesis.md | 영어 thesis. 서론, 방법, 분석 계획과 예상 결과, 논의 |
 | 04_claude_code_workorder.md | 작업 지시서. S0~S11 단계와 기록 칸 |
