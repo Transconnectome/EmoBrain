@@ -15,6 +15,8 @@
 | 그림 2~5 묶음 | `emobrain_methods_figures.pdf` | 방법론 그림 한 파일 |
 | 그림 3a, 3b 묶음 | `emobrain_head_interpretation.pdf` | head 해석 그림 한 파일 |
 
+이전 그림 묶음(글 상자 중심, 커밋 abf6eee3)과 그 코드는 git 기록에 남아 있다. 11/26 석진 님 결정으로 실제 영상 프레임과 뇌 그림을 쓰는 이 묶음으로 바꿨다.
+
 ## 실제 이미지의 출처
 
 - 영상 프레임: Cowen과 Keltner(2017)의 자극 영상 1374(공포, ‘쫓다’ 캡션 13/20), 366, 55. 저자의 공개 미리보기 사이트(bsil.berkeley.edu)에서 받았고 설명용으로만 쓴다.
