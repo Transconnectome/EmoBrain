@@ -123,7 +123,7 @@ def fig5():
     # ---------------- d: what is reported ----------------
     yd = y3 - 23.0
     panel(ax, 1, yd, 'd')
-    T(ax, 7, yd - 2.6, 'Reported for each participant and voxel range', size=8, w='bold', ha='left')
+    T(ax, 7, yd - 2.6, 'Reported for each participant, voxel range and emotion head list', size=8, w='bold', ha='left')
     items = [('i', 'identification accuracy and rank', 'against chance'),
              ('ii', 'estimate r for each of 27 emotions', 'main brain-only result'),
              ('iii', 'the same with random head lists', 'same layers, same number of heads'),
