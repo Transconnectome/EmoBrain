@@ -50,3 +50,9 @@ python3 docs/final/figures/src/fetch_assets.py
 ```bash
 EMOBRAIN_FIG_OUT=docs/final/figures python3 docs/final/figures/src/build_all.py
 ```
+
+그림을 다시 만든 뒤 07의 HTML 판(그림을 base64로 품은 한 파일)도 다시 만든다. Python-Markdown이 필요하다.
+
+```bash
+python3 docs/final/figures/src/build_07_html.py
+```
