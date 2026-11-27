@@ -19,7 +19,7 @@ def fig1():
     # ---------------- stage 1: VCE ----------------
     rbox(ax, 2, 97, 176, 23, fc='#F6F8FB', ec='#C9D3DE', lw=0.6, r=2, z=1)
     T(ax, 5, 117.4, 'VCE (no brain data)', size=7.5, w='bold', c=MODEL, ha='left')
-    tensor(ax, 6, 101.5, 20, 11, '49,538\ntraining videos', size=6.6)
+    tensor(ax, 6, 101.5, 20, 11, '44,584\ntraining videos', size=6.6)
     arrow(ax, 26.5, 107, 31.5, 107)
     trapezoid(ax, 32, 100, 22, 14, 'VideoMAE', 'ViT-B/16', size=7.5)
     fire(ax, 52.5, 112.5, 0.9)
