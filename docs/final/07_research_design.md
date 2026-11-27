@@ -867,7 +867,7 @@ Lu 등은 시각 모델을 EEG로 추가 학습한 뒤 별도 fMRI와 비교했�
 [vtcdconcept]: https://github.com/YorkUCVIL/VTCD/blob/027dde1194be234c00ac9dbe7c46004b2c40c595/CRIS.py#L141-L288
 [vtcdheadsdef]: https://github.com/YorkUCVIL/VTCD/blob/027dde1194be234c00ac9dbe7c46004b2c40c595/prune_heads_full_dataset.py#L474-L489
 [vtcdconceptdef]: https://github.com/YorkUCVIL/VTCD/blob/027dde1194be234c00ac9dbe7c46004b2c40c595/CRIS.py#L639
-[decisions]: https://github.com/Transconnectome/EmoBrain/blob/2945a867400ce15e983b2baaa4965128e930c978/docs/notes/methods_spec_2026-11-25/decisions.md
+[decisions]: https://github.com/Transconnectome/EmoBrain/blob/71f7d27d8cb31358831c2742dabe8b29ab691a9d/docs/notes/methods_spec_2026-11-25/decisions.md
 [audit]: https://github.com/Transconnectome/EmoBrain/blob/a296f382f6765b6a56516542ef14965051bc9db1/docs/notes/methods_spec_2026-11-25/citation_audit_2026-11-25.md
 [projectdata]: https://github.com/Transconnectome/EmoBrain/blob/a296f382f6765b6a56516542ef14965051bc9db1/project/README.md
 [ji19]: https://doi.org/10.1016/j.neuroimage.2018.10.006
