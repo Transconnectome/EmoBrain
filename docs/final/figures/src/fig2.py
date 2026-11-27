@@ -2,9 +2,6 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from kit import *
 
-FR = ['cowen_1374_f3.png', 'cowen_1374_f4.png', 'cowen_1374_f1.png']
-
-
 def fig2():
     W, H = 180, 98
     fig, ax = canvas(W, H)
@@ -15,7 +12,7 @@ def fig2():
     # stage 1
     y1 = 76
     T(ax, 7, y1 + 13.5, 'Stage 1  masked video SSL', size=7, c=MODEL, w='bold', ha='left')
-    img(ax, 'cowen_1374_tubemask.png', 7, y1 - 8, 17, 17)
+    frame_icon(ax, 7, y1 - 8, 17, 17, label=None, symbol=None, grid=14, keep=np.random.default_rng(4).random((14, 14)) < 0.10)
     T(ax, 15.5, y1 - 10.6, '90% tubes hidden', size=5.8, c=GREY)
     arrow(ax, 24.5, y1 + 0.5, 28.5, y1 + 0.5)
     trapezoid(ax, 29, y1 - 7, 15, 15, 'encoder', size=6.8)
@@ -24,12 +21,12 @@ def fig2():
     trapezoid(ax, 48, y1 - 7, 12, 15, 'decoder', narrow='left', size=6.8)
     fire(ax, 58.6, y1 + 6.6, 0.75)
     arrow(ax, 60.5, y1 + 0.5, 64.5, y1 + 0.5)
-    img(ax, 'cowen_1374_f3.png', 65, y1 - 8, 17, 17)
+    frame_icon(ax, 65, y1 - 8, 17, 17)
     T(ax, 73.5, y1 - 10.6, 'pixels restored', size=5.8, c=GREY)
     # stage 2
     x2 = 92
     T(ax, x2, y1 + 13.5, 'Stage 2  emotion fine-tuning', size=7, c=MODEL, w='bold', ha='left')
-    stack(ax, FR, x2, y1 - 8, 13, dx=1.6, dy=1.6)
+    stack(ax, 3, x2, y1 - 8, 13, dx=1.6, dy=1.6)
     T(ax, x2 + 8, y1 - 10.6, '16 frames', size=5.8, c=GREY)
     arrow(ax, x2 + 17.5, y1 + 0.5, x2 + 21.5, y1 + 0.5)
     trapezoid(ax, x2 + 22, y1 - 7, 15, 15, 'encoder', size=6.8)
@@ -56,7 +53,7 @@ def fig2():
     panel(ax, 1, 50, 'b')
     T(ax, 7, 47.4, 'Reading or ablating one attention head', size=8, w='bold', ha='left')
     yb = 22
-    img(ax, 'cowen_1374_grid.png', 6, yb - 9, 19, 19)
+    frame_icon(ax, 6, yb - 9, 19, 19, grid=14)
     T(ax, 15.5, yb - 11.8, '2 × 16 × 16 px → 1 token', size=5.6, c=GREY)
     arrow(ax, 25.5, yb + 0.5, 29.5, yb + 0.5)
     tensor(ax, 30, yb - 4, 17, 9, '1568 × 768', size=6.6)

@@ -1,8 +1,9 @@
 """Rebuild all EmoBrain methods figures.
 
 Real inputs:
-  - Cowen & Keltner (2017) stimulus videos 1374, 366, 55 (public preview site, see fetch_assets.py)
   - fsaverage5 surface and MNI152 template (bundled with nilearn)
+  - captions and Cowen & Keltner (2017) ratings of video 1374 are typed into the figure code
+Video frames are drawn as schematic boxes (kit.frame_icon); no stimulus video is used.
 Run fetch_assets.py once, then this script.
 """
 import os, sys

@@ -15,12 +15,12 @@
 | 그림 2~5 묶음 | `emobrain_methods_figures.pdf` | 방법론 그림 한 파일 |
 | 그림 3a, 3b 묶음 | `emobrain_head_interpretation.pdf` | head 해석 그림 한 파일 |
 
-이전 그림 묶음(글 상자 중심, 커밋 abf6eee3)과 그 코드는 git 기록에 남아 있다. 11/26 석진 님 결정으로 실제 영상 프레임과 뇌 그림을 쓰는 이 묶음으로 바꿨다. 같은 날 그림 3a, 3b, 4a, 4b는 그림 하나가 질문 하나에 답하도록 숫자 예시 중심으로 다시 그렸다(이전 판은 커밋 36c34a5d).
+이전 그림 묶음(글 상자 중심, 커밋 abf6eee3)과 그 코드는 git 기록에 남아 있다. 11/26 석진 님 결정으로 실제 영상 프레임과 뇌 그림을 쓰는 이 묶음으로 바꿨다. 같은 날 그림 3a, 3b, 4a, 4b는 그림 하나가 질문 하나에 답하도록 숫자 예시 중심으로 다시 그렸다(이전 판은 커밋 36c34a5d). 그 뒤 공개 레포에 Cowen 영상의 실제 프레임을 싣지 않기로 해(석진 님 결정), 영상 프레임 자리는 같은 크기의 도식(회색 사각형, 재생 기호, 짧은 글)으로 바꿨다.
 
 ## 실제 이미지의 출처
 
-- 영상 프레임: Cowen과 Keltner(2017)의 자극 영상 1374(공포, ‘쫓다’ 캡션 13/20), 366, 55. 저자의 공개 미리보기 사이트(bsil.berkeley.edu)에서 받았고 설명용으로만 쓴다.
-- 캡션 문장: 프로젝트의 MindCaptioning 캡션 파일(`project/shared/data/caption_ck20.csv`)에서 영상 1374의 실제 문장.
+- 영상 프레임: 실제 프레임을 쓰지 않고 도식(`kit.py`의 `frame_icon`)으로 그린다. 예시 영상은 Cowen과 Keltner(2017)의 자극 영상 1374(공포, ‘쫓다’ 캡션 13/20)다. 그림 코드는 영상 파일을 내려받거나 읽지 않는다.
+- 캡션 문장: 프로젝트의 MindCaptioning 캡션 파일(`data/caption_ck20.csv`)에서 영상 1374의 실제 문장.
 - 평정: 영상 1374의 실제 Cowen 평정(27개 범주). 예측값과 R² 등은 가상 예시이며 그림마다 "values illustrative"로 표시했다.
 - 뇌: MNI152 표준 뇌(T1)와 fsaverage5 피질 표면. 둘 다 nilearn에 들어 있다. 표면 위의 영역 색은 설명용이다.
 
@@ -40,7 +40,7 @@
 ## 다시 그리기
 
 ```bash
-pip install matplotlib nilearn opencv-python-headless
+pip install matplotlib nilearn
 ```
 
 ```bash

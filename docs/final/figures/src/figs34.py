@@ -206,7 +206,7 @@ def fig3b():
     panel(ax, 1, H - 8, 'a')
     sub(ax, 7, H - 10.4, 'Inputs from each Cowen video, two separate predictions')
     ytop = H - 16
-    stack(ax, ['cowen_1374_f3.png', 'cowen_1374_f4.png', 'cowen_1374_f1.png'], 5, ytop - 17, 15, dx=1.6, dy=1.6)
+    stack(ax, 3, 5, ytop - 17, 15, dx=1.6, dy=1.6)
     T(ax, 13.5, ytop - 19.8, 'video 1374', size=5.8, c=GREY)
     caption_box(ax, 3, ytop - 41, 32, 17, '"A large lizard chases\na woman in a kimono ..."\n'
                                           '"A woman runs while\nholding a rope ..."\n... 20 captions', size=5.2)
@@ -320,7 +320,7 @@ def fig3c():
         ax.add_patch(Circle((sx + 1 + a * (sw - 2) / 0.8, sy + 1 + b * (sh - 2)), 0.55, fc='#D99BB5', ec='white', lw=0.2, zorder=5))
     px, py = sx + 1 + 0.65 * (sw - 2) / 0.8, sy + 1 + 0.545 * (sh - 2)
     ax.add_patch(Circle((px, py), 1.1, fc=C_S, ec=INK, lw=0.8, zorder=7))
-    img(ax, 'cowen_1374_f3.png', px - 12, py + 2.5, 9, 9, z=8)
+    frame_icon(ax, px - 12, py + 2.5, 9, 9, label='video\nframe', z=8)
     T(ax, px - 7.5, py + 13.2, 'video 1374', size=5.4, c=INK)
     T(ax, px + 1.8, py - 2.8, '13/20 captions,\nfear 0.55 (real)', size=5.4, ha='left', linespacing=1.15)
     for t in (0, 0.4, 0.8):

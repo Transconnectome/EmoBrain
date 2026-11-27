@@ -1,4 +1,4 @@
-"""Drawing kit for the v2 (MindEye-style) EmoBrain figures: real images, tensor boxes, frozen/trained icons."""
+"""Drawing kit for the v2 (MindEye-style) EmoBrain figures: brain images, schematic video frames, tensor boxes, frozen/trained icons."""
 import os
 import numpy as np
 import matplotlib as mpl
@@ -89,10 +89,54 @@ def img(ax, name, x, y, w, h=None, border=True, z=4, lw=0.6, trim=False):
     return h
 
 
-def stack(ax, names, x, y, w, dx=2.2, dy=2.2, z=4):
-    """Stacked frames, first name on top-front."""
-    for k, n in reversed(list(enumerate(names))):
-        img(ax, n, x + k * dx, y + k * dy, w, w, z=z + (len(names) - k) * 2)
+def frame_icon(ax, x, y, w, h=None, label='video frame', symbol='play', grid=0, keep=None, size=None, z=4, lw=0.6):
+    """Schematic stand-in for a video frame (real stimulus frames are not drawn).
+
+    Grey rounded box of the same size as the frame it replaces, a play triangle (symbol='play'),
+    film perforations (symbol='film') or nothing (symbol=None), and a short label.
+    grid > 0 draws a grid x grid token lattice; keep (grid x grid bool array) lightens the hidden cells.
+    """
+    h = w if h is None else h
+    box = rbox(ax, x, y, w, h, fc='#C9CED4', ec=INK, lw=lw, r=min(w, h) * 0.07, z=z)
+    if grid:
+        sx, sy = w / grid, h / grid
+        if keep is not None:
+            for i in range(grid):
+                for j in range(grid):
+                    if not keep[i, j]:
+                        p = Rectangle((x + j * sx, y + h - (i + 1) * sy), sx, sy, fc='#EEF0F2', ec='none', zorder=z + 1)
+                        ax.add_patch(p)
+                        p.set_clip_path(box)
+        for k in range(1, grid):
+            for xs, ys in (([x + k * sx] * 2, [y, y + h]), ([x, x + w], [y + k * sy] * 2)):
+                ln, = ax.plot(xs, ys, color='white', lw=0.35, zorder=z + 2)
+                ln.set_clip_path(box)
+    s = min(w, h)
+    cy = y + h / 2 + (0.09 * h if label else 0)
+    if symbol == 'play':
+        r = 0.16 * s
+        ax.add_patch(Polygon([(x + w / 2 - 0.55 * r, cy - 0.7 * r), (x + w / 2 - 0.55 * r, cy + 0.7 * r), (x + w / 2 + 0.75 * r, cy)],
+                             closed=True, fc='white', ec='#8A9098', lw=0.4, zorder=z + 3))
+    elif symbol == 'film':
+        n = max(3, int(w / 2.2))
+        hw = w / n
+        for yy in (y + 0.06 * h, y + h - 0.06 * h - 0.07 * h):
+            for k in range(n):
+                p = Rectangle((x + k * hw + 0.3 * hw, yy), 0.4 * hw, 0.07 * h, fc='white', ec='none', zorder=z + 3)
+                ax.add_patch(p)
+                p.set_clip_path(box)
+    if label:
+        fs = size if size is not None else float(np.clip(0.27 * s, 4.2, 6.0))
+        T(ax, x + w / 2, y + (0.24 * h if symbol else 0.5 * h), label, size=fs, c='#4A4F55', z=z + 4, linespacing=1.1)
+    return h
+
+
+def stack(ax, n, x, y, w, dx=2.2, dy=2.2, z=4, label='video frame'):
+    """n stacked schematic frames; only the top-front one carries the symbol and label."""
+    for k in reversed(range(n)):
+        front = (k == 0)
+        frame_icon(ax, x + k * dx, y + k * dy, w, w, label=label if front else None,
+                   symbol='play' if front else None, z=z + (n - k) * 2)
 
 
 def snow(ax, x, y, r=1.7, c=ICE, lw=0.8, z=12):

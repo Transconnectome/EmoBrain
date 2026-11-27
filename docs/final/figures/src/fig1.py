@@ -19,7 +19,7 @@ def fig1():
     # ---------------- stage 1: VCE ----------------
     rbox(ax, 2, 97, 176, 23, fc='#F6F8FB', ec='#C9D3DE', lw=0.6, r=2, z=1)
     T(ax, 5, 117.4, 'VCE (no brain data)', size=7.5, w='bold', c=MODEL, ha='left')
-    tensor(ax, 6, 101.5, 20, 11, '50,000\ntraining videos', size=6.6)
+    tensor(ax, 6, 101.5, 20, 11, '49,538\ntraining videos', size=6.6)
     arrow(ax, 26.5, 107, 31.5, 107)
     trapezoid(ax, 32, 100, 22, 14, 'VideoMAE', 'ViT-B/16', size=7.5)
     fire(ax, 52.5, 112.5, 0.9)
@@ -49,7 +49,7 @@ def fig1():
 
     # ---------------- stage 2: Cowen + HK ----------------
     T(ax, 5, 93.0, 'Cowen video 1374 (one of 2,181 viewed in the scanner)', size=7.5, w='bold', ha='left')
-    stack(ax, ['cowen_1374_f3.png', 'cowen_1374_f4.png', 'cowen_1374_f1.png'], 5, 63, 22, dx=2.4, dy=2.2)
+    stack(ax, 3, 5, 63, 22, dx=2.4, dy=2.2)
     caption_box(ax, 4, 49, 36, 9.5, '"A large lizard chases\na woman ... runs away."', size=6.0)
     T(ax, 22, 46.8, '1 of 20 human captions', size=5.6, c=GREY)
     # real ratings
@@ -81,7 +81,7 @@ def fig1():
     arrow(ax, 152, 88, 152, 84.6, c=HEAD, lw=1.2)
     T(ax, 153, 86.4, 'target', size=5.4, c=HEAD, ha='left')
     # L, O, S chips
-    img(ax, 'cowen_1374_motion.png', 90.5, 72, 9, 9)
+    frame_icon(ax, 90.5, 72, 9, 9, label='motion\nmap', symbol=None)
     T(ax, 95, 69.8, 'L  motion', size=5.8, c=C_L, w='bold')
     caption_box(ax, 101.5, 76, 19, 5, 'woman, lizard', size=5.8)
     T(ax, 111, 73.6, 'O  object nouns', size=5.8, c=C_O, w='bold')

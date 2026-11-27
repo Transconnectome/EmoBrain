@@ -61,7 +61,7 @@ def fig5():
     # example: predicted vs measured profile for video 1374
     ex = bx + 2
     ey = 34
-    img(ax, 'cowen_1374_f3.png', ex, ey + 2, 13, 13)
+    frame_icon(ax, ex, ey + 2, 13, 13)
     T(ax, ex + 6.5, ey - 0.4, 'video 1374', size=5.6, c=GREY)
     rng = np.random.default_rng(9)
     pred = np.clip(np.array(P1374) * 0.7 + rng.normal(0.05, 0.04, 27), 0.01, None)
