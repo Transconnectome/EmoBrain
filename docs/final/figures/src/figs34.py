@@ -212,8 +212,8 @@ def fig3b():
                                           '"A woman runs while\nholding a rope ..."\n... 20 captions', size=5.2)
     rows = [('L', C_L, 'low-level visual', 'brightness, colour, motion energy', ytop - 3),
             ('O', C_O, 'object names', 'nouns: woman, lizard, rope', ytop - 14),
-            ('S', C_S, 'full sentences', 'whole captions, emotion words removed', ytop - 25),
-            ('C', GREY, 'common variables', 'caption length, emotion-word counts', ytop - 36)]
+            ('S', C_S, 'full sentences', 'whole captions, used as written', ytop - 25),
+            ('C', GREY, 'common variables', 'caption length, emotion-word share', ytop - 36)]
     for k, c, name, ex, y in rows:
         badge(ax, 44, y, k, c=c, r=2.2, size=7)
         T(ax, 47.6, y + 1.5, name, size=6.6, c=c, w='bold', ha='left')
@@ -223,7 +223,7 @@ def fig3b():
     arrow(ax, 35.5, ytop - 32, 41.2, ytop - 25.2, lw=0.6)
     arrow(ax, 35.5, ytop - 35, 41.2, ytop - 36, lw=0.6)
     T(ax, 47.6, ytop - 40.6, 'O and S: frozen DeBERTa-large, mean over the 20 captions.\n'
-                             'C: counted before removal; in every model;\nthe baseline model has C only.', size=5.0, c=GREY, ha='left',
+                             'C: in every model;\nthe baseline model has C only.', size=5.0, c=GREY, ha='left',
       va='top', linespacing=1.2)
     # bracket from inputs to the two ridges
     bx = 90
