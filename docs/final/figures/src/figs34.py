@@ -212,8 +212,8 @@ def fig3b():
                                           '"A woman runs while\nholding a rope ..."\n... 20 captions', size=5.2)
     rows = [('L', C_L, 'low-level visual', 'brightness, colour, motion energy', ytop - 3),
             ('O', C_O, 'object names', 'nouns: woman, lizard, rope', ytop - 14),
-            ('S', C_S, 'full sentences', 'whole captions, used as written', ytop - 25),
-            ('C', GREY, 'common variables', 'caption length, emotion-word counts', ytop - 36)]
+            ('S', C_S, 'full sentences', 'whole captions, as written', ytop - 25),
+            ('C', GREY, 'common variables', 'caption length; emotion words undecided', ytop - 36)]
     for k, c, name, ex, y in rows:
         badge(ax, 44, y, k, c=c, r=2.2, size=7)
         T(ax, 47.6, y + 1.5, name, size=6.6, c=c, w='bold', ha='left')
