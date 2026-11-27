@@ -2,7 +2,7 @@
 """S8 6-3. HK에서 학습한 공유 모델을 MC 시청 자료에 옮긴다 (01 6-3, 04 S8, O29, O30, 11/15 석진 님).
 
 - HK 최종 모델(final_for_mc 분할, 개발 영상 전체, seed 3개)의 공유 가중치(encoder, query, feature head, emotion head, e(r))를 모두 고정하고,
-  MC 참가자마다 ROI 입력층 W(s, r), b(s, r)만 새로 학습한다. 참가자 이름은 HK와 겹치지 않게 mc-01 ~ mc-06으로 둔다.
+  MC 참가자마다 ROI 입력층 W(s, r), b(s, r)만 새로 학습한다. 참가자 이름은 HK와 겹치지 않게 mc-02 ~ mc-06으로 둔다(S1은 11/25 결정으로 뺌, 아래 MC).
 - 입력층 학습 자료: MC 시청 학습 세션 2,108개(manifests/s2/mc_blocks.tsv의 input_train, input_val). 검증 run은 O29(5, 10, ... 번째 run, 표의 input_val).
   시험 영상 72개와 그 중복 영상은 학습과 선택에 들어가지 않는다(시작할 때 확인한다). excluded_test_runs 행은 읽지 않는다.
 - 표준화: MC voxel은 그 참가자의 학습, 검증 block 통계(O29, C5). feature 목표는 HK 최종 모델의 D9 통계(O30, plan/standardization.npz).
@@ -24,7 +24,7 @@
 출력: <out>/<조건>/seed<k>/mc-0X/{selection.tsv, test_pred_<후보>.npz, input_layer.pt, done.json}
 확인용 실행(11/15): --plan outer_fold1로 바깥 fold 모델을 옮겨 오류, 메모리, 시간만 본다. 출력 폴더를 따로 두고 결과로 쓰지 않는다.
 사용(run worktree의 src에서): python s8_mc_transfer.py --final <s6_brain_final_for_mc> --out <s8_mc> --conditions brain_only,brain_decoded --seeds 0,1,2
-                               --participants 01,02,03,04,05,06 --design-freeze <커밋> [--device cuda]
+                               --participants 02,03,04,05,06 --design-freeze <커밋> [--device cuda]
 """
 import argparse
 import dataclasses
@@ -43,7 +43,7 @@ import s6_common as S
 import s6_model as M
 import s6_train as T
 
-MC = ("01", "02", "03", "04", "05", "06")
+MC = ("02", "03", "04", "05", "06")  # 11/25 석진 님: S1은 MC에서 뺀다(이유는 01 6-3)
 BRAIN_CONDITIONS = ("brain_only", "brain_decoded", "brain_only_featdec")  # 6-3의 A-1, C-1(상호작용 head)과 11/17에 더한 B-1. 입력층 하나, 조건의 원래 손실
 D_CONDITIONS = ("brain_decoded_sep", "brain_features_only", "brain_frozen_feature_encoder")  # 11/17 석진 님. D-1, D-3, D-4
 CONDITIONS = BRAIN_CONDITIONS + D_CONDITIONS
@@ -422,7 +422,7 @@ def main():
     seeds = [int(x) for x in a.seeds.split(",")]
     parts = [x for x in a.participants.split(",") if x]
     if set(parts) - set(MC):
-        raise SystemExit("MC 참가자는 01~06이다")
+        raise SystemExit("MC 참가자는 02~06이다(S1은 11/25 결정으로 뺌)")
     if a.plan != "final_for_mc" and not a.plan.startswith("outer_fold"):
         raise SystemExit("--plan은 final_for_mc나 outer_fold<k>다")
     final = Path(a.final) / a.plan

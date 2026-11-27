@@ -19,12 +19,13 @@
   - 예측: 이 값의 연합 네트워크(Default, Frontoparietal, Cingulo-Opercular, Language) 평균이 시각 네트워크(Visual1, Visual2) 평균보다 크다.
     근거는 휴지기 연결의 개인차가 연합 피질에서 가장 크다는 보고(Mueller 외, 2013)다. 정서 부호에 대한 근거는 아니다.
   - 판정: A-1과 C-1 각각에서, 6명 가운데 5명 이상이 같은 방향이고 6명 평균의 bootstrap 구간(72개 영상, 10,000회)이 0 위면 맞는 것으로 본다.
+    (11/25 S1을 빼면서 5명 가운데 4명 이상, 5명 평균으로 읽는다. 01 6-3)
 - 전체 성능(개인 − 공통)은 방향을 정하지 않고 보고한다. 개인 모델은 입력층 weight decay를 고르지 않아 공통 모델보다 불리할 수 있다(공통은 6개 후보에서 고름).
 - 쓰는 문장의 범위: 정답이 모든 사람에게 같은 규범 평정이므로, "사람마다 다르게 느낀다"가 아니라 "같은 장면 평정을 예측하는 뇌 정보가 사람마다
   다른 방식으로 담긴 곳"이다.
 
 사용(run worktree의 src에서):
-  python s8_mc_individual.py train --final <s6_brain_final_for_mc> --out <s8_mc_individual> --participants 01 --design-freeze <커밋> [--device cuda]
+  python s8_mc_individual.py train --final <s6_brain_final_for_mc> --out <s8_mc_individual> --participants 02 --design-freeze <커밋> [--device cuda]
   python s8_mc_individual.py perturb --final <s6_brain_final_for_mc> --transfer <s8_mc> --individual <s8_mc_individual> --out <폴더> --design-freeze <커밋>
 """
 import argparse
@@ -215,7 +216,7 @@ def main():
     c.guard(a.design_freeze)
     parts = [x for x in a.participants.split(",") if x]
     if set(parts) - set(M8.MC):
-        raise SystemExit("MC 참가자는 01~06이다")
+        raise SystemExit("MC 참가자는 02~06이다(S1은 11/25 결정으로 뺌)")
     final = Path(a.final) / "final_for_mc"
     if a.step == "train":
         train(final, a.out, parts, a.design_freeze, a.device)

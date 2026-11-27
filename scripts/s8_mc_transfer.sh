@@ -15,4 +15,4 @@ set -euo pipefail
 HERE="${SLURM_SUBMIT_DIR:+$SLURM_SUBMIT_DIR/scripts}"; source "${HERE:-$(dirname "$0")}/_env.sh"
 export OMP_NUM_THREADS=8
 "$PY" s8_mc_transfer.py --final "${1:?HK 최종 모델 폴더}" --out "${2:?출력 폴더}" --design-freeze "${3:?동결 커밋}" \
-    --conditions "${4:-brain_only,brain_decoded}" --seeds "${5:-0,1,2}" --participants "${6:-01,02,03,04,05,06}" --plan "${7:-final_for_mc}" --device cuda
+    --conditions "${4:-brain_only,brain_decoded}" --seeds "${5:-0,1,2}" --participants "${6:-02,03,04,05,06}" --plan "${7:-final_for_mc}" --device cuda

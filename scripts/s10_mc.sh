@@ -1,5 +1,5 @@
 #!/bin/bash
-# S10 6-3 MC 시청 전이(src/s10_mc.py). GPU 없음, 몇 초. 두 조건 × seed 3개 × MC 6명이 모두 있어야 최종 표를 낸다. 규칙은 파이썬 파일 머리말.
+# S10 6-3 MC 시청 전이(src/s10_mc.py). GPU 없음, 몇 초. 두 조건 × seed 3개 × MC 5명(S2~S6)이 모두 있어야 최종 표를 낸다. 규칙은 파이썬 파일 머리말.
 # 사용(레포 최상위): bash scripts/s10_mc.sh <S8 결과 폴더 절대 경로> <출력 폴더 절대 경로> <동결 커밋> [--constant-prediction-scope unit|all] [--partial-check] [--allow-check-run]
 set -euo pipefail
 source "$(dirname "$0")/_env.sh"

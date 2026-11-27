@@ -9,8 +9,8 @@
 - hk_roimean: HK 5명의 개발 영상에서 ROI 370개 평균 → 정서 ridge를 맞춘 뒤(HK 최종 모델과 같은 final_roles: fold 1 검증, fold 2~6 학습,
   5명의 행을 모음), MC 참가자에게 그대로 적용한다. MC 자료로는 표준화 통계만 맞춘다(그 참가자의 학습, 검증 block).
   사람 사이 voxel 대응 없이 할 수 있는 전이다. ROI 평균은 참가자마다 자기 학습 행으로 표준화한다.
-채점: s10_mc와 같다. 72개 영상에서 정서별 Pearson r, 34개 평균, 참가자 6명 평균. 깊은 모델(A-1, C-1)은 s8_mc의 seed마다 고른 후보(done.json의
-  chosen_input_wd)의 시험 예측을 읽어 seed 3개의 r을 평균한다. 차이의 구간은 72개 영상의 bootstrap(10,000회, BOOT_SEED, 6명 같은 무게)이다.
+채점: s10_mc와 같다. 72개 영상에서 정서별 Pearson r, 34개 평균, 참가자 5명(S2~S6, s8_mc_transfer.MC) 평균. 깊은 모델(A-1, C-1)은 s8_mc의 seed마다 고른 후보(done.json의
+  chosen_input_wd)의 시험 예측을 읽어 seed 3개의 r을 평균한다. 차이의 구간은 72개 영상의 bootstrap(10,000회, BOOT_SEED, 5명 같은 무게)이다.
 출력(레포 밖 --out): scores.tsv(참가자, decoder마다 34개 평균 r), per_emotion.tsv, comparison.tsv(C-1 − 각 decoder, A-1 − 각 decoder), preds.npz.
 사용: s10_mc_ridge.py --mc-dir <s8_mc> --out <폴더> --design-freeze <커밋> [--threads 16]
 """
@@ -117,7 +117,7 @@ def run(mc_dir, out, split, threads):
         print(f"{pid}: " + ", ".join(f"{r['decoder']} {r['score_r']:.3f}" for r in rows_s[-len(P):]), flush=True)
     S_ = pd.DataFrame(rows_s)
     S_ = pd.concat([S_, S_.groupby("decoder", as_index=False).score_r.mean().assign(participant="mean_mc")], ignore_index=True)
-    # 차이의 구간: 72개 영상 bootstrap, 6명 같은 무게(영상 순서가 6명 모두 같아야 한다)
+    # 차이의 구간: 72개 영상 bootstrap, 참가자 같은 무게(영상 순서가 모두 같아야 한다)
     W = st.bootstrap_counts(72, st.N_RESAMPLE, np.random.default_rng(BOOT_SEED)).astype(np.float64)
     boot = {}
     for pid, P in preds.items():

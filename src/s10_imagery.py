@@ -8,15 +8,15 @@
   영상마다 QC를 통과한 회상 블록(최대 5회)을 평균한다(MC 원문과 같음). 시험 영상 72개의 순서는 6-3과 같다.
 단서 입력(보조): 같은 방식으로 단서 문장을 읽는 블록(trial_type −2)의 평균. 01 6-3의 단서 구간 대 회상 구간 점검용이고 판정에 쓰지 않는다.
 채점: 6-3과 같다. 정서별 Pearson r(72개 영상), 72개에서 사람 평정이 상수인 정서와 예측이 상수인 정서는 그 단위의 평균에서 뺀다. 34개 평균이 참가자 점수.
-  seed 3개의 r을 평균한 값이 참가자 값이고, 6명 평균이 집단 값이다.
-판정(01 6-3의 문장 그대로)
-- Q1 회상 반응에서 정서 평정을 읽는가(A-1, C-1 각각): 6명 평균이 순열 기준보다 높고(p < .05), 6명 가운데 4명 이상이 양수.
-  순열은 6-3과 같다(72개 영상 안에서 사람 평정 벡터를 섞음, st.block_permutations, PERM_SEED 20261116, 10,000회, 6명과 seed에 같은 순열).
-- Q2 회상에서도 C-1 > A-1인가: 6명 평균 차이의 구간이 0 위(72개 영상 bootstrap, BOOT_SEED 20261115, 10,000회, basic 95%), seed 3개 모두 6명 평균 차이 > 0,
-  6명 가운데 5명 이상이 양수(seed 평균).
-- Q2a 회상에서 C-1의 이득이 시청보다 큰가(01 6-3 2a, 55c077a. 회상 결과를 보기 전에 적음): (C-1 − A-1)회상 − (C-1 − A-1)시청의 6명 평균(seed 평균)의 basic 95% 구간이 0 위이고
-  6명 가운데 5명 이상 양수. 같은 72개 영상, 같은 bootstrap 재표집이다. 시청 값도 이 코드가 같은 모델로 다시 낸 예측(저장 예측과 같음을 확인)으로 계산한다.
-- Q3 어떤 정서가 남는가: 정서마다 V/C 지수(imagery_prereg)와 "시청 r − 회상 r"(6명 평균, seed 평균)의 Spearman ρ가 음수이고,
+  seed 3개의 r을 평균한 값이 참가자 값이고, 5명 평균이 집단 값이다.
+판정(01 6-3. 11/25 S1을 빼면서 6명 기준을 5명 가운데 4명 이상으로 바꿨다)
+- Q1 회상 반응에서 정서 평정을 읽는가(A-1, C-1 각각): 5명 평균이 순열 기준보다 높고(p < .05), 5명 가운데 4명 이상이 양수.
+  순열은 6-3과 같다(72개 영상 안에서 사람 평정 벡터를 섞음, st.block_permutations, PERM_SEED 20261116, 10,000회, 5명과 seed에 같은 순열).
+- Q2 회상에서도 C-1 > A-1인가: 5명 평균 차이의 구간이 0 위(72개 영상 bootstrap, BOOT_SEED 20261115, 10,000회, basic 95%), seed 3개 모두 5명 평균 차이 > 0,
+  5명 가운데 4명 이상이 양수(seed 평균).
+- Q2a 회상에서 C-1의 이득이 시청보다 큰가(01 6-3 2a, 55c077a. 회상 결과를 보기 전에 적음): (C-1 − A-1)회상 − (C-1 − A-1)시청의 5명 평균(seed 평균)의 basic 95% 구간이 0 위이고
+  5명 가운데 4명 이상 양수. 같은 72개 영상, 같은 bootstrap 재표집이다. 시청 값도 이 코드가 같은 모델로 다시 낸 예측(저장 예측과 같음을 확인)으로 계산한다.
+- Q3 어떤 정서가 남는가: 정서마다 V/C 지수(imagery_prereg)와 "시청 r − 회상 r"(5명 평균, seed 평균)의 Spearman ρ가 음수이고,
   34개 정서 이름표 순열(PERM_SEED, 10,000회) 한쪽 p < .05. 01이 모델을 정하지 않아, 회상 자료를 보기 전에(11/17) A-1을 판정에 쓰고 C-1은 같은 계산을 보고한다.
   판정에 쓰지 않고 함께 적는 것: 시청 r 순위를 통제한 편상관(시청에서 높았던 정서일수록 떨어질 폭이 크다는 것만으로 생기는 관계인지 보기 위함).
 - Q4(보조) 어디에 남는가: 6-3의 MC 개인 모델 교란과 같은 네트워크 ablation(CAB-NP 13개 입력 열을 같은 참가자의 다른 시험 영상 값으로 바꿈, 20회,
@@ -44,7 +44,8 @@ CONDS = {"brain_only": "A-1", "brain_decoded": "C-1"}
 SEEDS = (0, 1, 2)
 BOOT_SEED, PERM_SEED, ABL_SEED = 20261115, 20261116, 20261117
 N_ABL = 20
-PARTS = ("01", "02", "03", "04", "05", "06")
+PARTS = ("02", "03", "04", "05", "06")  # 11/25 석진 님: S1은 MC에서 뺀다(이유는 01 6-3)
+MIN_SAME = 4  # 5명 가운데 4명 이상(6명일 때 Q1은 4명, Q2와 Q2a는 5명이었다)
 
 
 def block_means(imagery_dir, s, kind, video_ids, unique):
@@ -179,7 +180,7 @@ def run(final, mc_dir, imagery_dir, vc_path, out, n_boot, n_perm):
                                  null_mean=float(np.nanmean(sn[kind, cond, q])), p_perm=float(st.permutation_p(sc[kind, cond, q], sn[kind, cond, q]))))
             n_pos = sum(sc[kind, cond, q] > 0 for q in pids)
             m = rows[-1]
-            m.update(n_positive=int(n_pos), decision=("읽음" if (m["p_perm"] < .05 and n_pos >= 4) else "옮겨 가지 않음") if kind == "imagery" else "")
+            m.update(n_positive=int(n_pos), decision=("읽음" if (m["p_perm"] < .05 and n_pos >= MIN_SAME) else "옮겨 가지 않음") if kind == "imagery" else "")
         return rows
 
     q1 = pd.DataFrame(q1_table("imagery", "Q1") + q1_table("perception", "기준(시청)"))
@@ -191,7 +192,7 @@ def run(final, mc_dir, imagery_dir, vc_path, out, n_boot, n_perm):
     lo, hi = st.basic_ci(d_q["mean"], db)
     per_seed = {seed: float(np.mean([ss["imagery", "brain_decoded", seed, q] - ss["imagery", "brain_only", seed, q] for q in pids])) for seed in SEEDS}
     n_pos = sum(d_q[q] > 0 for q in pids)
-    ok = lo > 0 and all(v > 0 for v in per_seed.values()) and n_pos >= 5
+    ok = lo > 0 and all(v > 0 for v in per_seed.values()) and n_pos >= MIN_SAME
     q2 = pd.DataFrame([dict(question="Q2", comparison="C-1 − A-1 (회상)", estimate=d_q["mean"], ci_low=float(lo), ci_high=float(hi), p=float(st.centered_p(d_q["mean"], db)),
                             seed0=per_seed[0], seed1=per_seed[1], seed2=per_seed[2], n_positive=int(n_pos), per_participant=json.dumps({q: round(d_q[q], 4) for q in pids}),
                             decision="C-1 > A-1" if ok else "아님")])
@@ -202,7 +203,7 @@ def run(final, mc_dir, imagery_dir, vc_path, out, n_boot, n_perm):
     n_pos2 = sum(dd_q[q] > 0 for q in pids)
     q2 = pd.concat([q2, pd.DataFrame([dict(question="Q2a", comparison="(C-1 − A-1) 회상 − (C-1 − A-1) 시청", estimate=dd_q["mean"], ci_low=float(lo2), ci_high=float(hi2),
                                            p=float(st.centered_p(dd_q["mean"], dbb)), n_positive=int(n_pos2), per_participant=json.dumps({q: round(dd_q[q], 4) for q in pids}),
-                                           decision="회상에서 더 큼" if (lo2 > 0 and n_pos2 >= 5) else "아님")])], ignore_index=True)
+                                           decision="회상에서 더 큼" if (lo2 > 0 and n_pos2 >= MIN_SAME) else "아님")])], ignore_index=True)
 
     # Q3
     vc = pd.read_csv(vc_path, sep="\t").set_index("emotion").loc[names, "vision_over_caption"].to_numpy(np.float64)

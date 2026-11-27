@@ -7,10 +7,10 @@
 계산(s10_mc.py와 같은 원리)
 - 참가자별, 정서별로 72개 영상에 걸친 Pearson r, 34개 평균(사전 판). 27개판(Cowen & Keltner 7개를 뺀 것, 01 0절)도 함께 낸다.
   72개에서 사람 평정이 모두 같은 정서는 모든 조건에서 뺀다. 예측이 일정한 정서가 있으면 그 참가자의 모든 조건에서 뺀다(s10_mc의 unit 범위와 같음).
-- 차이(D-3 − A-1, D-4 − A-1, D-3 − C-1, D-4 − C-1): 6명 평균의 basic 95% 구간과 중심 맞춘 양측 p(72개 영상 단위 bootstrap 10,000회, s10_mc와 같은 perf.BOOT_SEED와 st.bootstrap_counts, st.boot_r), 같은 방향인 참가자 수.
+- 차이(D-3 − A-1, D-4 − A-1, D-3 − C-1, D-4 − C-1): 5명 평균의 basic 95% 구간과 중심 맞춘 양측 p(72개 영상 단위 bootstrap 10,000회, s10_mc와 같은 perf.BOOT_SEED와 st.bootstrap_counts, st.boot_r), 같은 방향인 참가자 수.
 - 01의 읽는 규칙: D-3, D-4가 "A-1과 같거나 높으면" "정서 평정을 읽는 능력이 장면 feature 경로만으로 새 사람에게 옮겨 간다"고 쓴다.
-  코드의 판정: 구간 상한 < 0이고 6명 가운데 5명 이상이 음수면 "A-1보다 낮다", 구간 하한 > 0이고 5명 이상 양수면 "A-1보다 높다", 그 밖은 "A-1과 구별되지 않는다".
-  6-3과 같은 판정 기준(6명 평균 구간과 6명 가운데 5명 이상 같은 방향)이다. 보정은 하지 않는다(O4 (5)).
+  코드의 판정: 구간 상한 < 0이고 5명 가운데 4명 이상이 음수면 "A-1보다 낮다", 구간 하한 > 0이고 4명 이상 양수면 "A-1보다 높다", 그 밖은 "A-1과 구별되지 않는다".
+  6-3과 같은 판정 기준(5명 평균 구간과 5명 가운데 4명 이상 같은 방향)이다. 11/25까지는 MC 6명에 5명 이상이었고, S1을 빼면서 바꿨다. 보정은 하지 않는다(O4 (5)).
 출력(--out): scores.tsv(조건 × 참가자 × 판), differences.tsv, per_emotion.tsv, run_info.json
 - 11/18 --with-b1: B-1(brain_only_featdec, 06 5절 "C-1의 이득이 특징을 거쳐 읽어서인지, 학습 때 특징을 더 배워서인지")을 더한다.
   더하는 차이: C-1 − B-1, B-1 − A-1. 기존 네 차이와 판정 규칙은 그대로다. 출력 폴더를 따로 준다.
@@ -29,7 +29,8 @@ import s10_performance as perf
 import s10_stats as st
 
 CONDS = {"brain_only": "A-1", "brain_decoded": "C-1", "brain_features_only": "D-3", "brain_frozen_feature_encoder": "D-4"}
-PIDS = tuple(f"mc-0{i}" for i in range(1, 7))
+PIDS = tuple(f"mc-0{i}" for i in range(2, 7))  # 11/25 석진 님: S1은 MC에서 뺀다(이유는 01 6-3)
+MIN_SAME = 4  # 5명 가운데 4명 이상 같은 방향(6명일 때는 5명 이상이었다)
 CK7 = ("pride", "triumph", "contempt", "disappointment", "sympathy", "guilt", "envy")
 PAIRS = (("D-3", "A-1"), ("D-4", "A-1"), ("D-3", "C-1"), ("D-4", "C-1"))
 
@@ -105,7 +106,7 @@ def run(mc_dir, out, n_boot=st.N_RESAMPLE):
             lo, hi = st.basic_ci(d, bd)
             p = st.centered_p(d, bd)
             neg, pos = int((d_q < 0).sum()), int((d_q > 0).sum())
-            verdict = (f"{b}보다 낮다" if hi < 0 and neg >= 5 else f"{b}보다 높다" if lo > 0 and pos >= 5 else f"{b}과 구별되지 않는다")
+            verdict = (f"{b}보다 낮다" if hi < 0 and neg >= MIN_SAME else f"{b}보다 높다" if lo > 0 and pos >= MIN_SAME else f"{b}과 구별되지 않는다")
             diffs.append(dict(comparison=f"{a} - {b}", set=tag, mean_diff=d, ci_low=lo, ci_high=hi, p=p, n_negative=neg, n_positive=pos, verdict=verdict,
                               **{f"diff_{q}": float(v) for q, v in zip(PIDS, d_q)}))
     o = Path(out)

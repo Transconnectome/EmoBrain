@@ -808,8 +808,8 @@ ex) Visual1/A-1_brain_only/fold3은 1차 시각 묶음 ROI 6개의 입력만으�
             f"src/s6_train.py, 설정 configs/s6/run_config_net_{g}.json")
     out["s6_brain_model/analysis/6-3_model_for_mc"] = rd("6-3_model_for_mc (MC 전이용 모델)",
         "개발 영상 전체로 학습한 A-1, C-1이다. 시험 fold가 없다.",
-        """01 6-3, O7. fold 1을 검증, 나머지 fold 5개를 학습으로 쓴다. S8은 이 모델의 공유 가중치(encoder, query, feature head, emotion head)를 모두 고정하고, MindCaptioning 참가자 6명마다 ROI 입력층만 새로 학습해 MC 시험 영상 72개로 채점한다.
-ex) MC 참가자 mc-01의 뇌는 HK와 voxel 배치가 달라서 입력층만 새로 맞추고, 나머지 계산은 HK에서 배운 그대로 쓴다.""",
+        """01 6-3, O7. fold 1을 검증, 나머지 fold 5개를 학습으로 쓴다. S8은 이 모델의 공유 가중치(encoder, query, feature head, emotion head)를 모두 고정하고, MindCaptioning 참가자 5명(S2~S6)마다 ROI 입력층만 새로 학습해 MC 시험 영상 72개로 채점한다.
+ex) MC 참가자 mc-02의 뇌는 HK와 voxel 배치가 달라서 입력층만 새로 맞추고, 나머지 계산은 HK에서 배운 그대로 쓴다.""",
         "A-1_brain_only, C-1_brain_decoded가 각각 학습 결과 폴더로 가는 링크다. 시험이 없어 test_pred.npz와 outputs/의 시험 파일이 없다.",
         "6-3_model_for_mc/\n├── README.md\n├── A-1_brain_only     → s6_brain_final_for_mc/final_for_mc/brain_only\n└── C-1_brain_decoded  → s6_brain_final_for_mc/final_for_mc/brain_decoded\n\n링크 하나의 안쪽 " + FEATURE_NOTE + " 시험이 없어 test_pred.npz와 시험 파일은 없다\n" + cand_tree("feature") + "\n\nplan/은 s6_brain_final_for_mc/final_for_mc/plan/에 있다",
         "src/s6_train.py(분할 final_for_mc), 설정 configs/s6/run_config_final_for_mc.json. S8은 src/s8_mc_transfer.py")

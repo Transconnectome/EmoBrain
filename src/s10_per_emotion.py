@@ -7,8 +7,8 @@
 자료
 - HK: S6 최종 결과의 seed 0 시험 예측(6 fold를 모음, 5명). 읽기와 행 대조는 s10_performance와 같다(find_predictions, load_condition, same_rows).
   bootstrap은 s10_performance와 같다. 내용 묶음(canonical_id) 단위, BOOT_SEED 20261115, 10,000회, 모든 모델과 5명에 같은 재표집.
-- MC: 6-3 전이(A-1, C-1만 있다). 읽기는 s10_mc.load_units. seed 3개의 r을 평균하고 6명을 평균한다(6-3과 같다).
-  bootstrap은 72개 영상, 같은 BOOT_SEED, 6명과 seed에 같은 재표집.
+- MC: 6-3 전이(A-1, C-1만 있다). 읽기는 s10_mc.load_units. seed 3개의 r을 평균하고 5명(s10_mc.MC_PIDS)을 평균한다(6-3과 같다).
+  bootstrap은 72개 영상, 같은 BOOT_SEED, 5명과 seed에 같은 재표집.
 계산
 - 정서마다 r(참가자마다, 그다음 참가자 평균), Δ = 모델 − A-1, basic 95% 구간, 중심 맞춘 양측 p, BH-FDR(비교마다 34개). 정서별 차이는 탐색이다.
 - 표마다 Cowen & Keltner 2017에서 별도 차원으로 남지 않은 7개(01 0절, 27개판에서 빼는 정서)를 표시한다(ck27 열). 우리 결과로 고른 정서가 아니다.
@@ -106,7 +106,7 @@ def hk_part(s6_dir, split, y, n_boot):
 
 
 def mc_part(mc_dir, n_boot):
-    """MC 6-3 예측. 돌려주는 값: 모델 -> (점 추정 34, bootstrap (B, 34)) 6명 평균(seed 3개의 r 평균), 참가자별 r 표."""
+    """MC 6-3 예측. 돌려주는 값: 모델 -> (점 추정 34, bootstrap (B, 34)) 5명 평균(seed 3개의 r 평균), 참가자별 r 표."""
     units, _, missing = MC.load_units(mc_dir, False)
     if missing:
         raise SystemExit(f"MC 예측이 빠졌다: {missing}")
