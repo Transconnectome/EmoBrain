@@ -4,14 +4,14 @@
 
 | 문서 그림 | 파일 | 내용 |
 |---|---|---|
-| 그림 1 | `emobrain_ridge_overview` | VCE 학습과 head 선택, 같은 head 출력이 분석 3, 4, 5, 6으로 이어지는 흐름 |
+| 그림 1 | `emobrain_ridge_overview` | VCE 학습과 head 선택, 같은 head 출력이 분석 3, 4, 5, 6으로 이어지는 흐름. ⑥은 4번 줄의 encoding 모델로 본 영상을 맞히고 정서를 추정한다(11/27) |
 | 그림 2 | `emobrain_videomae_methods` | 두 학습 단계와 head를 읽거나 제거하는 위치 |
 | 그림 3a | `emobrain_head_layers` | 공포 목록 고르기(켜진 마스크와 꺼진 마스크의 평균 r 차이 예시), 목록의 층 위치, 시험 영상의 두 결론(무작위 대조, 다른 정서 목록 대조) |
-| 그림 3b | `emobrain_head_captions` | 전체 캡션이 움직임과 물체 이름을 고려한 뒤 더하는 설명력: 두 예측 경로, L+O 대 L+O+S, 고유분과 공유분 |
+| 그림 3b | `emobrain_head_captions` | 전체 캡션이 움직임과 물체 이름을 고려한 뒤 더하는 설명력: 두 예측 경로, L+O 대 L+O+S, 고유분과 공유분. S는 캡션을 고치지 않고 쓴다(11/27 결정 8) |
 | 보충 그림 S1 | `emobrain_chase_head_roi` | ‘쫓다’ 예시(부록, 11/26에 그림 3c에서 이름을 바꿈) |
 | 그림 4a | `emobrain_roi_partition` | 한 영역에서 세 모형의 예측, 분할 계산 예시, 영역별 세 값, 그림 3b와의 연결 |
 | 그림 4b | `emobrain_regional_alignment` | 비교하는 모델 판(학습 전후, 공포 목록 head와 무작위 head를 끔), RSA와 encoding, 추가 하락 예시 |
-| 그림 5 | `emobrain_brain_decoding` | 참가자별 특징 복원과 고정 판독기 |
+| 그림 5 | `emobrain_brain_decoding` | 분석 6의 주 분석(11/27 결정 7): 참가자별 encoding 모델 적합, 본 영상 맞히기, 가장 닮은 후보 영상들의 평정으로 한 정서 추정, 보고할 값. 이전 판(특징 복원과 고정 판독기)은 git 기록에 있다 |
 | 그림 2~5 묶음 | `emobrain_methods_figures.pdf` | 방법론 그림 한 파일 |
 | 그림 3a, 3b 묶음 | `emobrain_head_interpretation.pdf` | head 해석 그림 한 파일 |
 
