@@ -144,6 +144,7 @@
 - 쓰지 않는 것: em dash, 가운뎃점, "잰다", "가른다", "몫"(활용형 포함). "증류" 대신 distillation.
 - 명확한 영어 기술 용어는 영어로 쓴다. ex) ridge, block, decoder, encoder, head, fold, seed, soft BCE, feature decoding, decoded features
 - 인용은 정확한 APA 저자-연도로 쓴다. 방법이나 자료 이름만으로 인용하지 않는다. ex) "(MindCaptioning)" 대신 "(Horikawa, 2025)"
+- 논문의 방법을 가리킬 때 그 논문의 줄임말을 쓰지 않는다. 저자-연도와 논문명을 쓰고, 방법은 우리말로 풀어 쓴다(11/28 석진 님). ex) "TSN 방식" 대신 "구간 평균 학습(Wang 등(2016), Temporal Segment Networks: Towards Good Practices for Deep Action Recognition)"
 - 용어
     - 개념은 "시각 정보"와 "의미 정보"다. 의미 정보를 풀어 쓸 때는 "상황"이라고 쓴다.
     - 측정치는 출처로 부른다. Vision feature는 시각 모델에서 뽑은 것, Caption feature는 사람이 쓴 캡션을 언어 모델로 바꾼 것이다(11/7 석진 님). "영상 특징", "의미 특징", "장면 feature"라고 쓰지 않는다. 사람이 매긴 값은 사람 평정, 모델이 낸 값은 예측 평정이다. 모델은 Stimulus Model(논문에서는 teacher), Multimodal Model, Brain Model로 부른다. 조건은 01 5-A의 이름을 쓴다.
